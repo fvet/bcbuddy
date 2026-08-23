@@ -7,7 +7,7 @@
   var BCEM = root.BCEM || (root.BCEM = {});
 
   var STORAGE_KEY = 'settings';
-  var EXPORT_APP = 'bc-environment-marker';
+  var EXPORT_APP = 'bc-buddy';
   var SCHEMA_VERSION = 1;
 
   var BRAND_NAME = 'Dynamics 365 Business Central';
