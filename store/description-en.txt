@@ -1,0 +1,19 @@
+If you work across several customers or environments, all your Business Central tabs start to look the same. Posting in production while you thought you were in a sandbox is easily done.
+
+BC Buddy gives every environment its own colour, so you can see at a glance where you are:
+
+- The bar at the top of the client takes your colour and your text, for example "PRODUCTION - CRONUS BE".
+- A coloured frame around the window.
+- A banner along the bottom, or a ribbon in the corner.
+- The tab title, for example "[TEST] Company Information".
+- A coloured icon on the tab, so you find the right one among ten others.
+
+You decide when each colour appears: per environment, per company or per customer. Production red, test orange, sandbox green - or whatever suits you.
+
+Working in a team? Everyone can use the same markings. Set them up once and your colleagues get them automatically, including later changes.
+
+Business Central online and on-premises are both recognised. The extension is available in Dutch and English, and follows your browser's language.
+
+Everything stays on your own machine: no server, no analytics, no tracking.
+
+More detail: https://github.com/fvet/bcbuddy

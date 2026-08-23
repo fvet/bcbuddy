@@ -29,86 +29,47 @@ blijft de browsertaal volgen.
 
 ## 2. Korte beschrijving (max. 132 tekens)
 
+Dit is ook de `description` in `_locales/*/messages.json`: de Web Store weigert
+het pakket als een van beide talen over 132 tekens gaat. De tests bewaken dat.
+
 **NL**
 
-> Markeer je Business Central-omgevingen met kleur: ribbon, kader, banner,
-> tabtitel en favicon. Instellingen deelbaar via JSON.
+> Zie in een oogopslag in welke Business Central-omgeving je werkt: eigen
+> kleur in de balk bovenaan, kader, banner en tabicoon.
 
 **EN**
 
-> Tell your Business Central environments apart with colour: ribbon, frame,
-> banner, tab title and favicon. Settings shareable via JSON.
+> See at a glance which Business Central environment you are in: your own
+> colour in the top bar, frame, banner and tab icon.
 
 ---
 
 ## 3. Uitgebreide beschrijving
 
-**NL**
+De volledige tekst staat klaar om te plakken in:
 
-> Werk je met meerdere Business Central-omgevingen, dan lijken ze in je
-> browser allemaal op elkaar. Een boeking die in productie belandt terwijl je
-> dacht in een sandbox te zitten, is zo gebeurd.
->
-> BC Buddy geeft elke omgeving een eigen gezicht. Je stelt regels in - op
-> omgeving, bedrijf, tenant of gewoon op een stuk van de URL - en elke regel
-> krijgt een kleur en een layout.
->
-> Wat een layout kan tonen:
->
-> - Ribbon - de zwarte balk bovenaan de BC-client krijgt jouw kleur en jouw
->   tekst, bijvoorbeeld "PRODUCTIE - CRONUS BE".
-> - Kader - een gekleurde rand rond het volledige venster.
-> - Banner - een balk onderaan of een diagonaal lint in een hoek.
-> - Tabtitel - bijvoorbeeld "[TEST] Company Information".
-> - Favicon - een gekleurd icoontje met de eerste letters, zodat je in een
->   rij tabbladen meteen de juiste ziet.
->
-> In elke tekst kan je tokens gebruiken: {name}, {environment}, {company} en
-> {title}. Lege tokens worden netjes opgeruimd.
->
-> Zowel Business Central online als on-premises wordt herkend.
->
-> Instellingen delen met je team: exporteer je regels naar JSON, zet dat
-> bestand op een publieke URL (bijvoorbeeld een raw GitHub-link) en laat
-> iedereen die URL invullen. De extensie werkt ze dagelijks bij. Eigen regels
-> hebben altijd voorrang op gedeelde.
->
-> De extensie is beschikbaar in het Nederlands en het Engels en volgt de taal
-> van je browser.
->
-> Privacy: alles blijft lokaal. Geen server, geen analytics, geen tracking.
-> Het enige netwerkverzoek dat BC Buddy doet, is het ophalen van het gedeelde
-> configuratiebestand op de URL die jij zelf instelt.
->
-> Broncode: https://github.com/fvet/bcbuddy
+- [`store/description-nl.txt`](description-nl.txt)
+- [`store/description-en.txt`](description-en.txt)
 
-**EN** - zelfde tekst, vertaald, als je de listing ook in het Engels zet.
+Het veld neemt platte tekst: geen markdown, geen HTML, en regeleindes
+blijven staan zoals ze er staan. Daarom zijn de alineas in die bestanden
+een doorlopende regel - hard afbreken op 80 tekens geeft in de store een
+rafelige kolom.
 
 ---
 
 ## 4. Antwoorden op het privacy-formulier
 
-**Single purpose (een zin, verplicht):**
+Klaar om te plakken in [`store/privacy-practices.txt`](privacy-practices.txt):
+de beschrijving voor een doel, de verantwoording per recht, het antwoord
+over externe code, en wat je aanvinkt bij gegevensgebruik.
 
-> BC Buddy visually marks Business Central environments in the browser -
-> ribbon, frame, banner, tab title and favicon - so the user can tell one
-> environment from another at a glance.
+Schrijf die velden in het Engels - de reviewers lezen Engels, ook als je
+listing Nederlands is.
 
-**Rechtvaardiging per recht** (elk veld wil een eigen antwoord):
-
-| Recht | Rechtvaardiging |
-|---|---|
-| `storage` | Stores the user's own rules and layouts, plus the URL of an optional shared configuration file. All of it stays in `chrome.storage.local`; nothing is transmitted. |
-| `alarms` | Schedules one daily check of the shared configuration file the user configured, so a team-wide change reaches everyone without manual action. |
-| Host permission `<all_urls>` | Rules must be able to match any URL. Business Central on-premises runs on the customer's own host name, which the extension cannot know in advance, and the optional shared configuration file may be hosted on any domain the user chooses. The access is used only to draw the extension's own markers on pages that match a user-defined rule; page content is never read for any other purpose, stored or transmitted. |
-| Remote code | **No.** All code ships inside the package. The only thing fetched at runtime is a JSON data file, which is parsed as data and never executed. |
-
-**Data usage - vink aan:**
-
-- Verzamelt de extensie gebruikersgegevens? **Nee.**
-- Alle drie de verklaringen onderaan (niet verkopen aan derden, geen gebruik
-  buiten het aangegeven doel, geen gebruik voor kredietwaardigheid) mogen
-  aangevinkt worden.
+Los daarvan vraagt de pagina Instellingen om een e-mailadres van de
+uitgever dat je ook moet laten verifieren; zonder dat blijft publiceren
+geblokkeerd.
 
 ---
 
@@ -116,9 +77,13 @@ blijft de browsertaal volgen.
 
 Wat de store minstens wil:
 
+Het winkelicoon is een apart bestand: de store wil 16 px doorzichtige rand
+rondom, terwijl het werkbalkicoon (`icon128.png`) de ruimte net wel mag
+vullen. Bouw het met `icons/build-icons.ps1`; het gaat niet mee in de ZIP.
+
 | Item | Formaat | Aantal | Status |
 |---|---|---|---|
-| Icoon | 128x128 PNG | 1 | Zit in het pakket |
+| Winkelicoon | 128x128 PNG, merk binnen 96x96 | 1 | `icons/store-icon128.png` |
 | Screenshots | 1280x800 (of 640x400) PNG/JPEG | 1 tot 5 | **Nog te maken** |
 | Kleine promotietegel | 440x280 PNG/JPEG | 1, optioneel maar aangeraden | **Nog te maken** |
 | Marquee-tegel | 1400x560 | optioneel | Overslaan |
@@ -166,13 +131,26 @@ teksten hierboven kan je hergebruiken.
 
 ## 7. Wat de review kan vertragen
 
-`<all_urls>` met een content script op elke pagina is de zwaarste combinatie
-die je kan aanvragen. Ze is hier verdedigbaar - on-prem BC draait op een
-hostnaam die de extensie niet vooraf kent - maar reken op extra vragen en een
-tragere review.
+De store meldt bij het indienen dat brede hostrechten een grondige
+beoordeling kunnen vragen. Dat is verwacht en aanvaard (23 augustus 2026):
+we houden `<all_urls>` en nemen de tragere review erbij.
 
-Wil je dat vermijden, dan is de smalle variant: `host_permissions` beperken
-tot `https://businesscentral.dynamics.com/*` en de rest via
-`optional_host_permissions` laten aanvragen door de gebruiker die on-prem
-draait. Dat is echter een gedragswijziging in de extensie, geen listing-keuze,
-en betekent dat on-prem-gebruikers eerst toestemming moeten geven.
+Waarom niet versmald:
+
+- `activeTab` kan niet. Dat geeft pas toegang na een expliciete klik op het
+  extensie-icoon, terwijl BC Buddy net automatisch moet markeren bij
+  `document_start`. Met `activeTab` zou je op elk tabblad eerst moeten
+  klikken voor er iets kleurt.
+- Een vaste lijst hosts dekt on-prem niet: die draait op de hostnaam van de
+  klant, en het gedeelde bestand staat op een domein dat de gebruiker kiest.
+
+De prijs die we hiervoor betalen, naast de tragere review: bij installatie
+toont Chrome "al je gegevens op alle websites lezen en wijzigen". Dat
+schrikt af en blijft afschrikken, ook lang na de review.
+
+Wil je daar later toch van af, dan is de weg: `host_permissions` beperken
+tot `https://businesscentral.dynamics.com/*`, `optional_host_permissions`
+toevoegen voor de rest, content scripts dynamisch registreren met
+`chrome.scripting` en in de optiespagina een knop zetten waarmee een
+on-prem gebruiker zijn eigen host toestaat. Dat is een gedragswijziging,
+geen listing-keuze.

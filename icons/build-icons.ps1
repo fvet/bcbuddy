@@ -89,4 +89,83 @@ foreach ($t in $targets) {
     Write-Host ("icon{0}.png  ({1} bytes)" -f $t.Size, (Get-Item $out).Length) -ForegroundColor Green
 }
 
+
+<#
+    Het winkelicoon volgt andere regels dan het werkbalkicoon.  De Web Store
+    wil een 128x128 PNG waarin het merk zelf niet groter is dan 96x96: de
+    16 px rondom moeten doorzichtig blijven, want de store zet er zijn eigen
+    kader en schaduw omheen.  Vult de tekening de volledige 128 px, dan botst
+    ze tegen dat kader.
+
+    In de werkbalk geldt het omgekeerde - daar mag het merk net wel de ruimte
+    innemen - dus dit is een apart bestand en geen vervanging van icon128.png.
+    Het gaat ook niet mee in het pakket; je uploadt het in het dashboard.
+#>
+
+function Get-AlphaBounds([System.Drawing.Bitmap]$bmp) {
+    $rect = New-Object System.Drawing.Rectangle(0, 0, $bmp.Width, $bmp.Height)
+    $data = $bmp.LockBits($rect, [System.Drawing.Imaging.ImageLockMode]::ReadOnly,
+        [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $stride = $data.Stride
+    try {
+        $bytes = New-Object byte[] ($stride * $bmp.Height)
+        [System.Runtime.InteropServices.Marshal]::Copy($data.Scan0, $bytes, 0, $bytes.Length)
+    } finally {
+        $bmp.UnlockBits($data)
+    }
+
+    $minX = $bmp.Width; $minY = $bmp.Height; $maxX = -1; $maxY = -1
+    for ($y = 0; $y -lt $bmp.Height; $y++) {
+        $row = $y * $stride
+        for ($x = 0; $x -lt $bmp.Width; $x++) {
+            # Alleen de alpha telt; halfdoorzichtige randpixels laten we meetellen
+            # vanaf 8, zodat antialiasing de rand niet kunstmatig oprekt.
+            if ($bytes[$row + $x * 4 + 3] -gt 8) {
+                if ($x -lt $minX) { $minX = $x }
+                if ($x -gt $maxX) { $maxX = $x }
+                if ($y -lt $minY) { $minY = $y }
+                if ($y -gt $maxY) { $maxY = $y }
+            }
+        }
+    }
+    if ($maxX -lt 0) { throw 'De render is volledig doorzichtig.' }
+    return @{ X = $minX; Y = $minY; W = $maxX - $minX + 1; H = $maxY - $minY + 1 }
+}
+
+function Save-StoreIcon([string]$sourcePng, [int]$canvas, [int]$content, [string]$target) {
+    $src = [System.Drawing.Bitmap]::FromFile($sourcePng)
+    try {
+        $bounds = Get-AlphaBounds $src
+        # Het merk is breder dan hoog; passen binnen 96x96 betekent dus schalen
+        # op de breedte en verticaal centreren.
+        $scale = [Math]::Min($content / $bounds.W, $content / $bounds.H)
+        $w = [int][Math]::Round($bounds.W * $scale)
+        $h = [int][Math]::Round($bounds.H * $scale)
+
+        $bmp = New-Object System.Drawing.Bitmap($canvas, $canvas, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+        $g = [System.Drawing.Graphics]::FromImage($bmp)
+        $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+        $g.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
+
+        $dest = New-Object System.Drawing.Rectangle(
+            [int][Math]::Round(($canvas - $w) / 2), [int][Math]::Round(($canvas - $h) / 2), $w, $h)
+        $from = New-Object System.Drawing.Rectangle($bounds.X, $bounds.Y, $bounds.W, $bounds.H)
+        $g.DrawImage($src, $dest, $from, [System.Drawing.GraphicsUnit]::Pixel)
+        $g.Dispose()
+
+        $bmp.Save($target, [System.Drawing.Imaging.ImageFormat]::Png)
+        $bmp.Dispose()
+        return @{ W = $w; H = $h; Pad = $dest.X }
+    } finally {
+        $src.Dispose()
+    }
+}
+
+$storeIcon = Join-Path $iconDir 'store-icon128.png'
+$result = Save-StoreIcon $bigPng 128 96 $storeIcon
+Write-Host ("store-icon128.png  merk {0}x{1}, {2} px rand ({3} bytes)" -f `
+    $result.W, $result.H, $result.Pad, (Get-Item $storeIcon).Length) -ForegroundColor Green
+
 Write-Host "`nKlaar." -ForegroundColor Green

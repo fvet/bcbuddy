@@ -196,6 +196,13 @@ function assertMessages() {
       Object.keys(nl).filter(function (k) {
         return !String(nl[k].message || '').trim() || !String((en[k] || {}).message || '').trim();
       }), []);
+
+    // De Web Store weigert een pakket waarvan de description langer is dan
+    // 132 tekens - per taal, dus beide bestanden moeten passen.
+    check('vertalingen: description blijft onder 132 tekens',
+      [['nl', nl], ['en', en]].filter(function (pair) {
+        return String(pair[1].extDescription.message || '').length > 132;
+      }).map(function (pair) { return pair[0]; }), []);
   });
 }
 

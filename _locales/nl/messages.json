@@ -1,6 +1,6 @@
 {
   "extName": { "message": "BC Buddy" },
-  "extDescription": { "message": "Environment marker voor Business Central: gekleurd kader, banner, dynamische gekleurde ribbon en favicon per omgeving. Instellingen deelbaar via een gedeelde JSON (bv. GitHub)." },
+  "extDescription": { "message": "Zie in een oogopslag in welke Business Central-omgeving je werkt: eigen kleur in de balk bovenaan, kader, banner en tabicoon." },
   "optionsTitle": { "message": "BC Buddy - opties" },
   "tagline": { "message": "Markeer je Business Central omgevingen met kleur, kader en een eigen ribbon." },
   "extensionActive": { "message": "Extensie actief" },
