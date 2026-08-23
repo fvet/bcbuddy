@@ -129,11 +129,11 @@ Everyone in the team can work from the same markings, so a colleague opening a
 customer's production environment sees the same red you do.
 
 1. Set up your layouts and rules and click **Export**; that produces
-   `bc-markers.json`, layouts included.
+   `bc-buddy.json`, layouts included.
 2. Put that file somewhere everyone can reach it over HTTP — a repository, for
    instance.
 3. Everyone fills in the URL on the options page under **Shared configuration**:
-   `https://raw.githubusercontent.com/company/repo/main/bc-markers.json`
+   `https://raw.githubusercontent.com/company/repo/main/bc-buddy.json`
    An ordinary `github.com/.../blob/...` link is fine too; it is converted to
    the raw variant automatically.
 4. A click on **Synchronise** fetches the file and thereby switches the shared
@@ -146,7 +146,7 @@ customer's production environment sees the same red you do.
 Shared rules sit at the bottom of the list and cannot be edited. To adjust one,
 use the copy button on that rule: you get your own version, with its layout
 alongside, and that takes precedence over the shared one. An example file is in
-[`examples/bc-markers.example.json`](examples/bc-markers.example.json).
+[`examples/bc-buddy.example.json`](examples/bc-buddy.example.json).
 
 Importing goes through **Import / export > Choose file** and works as a merge: a
 rule you already have is overwritten in place, new rules are added, and rules

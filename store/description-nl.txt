@@ -12,8 +12,6 @@ Je bepaalt zelf wanneer welke kleur verschijnt: per omgeving, per bedrijf of per
 
 Werk je in een team, dan kan iedereen met dezelfde markeringen werken. Een keer instellen volstaat: je collega's krijgen ze automatisch mee en blijven mee als er iets verandert.
 
-Business Central online en on-premises worden allebei herkend. De extensie is beschikbaar in het Nederlands en het Engels, en volgt de taal van je browser.
+Business Central online en on-premises worden allebei herkend. De extensie is beschikbaar in het Nederlands en het Engels.
 
 Alles blijft op je eigen machine: geen server, geen analytics, geen tracking.
-
-Meer uitleg: https://github.com/fvet/bcbuddy

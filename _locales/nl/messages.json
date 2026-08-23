@@ -1,5 +1,4 @@
 {
-  "extName": { "message": "BC Buddy" },
   "extDescription": { "message": "Zie in een oogopslag in welke Business Central-omgeving je werkt: eigen kleur in de balk bovenaan, kader, banner en tabicoon." },
   "optionsTitle": { "message": "BC Buddy - opties" },
   "tagline": { "message": "Markeer je Business Central omgevingen met kleur, kader en een eigen ribbon." },
@@ -50,7 +49,7 @@
   "exportHeading": { "message": "Exporteren" },
   "exportIntro": { "message": "Exporteert enkel je eigen regels, in het formaat dat deze extensie ook inleest." },
   "exportButton": { "message": "Exporteer" },
-  "exportDone": { "message": "$1 regel(s) geexporteerd naar bc-markers.json." },
+  "exportDone": { "message": "$1 regel(s) geexporteerd naar bc-buddy.json." },
   "ruleNamePlaceholder": { "message": "Naam (bv. TEST)" },
   "ruleOn": { "message": "Aan" },
   "ruleActiveTitle": { "message": "Regel actief" },

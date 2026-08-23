@@ -485,8 +485,8 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
     BCEM.mergeRules([], bestand).stats, { overwritten: 0, added: 3, kept: 0 });
 
   check('raw-url: github blob wordt raw',
-    BCEM.toRawUrl('https://github.com/bedrijf/repo/blob/main/bc-markers.json'),
-    'https://raw.githubusercontent.com/bedrijf/repo/main/bc-markers.json');
+    BCEM.toRawUrl('https://github.com/bedrijf/repo/blob/main/bc-buddy.json'),
+    'https://raw.githubusercontent.com/bedrijf/repo/main/bc-buddy.json');
   check('raw-url: raw blijft ongewijzigd',
     BCEM.toRawUrl('https://raw.githubusercontent.com/b/r/main/x.json'),
     'https://raw.githubusercontent.com/b/r/main/x.json');

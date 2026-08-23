@@ -1,5 +1,4 @@
 {
-  "extName": { "message": "BC Buddy" },
   "extDescription": { "message": "See at a glance which Business Central environment you are in: your own colour in the top bar, frame, banner and tab icon." },
   "optionsTitle": { "message": "BC Buddy - options" },
   "tagline": { "message": "Tell your Business Central environments apart with colour, a frame and your own ribbon." },
@@ -50,7 +49,7 @@
   "exportHeading": { "message": "Export" },
   "exportIntro": { "message": "Exports your own rules only, in the format this extension also reads." },
   "exportButton": { "message": "Export" },
-  "exportDone": { "message": "Exported $1 rule(s) to bc-markers.json." },
+  "exportDone": { "message": "Exported $1 rule(s) to bc-buddy.json." },
   "ruleNamePlaceholder": { "message": "Name (e.g. TEST)" },
   "ruleOn": { "message": "On" },
   "ruleActiveTitle": { "message": "Rule active" },

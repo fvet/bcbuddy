@@ -12,8 +12,6 @@ You decide when each colour appears: per environment, per company or per custome
 
 Working in a team? Everyone can use the same markings. Set them up once and your colleagues get them automatically, including later changes.
 
-Business Central online and on-premises are both recognised. The extension is available in Dutch and English, and follows your browser's language.
+Business Central online and on-premises are both recognised. The extension is available in Dutch and English.
 
 Everything stays on your own machine: no server, no analytics, no tracking.
-
-More detail: https://github.com/fvet/bcbuddy

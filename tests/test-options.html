@@ -145,10 +145,69 @@ Promise.all(FILES.map(function (f) {
 })).then(function (lines) {
   lines.forEach(function (l) { results.push(l); });
   return assertMessages();
-}).then(runOptions).then(report, function (err) {
+}).then(assertBrandMark).then(runOptions).then(report, function (err) {
   results.push('FAIL  harness: ' + err.message);
   report();
 });
+
+/* ---- het merk staat drie keer -------------------------------------------
+ * logo.svg levert de PNG's; de optiespagina en de popup hebben het merk
+ * inline staan, want enkel zo kan de tint het thema van de browser volgen.
+ * Die twee kopieen kunnen dus stilletjes uit de pas lopen met de bron.
+ * Vandaar deze controle op de meetkunde - niet op de kleuren: de vulling
+ * verschilt met opzet (var(--brand-mark) tegenover een vaste tint), net als
+ * de id's, die per document uniek moeten zijn.
+ */
+function markSignature(svg) {
+  function attrs(el, names) {
+    return names.map(function (name) {
+      return name + '=' + String(el.getAttribute(name) || '').trim().toLowerCase();
+    }).join(' ');
+  }
+
+  var bite = svg.querySelector('mask circle');
+  var text = svg.querySelector('text');
+
+  // De bol ligt buiten het masker; de cirkel erin knipt net de uitsparing.
+  var dot = null;
+  svg.querySelectorAll('circle').forEach(function (circle) {
+    if (!dot && !circle.closest('mask')) dot = circle;
+  });
+  if (!bite || !text || !dot) throw new Error('onvolledig merk');
+
+  return [
+    'viewBox=' + String(svg.getAttribute('viewBox') || '').trim(),
+    'bite ' + attrs(bite, ['cx', 'cy', 'r']),
+    'text ' + attrs(text, ['x', 'y', 'text-anchor', 'font-size', 'font-weight', 'letter-spacing']),
+    'letters=' + text.textContent.trim(),
+    'dot ' + attrs(dot, ['cx', 'cy', 'r', 'fill'])
+  ].join(' | ');
+}
+
+function assertBrandMark() {
+  var sources = ['icons/logo.svg', 'src/options/options.html', 'src/popup/popup.html'];
+  return Promise.all(sources.map(function (f) {
+    return fetch(ROOT + f).then(function (r) { return r.text(); });
+  })).then(function (texts) {
+    var parser = new DOMParser();
+    var expected = markSignature(parser.parseFromString(texts[0], 'image/svg+xml').documentElement);
+
+    function inlineMark(html, where) {
+      var found = null;
+      parser.parseFromString(html, 'text/html').querySelectorAll('svg').forEach(function (svg) {
+        var text = svg.querySelector('text');
+        if (!found && text && text.textContent.trim() === 'BC') found = svg;
+      });
+      if (!found) throw new Error('geen merk gevonden in ' + where);
+      return found;
+    }
+
+    check('merk: de optiespagina volgt logo.svg',
+      markSignature(inlineMark(texts[1], 'options.html')), expected);
+    check('merk: de popup volgt logo.svg',
+      markSignature(inlineMark(texts[2], 'popup.html')), expected);
+  });
+}
 
 /* ---- vertalingen: alles wat de code gebruikt moet bestaan --------------- */
 function assertMessages() {
@@ -837,7 +896,7 @@ function importFile() {
 
   FILE_TEXT = payload;
   var transfer = new DataTransfer();
-  transfer.items.add(new File([payload], 'bc-markers.json', { type: 'application/json' }));
+  transfer.items.add(new File([payload], 'bc-buddy.json', { type: 'application/json' }));
   var input = document.getElementById('importFile');
   input.files = transfer.files;
   input.dispatchEvent(new Event('change'));

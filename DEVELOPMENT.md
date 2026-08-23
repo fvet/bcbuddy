@@ -19,7 +19,7 @@ src/
   popup/               popup on the extension icon
 examples/              example of a shared configuration
 tests/                 test pages + runner
-icons/                 logo.svg, logo-small.svg, build-icons.ps1, the PNGs
+icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store
 store/                 listing copy, privacy answers and screenshots
 ```
@@ -99,8 +99,9 @@ lowest contrast (2.9:1 on both light and dark). On the options page the Secondar
 still applies: that SVG is inline and follows the theme through `--brand-mark`.
 
 Every size comes from `logo.svg`: in the toolbar, on the extensions page and on
-the options page the same mark belongs. At 16 px that is tight — `logo-small.svg`
-keeps only the C and the sphere for that — but recognisability weighs heavier.
+the options page the same mark belongs. At 16 px that is tight — a simplified
+variant keeping only the C and the sphere was tried and dropped — but
+recognisability weighs heavier.
 
 ```bash
 powershell -ExecutionPolicy Bypass -File icons/build-icons.ps1
