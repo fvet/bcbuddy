@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!--
+    BC Buddy - hoofdmerk ("Bite").
+    De letters BC in Segoe UI Semibold, met een uitsparing rechtsonder waar de
+    metgezel tegenaan ligt.  Kleuren uit de Business Central control add-in
+    style guide: Secondary en Primary #00B7C3.  De letters staan lichter dan de
+    Secondary #505C6D uit de gids: dit icoon staat in de werkbalk, en die is
+    licht of donker naargelang het thema.  #737C8A is de tint die op beide nog
+    leesbaar blijft (zie README).
+  -->
+  <mask id="bite">
+    <rect width="128" height="128" fill="#fff"/>
+    <circle cx="98" cy="91" r="27" fill="#000"/>
+  </mask>
+  <g mask="url(#bite)">
+    <text x="51" y="78" text-anchor="middle"
+          font-family="'Segoe UI Semibold','Segoe UI',Segoe,Tahoma,Helvetica,Arial,sans-serif"
+          font-weight="600" font-size="84" letter-spacing="-4" fill="#737C8A">BC</text>
+  </g>
+  <circle cx="98" cy="91" r="20" fill="#00B7C3"/>
+</svg>

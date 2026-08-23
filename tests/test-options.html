@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>BCEM options harness</title>
+<style>#results { white-space: pre-wrap; font-family: monospace; padding: 12px; }</style>
+</head>
+<body>
+<div id="results">running...</div>
+<div id="app"></div>
+
+<script>
+var ROOT = '../';
+var STORE = {};
+var LISTENERS = [];
+var SENT = [];
+
+// De optiespagina staat zelf in de actieve tab; de knop moet dus verder kijken.
+var OPTIONS_TAB = { id: 1, url: 'chrome-extension://abcdef/src/options/options.html', active: true, lastAccessed: 300 };
+var GOOGLE_TAB = { id: 2, url: 'https://www.google.com/shopping', active: false, lastAccessed: 200 };
+var BC_TAB = { id: 3, active: false, lastAccessed: 100,
+  url: 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Productie?company=CONTOSO%20BE' };
+var TABS = [OPTIONS_TAB, GOOGLE_TAB, BC_TAB];
+
+/*
+ * chrome.i18n met de echte berichten uit _locales/nl. Synchroon ingelezen,
+ * zodat de scripts hieronder er meteen over beschikken.
+ */
+var MESSAGES = (function () {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '../_locales/nl/messages.json', false);
+    xhr.send();
+    return JSON.parse(xhr.responseText);
+  } catch (e) {
+    return {};
+  }
+})();
+
+function i18nStub() {
+  return {
+    getMessage: function (key, subs) {
+      var entry = MESSAGES[key];
+      if (!entry) return '';
+      var message = entry.message;
+      (subs || []).forEach(function (value, index) {
+        message = message.split('$' + (index + 1)).join(value);
+      });
+      return message;
+    }
+  };
+}
+window.chrome = {
+  i18n: i18nStub(),
+  storage: {
+    local: {
+      get: function (keys) {
+        var out = {};
+        var list = typeof keys === 'string' ? [keys] : keys;
+        list.forEach(function (k) { if (STORE[k] !== undefined) out[k] = STORE[k]; });
+        return Promise.resolve(out);
+      },
+      set: function (obj) {
+        var changes = {};
+        Object.keys(obj).forEach(function (k) {
+          changes[k] = { oldValue: STORE[k], newValue: obj[k] };
+          STORE[k] = obj[k];
+        });
+        LISTENERS.forEach(function (fn) { fn(changes, 'local'); });
+        return Promise.resolve();
+      },
+      remove: function (k) { delete STORE[k]; return Promise.resolve(); }
+    },
+    onChanged: { addListener: function (fn) { LISTENERS.push(fn); } }
+  },
+  runtime: {
+    sendMessage: function (msg) { SENT.push(msg); return Promise.resolve({ ok: true, count: 3 }); },
+    openOptionsPage: function () {},
+    onMessage: { addListener: function () {} }
+  },
+  tabs: {
+    query: function () { return Promise.resolve(TABS); },
+    onActivated: { addListener: function () {} },
+    onUpdated: { addListener: function () {} }
+  },
+  action: { setBadgeText: function () {}, setBadgeBackgroundColor: function () {}, setBadgeTextColor: function () {} },
+  alarms: { create: function () {}, clear: function () {}, onAlarm: { addListener: function () {} } }
+};
+
+/*
+ * FileReader is asynchroon en loopt niet mee met de virtuele klok van headless
+ * Chrome, waardoor de test soms te vroeg keek. We vervangen hem door een
+ * synchrone versie: het pad dat we willen testen (de change-handler, het
+ * samenvoegen en het hertekenen) blijft volledig het echte.
+ */
+var FILE_TEXT = '';
+window.FileReader = function () {
+  var reader = this;
+  this.readAsText = function () {
+    reader.result = FILE_TEXT;
+    if (reader.onload) reader.onload();
+  };
+};
+
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = function () { reject(new Error('kon ' + src + ' niet laden')); };
+    document.head.appendChild(s);
+  });
+}
+
+var results = [];
+function check(name, actual, expected) {
+  var ok = JSON.stringify(actual) === JSON.stringify(expected);
+  results.push((ok ? 'PASS  ' : 'FAIL  ') + name +
+    (ok ? '' : '\n        verwacht: ' + JSON.stringify(expected) + '\n        gekregen: ' + JSON.stringify(actual)));
+}
+function truthy(name, actual) {
+  results.push((actual ? 'PASS  ' : 'FAIL  ') + name + (actual ? '' : '  (kreeg: ' + JSON.stringify(actual) + ')'));
+}
+function report() {
+  var failed = results.filter(function (l) { return l.indexOf('FAIL') === 0; });
+  document.getElementById('results').textContent =
+    results.join('\n') + '\n\nTOTAAL: ' + results.length + ' checks, ' + failed.length + ' gefaald.';
+}
+
+/* ---- syntaxcontrole van alle scriptbestanden --------------------------- */
+var FILES = [
+  'src/lib/match.js', 'src/lib/settings.js', 'src/content/content.js',
+  'src/background.js', 'src/options/options.js', 'src/popup/popup.js'
+];
+
+Promise.all(FILES.map(function (f) {
+  return fetch(ROOT + f).then(function (r) { return r.text(); }).then(function (text) {
+    try {
+      new Function(text);
+      return 'PASS  syntax: ' + f;
+    } catch (e) {
+      return 'FAIL  syntax: ' + f + '\n        ' + e.message;
+    }
+  }, function () { return 'FAIL  syntax: ' + f + ' (niet gevonden)'; });
+})).then(function (lines) {
+  lines.forEach(function (l) { results.push(l); });
+  return assertMessages();
+}).then(runOptions).then(report, function (err) {
+  results.push('FAIL  harness: ' + err.message);
+  report();
+});
+
+/* ---- vertalingen: alles wat de code gebruikt moet bestaan --------------- */
+function assertMessages() {
+  var sources = FILES.concat(['src/options/options.html', 'src/popup/popup.html', 'manifest.json']);
+  return Promise.all([
+    fetch(ROOT + '_locales/nl/messages.json').then(function (r) { return r.json(); }),
+    fetch(ROOT + '_locales/en/messages.json').then(function (r) { return r.json(); }),
+    Promise.all(sources.map(function (f) {
+      return fetch(ROOT + f).then(function (r) { return r.text(); });
+    }))
+  ]).then(function (loaded) {
+    var nl = loaded[0];
+    var en = loaded[1];
+    var code = loaded[2].join('\n');
+
+    check('vertalingen: nl en en hebben dezelfde sleutels',
+      Object.keys(nl).sort().filter(function (k) { return !en[k]; })
+        .concat(Object.keys(en).sort().filter(function (k) { return !nl[k]; })), []);
+
+    function collect(into, pattern) {
+      var match;
+      var re = new RegExp(pattern, 'g');
+      while ((match = re.exec(code)) !== null) into[match[1]] = true;
+    }
+
+    // Zeker sleutels: hier moet dus een bericht voor bestaan.
+    var used = {};
+    collect(used, "\\bt\\('([A-Za-z0-9_]+)'");                                  // t('sleutel')
+    collect(used, 'data-i18n(?:-title|-label|-placeholder)?="([A-Za-z0-9_]+)"'); // in de HTML
+    collect(used, "key: '([A-Za-z0-9_]+)'");                                     // velden en operatoren
+    collect(used, '__MSG_([A-Za-z0-9_]+)__');                                    // in het manifest
+
+    // Ruimer: elke naam die ergens tussen aanhalingstekens staat. Vangt ook
+    // t(voorwaarde ? 'a' : 'b') op, dat het patroon hierboven mist.
+    var mentioned = {};
+    collect(mentioned, "'([A-Za-z0-9_]+)'");
+
+    var usedKeys = Object.keys(used).sort();
+    truthy('vertalingen: er worden sleutels gebruikt', usedKeys.length > 40);
+    check('vertalingen: geen ontbrekende sleutels',
+      usedKeys.filter(function (k) { return !nl[k]; }), []);
+    check('vertalingen: geen ongebruikte sleutels',
+      Object.keys(nl).sort().filter(function (k) { return !used[k] && !mentioned[k]; }), []);
+    check('vertalingen: elk bericht heeft tekst in beide talen',
+      Object.keys(nl).filter(function (k) {
+        return !String(nl[k].message || '').trim() || !String((en[k] || {}).message || '').trim();
+      }), []);
+  });
+}
+
+/* ---- optiespagina echt opbouwen ---------------------------------------- */
+function runOptions() {
+  STORE.settings = {
+    enabled: true,
+    rules: [
+      {
+        id: 'a', name: 'TEST', color: '#bc0000', layoutId: 'lay-1',
+        conditions: [{ field: 'environment', op: 'contains', value: 'Sandbox' }]
+      },
+      {
+        id: 'b', name: 'PROD', color: '#107c10', layoutId: 'lay-1',
+        conditions: [{ field: 'environment', op: 'equals', value: 'Productie' }]
+      }
+    ],
+    hosted: {
+      url: 'https://raw.githubusercontent.com/x/y/main/bc.json',
+      active: true,
+      sourceName: 'Bedrijf X',
+      lastSync: '2026-08-22T09:00:00.000Z',
+      rules: [{ id: 'h1', name: 'GEDEELD', color: '#0f6cbd', layoutId: 'hl1',
+                 conditions: [{ field: 'url', op: 'contains', value: 'dynamics' }] }],
+      layouts: [{ id: 'hl1', name: 'GEDEELDE LAYOUT', border: { enabled: true, width: 5 } }]
+    },
+    layouts: [
+      { id: 'lay-1', name: 'Standaard',
+        ribbon: { enabled: true, text: 'Dynamics 365 Business Central - {environment} - {company} ({name})' },
+        border: { enabled: true, width: 4 },
+        banner: { enabled: true, position: 'top-right', text: '{name}' } },
+      { id: 'lay-2', name: 'Compact',
+        ribbon: { enabled: true, text: 'LAYOUT {environment}' },
+        border: { enabled: true, width: 2 },
+        banner: { enabled: true, position: 'bottom-left', text: 'uit de layout' } }
+    ]
+  };
+
+  return fetch(ROOT + 'src/options/options.html')
+    .then(function (r) { return r.text(); })
+    .then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      doc.querySelectorAll('script').forEach(function (s) { s.remove(); });
+      document.getElementById('app').innerHTML = doc.body.innerHTML;
+      var css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = ROOT + 'src/options/options.css';
+      document.head.appendChild(css);
+      return loadScript(ROOT + 'src/lib/i18n.js')
+        .then(function () { return loadScript(ROOT + 'src/lib/match.js'); })
+        .then(function () { return loadScript(ROOT + 'src/lib/settings.js'); })
+        .then(function () { return loadScript(ROOT + 'src/options/options.js'); });
+    })
+    .then(function () {
+      return new Promise(function (resolve) { setTimeout(resolve, 500); });
+    })
+    .then(assertOptions);
+}
+
+function assertOptions() {
+  var cards = document.querySelectorAll('#ruleList .rule');
+  check('opties: eigen regels getekend', cards.length, 2);
+  check('opties: gedeelde regel getekend', document.querySelectorAll('#hostedList .rule').length, 1);
+
+  var first = cards[0];
+  var layoutOne = document.querySelectorAll('#layoutList .rule')[0];
+  check('opties: naam ingevuld', first.querySelector('.rule__name').value, 'TEST');
+  check('opties: kleurveld ingevuld', first.querySelector('input[type="color"][data-path="color"]').value, '#bc0000');
+  check('opties: geen voorbeeld meer op een regel', first.querySelector('[data-preview]'), null);
+  check('opties: voorbeeldtekst van de ribbon staat bij de layout',
+    layoutOne.querySelector('[data-preview-brand]').textContent,
+    'Dynamics 365 Business Central - Sandbox - CRONUS BE (Standaard)');
+  check('opties: match is een vinkje', first.querySelector('[data-match]').textContent, '✓');
+  check('opties: met uitleg bij hover',
+    first.querySelector('[data-match]').title, 'Past op de test-URL');
+  check('opties: geen match is een neutraal rondje',
+    cards[1].querySelector('[data-match]').textContent, '○');
+  check('opties: ook daar uitleg bij hover',
+    cards[1].querySelector('[data-match]').title, 'Past niet op de test-URL');
+  check('opties: hoeklint in het voorbeeld van de layout',
+    layoutOne.querySelector('[data-preview-banner]').className,
+    'preview__banner preview__banner--top-right preview__banner--visible');
+  check('opties: kaderdikte in het voorbeeld van de layout',
+    layoutOne.querySelector('[data-preview-frame]').style.borderWidth, '4px');
+
+  // regels staan ingeklapt tot je erop klikt
+  truthy('opties: regels starten ingeklapt', first.classList.contains('rule--collapsed'));
+  check('opties: geen apart klappijltje meer op een regel',
+    first.querySelector('.rule__toggle'), null);
+  truthy('opties: het kleurblokje is zelf de klapknop',
+    first.querySelector('[data-action="toggle"]').classList.contains('rule__swatch'));
+  check('opties: aria-expanded staat op false',
+    first.querySelector('[data-action="toggle"]').getAttribute('aria-expanded'), 'false');
+  check('opties: aan/uit op een regel is dezelfde schuifknop',
+    getComputedStyle(first.querySelector('[data-path="enabled"]')).width, '34px');
+  truthy('opties: naam blijft zichtbaar in ingeklapte staat',
+    first.querySelector('.rule__name').offsetParent !== null);
+  truthy('opties: details verborgen in ingeklapte staat',
+    first.querySelector('[data-body]').offsetParent === null);
+
+  first.querySelector('[data-match]').click();
+  truthy('opties: klik op de kopregel klapt open', !first.classList.contains('rule--collapsed'));
+  check('opties: aria-expanded staat op true',
+    first.querySelector('[data-action="toggle"]').getAttribute('aria-expanded'), 'true');
+  truthy('opties: details nu zichtbaar', first.querySelector('[data-body]').offsetParent !== null);
+
+  first.querySelector('[data-action="toggle"]').click();
+  truthy('opties: nogmaals klikken klapt weer dicht', first.classList.contains('rule--collapsed'));
+  first.querySelector('[data-action="toggle"]').click();
+
+  // eigen en gedeelde regels staan in dezelfde lijst, gedeelde onderaan
+  check('opties: gedeelde regels volgen op de eigen regels',
+    document.getElementById('sharedHead').previousElementSibling.id, 'ruleList');
+  check('opties: met de kop erboven',
+    document.getElementById('hostedList').previousElementSibling.id, 'sharedHead');
+  truthy('opties: de kop staat er omdat er gedeelde regels zijn',
+    !document.getElementById('sharedHead').hidden);
+  var sharedHead = document.getElementById('sharedHead');
+  sharedHead.hidden = true;
+  truthy('opties: zonder gedeelde regels is de kop ook echt weg',
+    sharedHead.offsetParent === null);
+  sharedHead.hidden = false;
+  check('opties: sectiekop heet Regels',
+    document.getElementById('addRule').closest('.section-head').querySelector('h2').textContent, 'Regels');
+  truthy('opties: lijst staat niet meer in de gedeelde-configuratiekaart',
+    !document.getElementById('syncNow').closest('.card').contains(document.getElementById('hostedList')));
+  check('opties: wissen kan enkel nog via het kruisje bij de gedeelde regels',
+    document.getElementById('clearHosted'), null);
+
+  var hostedCard = document.querySelector('#hostedList .rule');
+  truthy('opties: gedeelde regel is niet bewerkbaar', hostedCard.querySelector('.rule__name').disabled);
+  truthy('opties: gedeelde regel kan wel open',
+    !hostedCard.querySelector('[data-action="toggle"]').disabled);
+  hostedCard.querySelector('[data-action="toggle"]').click();
+  truthy('opties: gedeelde regel klapt open', !hostedCard.classList.contains('rule--collapsed'));
+  truthy('opties: gedeelde regel draagt geen chip meer',
+    hostedCard.textContent.indexOf('Gedeeld') === -1);
+  truthy('opties: gedeelde regel valt niet te verslepen',
+    hostedCard.querySelector('[data-grip]').disabled);
+  truthy('opties: sync-status toont bron',
+    document.getElementById('hostedStatus').textContent.indexOf('Bedrijf X') !== -1);
+
+  // gedeelde configuratie: geen schakelaars meer, enkel een URL en synchroniseren
+  check('opties: geen schakelaar voor automatisch bijwerken',
+    document.getElementById('hostedAutoSync'), null);
+  check('opties: de knop heet Synchroniseren',
+    document.getElementById('syncNow').textContent, 'Synchroniseren');
+  truthy('opties: met een URL kan er gesynchroniseerd worden',
+    !document.getElementById('syncNow').disabled);
+  truthy('opties: een actieve configuratie wordt niet gedimd',
+    !document.getElementById('hostedUrl').closest('.field').classList.contains('field--inactive'));
+  truthy('opties: bestand kiezen staat in dezelfde stijl als de andere knoppen',
+    document.getElementById('importFileBtn').classList.contains('btn--primary'));
+  truthy('opties: actieve configuratie meldt dat ze dagelijks bijwerkt',
+    document.getElementById('hostedStatus').textContent.indexOf('elke dag') !== -1);
+  check('opties: geen intervalkeuze meer', document.getElementById('hostedInterval'), null);
+  check('opties: geen geavanceerd-blok meer', document.getElementById('pollMs'), null);
+  check('opties: en geen resetknop', document.getElementById('resetAll'), null);
+  check('opties: de ondertitel noemt geen "Environment marker" meer',
+    document.querySelector('.topbar__brand p').textContent.trim(),
+    'Markeer je Business Central omgevingen met kleur, kader en een eigen ribbon.');
+  truthy('opties: uitleg over raw-links verwijderd',
+    document.getElementById('app').textContent.indexOf('raw-variant') === -1);
+  truthy('opties: uitleg verwijst niet meer naar de lijst hierboven',
+    document.getElementById('app').textContent.indexOf('onderaan de lijst') === -1);
+
+  // import/export: enkel bestand kiezen en exporteren
+  check('opties: geen URL-import', document.getElementById('importUrl'), null);
+  check('opties: geen naam bij export', document.getElementById('exportName'), null);
+  check('opties: geen klembordknop', document.getElementById('exportCopy'), null);
+  check('opties: exportknop hernoemd', document.getElementById('exportDownload').textContent, 'Exporteer');
+  truthy('opties: bestandskiezer aanwezig', !!document.getElementById('importFileBtn'));
+
+  // de weergave zit enkel nog op layoutniveau
+  check('opties: geen weergaveblok meer in een regel', first.querySelector('[data-display]'), null);
+  check('opties: geen ribbonveld in een regel', first.querySelector('[data-path="ribbon.text"]'), null);
+  truthy('opties: wel in een layout', !!layoutOne.querySelector('[data-path="ribbon.text"]'));
+
+  var posSelect = layoutOne.querySelector('select[data-path="banner.position"]');
+  check('opties: bannerposities zonder balk bovenaan',
+    Array.prototype.map.call(posSelect.options, function (o) { return o.value; }),
+    ['bottom', 'top-right', 'top-left', 'bottom-right', 'bottom-left']);
+  check('opties: geen dekking meer bij het kader',
+    layoutOne.querySelector('[data-path="border.opacity"]'), null);
+  var breedte = layoutOne.querySelector('input[data-path="border.width"]');
+  check('opties: dikte van het kader is een schuifregelaar', breedte.type, 'range');
+  check('opties: van 1 tot 5', [breedte.min, breedte.max, breedte.step], ['1', '5', '1']);
+  check('opties: schakelaar heet gewoon Ribbon',
+    layoutOne.querySelector('[data-i18n="ribbonToggle"]').textContent, 'Ribbon');
+  check('opties: en Tabtitel',
+    layoutOne.querySelector('[data-i18n="titleToggle"]').textContent, 'Tabtitel');
+
+  // het voorbeeld van een regel toont geen ribbon bij een niet-BC site
+  var condField = first.querySelector('select[data-cond="field"]');
+  var condValue = first.querySelector('input[data-cond="value"]');
+  function setCondition(field, value) {
+    condField.value = field;
+    condField.dispatchEvent(new Event('change', { bubbles: true }));
+    condValue.value = value;
+    condValue.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  setCondition('url', 'intranet.local');
+  check('opties: voorwaarde aangepast', first.querySelector('[data-cond="value"]').value, 'intranet.local');
+  setCondition('environment', 'Sandbox');
+
+  check('opties: het voorbeeld van de layout toont een BC-pagina',
+    layoutOne.querySelector('[data-preview-page]').textContent, 'Business Central pagina');
+  truthy('opties: een layout toont de ribbon altijd',
+    !layoutOne.querySelector('[data-preview-ribbon]').hidden);
+
+  // uitleg achter het vraagteken
+  var hint = layoutOne.querySelector('.hint[data-action="hint"]');
+  truthy('opties: vraagteken naast het tekstveld', !!hint);
+  truthy('opties: uitleg noemt de tokens', hint.textContent.indexOf('{environment}') !== -1);
+  truthy('opties: uitleg noemt {host} niet meer', hint.textContent.indexOf('{host}') === -1);
+  truthy('opties: uitleg noemt {tenant} niet meer', hint.textContent.indexOf('{tenant}') === -1);
+  truthy('opties: uitleg start dicht', !hint.classList.contains('is-open'));
+  hint.click();
+  truthy('opties: klik opent de uitleg', hint.classList.contains('is-open'));
+  hint.click();
+  truthy('opties: nogmaals klikken sluit ze', !hint.classList.contains('is-open'));
+  check('opties: drie velden met uitleg', layoutOne.querySelectorAll('.hint[data-action="hint"]').length, 3);
+  check('opties: tokenlijst niet meer onderaan de pagina',
+    document.querySelector('#app footer'), null);
+
+  // thema: de browser moet zijn eigen onderdelen mee kunnen kleuren
+  check('opties: volgt het systeemthema zonder schakelaar',
+    getComputedStyle(document.documentElement).colorScheme, 'light dark');
+
+  check('opties: geen pagina-veld in de voorwaarden',
+    Array.prototype.map.call(first.querySelector('select[data-cond="field"]').options,
+      function (o) { return o.value; }),
+    ['environment', 'company', 'tenant', 'url']);
+  truthy('opties: geen pagina in de ontlede URL',
+    document.getElementById('parsed').textContent.indexOf('Pagina') === -1);
+
+  check('opties: ontlede test-URL toont de omgeving',
+    document.getElementById('parsed').textContent.indexOf('Sandbox') !== -1, true);
+
+  // tekst in de ribbon aanpassen gebeurt op de layout en werkt door in de regels
+  var ribbonInput = layoutOne.querySelector('input[data-path="ribbon.text"]');
+  ribbonInput.value = '{name} op {environment}';
+  ribbonInput.dispatchEvent(new Event('input', { bubbles: true }));
+  check('opties: voorbeeld van de layout volgt de aangepaste tekst',
+    layoutOne.querySelector('[data-preview-brand]').textContent, 'Standaard op Sandbox');
+  ribbonInput.value = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
+  ribbonInput.dispatchEvent(new Event('input', { bubbles: true }));
+  first = document.querySelectorAll('#ruleList .rule')[0]; // de kaarten zijn hertekend
+
+  // kleur uit het palet kiezen
+  var swatch = first.querySelector('[data-palette] button[data-color="#107c10"]');
+  swatch.click();
+  check('opties: paletkleur toegepast',
+    first.querySelector('input[type="color"][data-path="color"]').value, '#107c10');
+
+  // de vrije kleurkeuze sluit achteraan het palet aan, het hex-veld is weg
+  var palette = first.querySelector('[data-palette]');
+  check('opties: kleurkiezer staat achter de bolletjes',
+    palette.lastElementChild, first.querySelector('input[type="color"][data-path="color"]'));
+  check('opties: geen los hex-veld meer',
+    first.querySelector('input[type="text"][data-path="color"]'), null);
+
+  var custom = first.querySelector('input[type="color"][data-path="color"]');
+  custom.value = '#123456';
+  custom.dispatchEvent(new Event('input', { bubbles: true }));
+  check('opties: eigen kleur uit de kiezer komt op de regel terecht',
+    first.style.getPropertyValue('--rule-color'), '#123456');
+  custom.value = '#107c10';
+  custom.dispatchEvent(new Event('input', { bubbles: true }));
+
+  // regel toevoegen en verplaatsen
+  document.getElementById('addRule').click();
+  check('opties: regel toegevoegd', document.querySelectorAll('#ruleList .rule').length, 3);
+
+  var added = document.querySelectorAll('#ruleList .rule')[2];
+  check('opties: nieuwe regel neemt de naam uit de test-URL',
+    added.querySelector('.rule__name').value, 'SANDBOX');
+  check('opties: nieuwe regel neemt omgeving en bedrijf over',
+    Array.prototype.map.call(added.querySelectorAll('.condition'), function (row) {
+      return row.querySelector('[data-cond="field"]').value + ' ' +
+        row.querySelector('[data-cond="op"]').value + ' ' +
+        row.querySelector('[data-cond="value"]').value;
+    }),
+    ['environment equals Sandbox', 'company equals CRONUS BE']);
+  truthy('opties: nieuwe regel past meteen op de test-URL',
+    added.querySelector('[data-match]').textContent === '\u2713');
+  check('opties: nieuwe regel krijgt de standaardlayout',
+    added.querySelector('[data-layout-picker]').value, 'lay-1');
+  check('opties: geen pijltjes meer om te verplaatsen',
+    document.querySelector('#ruleList [data-action="up"]'), null);
+
+  // spaties voor of achter verdwijnen zodra je het veld verlaat
+  var naamVeld = document.querySelectorAll('#ruleList .rule')[0].querySelector('.rule__name');
+  var naamWas = naamVeld.value;
+  naamVeld.value = '  ' + naamWas + '  ';
+  naamVeld.dispatchEvent(new Event('input', { bubbles: true }));
+  naamVeld.dispatchEvent(new Event('change', { bubbles: true }));
+  check('opties: spaties rond een naam verdwijnen', naamVeld.value, naamWas);
+
+  // zonder muis: de greep verplaatst met de pijltjestoetsen
+  var second = document.querySelectorAll('#ruleList .rule')[1];
+  second.querySelector('[data-grip]').dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }));
+  check('opties: regel verplaatst naar boven',
+    document.querySelectorAll('#ruleList .rule')[0].querySelector('.rule__name').value, 'PROD');
+  var rerendered = document.querySelectorAll('#ruleList .rule');
+  truthy('opties: opengeklapte regel blijft open na hertekenen',
+    !rerendered[1].classList.contains('rule--collapsed'));
+  truthy('opties: nieuwe regel staat meteen open',
+    !rerendered[2].classList.contains('rule--collapsed'));
+  truthy('opties: ongemoeide regel blijft dicht',
+    rerendered[0].classList.contains('rule--collapsed'));
+
+  // met de muis: de bovenste regel onder de laatste laten vallen
+  var namen = function () {
+    return Array.prototype.map.call(
+      document.querySelectorAll('#ruleList .rule .rule__name'), function (i) { return i.value; });
+  };
+  var voor = namen();
+  var dragged = document.querySelectorAll('#ruleList .rule')[0];
+  var transfer = new DataTransfer();
+  dragged.querySelector('[data-grip]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  truthy('opties: de greep maakt de kaart sleepbaar', dragged.draggable);
+  dragged.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: transfer }));
+
+  var laatste = document.querySelectorAll('#ruleList .rule')[voor.length - 1];
+  var onderrand = laatste.getBoundingClientRect().bottom - 2;
+  laatste.dispatchEvent(new DragEvent('dragover',
+    { bubbles: true, cancelable: true, dataTransfer: transfer, clientY: onderrand }));
+  truthy('opties: de doelregel toont waar ze belandt',
+    laatste.classList.contains('rule--drop-after'));
+  laatste.dispatchEvent(new DragEvent('drop',
+    { bubbles: true, cancelable: true, dataTransfer: transfer, clientY: onderrand }));
+  check('opties: versleepte regel staat nu onderaan', namen(), voor.slice(1).concat(voor[0]));
+
+  // en weer terug, zodat de rest van de test op de oude volgorde verder kan
+  document.querySelectorAll('#ruleList .rule')[voor.length - 1].querySelector('[data-grip]')
+    .dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }));
+  document.querySelectorAll('#ruleList .rule')[voor.length - 2].querySelector('[data-grip]')
+    .dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }));
+  check('opties: pijltjes brengen ze weer vooraan', namen(), voor);
+
+  // voorwaarde toevoegen
+  var card0 = document.querySelectorAll('#ruleList .rule')[0];
+  card0.querySelector('[data-action="add-condition"]').click();
+  check('opties: voorwaarde toegevoegd', card0.querySelectorAll('.condition').length, 2);
+
+  check('opties: geen keuze meer tussen vervangen en toevoegen',
+    document.querySelector('input[name="importMode"]'), null);
+  check('opties: geen selector voor de merknaam', document.getElementById('brandSelector'), null);
+  check('opties: geen selector voor de ribbon-balk', document.getElementById('ribbonSelector'), null);
+  check('opties: geen vet-schakelaar bij de ribbon',
+    layoutOne.querySelector('[data-path="ribbon.bold"]'), null);
+
+  // synchroniseren stuurt een bericht naar de service worker
+  document.getElementById('syncNow').click();
+  check('opties: sync verstuurt een bericht', SENT.length > 0 && SENT[SENT.length - 1].type, 'bcem:sync');
+
+  // wachten tot de debounce heeft opgeslagen
+  return wait(500).then(function () {
+    truthy('opties: instellingen bewaard', !!STORE.settings && STORE.settings.rules.length === 3);
+    check('opties: bewaren meldt niets terug',
+      document.getElementById('status').textContent, '');
+    check('opties: bewaarde volgorde', STORE.settings.rules[0].name, 'PROD');
+    return assertNav().then(assertLayouts).then(importFile)
+      .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared);
+  });
+}
+
+/* ---- ontlede test-URL toont enkel gevonden waarden ---------------------- */
+function assertParsedUrl() {
+  var input = document.getElementById('testUrl');
+  var parsed = document.getElementById('parsed');
+
+  function setUrl(url) {
+    input.value = url;
+    input.dispatchEvent(new Event('input'));
+  }
+
+  setUrl('https://www.google.com/shopping');
+  check('URL: enkel de gevonden labels',
+    Array.prototype.map.call(parsed.querySelectorAll('dt'), function (dt) { return dt.textContent; }),
+    ['Omgeving:']);
+  check('URL: bijhorende waarden',
+    Array.prototype.map.call(parsed.querySelectorAll('dd'), function (dd) { return dd.textContent; }),
+    ['shopping']);
+
+  // een nieuwe regel voor een niet-BC site krijgt de volledige URL als voorwaarde
+  document.getElementById('addRule').click();
+  var cards = document.querySelectorAll('#ruleList .rule');
+  var fresh = cards[cards.length - 1];
+  check('nieuwe regel: naam uit de niet-BC test-URL',
+    fresh.querySelector('.rule__name').value, 'SHOPPING');
+  check('nieuwe regel: voorwaarde op de volledige URL',
+    fresh.querySelector('[data-cond="field"]').value + ' ' +
+    fresh.querySelector('[data-cond="op"]').value + ' ' +
+    fresh.querySelector('[data-cond="value"]').value,
+    'url contains https://www.google.com/shopping');
+  check('nieuwe regel: past meteen op de test-URL',
+    fresh.querySelector('[data-match]').title, 'Past op de test-URL');
+  check('nieuwe regel: geen voorbeeld op de regel', fresh.querySelector('[data-preview]'), null);
+
+  setUrl('niet-een-url');
+  check('URL: melding als er niets herkend wordt',
+    parsed.textContent, 'Niets herkend in deze URL.');
+
+  setUrl('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox?company=CRONUS%20BE');
+  check('URL: alle vier de velden bij een volledige BC-URL',
+    Array.prototype.map.call(parsed.querySelectorAll('dt'), function (dt) { return dt.textContent; }),
+    ['Omgeving:', 'Bedrijf:', 'Tenant:']);
+
+  return assertTabPicker(input);
+}
+
+/* ---- URL uit een open tabblad halen ------------------------------------ */
+function assertTabPicker(input) {
+  var button = document.getElementById('useCurrentTab');
+
+  button.click();
+  return wait(200).then(function () {
+    check('tab: negeert de optiespagina en kiest de BC-tab', input.value, BC_TAB.url);
+
+    // zonder BC-tab wint het meest recent gebruikte tabblad
+    TABS = [OPTIONS_TAB, GOOGLE_TAB, { id: 4, url: 'https://example.com/', active: false, lastAccessed: 50 }];
+    button.click();
+    return wait(200);
+  }).then(function () {
+    check('tab: zonder BC-tab het meest recente tabblad', input.value, GOOGLE_TAB.url);
+
+    // helemaal geen bruikbaar tabblad
+    TABS = [OPTIONS_TAB];
+    input.value = 'ongewijzigd';
+    button.click();
+    return wait(200);
+  }).then(function () {
+    check('tab: niets bruikbaars laat de test-URL staan', input.value, 'ongewijzigd');
+    check('tab: en meldt dat',
+      document.getElementById('status').textContent, 'Geen open tabblad met een bruikbare URL gevonden.');
+    TABS = [OPTIONS_TAB, GOOGLE_TAB, BC_TAB];
+  });
+}
+
+/* ---- navigatie ---------------------------------------------------------- */
+function assertNav() {
+  var items = document.querySelectorAll('.nav__item');
+  check('navigatie: de hoofdschakelaar staat onderaan de navigatie',
+    document.getElementById('globalEnabled').closest('nav.nav').lastElementChild
+      .contains(document.getElementById('globalEnabled')), true);
+  check('navigatie: en dus niet meer in de kopbalk',
+    document.querySelector('.topbar__actions #globalEnabled'), null);
+  check('navigatie: de hoofdschakelaar is een schuifknop, geen vinkje',
+    getComputedStyle(document.getElementById('globalEnabled')).width, '34px');
+  check('navigatie: drie secties',
+    Array.prototype.map.call(items, function (b) { return b.dataset.panel; }),
+    ['environments', 'settings', 'about']);
+  check('navigatie: elke sectie heeft een icoon',
+    Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 3);
+  check('navigatie: omgevingen staat open',
+    items[0].getAttribute('aria-current'), 'page');
+  truthy('navigatie: regels zichtbaar', !document.querySelector('.panel[data-panel="environments"]').hidden);
+  truthy('navigatie: instellingen verborgen', document.querySelector('.panel[data-panel="settings"]').hidden);
+
+  items[1].click();
+  truthy('navigatie: instellingen nu zichtbaar', !document.querySelector('.panel[data-panel="settings"]').hidden);
+  truthy('navigatie: omgevingen nu verborgen', document.querySelector('.panel[data-panel="environments"]').hidden);
+  check('navigatie: gedeelde configuratie hoort bij instellingen',
+    document.getElementById('syncNow').closest('.panel').dataset.panel, 'settings');
+  check('navigatie: layouts en regels horen bij omgevingen',
+    document.getElementById('addLayout').closest('.panel').dataset.panel, 'environments');
+  check('navigatie: aangeklikte sectie gemarkeerd', items[1].getAttribute('aria-current'), 'page');
+  truthy('navigatie: keuze onthouden', STORE.ui && STORE.ui.panel === 'settings');
+
+  items[2].click();
+  var about = document.querySelector('.panel[data-panel="about"]');
+  truthy('navigatie: de over-sectie heet niet langer Help',
+    items[2].textContent.trim() === 'Over');
+  truthy('navigatie: en vertelt wat de extensie doet',
+    about.querySelector('[data-i18n="aboutIntro"]').textContent.length > 60);
+  check('navigatie: met een e-mailadres',
+    about.querySelector('a[href^="mailto:"]').getAttribute('href'),
+    'mailto:frederic.vercaemst@outlook.com');
+  check('navigatie: en een link naar github',
+    about.querySelector('a[href^="https://github.com"]').getAttribute('href'),
+    'https://github.com/fvet/bcbuddy');
+
+  items[0].click(); // terug, de rest van de test werkt met de regels
+  return Promise.resolve();
+}
+
+/* ---- layouts ------------------------------------------------------------ */
+function assertLayouts() {
+  var cards = document.querySelectorAll('#layoutList .rule');
+  check('layout: eigen layouts getekend', cards.length, 2);
+  check('layout: gedeelde layout getekend', document.querySelectorAll('#hostedLayoutList .rule').length, 1);
+
+  var layoutCard = cards[0];
+  check('layout: naam ingevuld', layoutCard.querySelector('.rule__name').value, 'Standaard');
+  check('layout: geen gebruiksteller meer', layoutCard.querySelector('[data-usage]'), null);
+  check('layout: geen kleurpalet op een layout', layoutCard.querySelector('[data-palette]'), null);
+  check('layout: geen voorwaarden op een layout', layoutCard.querySelector('[data-conditions]'), null);
+  check('layout: geen faviconletters op een layout',
+    layoutCard.querySelector('[data-path="favicon.text"]'), null);
+  truthy('layout: weergaveblok aanwezig', !!layoutCard.querySelector('[data-path="ribbon.text"]'));
+  check('layout: voorbeeld gebruikt de layouttekst',
+    cards[1].querySelector('[data-preview-brand]').textContent, 'LAYOUT Sandbox');
+
+  // De eerste regel is hier PROD: eerdere stappen hebben de volgorde gewijzigd.
+  // Die hangt aan 'Standaard' en heeft de kleur #107c10.
+  var ruleCard = document.querySelectorAll('#ruleList .rule')[0];
+  var picker = ruleCard.querySelector('[data-layout-picker]');
+  check('regel: keuzelijst met eigen en gedeelde layouts',
+    Array.prototype.map.call(picker.options, function (o) { return o.textContent; }),
+    ['Standaard', 'Compact']);
+  check('regel: geen keuze voor eigen instellingen meer', picker.value, 'lay-1');
+
+  picker.value = 'lay-2';
+  picker.dispatchEvent(new Event('change', { bubbles: true }));
+
+  check('regel: geen voorbeeld op de regel zelf',
+    ruleCard.querySelector('[data-preview]'), null);
+
+  return wait(400).then(function () {
+    check('layout: koppeling bewaard', STORE.settings.rules[0].layoutId, 'lay-2');
+
+    var used = document.querySelectorAll('#layoutList .rule')[1];
+    check('layout: voorbeeld leent de kleur van die regel',
+      used.querySelector('[data-preview-frame]').style.borderColor, 'rgb(16, 124, 16)');
+
+    // een wijziging in een layout wordt bewaard (op de eerste, die blijft staan)
+    var width = document.querySelectorAll('#layoutList .rule')[0]
+      .querySelector('input[data-path="border.width"]');
+    width.value = '5';
+    width.dispatchEvent(new Event('input', { bubbles: true }));
+    check('layout: wijziging in het veld', width.value, '5');
+
+    // layout toevoegen
+    document.getElementById('addLayout').click();
+    check('layout: toegevoegd', document.querySelectorAll('#layoutList .rule').length, 3);
+    check('layout: keuzelijst kent de nieuwe layout',
+      document.querySelectorAll('#ruleList .rule')[0].querySelector('[data-layout-picker]').options.length, 3);
+
+    // en weer weg: de regel valt terug op de eerste layout
+    var confirmed = window.confirm;
+    window.confirm = function () { return true; };
+    document.querySelectorAll('#layoutList .rule')[1]
+      .querySelector('[data-action="delete"]').click();
+    window.confirm = confirmed;
+
+    return wait(400);
+  }).then(function () {
+    check('layout: wijziging bewaard', STORE.settings.layouts[0].border.width, 5);
+    check('layout: verwijderd', document.querySelectorAll('#layoutList .rule').length, 2);
+    check('layout: regel valt terug op de eerste layout',
+      STORE.settings.rules[0].layoutId, 'lay-1');
+    check('regel: keuzelijst wijst de eerste layout aan',
+      document.querySelectorAll('#ruleList .rule')[0]
+        .querySelector('[data-layout-picker]').value, 'lay-1');
+  });
+}
+
+/* ---- een gedeelde regel kopieren ---------------------------------------- */
+function assertSharedCopy() {
+  var before = document.querySelectorAll('#ruleList .rule').length;
+  var layoutsBefore = document.querySelectorAll('#layoutList .rule').length;
+  var shared = document.querySelector('#hostedList .rule');
+
+  check('gedeeld: geen knop om alles te kopieren meer', document.getElementById('copyHosted'), null);
+  truthy('gedeeld: wel een kopieerknop op de regel zelf',
+    !!shared.querySelector('[data-action="duplicate"]'));
+  check('gedeeld: verwijderen kan niet', shared.querySelector('[data-action="delete"]'), null);
+
+  shared.querySelector('[data-action="duplicate"]').click();
+
+  return wait(400).then(function () {
+    var rules = document.querySelectorAll('#ruleList .rule');
+    check('gedeeld: er staat een eigen kopie bij', rules.length, before + 1);
+    check('gedeeld: met dezelfde naam',
+      rules[rules.length - 1].querySelector('.rule__name').value, 'GEDEELD');
+    truthy('gedeeld: de kopie is wel bewerkbaar',
+      !rules[rules.length - 1].querySelector('.rule__name').disabled);
+    check('gedeeld: de gedeelde layout ging mee',
+      document.querySelectorAll('#layoutList .rule').length, layoutsBefore + 1);
+    check('gedeeld: en de kopie wijst ernaar',
+      rules[rules.length - 1].querySelector('[data-layout-picker]').value, 'hl1');
+    check('gedeeld: het origineel blijft staan',
+      document.querySelectorAll('#hostedList .rule').length, 1);
+  });
+}
+
+/* ---- het kruisje wist de gedeelde regels en zet ze uit ------------------ */
+function assertClearShared() {
+  document.getElementById('clearShared').click();
+  return wait(400).then(function () {
+    check('wissen: geen gedeelde regels meer',
+      document.querySelectorAll('#hostedList .rule').length, 0);
+    truthy('wissen: de kop verdwijnt mee', document.getElementById('sharedHead').hidden);
+    check('wissen: de gedeelde configuratie staat uit', STORE.settings.hosted.active, false);
+    truthy('wissen: de URL blijft staan, klaar om opnieuw te synchroniseren',
+      !!STORE.settings.hosted.url);
+    truthy('wissen: gemeld in de status',
+      document.getElementById('hostedStatus').textContent.indexOf('gewist') !== -1);
+    truthy('wissen: de URL wordt gedimd nu ze niet meer actief is',
+      document.getElementById('hostedUrl').closest('.field').classList.contains('field--inactive'));
+
+    // Zonder URL valt er niets op te halen; dat mag je niet kunnen aanklikken.
+    var url = document.getElementById('hostedUrl');
+    url.value = '';
+    url.dispatchEvent(new Event('input', { bubbles: true }));
+    truthy('wissen: synchroniseren staat uit zonder URL',
+      document.getElementById('syncNow').disabled);
+    url.dispatchEvent(new Event('change', { bubbles: true }));
+    return wait(400).then(function () {
+      truthy('wissen: een lege URL zet de gedeelde configuratie ook uit',
+        STORE.settings.hosted.active === false && STORE.settings.hosted.url === '');
+    });
+  });
+}
+
+/* ---- echte import via de bestandskiezer -------------------------------- */
+function importFile() {
+  var payload = JSON.stringify({
+    app: 'bc-environment-marker',
+    version: 1,
+    rules: [
+      { id: 'imp-1', name: 'PROD', color: '#8764b8',
+        conditions: [{ field: 'environment', op: 'equals', value: 'Productie' }] },
+      { id: 'imp-2', name: 'NIEUW', color: '#038387',
+        conditions: [{ field: 'environment', op: 'contains', value: 'Acceptatie' }] }
+    ]
+  });
+
+  FILE_TEXT = payload;
+  var transfer = new DataTransfer();
+  transfer.items.add(new File([payload], 'bc-markers.json', { type: 'application/json' }));
+  var input = document.getElementById('importFile');
+  input.files = transfer.files;
+  input.dispatchEvent(new Event('change'));
+
+  return wait(400).then(function () {
+    var names = Array.prototype.map.call(
+      document.querySelectorAll('#ruleList .rule .rule__name'), function (i) { return i.value; });
+    check('import: PROD overschreven, NIEUW toegevoegd, rest behouden',
+      names, ['PROD', 'TEST', 'SANDBOX', 'NIEUW']);
+    check('import: overschreven regel kreeg de kleur uit het bestand',
+      document.querySelectorAll('#ruleList .rule')[0]
+        .querySelector('input[type="color"][data-path="color"]').value, '#8764b8');
+    check('import: overschreven regel kreeg het id uit het bestand',
+      STORE.settings.rules[0].id, 'imp-1');
+    var status = document.getElementById('importStatus').textContent;
+    check('import: status vermeldt overschreven en toegevoegd',
+      /1 overschreven/.test(status) && /1 toegevoegd/.test(status) ? 'ok' : status, 'ok');
+    truthy('import: tellingen van nul blijven weg', !/\b0\s/.test(status));
+    truthy('import: geen layoutzin bij een bestand zonder layouts',
+      status.indexOf('Layouts') === -1);
+  });
+}
+
+function wait(ms) {
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
+}
+</script>
+</body>
+</html>

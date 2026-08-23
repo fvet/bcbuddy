@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>BCEM popup harness</title>
+<style>#results { white-space: pre-wrap; font-family: monospace; padding: 12px; }</style>
+</head>
+<body>
+<div id="results">running...</div>
+<div id="app"></div>
+
+<script>
+var ROOT = '../';
+var STORE = {
+  settings: {
+    enabled: true,
+    // Zelfde id als de gedeelde regel hieronder: dat gebeurt wanneer je het
+    // gedeelde bestand importeert en de regel daarna lokaal aanpast.
+    rules: [
+      { id: 'gedeeld-prod', name: 'PROD', color: '#c4314b',
+        conditions: [{ field: 'environment', op: 'equals', value: 'Productie' }] }
+    ],
+    hosted: {
+      url: 'https://raw.githubusercontent.com/x/y/main/bc.json',
+      rules: [
+        { id: 'gedeeld-prod', name: 'PROD GEDEELD', color: '#0f6cbd',
+          conditions: [{ field: 'environment', op: 'equals', value: 'Productie' }] }
+      ]
+    }
+  }
+};
+var OPENED = 0;
+var POPUP_BODY = '';
+var TAB_URL = 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/' +
+  'Productie?company=CONTOSO%20BE&page=21';
+
+/*
+ * chrome.i18n met de echte berichten uit _locales/nl. Synchroon ingelezen,
+ * zodat de scripts hieronder er meteen over beschikken.
+ */
+var MESSAGES = (function () {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '../_locales/nl/messages.json', false);
+    xhr.send();
+    return JSON.parse(xhr.responseText);
+  } catch (e) {
+    return {};
+  }
+})();
+
+function i18nStub() {
+  return {
+    getMessage: function (key, subs) {
+      var entry = MESSAGES[key];
+      if (!entry) return '';
+      var message = entry.message;
+      (subs || []).forEach(function (value, index) {
+        message = message.split('$' + (index + 1)).join(value);
+      });
+      return message;
+    }
+  };
+}
+window.chrome = {
+  i18n: i18nStub(),
+  storage: {
+    local: {
+      get: function (keys) {
+        var out = {};
+        (typeof keys === 'string' ? [keys] : keys).forEach(function (k) {
+          if (STORE[k] !== undefined) out[k] = STORE[k];
+        });
+        return Promise.resolve(out);
+      },
+      set: function (obj) { Object.keys(obj).forEach(function (k) { STORE[k] = obj[k]; }); return Promise.resolve(); },
+      remove: function (k) { delete STORE[k]; return Promise.resolve(); }
+    },
+    onChanged: { addListener: function () {} }
+  },
+  runtime: {
+    sendMessage: function () { return Promise.resolve({ ok: true, count: 2 }); },
+    openOptionsPage: function () { OPENED++; }
+  },
+  tabs: {
+    query: function () { return Promise.resolve([{ id: 1, url: TAB_URL }]); }
+  }
+};
+window.close = function () {};
+
+var results = [];
+function check(name, actual, expected) {
+  var ok = JSON.stringify(actual) === JSON.stringify(expected);
+  results.push((ok ? 'PASS  ' : 'FAIL  ') + name +
+    (ok ? '' : '\n        verwacht: ' + JSON.stringify(expected) + '\n        gekregen: ' + JSON.stringify(actual)));
+}
+function truthy(name, actual) {
+  results.push((actual ? 'PASS  ' : 'FAIL  ') + name + (actual ? '' : '  (kreeg: ' + JSON.stringify(actual) + ')'));
+}
+function cssRule(selector) {
+  var found = null;
+  Array.prototype.forEach.call(document.styleSheets, function (sheet) {
+    var rules;
+    try { rules = sheet.cssRules; } catch (e) { return; }
+    Array.prototype.forEach.call(rules || [], function (rule) {
+      if (rule.selectorText === selector) found = rule;
+    });
+  });
+  return found;
+}
+
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    var s = document.createElement('script');
+    s.src = src; s.onload = resolve;
+    s.onerror = function () { reject(new Error('kon ' + src + ' niet laden')); };
+    document.head.appendChild(s);
+  });
+}
+
+fetch(ROOT + 'src/popup/popup.html')
+  .then(function (r) { return r.text(); })
+  .then(function (html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script').forEach(function (s) { s.remove(); });
+    POPUP_BODY = doc.body.innerHTML;
+    document.getElementById('app').innerHTML = POPUP_BODY;
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = ROOT + 'src/popup/popup.css';
+    document.head.appendChild(css);
+    return loadScript(ROOT + 'src/lib/i18n.js')
+        .then(function () { return loadScript(ROOT + 'src/lib/match.js'); })
+      .then(function () { return loadScript(ROOT + 'src/lib/settings.js'); })
+      .then(function () { return loadScript(ROOT + 'src/popup/popup.js'); });
+  })
+  .then(function () { return new Promise(function (r) { setTimeout(r, 400); }); })
+  .then(function () {
+    check('popup: de app staat bovenaan',
+      document.querySelector('header .brand-name').textContent, 'BC Buddy');
+    truthy('popup: met het logo ernaast', !!document.querySelector('header svg.brand'));
+    check('popup: de merkbol krijgt de kleur van de regel',
+      document.getElementById('brandDot').style.fill, 'rgb(196, 49, 75)');
+
+    check('popup: actieve regel getoond',
+      document.querySelector('#parsed div:first-child dd').textContent, 'PROD');
+    check('popup: eigen regel met hetzelfde id als een gedeelde blijft "eigen"',
+      document.querySelector('#parsed div:first-child dd').title, 'PROD — eigen regel');
+    truthy('popup: bedrijf uit de URL', document.getElementById('parsed').textContent.indexOf('CONTOSO BE') !== -1);
+    truthy('popup: omgeving uit de URL', document.getElementById('parsed').textContent.indexOf('Productie') !== -1);
+    check('popup: de regel staat voor de velden uit de URL, zonder tenant',
+      Array.prototype.map.call(document.querySelectorAll('#parsed dt'), function (dt) { return dt.textContent; }),
+      ['Regel', 'Omgeving', 'Bedrijf']);
+    truthy('popup: de tenant staat er niet meer bij',
+      document.getElementById('parsed').textContent.indexOf('453d817a') === -1);
+    truthy('popup: schakelaar staat aan', document.getElementById('enabled').checked);
+    check('popup: knop heet gewoon Regel toevoegen',
+      document.getElementById('addRule').textContent, 'Regel toevoegen');
+    truthy('popup: geen knop wanneer er al een regel past',
+      document.getElementById('addRule').offsetParent === null);
+
+    // .btn:hover zet een grijze achtergrond; de primaire knop moet die
+    // overschrijven, anders staat er donkere tekst op een donkere knop.
+    check('popup: volgt het systeemthema zonder schakelaar',
+      getComputedStyle(document.documentElement).colorScheme, 'light dark');
+
+    var hover = cssRule('.btn--primary:hover');
+    truthy('popup: primaire knop heeft een eigen hover-regel', !!hover);
+    if (hover) {
+      truthy('popup: hover zet zelf een achtergrond',
+        !!(hover.style.background || hover.style.backgroundColor));
+      truthy('popup: hover zet zelf een tekstkleur', !!hover.style.color);
+    }
+
+    document.getElementById('enabled').checked = false;
+    document.getElementById('enabled').dispatchEvent(new Event('change'));
+    return new Promise(function (r) { setTimeout(r, 200); });
+  })
+  .then(function () {
+    check('popup: uitschakelen bewaard', STORE.settings.enabled, false);
+
+    // opnieuw opbouwen voor een tab die geen Business Central is
+    STORE.settings.enabled = true;
+    TAB_URL = 'https://www.google.com/shopping';
+    document.getElementById('app').innerHTML = POPUP_BODY;
+    return loadScript(ROOT + 'src/popup/popup.js?herlaad');
+  })
+  .then(function () { return new Promise(function (r) { setTimeout(r, 300); }); })
+  .then(function () {
+    check('popup: enkel de gevonden velden',
+      Array.prototype.map.call(document.querySelectorAll('#parsed dt'), function (dt) { return dt.textContent; }),
+      ['Regel', 'Omgeving']);
+    check('popup: bijhorende waarden',
+      Array.prototype.map.call(document.querySelectorAll('#parsed dd'), function (dd) { return dd.textContent; }),
+      ['Geen Business Central', 'shopping']);
+
+    // Zonder passende regel staat de knop er wel, en die zet een concept klaar.
+    truthy('popup: wel een knop wanneer er geen regel past',
+      document.getElementById('addRule').offsetParent !== null);
+    document.getElementById('addRule').click();
+    return new Promise(function (r) { setTimeout(r, 200); });
+  })
+  .then(function () {
+    truthy('popup: concept-regel klaargezet', !!STORE.pendingRule);
+    if (STORE.pendingRule) {
+      check('popup: naam uit de omgeving', STORE.pendingRule.name, 'SHOPPING');
+      check('popup: buiten BC een voorwaarde op de volledige URL',
+        STORE.pendingRule.conditions,
+        [{ field: 'url', op: 'contains', value: 'https://www.google.com/shopping' }]);
+      truthy('popup: kleur meegegeven aan het concept', !!STORE.pendingRule.color);
+    }
+    truthy('popup: optiespagina geopend', OPENED === 1);
+  })
+  .catch(function (err) { results.push('FAIL  harness: ' + err.message); })
+  .then(function () {
+    var failed = results.filter(function (l) { return l.indexOf('FAIL') === 0; });
+    document.getElementById('results').textContent =
+      results.join('\n') + '\n\nTOTAAL: ' + results.length + ' checks, ' + failed.length + ' gefaald.';
+  });
+</script>
+</body>
+</html>

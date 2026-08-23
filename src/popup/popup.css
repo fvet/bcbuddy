@@ -1,0 +1,94 @@
+:root {
+  /* Zie options.css: laat de browser zijn eigen onderdelen in het juiste
+     thema tekenen en voorkom een witte flits bij het openen. */
+  color-scheme: light dark;
+
+  --bg: #ffffff;
+  --surface-2: #f1f3f6;
+  --border: #d9dde3;
+  --text: #1b1e23;
+  --muted: #667080;
+  --accent: #0f6cbd;
+  --accent-text: #ffffff;
+  --brand-mark: #505c6d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e2127;
+    --surface-2: #262a31;
+    --border: #363b44;
+    --text: #e7eaee;
+    --muted: #9aa3b0;
+    --accent: #4aa3f0;
+    --accent-text: #0b1220;
+    --brand-mark: #a7adb6;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 310px;
+  margin: 0;
+  padding: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+header { display: flex; align-items: center; gap: 9px; }
+.muted { color: var(--muted); font-size: 11.5px; }
+
+.brand {
+  width: 30px; height: 30px; flex: none;
+  font-family: "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+}
+.brand-name { font-size: 14px; }
+
+.parsed {
+  margin: 0;
+  padding: 10px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.parsed div { display: flex; gap: 8px; }
+.parsed dt { color: var(--muted); min-width: 66px; }
+.parsed dd { margin: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.switch { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
+
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.btn {
+  flex: 1 1 auto;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--surface-2); }
+/* Expliciet, zodat een latere display-regel op .btn het verbergen niet stilletjes
+   ongedaan maakt (dat gebeurde eerder met de kop boven de gedeelde regels). */
+.btn[hidden] { display: none; }
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); flex: 1 1 100%; }
+/* Achtergrond en tekstkleur expliciet herhalen: anders wint .btn:hover met zijn
+   grijze achtergrond en blijft de donkere tekst onleesbaar. */
+.btn--primary:hover { background: var(--accent); color: var(--accent-text); filter: brightness(1.08); }
+
+.status { margin: 0; min-height: 16px; font-size: 11.5px; color: var(--muted); }
+.status--error { color: #c4314b; }

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <title>BC Buddy</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <!-- Zelfde merk als de optiespagina; de bol neemt de kleur van de regel
+         die op dit tabblad past. -->
+    <svg class="brand" viewBox="0 0 128 128" role="img" aria-labelledby="brandTitle">
+      <title id="brandTitle">BC Buddy</title>
+      <mask id="brandBite">
+        <rect width="128" height="128" fill="#fff"></rect>
+        <circle cx="98" cy="91" r="27" fill="#000"></circle>
+      </mask>
+      <g mask="url(#brandBite)">
+        <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
+              letter-spacing="-4" fill="var(--brand-mark)">BC</text>
+      </g>
+      <circle id="brandDot" cx="98" cy="91" r="20" fill="#00b7c3"></circle>
+    </svg>
+    <strong class="brand-name" data-i18n="extName">BC Buddy</strong>
+  </header>
+
+  <dl class="parsed" id="parsed"></dl>
+
+  <label class="switch">
+    <input type="checkbox" id="enabled">
+    <span data-i18n="extensionActive">Extensie actief</span>
+  </label>
+
+  <div class="actions">
+    <button type="button" class="btn btn--primary" id="addRule" data-i18n="addRule">Regel toevoegen</button>
+    <button type="button" class="btn" id="openOptions" data-i18n="openOptions">Opties</button>
+    <button type="button" class="btn" id="syncNow" data-i18n="syncShort">Sync</button>
+  </div>
+
+  <p class="status" id="status"></p>
+
+  <script src="../lib/i18n.js"></script>
+  <script src="../lib/match.js"></script>
+  <script src="../lib/settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

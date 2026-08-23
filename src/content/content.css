@@ -1,0 +1,99 @@
+/*
+ * BC Buddy - opmaak die op de BC-pagina wordt geinjecteerd.
+ * Alle kleuren komen uit CSS-variabelen die het content script op <html> zet.
+ */
+
+#bcem-frame {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: var(--bcem-border-width, 3px);
+  border-color: var(--bcem-color, #c4314b);
+}
+
+.bcem-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 3px 12px;
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font-weight: 600;
+  font-size: var(--bcem-bar-font-size, 13px);
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background-color: var(--bcem-bar-bg, #c4314b);
+  color: var(--bcem-text, #ffffff);
+  text-shadow: none;
+}
+
+.bcem-bar--bottom { bottom: 0; }
+
+/* Diagonaal lint in een hoek van het venster. */
+.bcem-corner {
+  position: fixed;
+  z-index: 2147483647;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 290px;
+  height: 40px;
+  padding: 0 26px;
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font-weight: 700;
+  font-size: var(--bcem-bar-font-size, 15px);
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  background-color: var(--bcem-bar-bg, #c4314b);
+  color: var(--bcem-text, #ffffff);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .35);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+}
+
+.bcem-corner--top-right { top: 45px; right: -72px; transform: rotate(45deg); }
+.bcem-corner--top-left { top: 45px; left: -72px; transform: rotate(-45deg); }
+.bcem-corner--bottom-right { bottom: 45px; right: -72px; transform: rotate(-45deg); }
+.bcem-corner--bottom-left { bottom: 45px; left: -72px; transform: rotate(45deg); }
+
+/* De BC-ribbon (zwarte balk bovenaan) krijgt de kleur van de regel. */
+[data-bcem-ribbon] {
+  background-color: var(--bcem-color, #c4314b) !important;
+  background-image: none !important;
+  transition: background-color 120ms ease-out;
+}
+
+[data-bcem-ribbon],
+[data-bcem-brand] {
+  color: var(--bcem-text, #ffffff) !important;
+}
+
+[data-bcem-brand] {
+  white-space: nowrap;
+  font-weight: 600 !important;
+}
+
+/* De knoppen en scheidingen rechts in de ribbon dragen hun eigen donkere
+   achtergrond mee. Die moet weg, anders blijven er zwarte blokjes tussen de
+   icoontjes staan. Invoervelden houden de hunne: die hebben een eigen
+   achtergrond nodig om leesbaar te blijven. */
+[data-bcem-ribbon] *:not(svg):not(img):not(input):not(textarea):not(select) {
+  background-color: transparent !important;
+}

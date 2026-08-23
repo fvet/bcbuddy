@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <title>BC Buddy - opties</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <svg class="brand" viewBox="0 0 128 128" role="img" aria-labelledby="brandTitle">
+        <title id="brandTitle">BC Buddy</title>
+        <mask id="brandBite">
+          <rect width="128" height="128" fill="#fff"></rect>
+          <circle cx="98" cy="91" r="27" fill="#000"></circle>
+        </mask>
+        <g mask="url(#brandBite)">
+          <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
+                letter-spacing="-4" fill="var(--brand-mark)">BC</text>
+        </g>
+        <circle id="brandDot" cx="98" cy="91" r="20" fill="#00b7c3"></circle>
+      </svg>
+      <div>
+        <h1 data-i18n="extName">BC Buddy</h1>
+        <p class="muted" data-i18n="tagline">Markeer je Business Central omgevingen met kleur,
+          kader en een eigen ribbon.</p>
+      </div>
+    </div>
+    <div class="topbar__actions">
+      <span class="status" id="status" role="status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="nav" aria-label="Secties">
+      <button type="button" class="nav__item" data-panel="environments" aria-current="page">
+        <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
+          <rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/>
+          <path d="M5 13.5h6"/>
+        </svg>
+        <span data-i18n="navEnvironments">Omgevingen</span>
+      </button>
+      <button type="button" class="nav__item" data-panel="settings">
+        <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.4"/>
+          <path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1"/>
+        </svg>
+        <span data-i18n="navSettings">Instellingen</span>
+      </button>
+      <button type="button" class="nav__item" data-panel="about">
+        <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.2"/>
+          <path d="M8 7.3v4"/>
+          <circle cx="8" cy="4.9" r=".7" fill="currentColor" stroke="none"/>
+        </svg>
+        <span data-i18n="navAbout">Over</span>
+      </button>
+
+      <!-- Onder de navigatie, los van de secties: de hoofdschakelaar. -->
+      <label class="switch nav__toggle">
+        <input type="checkbox" class="toggle" id="globalEnabled">
+        <span data-i18n="extensionActive">Extensie actief</span>
+      </label>
+    </nav>
+
+    <main>
+    <div class="panel" data-panel="environments">
+    <section class="card tester">
+      <div class="tester__row">
+        <label for="testUrl"><span data-i18n="testUrlLabel">Test-URL</span>
+          <span class="muted" data-i18n="testUrlHint">(bepaalt de voorbeelden hieronder)</span></label>
+        <div class="row">
+          <input type="text" id="testUrl" spellcheck="false"
+                 placeholder="https://businesscentral.dynamics.com/{tenant}/Sandbox?company=CRONUS%20BE&amp;page=1">
+          <button type="button" class="btn" id="useCurrentTab"
+                  data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">Uit open tab</button>
+        </div>
+      </div>
+      <dl class="parsed" id="parsed"></dl>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="layoutsHeading">Layouts</h2>
+        <div class="row">
+          <button type="button" class="btn" id="addLayout" data-i18n="addLayout">Layout toevoegen</button>
+        </div>
+      </div>
+      <p class="muted small" data-i18n="layoutsIntro">Een layout bundelt de weergave.</p>
+      <div class="rules">
+        <div id="layoutList" class="rules"></div>
+        <div id="hostedLayoutList" class="rules rules--readonly"></div>
+      </div>
+      <p class="empty" id="emptyLayouts" data-i18n="emptyLayouts" hidden>Nog geen layouts.</p>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="rulesHeading">Regels</h2>
+        <div class="row">
+          <button type="button" class="btn btn--primary" id="addRule" data-i18n="addRule">Regel toevoegen</button>
+        </div>
+      </div>
+      <p class="muted small" data-i18n="rulesIntro">Klik op een regel om ze open te klappen.</p>
+      <div class="rules">
+        <div id="ruleList" class="rules"></div>
+        <div class="shared-head" id="sharedHead" hidden>
+          <span class="muted small" data-i18n="sharedRules">Gedeelde regels</span>
+          <button type="button" class="icon-btn icon-btn--danger" id="clearShared"
+                  data-i18n-title="clearShared">&#10005;</button>
+        </div>
+        <div id="hostedList" class="rules rules--readonly"></div>
+      </div>
+      <p class="empty" id="emptyRules" data-i18n="emptyRules" hidden>Nog geen regels.</p>
+    </section>
+
+    </div>
+
+    <div class="panel" data-panel="settings" hidden>
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="sharedHeading">Gedeelde configuratie</h2>
+      </div>
+      <p class="muted small" data-i18n="sharedIntro">Host een JSON-bestand op een publieke URL.</p>
+
+      <div class="card">
+        <div class="grid grid--hosted">
+          <label class="field field--wide">
+            <span data-i18n="hostedUrlLabel">URL van het gedeelde bestand</span>
+            <input type="url" id="hostedUrl" spellcheck="false"
+                   placeholder="https://raw.githubusercontent.com/bedrijf/repo/main/bc-markers.json">
+          </label>
+        </div>
+        <div class="row row--wrap">
+          <button type="button" class="btn btn--primary" id="syncNow" data-i18n="syncNow">Synchroniseren</button>
+        </div>
+        <p class="sync-status" id="hostedStatus"></p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="importExportHeading">Import / export</h2>
+      </div>
+      <div class="grid grid--two">
+        <div class="card">
+          <h3 data-i18n="importHeading">Importeren</h3>
+          <p class="muted small" data-i18n="importIntro">Uit een bestand.</p>
+          <div class="row row--wrap">
+            <input type="file" id="importFile" accept="application/json,.json" hidden>
+            <button type="button" class="btn btn--primary" id="importFileBtn" data-i18n="chooseFile">Bestand kiezen...</button>
+          </div>
+          <p class="sync-status" id="importStatus"></p>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="exportHeading">Exporteren</h3>
+          <p class="muted small" data-i18n="exportIntro">Exporteert enkel je eigen regels.</p>
+          <div class="row row--wrap">
+            <button type="button" class="btn btn--primary" id="exportDownload" data-i18n="exportButton">Exporteer</button>
+          </div>
+          <p class="sync-status" id="exportStatus"></p>
+        </div>
+      </div>
+    </section>
+
+    </div>
+
+    <div class="panel" data-panel="about" hidden>
+      <section>
+        <div class="section-head">
+          <h2 data-i18n="navAbout">Over</h2>
+        </div>
+        <div class="card">
+          <p data-i18n="aboutIntro">BC Buddy geeft elke Business Central omgeving een eigen kleur.</p>
+          <dl class="parsed">
+            <div>
+              <dt data-i18n="aboutContact">Contact</dt>
+              <dd><a href="mailto:frederic.vercaemst@outlook.com">frederic.vercaemst@outlook.com</a></dd>
+            </div>
+            <div>
+              <dt data-i18n="aboutSource">Broncode</dt>
+              <dd><a href="https://github.com/fvet/bcbuddy" target="_blank"
+                     rel="noopener noreferrer">github.com/fvet/bcbuddy</a></dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+    </div>
+  </main>
+  </div>
+
+  <template id="ruleTemplate">
+    <article class="rule">
+      <div class="rule__head">
+        <button type="button" class="icon-btn rule__grip" data-action="grip" data-grip
+                data-i18n-title="dragToReorder">&#10303;</button>
+        <!-- Het kleurblokje is meteen de knop die de regel open- en dichtklapt. -->
+        <button type="button" class="rule__swatch" data-swatch data-action="toggle"
+                aria-expanded="false" data-i18n-title="toggleDetails"></button>
+        <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="ruleNamePlaceholder">
+        <span class="match" data-match aria-hidden="true"></span>
+        <div class="rule__tools">
+          <label class="switch switch--compact" data-i18n-title="ruleActiveTitle">
+            <input type="checkbox" class="toggle" data-path="enabled"><span data-i18n="ruleOn">Aan</span>
+          </label>
+          <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
+          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteRule">&#10005;</button>
+        </div>
+      </div>
+
+      <div class="rule__body" data-body>
+        <div class="rule__section">
+          <h4 data-i18n="conditionsHeading">Voorwaarden</h4>
+          <div class="conditions" data-conditions></div>
+          <button type="button" class="btn btn--small" data-action="add-condition"
+                  data-i18n="addCondition">Voorwaarde toevoegen</button>
+        </div>
+
+        <div class="rule__section">
+          <h4 data-i18n="displayHeading">Weergave</h4>
+          <div class="grid grid--style">
+            <div class="field field--colour">
+              <span data-i18n="colour">Kleur</span>
+              <div class="palette" data-palette>
+                <input type="color" class="palette__custom" data-custom-color
+                       data-path="color" data-i18n-title="customColour"></div>
+            </div>
+            <label class="field">
+              <span data-i18n="textColour">Tekstkleur</span>
+              <select data-path="textColor">
+                <option value="auto" data-i18n="textAuto">Automatisch</option>
+                <option value="#ffffff" data-i18n="textWhite">Wit</option>
+                <option value="#000000" data-i18n="textBlack">Zwart</option>
+              </select>
+            </label>
+            <label class="field field--layout">
+              <span data-i18n="layoutLabel">Layout</span>
+              <select data-path="layoutId" data-layout-picker></select>
+            </label>
+            <label class="field field--narrow" data-favicon-letters hidden>
+              <span data-i18n="faviconLetters">Letters (max 2)</span>
+              <input type="text" data-path="favicon.text" maxlength="2">
+            </label>
+          </div>
+
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="displayTemplate">
+    <div class="display">
+          <div class="option" data-option="ribbon">
+            <label class="switch"><input type="checkbox" data-path="ribbon.enabled"><span data-i18n="ribbonToggle">Ribbon aanpassen</span></label>
+            <div class="option__body">
+              <label class="field field--wide">
+                <span><span data-i18n="ribbonText">Tekst in de ribbon</span>
+                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
+                </span>
+                <input type="text" data-path="ribbon.text" spellcheck="false">
+              </label>
+            </div>
+          </div>
+
+          <div class="option">
+            <label class="switch"><input type="checkbox" data-path="border.enabled"><span data-i18n="borderToggle">Kader rond de pagina</span></label>
+            <div class="option__body">
+              <label class="field field--narrow">
+                <span data-i18n="borderWidth">Dikte (px)</span>
+                <input type="range" data-path="border.width" min="1" max="5" step="1">
+              </label>
+            </div>
+          </div>
+
+          <div class="option">
+            <label class="switch"><input type="checkbox" data-path="banner.enabled"><span data-i18n="bannerToggle">Banner</span></label>
+            <div class="option__body">
+              <label class="field field--narrow">
+                <span data-i18n="bannerPosition">Positie</span>
+                <select data-path="banner.position">
+                  <option value="bottom" data-i18n="posBottom">Balk onderaan</option>
+                  <option value="top-right" data-i18n="posTopRight">Lint rechtsboven</option>
+                  <option value="top-left" data-i18n="posTopLeft">Lint linksboven</option>
+                  <option value="bottom-right" data-i18n="posBottomRight">Lint rechtsonder</option>
+                  <option value="bottom-left" data-i18n="posBottomLeft">Lint linksonder</option>
+                </select>
+              </label>
+              <label class="field field--wide">
+                <span><span data-i18n="bannerText">Tekst</span>
+                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
+                </span>
+                <input type="text" data-path="banner.text" spellcheck="false">
+              </label>
+              <label class="field field--narrow">
+                <span data-i18n="bannerFontSize">Tekstgrootte (0 = auto)</span>
+                <input type="number" data-path="banner.fontSize" min="0" max="72" step="1">
+              </label>
+              <label class="field field--narrow">
+                <span data-i18n="bannerOpacity">Dekking</span>
+                <input type="range" data-path="banner.opacity" min="0.1" max="1" step="0.05">
+              </label>
+            </div>
+          </div>
+
+          <div class="option">
+            <label class="switch"><input type="checkbox" data-path="title.enabled"><span data-i18n="titleToggle">Tabtitel aanpassen</span></label>
+            <div class="option__body">
+              <label class="field field--wide">
+                <span><span data-i18n="titleText">Titel</span>
+                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
+                </span>
+                <input type="text" data-path="title.text" spellcheck="false">
+              </label>
+            </div>
+          </div>
+
+          <div class="option option--plain">
+            <label class="switch"><input type="checkbox" data-path="favicon.enabled"><span data-i18n="faviconToggle">Favicon vervangen</span></label>
+          </div>
+    </div>
+  </template>
+
+  <template id="layoutTemplate">
+    <article class="rule rule--layout">
+      <div class="rule__head">
+        <button type="button" class="icon-btn rule__toggle" data-action="toggle"
+                aria-expanded="false" data-i18n-title="toggleDetails">&#9654;</button>
+        <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="layoutNamePlaceholder">
+        <div class="rule__tools">
+          <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
+          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteLayout">&#10005;</button>
+        </div>
+      </div>
+
+      <div class="rule__body" data-body>
+        <div class="preview" data-preview>
+          <div class="preview__ribbon" data-preview-ribbon>
+            <span class="preview__brand" data-preview-brand></span>
+          </div>
+          <div class="preview__frame" data-preview-frame>
+            <span class="preview__page" data-preview-page></span>
+            <span class="preview__banner" data-preview-banner></span>
+          </div>
+        </div>
+
+        <p class="muted small" data-i18n="layoutPreviewNote">Voorbeeldkleur.</p>
+
+        <div class="rule__section">
+          <h4 data-i18n="displayHeading">Weergave</h4>
+          <div data-display></div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="conditionTemplate">
+    <div class="condition">
+      <select data-cond="field"></select>
+      <select data-cond="op"></select>
+      <input type="text" data-cond="value" spellcheck="false" data-i18n-placeholder="conditionValuePlaceholder">
+      <span class="dot-indicator" data-cond-match></span>
+      <button type="button" class="icon-btn icon-btn--danger" data-action="remove-condition"
+              data-i18n-title="removeCondition">&#10005;</button>
+    </div>
+  </template>
+
+  <script src="../lib/i18n.js"></script>
+  <script src="../lib/match.js"></script>
+  <script src="../lib/settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+{
+  "app": "bc-environment-marker",
+  "version": 1,
+  "name": "BC markers - Bedrijf X",
+  "layouts": [
+    {
+      "id": "default",
+      "name": "Default",
+      "border": { "enabled": true, "width": 3 },
+      "banner": { "enabled": false, "position": "bottom", "text": "{name}", "fontSize": 0, "opacity": 0.95 },
+      "ribbon": {
+        "enabled": true,
+        "text": "Dynamics 365 Business Central - {company} ({environment})"
+      },
+      "title": { "enabled": true, "text": "[{name}] {title}" },
+      "favicon": { "enabled": true, "text": "" }
+    },
+    {
+      "id": "opvallend",
+      "name": "Opvallend",
+      "note": "Voor productie: dikker kader en een lint in de hoek.",
+      "border": { "enabled": true, "width": 6 },
+      "banner": { "enabled": true, "position": "top-right", "text": "{name}", "fontSize": 0, "opacity": 0.95 },
+      "ribbon": {
+        "enabled": true,
+        "text": "Dynamics 365 Business Central - {company} ({environment}) - {name}"
+      },
+      "title": { "enabled": true, "text": "[{name}] {title}" },
+      "favicon": { "enabled": true, "text": "" }
+    }
+  ],
+  "rules": [
+    {
+      "id": "prod",
+      "name": "PRODUCTIE",
+      "enabled": true,
+      "note": "Rode markering op alle productieomgevingen.",
+      "layoutId": "opvallend",
+      "conditions": [
+        { "field": "environment", "op": "contains", "value": "Production" }
+      ],
+      "color": "#c4314b",
+      "textColor": "auto",
+      "favicon": { "enabled": true, "text": "PR" }
+    },
+    {
+      "id": "sandbox-generiek",
+      "name": "TEST",
+      "enabled": true,
+      "note": "Elke sandbox, ongeacht het bedrijf.",
+      "layoutId": "default",
+      "conditions": [
+        { "field": "environment", "op": "contains", "value": "Sandbox" }
+      ],
+      "color": "#eaa300",
+      "textColor": "auto",
+      "favicon": { "enabled": true, "text": "TS" }
+    },
+    {
+      "id": "dev-cronus",
+      "name": "DEV",
+      "enabled": true,
+      "note": "Ontwikkelomgeving met CRONUS-demodata.",
+      "layoutId": "default",
+      "conditions": [
+        { "field": "environment", "op": "startsWith", "value": "DEV" },
+        { "field": "company", "op": "contains", "value": "CRONUS" }
+      ],
+      "color": "#0f6cbd",
+      "textColor": "auto",
+      "favicon": { "enabled": true, "text": "DV" }
+    }
+  ]
+}

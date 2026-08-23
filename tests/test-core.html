@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>BCEM core</title>
+<link rel="stylesheet" href="../src/content/content.css">
+<style>
+  body { font-family: monospace; margin: 0; }
+  #fakeHeader { position: fixed; top: 0; left: 0; width: 100%; height: 40px; background: #1f1f1f; color: #fff; display: flex; align-items: center; gap: 20px; padding: 0 12px; box-sizing: border-box; }
+  #results { margin-top: 60px; padding: 12px; white-space: pre-wrap; }
+  .hdr-icons { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .hdr-btn { background: #2b2b2b; color: #fff; border: 0; padding: 4px 8px; }
+  .hdr-search { background: #ffffff; color: #1f1f1f; border: 0; padding: 3px 6px; }
+  .hdr-avatar { width: 22px; height: 22px; border-radius: 50%; background-color: #2b2b2b; background-image: url("../icons/logo.svg"); background-size: cover; }
+</style>
+</head>
+<body>
+  <div id="fakeHeader">
+    <div class="hdr-inner">
+      <a href="#"><span class="brand-text">Dynamics 365 Business Central</span></a>
+    </div>
+    <span class="env-chip">Environment: Sandbox</span>
+    <!-- De icoontjes rechts, zoals BC ze tekent: knoppen met hun eigen donkere
+         achtergrond, een zoekveld en een avatar met een afbeelding. -->
+    <span class="hdr-icons">
+      <button type="button" class="hdr-btn">?</button>
+      <button type="button" class="hdr-btn" style="background-color: #2b2b2b !important">!</button>
+      <input type="text" class="hdr-search" value="zoek">
+      <span class="hdr-avatar"></span>
+    </span>
+  </div>
+  <div id="results">running...</div>
+
+<script>
+/* ---- chrome API stub ---------------------------------------------------- */
+var STORE = {};
+/*
+ * chrome.i18n met de echte berichten uit _locales/nl. Synchroon ingelezen,
+ * zodat de scripts hieronder er meteen over beschikken.
+ */
+var MESSAGES = (function () {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '../_locales/nl/messages.json', false);
+    xhr.send();
+    return JSON.parse(xhr.responseText);
+  } catch (e) {
+    return {};
+  }
+})();
+
+function i18nStub() {
+  return {
+    getMessage: function (key, subs) {
+      var entry = MESSAGES[key];
+      if (!entry) return '';
+      var message = entry.message;
+      (subs || []).forEach(function (value, index) {
+        message = message.split('$' + (index + 1)).join(value);
+      });
+      return message;
+    }
+  };
+}
+window.chrome = {
+  i18n: i18nStub(),
+  storage: {
+    local: {
+      get: function (keys) {
+        var out = {};
+        (typeof keys === 'string' ? [keys] : keys).forEach(function (k) {
+          if (STORE[k] !== undefined) out[k] = STORE[k];
+        });
+        return Promise.resolve(out);
+      },
+      set: function (obj) { Object.keys(obj).forEach(function (k) { STORE[k] = obj[k]; }); return Promise.resolve(); },
+      remove: function () { return Promise.resolve(); }
+    },
+    onChanged: { addListener: function () {} }
+  },
+  runtime: { sendMessage: function () { return Promise.resolve({}); }, onMessage: { addListener: function () {} } }
+};
+</script>
+
+<script src="../src/lib/i18n.js"></script>
+<script src="../src/lib/match.js"></script>
+<script src="../src/lib/settings.js"></script>
+
+<script>
+/* ---- instellingen klaarzetten voor het content script ------------------- */
+var BCEM = window.BCEM;
+/*
+ * De weergave zit hier in een layout, en de regel heeft er bewust andere eigen
+ * instellingen naast staan. Alles wat het content script hieronder tekent komt
+ * dus aantoonbaar uit de layout.
+ */
+STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
+  enabled: true,
+  layouts: [BCEM.normalizeLayout({
+    id: 'lay-core',
+    name: 'Harness',
+    ribbon: { enabled: true, text: 'Dynamics 365 Business Central - GEMARKEERD ({name})' },
+    border: { enabled: true, width: 5 },
+    banner: { enabled: true, position: 'top-right', text: '{name}' },
+    title: { enabled: true, text: '[{name}] {title}' },
+    favicon: { enabled: true }
+  })],
+  rules: [BCEM.normalizeRule({
+    name: 'HARNESS',
+    color: '#006600',
+    layoutId: 'lay-core',
+    conditions: [{ field: 'url', op: 'contains', value: 'test-core' }],
+    ribbon: { enabled: true, text: 'EIGEN TEKST DIE NIET MAG WINNEN' },
+    border: { enabled: true, width: 1 },
+    banner: { enabled: false }
+  })]
+});
+</script>
+
+<script src="../src/content/content.js"></script>
+
+<script>
+(function () {
+  var results = [];
+  function check(name, actual, expected) {
+    var ok = JSON.stringify(actual) === JSON.stringify(expected);
+    results.push((ok ? 'PASS  ' : 'FAIL  ') + name + (ok ? '' : '\n        verwacht: ' + JSON.stringify(expected) + '\n        gekregen: ' + JSON.stringify(actual)));
+  }
+  function truthy(name, actual) {
+    results.push((actual ? 'PASS  ' : 'FAIL  ') + name + (actual ? '' : '  (kreeg: ' + JSON.stringify(actual) + ')'));
+  }
+
+  var SAAS = 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox?company=CRONUS%20BE&page=1&dc=0&bookmark=B_TwAAAAJ7';
+  var ONPREM = 'https://bc-server.local:8080/BC240/?company=CRONUS%20Belgium&tenant=default';
+
+  var saas = BCEM.parseUrl(SAAS);
+  check('parseUrl SaaS: omgeving', saas.environment, 'Sandbox');
+  check('parseUrl SaaS: bedrijf', saas.company, 'CRONUS BE');
+  check('parseUrl SaaS: tenant', saas.tenant, '453d817a-d5b1-49c1-bdcf-d9474180a702');
+  check('parseUrl SaaS: host', saas.host, 'businesscentral.dynamics.com');
+  check('parseUrl SaaS: isbc', saas.isbc, true);
+  check('parseUrl SaaS: url gedecodeerd', saas.url.indexOf('CRONUS BE') !== -1, true);
+
+  var onprem = BCEM.parseUrl(ONPREM);
+  check('parseUrl onprem: serverinstance als omgeving', onprem.environment, 'BC240');
+  check('parseUrl onprem: tenant uit query', onprem.tenant, 'default');
+  check('parseUrl onprem: bedrijf', onprem.company, 'CRONUS Belgium');
+  check('parseUrl onprem: isbc', onprem.isbc, false);
+
+  /*
+   * De vormen uit de documentatie van Microsoft:
+   * https://<host>[/<aadtenantid>][/<environmentname>]/?[company=..]&[tenant=..]
+   * Tenant en omgeving zijn allebei optioneel, en de tenant kan een GUID of een
+   * domeinnaam zijn. On-prem staat het serverinstance op de plaats van de
+   * omgeving en komt de tenant uit de query.
+   */
+  function velden(url) {
+    var c = BCEM.parseUrl(url);
+    return [c.tenant, c.environment, c.company];
+  }
+  check('URL: zonder tenant en zonder omgeving',
+    velden('https://businesscentral.dynamics.com/?company=CRONUS%20International%20Ltd.&page=9305'),
+    ['', '', 'CRONUS International Ltd.']);
+  check('URL: omgeving zonder tenant',
+    velden('https://businesscentral.dynamics.com/Production/?company=CRONUS%20BE'),
+    ['', 'Production', 'CRONUS BE']);
+  check('URL: tenant als GUID zonder omgeving',
+    velden('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/?company=CRONUS%20BE'),
+    ['453d817a-d5b1-49c1-bdcf-d9474180a702', '', 'CRONUS BE']);
+  check('URL: tenant als domeinnaam, met omgeving',
+    velden('https://businesscentral.dynamics.com/contoso.onmicrosoft.com/Sandbox/?company=CRONUS%20BE'),
+    ['contoso.onmicrosoft.com', 'Sandbox', 'CRONUS BE']);
+  check('URL: on-prem met tenant in de query',
+    velden('https://bc.contoso.local:8080/BC240/?company=CRONUS%20BE&tenant=default'),
+    ['default', 'BC240', 'CRONUS BE']);
+  check('URL: on-prem zonder tenant',
+    velden('https://localhost:8080/BC/?company=CRONUS'), ['', 'BC', 'CRONUS']);
+  check('URL: on-prem zonder https',
+    velden('http://bcserver/BC240/?company=CRONUS%20Belgium&page=21'), ['', 'BC240', 'CRONUS Belgium']);
+
+  check('parseUrl: rommel geeft lege context', BCEM.parseUrl('niet-een-url').host, '');
+  check('parseUrl: geen pagina-veld meer',
+    Object.prototype.hasOwnProperty.call(saas, 'page'), false);
+  check('operatoren: RegEx staat achteraan',
+    BCEM.OPERATORS.map(function (o) { return o.value; }),
+    ['contains', 'equals', 'startsWith', 'endsWith', 'notContains', 'regex']);
+  check('velden: pagina is geen keuze meer',
+    BCEM.FIELDS.map(function (f) { return f.value; }),
+    ['environment', 'company', 'tenant', 'url']);
+  check('template: {page} is geen token meer',
+    BCEM.render('{page}', saas, {}), '{page}');
+
+  // matching
+  var r = function (conds) { return BCEM.normalizeRule({ name: 'x', conditions: conds }); };
+  check('match: waarde ergens in de URL', BCEM.matchRule(r([{ field: 'url', op: 'contains', value: 'Sandbox' }]), saas), true);
+  check('match: bedrijf met spatie', BCEM.matchRule(r([{ field: 'company', op: 'equals', value: 'cronus be' }]), saas), true);
+  check('match: AND, beide waar', BCEM.matchRule(r([
+    { field: 'environment', op: 'contains', value: 'sand' },
+    { field: 'company', op: 'contains', value: 'CRONUS' }]), saas), true);
+  check('match: AND, een fout', BCEM.matchRule(r([
+    { field: 'environment', op: 'contains', value: 'sand' },
+    { field: 'company', op: 'contains', value: 'CONTOSO' }]), saas), false);
+  check('match: regex', BCEM.matchRule(r([{ field: 'environment', op: 'regex', value: '^sand(box)?$' }]), saas), true);
+  check('match: ongeldige regex faalt zonder crash', BCEM.matchRule(r([{ field: 'url', op: 'regex', value: '[' }]), saas), false);
+  check('match: bevat niet', BCEM.matchRule(r([{ field: 'environment', op: 'notContains', value: 'prod' }]), saas), true);
+  check('match: lege waarde matcht nooit', BCEM.matchRule(r([{ field: 'url', op: 'contains', value: '' }]), saas), false);
+  check('match: uitgeschakelde regel', BCEM.matchRule(BCEM.normalizeRule({ enabled: false, conditions: [{ field: 'url', op: 'contains', value: 'Sandbox' }] }), saas), false);
+
+  // mikt een regel op Business Central?
+  var bc = function (conds) { return BCEM.targetsBusinessCentral(BCEM.normalizeRule({ conditions: conds })); };
+  check('BC-regel: voorwaarde op omgeving', bc([{ field: 'environment', op: 'contains', value: 'Sandbox' }]), true);
+  check('BC-regel: voorwaarde op bedrijf', bc([{ field: 'company', op: 'contains', value: 'CRONUS' }]), true);
+  check('BC-regel: lege omgevingsvoorwaarde telt ook',
+    bc([{ field: 'environment', op: 'contains', value: '' }]), true);
+  check('BC-regel: host met de BC-host',
+    bc([{ field: 'host', op: 'equals', value: 'businesscentral.dynamics.com' }]), true);
+  check('BC-regel: URL met de BC-host',
+    bc([{ field: 'url', op: 'contains', value: 'https://businesscentral.dynamics.com/453d817a' }]), true);
+  check('BC-regel: RegEx met ontsnapte punten',
+    bc([{ field: 'url', op: 'regex', value: 'businesscentral\\.dynamics\\.com/.*' }]), true);
+  check('BC-regel: andere host telt niet',
+    bc([{ field: 'host', op: 'equals', value: 'portal.azure.com' }]), false);
+  check('BC-regel: enkel een tenant telt niet',
+    bc([{ field: 'tenant', op: 'equals', value: '453d817a-d5b1-49c1-bdcf-d9474180a702' }]), false);
+  check('BC-regel: een van meerdere voorwaarden volstaat',
+    bc([{ field: 'host', op: 'equals', value: 'intranet.local' },
+        { field: 'company', op: 'contains', value: 'CRONUS' }]), true);
+
+  // voorstel voor een nieuwe regel, afgeleid van een URL
+  var bcDraft = BCEM.draftFromContext(saas);
+  check('nieuwe regel: naam uit de omgeving', bcDraft.name, 'SANDBOX');
+  check('nieuwe regel: omgeving en bedrijf uit een BC-URL', bcDraft.conditions,
+    [{ field: 'environment', op: 'equals', value: 'Sandbox' },
+     { field: 'company', op: 'equals', value: 'CRONUS BE' }]);
+
+  var googleDraft = BCEM.draftFromContext(BCEM.parseUrl('https://www.google.com/shopping'));
+  check('nieuwe regel: volledige URL bij een niet-BC site', googleDraft.conditions,
+    [{ field: 'url', op: 'contains', value: 'https://www.google.com/shopping' }]);
+  check('nieuwe regel: naam bij een niet-BC site', googleDraft.name, 'SHOPPING');
+
+  var hostOnly = BCEM.draftFromContext(BCEM.parseUrl('https://intranet.local/'));
+  check('nieuwe regel: naam valt terug op de host', hostOnly.name, 'INTRANET.LOCAL');
+  check('nieuwe regel: zonder URL een lege voorwaarde',
+    BCEM.draftFromContext(BCEM.parseUrl('')).conditions,
+    [{ field: 'environment', op: 'contains', value: '' }]);
+  check('nieuwe regel: zonder URL een neutrale naam',
+    BCEM.draftFromContext(BCEM.parseUrl('')).name, 'NIEUWE REGEL');
+
+  // layouts: weergave los van de regel
+  var layout = BCEM.normalizeLayout({
+    id: 'lay-1', name: 'Standaard',
+    ribbon: { enabled: true, text: 'LAYOUT {environment}' },
+    border: { enabled: true, width: 4 },
+    banner: { enabled: true, position: 'bottom-left', text: 'uit de layout' },
+    title: { enabled: true, text: 'L {title}' },
+    favicon: { enabled: true, text: 'LA' }
+  });
+  var gekoppeld = BCEM.normalizeRule({
+    name: 'TEST', color: '#c4314b', layoutId: 'lay-1',
+    conditions: [{ field: 'environment', op: 'contains', value: 'Sandbox' }],
+    ribbon: { enabled: false, text: 'EIGEN TEKST' },
+    border: { enabled: true, width: 2 }
+  });
+
+  check('layout: heeft geen kleur', Object.prototype.hasOwnProperty.call(layout, 'color'), false);
+  check('layout: zonder keuze volgt de regel de enige layout',
+    BCEM.resolveRule(BCEM.normalizeRule({ ribbon: { text: 'EIGEN' } }), [layout]).ribbon.text,
+    'LAYOUT {environment}');
+  check('layout: zonder keuze volgt de regel de eerste layout',
+    BCEM.resolveRule(BCEM.normalizeRule({ ribbon: { text: 'EIGEN' } }),
+      [layout, BCEM.normalizeLayout({ id: 'lay-2', name: 'Tweede' })]).ribbon.text,
+    'LAYOUT {environment}');
+  check('layout: een verdwenen layout valt terug op de eerste',
+    BCEM.resolveRule(BCEM.normalizeRule({ layoutId: 'bestaat-niet', ribbon: { text: 'EIGEN' } }),
+      [layout]).ribbon.text, 'LAYOUT {environment}');
+  check('layout: zonder layouts blijft de regel zichzelf',
+    BCEM.resolveRule(BCEM.normalizeRule({ ribbon: { text: 'EIGEN' } }), []).ribbon.text, 'EIGEN');
+
+  var opgelost = BCEM.resolveRule(gekoppeld, [layout]);
+  check('layout: ribbon komt uit de layout', opgelost.ribbon.text, 'LAYOUT {environment}');
+  check('layout: kader komt uit de layout', opgelost.border.width, 4);
+  check('layout: banner komt uit de layout', opgelost.banner.position, 'bottom-left');
+  check('layout: titel komt uit de layout', opgelost.title.text, 'L {title}');
+  check('layout: favicon aan/uit komt uit de layout', opgelost.favicon.enabled, true);
+  check('layout: faviconletters blijven van de regel', opgelost.favicon.text, '');
+  check('layout: een layout draagt zelf geen letters', layout.favicon.text, '');
+  check('layout: naam blijft van de regel', opgelost.name, 'TEST');
+  check('layout: kleur blijft van de regel', opgelost.color, '#c4314b');
+  check('layout: voorwaarden blijven van de regel', opgelost.conditions.length, 1);
+  check('layout: de regel zelf wordt niet gewijzigd', gekoppeld.ribbon.text, 'EIGEN TEKST');
+  check('layout: onbekende layout valt terug op de regel',
+    BCEM.resolveRule(gekoppeld, []).border.width, 2);
+
+  var metLayout = BCEM.normalize({
+    rules: [gekoppeld],
+    layouts: [layout]
+  });
+  check('layout: effectieve regels zijn opgelost',
+    BCEM.effectiveRules(metLayout)[0].border.width, 4);
+  check('layout: bewaard in de instellingen', metLayout.layouts.length, 1);
+
+  // gedeelde regels kijken eerst naar de gedeelde layouts
+  var gedeeld = BCEM.normalize({
+    hosted: {
+      rules: [BCEM.normalizeRule({ name: 'GEDEELD', layoutId: 'lay-h' })],
+      layouts: [BCEM.normalizeLayout({ id: 'lay-h', name: 'Gedeeld', border: { width: 2 } })]
+    }
+  });
+  check('layout: gedeelde regel gebruikt de gedeelde layout',
+    BCEM.effectiveRules(gedeeld)[0].border.width, 2);
+
+  // eerste match wint, eigen regels voor gedeelde
+  var settings = BCEM.normalize({
+    rules: [BCEM.normalizeRule({ name: 'EIGEN', conditions: [{ field: 'environment', op: 'contains', value: 'sandbox' }] })],
+    hosted: { rules: [BCEM.normalizeRule({ name: 'GEDEELD', conditions: [{ field: 'url', op: 'contains', value: 'businesscentral' }] })] }
+  });
+  check('prioriteit: eigen regel wint van gedeelde', BCEM.findRule(BCEM.effectiveRules(settings), saas).name, 'EIGEN');
+
+  // templates
+  var tpl = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
+  check('template: volledige ribbontekst',
+    BCEM.renderTidy(tpl, saas, { name: 'TEST' }),
+    'Dynamics 365 Business Central - Sandbox - CRONUS BE (TEST)');
+  var noCompany = BCEM.parseUrl('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox');
+  check('template: leeg bedrijf laat geen rommel achter',
+    BCEM.renderTidy(tpl, noCompany, { name: 'TEST' }),
+    'Dynamics 365 Business Central - Sandbox (TEST)');
+  check('template: leeg token tussen twee streepjes houdt er een over',
+    BCEM.renderTidy('D365 - {company} - {name}', noCompany, { name: 'TEST' }),
+    'D365 - TEST');
+  check('template: enkel lege tokens geeft lege tekst',
+    BCEM.renderTidy('{company} ({company})', noCompany, {}), '');
+  check('template: leeg token vooraan',
+    BCEM.renderTidy('{company} - {environment}', noCompany, {}), 'Sandbox');
+  check('kleur: tekst op groen', BCEM.idealText('#107c10'), '#ffffff');
+  check('kleur: tekst op blauw', BCEM.idealText('#0f6cbd'), '#ffffff');
+  check('kleur: tekst op wit', BCEM.idealText('#ffffff'), '#000000');
+  check('template: {env} alias', BCEM.renderTidy('{env}', saas, {}), 'Sandbox');
+  check('template: onbekend token blijft staan', BCEM.render('{zzz}', saas, {}), '{zzz}');
+  check('template: {brand} is geen token meer', BCEM.render('{brand}', saas, {}), '{brand}');
+  check('template: {host} is geen token meer', BCEM.render('{host}', saas, {}), '{host}');
+  check('template: enkel de opgesomde tokens worden vervangen',
+    BCEM.render('{url} {path} {isbc} {rawurl}', saas, {}), '{url} {path} {isbc} {rawurl}');
+  check('template: ondersteunde tokens',
+    BCEM.TOKENS, ['name', 'environment', 'env', 'company', 'tenant', 'title']);
+  check('template: alle ondersteunde tokens vervangen',
+    BCEM.render('{name}|{environment}|{env}|{company}|{tenant}|{title}', saas,
+      { name: 'TEST', title: 'Company Information' }),
+    'TEST|Sandbox|Sandbox|CRONUS BE|453d817a-d5b1-49c1-bdcf-d9474180a702|Company Information');
+  check('migratie: oude {brand} in een regel wordt de merknaam',
+    BCEM.normalizeRule({ ribbon: { text: '{brand} - {environment}' } }).ribbon.text,
+    'Dynamics 365 Business Central - {environment}');
+  check('defaults: ribbontekst met letterlijke merknaam', BCEM.normalizeRule({}).ribbon.text,
+    'Dynamics 365 Business Central - {company} ({environment})');
+  check('geavanceerd: geen instellingenblok meer',
+    Object.prototype.hasOwnProperty.call(BCEM.normalize(null), 'advanced'), false);
+
+  // spaties voor of achter een tekstwaarde zijn altijd per ongeluk
+  var metSpaties = BCEM.normalizeRule({
+    name: '  PROD  ',
+    conditions: [{ field: 'company', op: 'equals', value: '  CRONUS BE ' }],
+    ribbon: { text: ' {company} ' }
+  });
+  check('trim: naam zonder spaties', metSpaties.name, 'PROD');
+  check('trim: voorwaarde zonder spaties', metSpaties.conditions[0].value, 'CRONUS BE');
+  check('trim: ribbontekst zonder spaties', metSpaties.ribbon.text, '{company}');
+  check('trim: ook de URL van het gedeelde bestand',
+    BCEM.normalize({ hosted: { url: '  https://voorbeeld.be/x.json ' } }).hosted.url,
+    'https://voorbeeld.be/x.json');
+
+  // kleuren
+  check('kleur: rgba naar hex', BCEM.toHex('rgba(188,0,0,1)'), '#bc0000');
+  check('kleur: korte hex', BCEM.toHex('#fc0'), '#ffcc00');
+  check('kleur: tekst op donker', BCEM.idealText('#bc0000'), '#ffffff');
+  check('kleur: tekst op licht', BCEM.idealText('#eaa300'), '#000000');
+  check('kleur: rgba met dekking', BCEM.toRgba('#bc0000', 0.5), 'rgba(188,0,0,0.5)');
+
+  // normalisatie en import/export
+  var def = BCEM.normalize(null);
+  check('defaults: geen regels', def.rules.length, 0);
+  check('defaults: er is altijd een layout', def.layouts.length, 1);
+  check('defaults: die heet Default', def.layouts[0].name, 'Default');
+  check('defaults: met een vast id', def.layouts[0].id, 'default');
+  check('defaults: extensie aan', def.enabled, true);
+  check('defaults: gedeelde configuratie staat uit', def.hosted.active, false);
+  check('bijwerken: dagelijks interval', BCEM.SYNC_INTERVAL_MINUTES, 1440);
+  check('actief: zonder URL kan het nooit aanstaan',
+    BCEM.normalize({ hosted: { active: true } }).hosted.active, false);
+  check('actief: een URL zonder eerste sync staat nog uit',
+    BCEM.normalize({ hosted: { url: 'https://x.be/b.json' } }).hosted.active, false);
+  check('actief: eenmaal aan blijft het aan',
+    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', active: true } }).hosted.active, true);
+  check('actief: uitgezet blijft uit',
+    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', active: false } }).hosted.active, false);
+  check('actief: oude schakelaar autoSync wordt overgenomen',
+    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', autoSync: true } }).hosted.active, true);
+  check('actief: oud interval 0 wordt uit',
+    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', intervalMinutes: 0 } }).hosted.active, false);
+  check('actief: ouder interval wordt aan',
+    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', intervalMinutes: 10080 } }).hosted.active, true);
+  check('actief: de oude schakelaar blijft niet rondslingeren',
+    Object.prototype.hasOwnProperty.call(def.hosted, 'autoSync'), false);
+  check('bijwerken: geen interval meer in de instellingen',
+    Object.prototype.hasOwnProperty.call(def.hosted, 'intervalMinutes'), false);
+  check('normalisatie: standaard kaderdikte', BCEM.normalizeRule({}).border.width, 3);
+  check('normalisatie: banner standaard half doorzichtig',
+    BCEM.normalizeLayout({}).banner.opacity, 0.5);
+  check('normalisatie: een bewaarde dekking blijft staan',
+    BCEM.normalizeLayout({ banner: { opacity: 0.8 } }).banner.opacity, 0.8);
+  check('normalisatie: faviconletters afgekapt op twee',
+    BCEM.normalizeRule({ favicon: { text: 'ABCD' } }).favicon.text, 'AB');
+  check('normalisatie: standaarddikte', BCEM.normalizeRule({}).border.width, 3);
+  check('normalisatie: dikte begrensd', BCEM.normalizeRule({ border: { width: 999 } }).border.width, 5);
+  check('normalisatie: dikte minstens 1', BCEM.normalizeRule({ border: { width: 0 } }).border.width, 1);
+  check('normalisatie: geen dekking meer op het kader',
+    Object.prototype.hasOwnProperty.call(BCEM.normalizeRule({}).border, 'opacity'), false);
+  check('normalisatie: onbekende positie valt terug', BCEM.normalizeRule({ banner: { position: 'zijkant' } }).banner.position, 'bottom');
+  check('normalisatie: balk bovenaan bestaat niet meer', BCEM.normalizeRule({ banner: { position: 'top' } }).banner.position, 'bottom');
+  check('normalisatie: hoekpositie behouden', BCEM.normalizeRule({ banner: { position: 'bottom-left' } }).banner.position, 'bottom-left');
+  check('normalisatie: lege regel krijgt een voorwaarde', BCEM.normalizeRule({}).conditions.length, 1);
+
+  var exported = BCEM.toExport(settings, 'Bedrijf X');
+  var roundtrip = BCEM.parseImport(JSON.stringify(exported));
+  check('export/import: aantal regels', roundtrip.rules.length, 1);
+  check('export/import: naam bewaard', roundtrip.name, 'Bedrijf X');
+  check('export/import: regelnaam bewaard', roundtrip.rules[0].name, 'EIGEN');
+  check('import: kale array werkt', BCEM.parseImport('[{"name":"A","conditions":[{"field":"url","op":"contains","value":"x"}]}]').rules[0].name, 'A');
+  var importError = '';
+  try { BCEM.parseImport('{"foo":1}'); } catch (e) { importError = e.message; }
+  truthy('import: duidelijke fout bij verkeerd bestand', importError.indexOf('rules') !== -1);
+  importError = '';
+  try { BCEM.parseImport('{niet json'); } catch (e) { importError = e.message; }
+  truthy('import: duidelijke fout bij ongeldige JSON', importError.indexOf('Ongeldige JSON') === 0);
+
+  // samenvoegen bij import
+  function ruleNamed(name, extra) {
+    return BCEM.normalizeRule({
+      id: (extra && extra.id) || 'id-' + name,
+      name: name,
+      color: (extra && extra.color) || '#c4314b',
+      conditions: [{ field: 'environment', op: 'contains', value: name }]
+    });
+  }
+  var bestaand = [ruleNamed('config 1'), ruleNamed('config 3'), ruleNamed('config 5')];
+  var bestand = [
+    ruleNamed('config 1', { color: '#107c10' }),
+    ruleNamed('config 2'),
+    ruleNamed('config 3', { color: '#107c10' })
+  ];
+  var merged = BCEM.mergeRules(bestaand, bestand);
+  check('import: alle regels aanwezig',
+    merged.rules.map(function (r) { return r.name; }),
+    ['config 1', 'config 3', 'config 5', 'config 2']);
+  check('import: bestaande regel overschreven', merged.rules[0].color, '#107c10');
+  check('import: niet-geimporteerde regel ongewijzigd', merged.rules[2].color, '#c4314b');
+  check('import: telling', merged.stats, { overwritten: 2, added: 1, kept: 1 });
+
+  var opNaam = BCEM.mergeRules(
+    [BCEM.normalizeRule({ id: 'lokaal', name: 'TEST', color: '#c4314b' })],
+    [BCEM.normalizeRule({ id: 'gedeeld', name: ' test ', color: '#0f6cbd' })]);
+  check('import: match op naam als het id verschilt', opNaam.rules.length, 1);
+  check('import: neemt het id uit het bestand over', opNaam.rules[0].id, 'gedeeld');
+  check('import: kleur uit het bestand', opNaam.rules[0].color, '#0f6cbd');
+
+  // layouts reizen mee in import en export
+  var metLayoutExport = BCEM.toExport(BCEM.normalize({ rules: [gekoppeld], layouts: [layout] }));
+  check('export: layouts gaan mee', metLayoutExport.layouts.length, 1);
+  check('export: de koppeling blijft bewaard', metLayoutExport.rules[0].layoutId, 'lay-1');
+
+  var heen = BCEM.parseImport(JSON.stringify(metLayoutExport));
+  check('import: layouts gelezen', heen.layouts.length, 1);
+  check('import: koppeling gelezen', heen.rules[0].layoutId, 'lay-1');
+  check('import: kale regelarray zonder layouts', BCEM.parseImport('[]').layouts, []);
+
+  var samengevoegd = BCEM.mergeLayouts(
+    [BCEM.normalizeLayout({ id: 'lay-1', name: 'Standaard', border: { width: 3 } })],
+    [layout, BCEM.normalizeLayout({ id: 'lay-2', name: 'Compact' })]);
+  check('import: layout overschreven op zijn plek', samengevoegd.layouts[0].border.width, 4);
+  check('import: nieuwe layout toegevoegd', samengevoegd.layouts.length, 2);
+  check('import: telling van layouts', samengevoegd.stats, { overwritten: 1, added: 1, kept: 0 });
+
+  check('import: lege import laat alles staan',
+    BCEM.mergeRules(bestaand, []).stats, { overwritten: 0, added: 0, kept: 3 });
+  check('import: importeren in een lege lijst',
+    BCEM.mergeRules([], bestand).stats, { overwritten: 0, added: 3, kept: 0 });
+
+  check('raw-url: github blob wordt raw',
+    BCEM.toRawUrl('https://github.com/bedrijf/repo/blob/main/bc-markers.json'),
+    'https://raw.githubusercontent.com/bedrijf/repo/main/bc-markers.json');
+  check('raw-url: raw blijft ongewijzigd',
+    BCEM.toRawUrl('https://raw.githubusercontent.com/b/r/main/x.json'),
+    'https://raw.githubusercontent.com/b/r/main/x.json');
+  truthy('hash: verschilt bij andere inhoud', BCEM.hash('a') !== BCEM.hash('b'));
+  truthy('hash: gelijk bij dezelfde inhoud', BCEM.hash('abc') === BCEM.hash('abc'));
+
+  /* ---- DOM-effecten van het content script ----------------------------- */
+  setTimeout(function () {
+    var brand = document.querySelector('[data-bcem-brand]');
+    truthy('DOM: merknaam-element gevonden', !!brand);
+    if (brand) {
+      check('DOM: ribbontekst herschreven', brand.textContent, 'Dynamics 365 Business Central - GEMARKEERD (HARNESS)');
+      check('DOM: originele tekst bewaard', brand.getAttribute('data-bcem-orig'), 'Dynamics 365 Business Central');
+    }
+    var band = document.querySelector('[data-bcem-ribbon]');
+    truthy('DOM: ribbonbalk gevonden', !!band);
+    if (band) {
+      check('DOM: balk is de volledige header', band.id, 'fakeHeader');
+      check('DOM: balk krijgt de regelkleur', getComputedStyle(band).backgroundColor, 'rgb(0, 102, 0)');
+      check('DOM: leesbare tekstkleur', getComputedStyle(band).color, 'rgb(255, 255, 255)');
+    }
+
+    // Geen zwarte blokjes meer tussen de icoontjes rechts in de ribbon.
+    check('DOM: knop in de ribbon houdt geen eigen achtergrond',
+      getComputedStyle(document.querySelector('.hdr-btn')).backgroundColor, 'rgba(0, 0, 0, 0)');
+    check('DOM: ook een achtergrond die BC zelf op het element zet',
+      getComputedStyle(document.querySelectorAll('.hdr-btn')[1]).backgroundColor, 'rgba(0, 0, 0, 0)');
+    check('DOM: een invoerveld blijft wel leesbaar',
+      getComputedStyle(document.querySelector('.hdr-search')).backgroundColor, 'rgb(255, 255, 255)');
+    truthy('DOM: een avatar houdt zijn afbeelding',
+      getComputedStyle(document.querySelector('.hdr-avatar')).backgroundImage.indexOf('logo.svg') !== -1);
+    var frame = document.getElementById('bcem-frame');
+    // Deze harnas is geen businesscentral.dynamics.com-adres. Dat er toch
+    // getekend wordt, is precies wat een on-prem installatie nodig heeft.
+    check('DOM: dit is geen BC-host', BCEM.parseUrl(location.href).isbc, false);
+    truthy('DOM: kader getekend, ook buiten de BC-host', !!frame);
+    if (frame) check('DOM: kaderdikte', getComputedStyle(frame).borderTopWidth, '5px');
+
+    var banner = document.getElementById('bcem-banner');
+    truthy('DOM: banner getekend', !!banner);
+    if (banner) {
+      check('DOM: banner is een hoeklint', banner.className, 'bcem-corner bcem-corner--top-right');
+      check('DOM: bannertekst', banner.textContent, 'HARNESS');
+    }
+    check('DOM: tabtitel aangepast', document.title, '[HARNESS] BCEM core');
+    truthy('DOM: favicon vervangen', !!document.querySelector('link[data-bcem-favicon]'));
+
+    // idempotent: nog eens laten lopen mag niets stukmaken
+    var before = brand ? brand.textContent : '';
+    document.body.appendChild(document.createElement('span')); // triggert de observer
+    setTimeout(function () {
+      var again = document.querySelector('[data-bcem-brand]');
+      check('DOM: idempotent na een DOM-wijziging', again ? again.textContent : '', before);
+      check('DOM: geen dubbele kaders', document.querySelectorAll('#bcem-frame').length, 1);
+      check('DOM: geen dubbele banners', document.querySelectorAll('#bcem-banner').length, 1);
+
+      // Deze harnas draait niet op een BC-host, net als een on-prem installatie.
+      // Omdat hier al eens een ribbon gevonden werd, wordt ze na een hertekening
+      // meteen opnieuw opgepikt - de rem op het zoeken geldt enkel zolang er
+      // nooit een ribbon gezien is.
+      var mark = document.querySelector('[data-bcem-brand]');
+      if (mark) mark.removeAttribute('data-bcem-brand');
+      document.body.appendChild(document.createElement('span'));
+      setTimeout(function () {
+        truthy('DOM: on-prem ribbon wordt na een hertekening teruggevonden',
+          !!document.querySelector('[data-bcem-brand]'));
+
+        var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
+        document.getElementById('results').textContent =
+          results.join('\n') + '\n\nTOTAAL: ' + results.length + ' checks, ' + failed.length + ' gefaald.';
+        document.title = failed.length ? 'FAILED' : 'ALL PASS';
+      }, 500);
+    }, 500);
+  }, 400);
+})();
+</script>
+</body>
+</html>
