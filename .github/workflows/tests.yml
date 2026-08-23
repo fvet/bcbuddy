@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The suites drive a real headless browser, so it is worth recording which
       # one ran: a failure that only shows up here is usually a browser change.

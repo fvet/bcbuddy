@@ -16,7 +16,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Catch the mismatch before anything is built. A release tagged v1.0.2
       # containing a package that declares 1.0.1 is rejected by the store, and
@@ -41,7 +41,7 @@ jobs:
         run: .\tools\build-package.ps1
 
       - name: Publish release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/bcbuddy-*.zip
           generate_release_notes: true
