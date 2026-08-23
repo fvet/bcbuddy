@@ -21,7 +21,7 @@ zodat iedereen in het bedrijf dezelfde markeringen gebruikt.
 
 1. Open `chrome://extensions` (of `edge://extensions`).
 2. Zet **Ontwikkelaarsmodus** aan.
-3. Klik op **Uitgepakte extensie laden** en kies de map `C:\Claude\EnvMarker`.
+3. Klik op **Uitgepakte extensie laden** en kies de map van deze repository.
 4. De optiespagina opent automatisch bij de eerste installatie.
 
 ## Hoe matching werkt
@@ -165,6 +165,8 @@ src/
 examples/              voorbeeld van een gedeelde configuratie
 tests/                 testpagina's + runner
 icons/                 logo.svg, logo-small.svg, build-icons.ps1, de PNG's
+tools/                 build-package.ps1: het ZIP voor de store
+store/                 listing-teksten en checklist
 ```
 
 De Business Central client is een SPA die zijn DOM voortdurend hertekent. Het
@@ -240,3 +242,20 @@ runner al).
   het gedeelde JSON-bestand kan overal staan. Wil je dit beperken, vervang dan
   `<all_urls>` in `manifest.json` door je eigen hosts, bv.
   `https://businesscentral.dynamics.com/*` plus de host van je JSON-bestand.
+
+## Publiceren
+
+Het pakket voor de Chrome Web Store of Edge Add-ons bouw je met:
+
+```bash
+powershell -ExecutionPolicy Bypass -File tools/build-package.ps1
+```
+
+Dat zet `dist/bcbuddy-<versie>.zip` klaar met enkel wat de extensie nodig
+heeft: manifest, `src`, `_locales` en de PNG-iconen. Tests, voorbeelden en de
+SVG-bronnen blijven achter.
+
+De teksten, de rechtvaardiging van elk recht en de checklist voor het
+beeldmateriaal staan in [`store/listing.md`](store/listing.md); de
+privacyverklaring waar de store naar verwijst in
+[`PRIVACY.md`](PRIVACY.md).
