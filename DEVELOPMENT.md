@@ -3,7 +3,7 @@
 Working on BC Buddy itself. For what the extension does and how to use it, see
 [README.md](README.md).
 
-## Structure
+## 📁 Structure
 
 ```
 manifest.json
@@ -24,7 +24,7 @@ tools/                 build-package.ps1: the ZIP for the store
 store/                 listing copy, privacy answers and screenshots
 ```
 
-## How the content script behaves
+## ⚙️ How the content script behaves
 
 The Business Central client is an SPA that redraws its DOM continuously. The
 content script is therefore fully idempotent: it re-examines the page on every
@@ -35,7 +35,7 @@ Parts of the BC client run in an iframe. The ribbon is therefore looked for in
 every frame, while frame, banner, title and favicon are drawn only in the main
 window.
 
-## Finding the ribbon
+## 🔍 Finding the ribbon
 
 The ribbon is located by text ("Dynamics 365 Business Central") and not by a
 fixed CSS class, so an update of the BC client does not break it straight away.
@@ -48,7 +48,7 @@ CSS and, for backgrounds BC sets directly on the element, with an inline style
 from the content script. Input fields and background images are left alone:
 those need their background.
 
-## URL parsing
+## 🔗 URL parsing
 
 Both BC SaaS and on-premises URLs are recognised, following the shape from
 [Microsoft's documentation](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-web-client-urls):
@@ -57,7 +57,7 @@ Tenant and environment are both optional; the tenant is a GUID or a domain name.
 On-prem the server instance sits where the environment would be
 (`/BC240/?company=...`) and the tenant comes from the query.
 
-## Import format
+## 📄 Import format
 
 The extension reads only its own format: an object with a `rules` array and
 optionally a `layouts` array (as the export produces), or a bare array of rules.
@@ -73,7 +73,7 @@ If you already had rules from before layouts were split out, layouts are derived
 from them on the first read: rules that looked the same share a layout, so
 existing markings stay unchanged.
 
-## Adding a language
+## 🌍 Adding a language
 
 The texts live in [`_locales/nl/messages.json`](_locales/nl/messages.json) and
 [`_locales/en/messages.json`](_locales/en/messages.json); `nl` is the default and
@@ -84,7 +84,7 @@ uses exists, that no unused keys are left lying around, and that the store
 description stays under 132 characters — the Web Store rejects a package whose
 description is longer, per locale.
 
-## Logo and icons
+## 🎨 Logo and icons
 
 The mark is the letter pair **BC** with a bite taken out at the bottom right
 where a sphere rests against it. Colours come from the
@@ -117,7 +117,7 @@ shadow around the image. In the toolbar the opposite applies, so it is a separat
 file and not a replacement for `icon128.png`. It does not go into the package
 either; you upload it in the dashboard.
 
-## Tests
+## 🧪 Tests
 
 The test pages run the real source in headless Chrome (or Edge): parsing URLs,
 matching rules, the tokens, building the options page and the popup, and what the
@@ -132,7 +132,44 @@ You can also just open the pages in a browser; `test-core.html` works anywhere,
 while `test-options.html` and `test-popup.html` fetch the HTML and need the
 `--allow-file-access-from-files` flag for that (the runner already sets it).
 
-## Permissions
+The runner looks for a browser in this order: `CHROME_PATH` if set, then the
+usual Windows install paths for Chrome and Edge, then `chrome`,
+`google-chrome`, `chromium` and `msedge` on `PATH`. Set `CHROME_PATH` when your
+browser lives somewhere else — it beats editing the list.
+
+## 🤖 Continuous integration
+
+Two workflows, both on `windows-latest` because the runner scripts are
+PowerShell and the image ships Chrome and Edge.
+
+[`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs the suites on
+every push to `main`, on pull requests, and on demand. `run-tests.ps1` exits 1
+when a check fails or a suite renders no results, so the step fails by itself —
+no extra reporting glue.
+
+[`.github/workflows/release.yml`](.github/workflows/release.yml) fires on a
+`v*` tag. It first checks that the tag matches `version` in `manifest.json`,
+then runs the tests, builds the package and attaches the ZIP to a GitHub
+release. The version check runs before anything else: a release tagged `v1.0.2`
+carrying a package that declares `1.0.1` is rejected by the store, and by then
+the release already exists.
+
+So cutting a release is: bump `version` in `manifest.json`, commit, tag
+`v<version>`, push the tag.
+
+Releasing is tag-driven rather than merge-driven on purpose. Every submission
+costs review time, so it should be a deliberate act.
+
+Publishing to the Chrome Web Store is *not* automated. The API can do it, but
+it needs an item that already exists (the first submission has to go through
+the dashboard by hand), a one-time OAuth setup in Google Cloud, and four repo
+secrets. The trap there: if the OAuth consent screen stays in "Testing" mode,
+refresh tokens expire after seven days and the pipeline breaks with an opaque
+`invalid_grant`. And an API publish still enters review like any other — with
+`<all_urls>` that is the slow queue, so a green tag would not mean users have
+it.
+
+## 🔑 Permissions
 
 - `storage` — keeping settings.
 - `alarms` — checking the shared file periodically.
@@ -152,7 +189,7 @@ the rest, register content scripts dynamically with `chrome.scripting`, and put
 a button on the options page for an on-prem user to grant their own host. That
 is a behaviour change, not a manifest tweak.
 
-## Publishing
+## 🚀 Publishing
 
 Build the package for the Chrome Web Store or Edge Add-ons with:
 

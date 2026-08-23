@@ -1,6 +1,6 @@
 # BC Buddy
 
-> **Tell your Business Central environments apart**
+> **Tell your Business Central environments apart** 🎨
 
 If you work across several customers or environments, all your Business Central
 tabs start to look the same. Posting in production while you thought you were in
@@ -16,17 +16,19 @@ Dynamics 365 Business Central - CRONUS BE (Sandbox)
 Alongside that it can draw a coloured frame around the window, a banner, a
 marked tab title and a coloured tab icon.
 
+![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](store/screenshot-1-1280x800.png)
+
 A Chrome/Edge extension (Manifest V3). Working on the extension itself is
 covered in [DEVELOPMENT.md](DEVELOPMENT.md).
 
-## Installing
+## 📥 Installing
 
 1. Open `chrome://extensions` (or `edge://extensions`).
 2. Turn on **Developer mode**.
 3. Click **Load unpacked** and pick the folder of this repository.
 4. The options page opens automatically on first install.
 
-## Getting started
+## 🚀 Getting started
 
 The options page opens on **Environments**. To mark your first environment:
 
@@ -40,10 +42,12 @@ The options page opens on **Environments**. To mark your first environment:
 4. Pick a colour. Red for production is the obvious start.
 5. Add a second rule for your sandbox in a different colour.
 
+![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](store/screenshot-3-1280x800.png)
+
 Order decides priority: the first rule that fits is applied, so put your most
 specific rules at the top.
 
-## How matching works
+## 🎯 How matching works
 
 A rule consists of one or more **conditions**; all of them must hold. A URL is
 broken down into fields you can match on:
@@ -73,7 +77,7 @@ does not reveal that it is Business Central. If you want only BC marked, put
 that in the conditions of your rule (for example `url` `contains`
 `businesscentral.dynamics.com`).
 
-## Rules and layouts
+## 🗂️ Rules and layouts
 
 The options page has a navigation on the left: **Environments** (layouts and
 rules), **Settings** (shared configuration, import/export) and **About**.
@@ -89,7 +93,7 @@ The difference between the two lists:
 There is always at least one layout; new rules get *Default*. Delete a layout
 and the rules that hung on it fall back to the first one in the list.
 
-## What a layout can show
+## ✨ What a layout can show
 
 - **Ribbon** — the bar at the top of the BC client takes the colour of the rule
   and a text of your own.
@@ -101,10 +105,15 @@ and the rules that hung on it fall back to the first one in the list.
 - **Favicon** — coloured tab icon with the first letters, so you spot the right
   tab straight away in a row of tabs.
 
+![The Default layout in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
+
+The preview at the top of a layout updates as you change it, so you can see what
+a marking will look like before you meet it in the client.
+
 Text colour is *automatic* by default: white or black, depending on what is
 readable on the chosen colour.
 
-### Tokens
+### 🔤 Tokens
 
 You can use tokens in every text:
 
@@ -114,7 +123,7 @@ title)
 Empty tokens are cleaned up: if there is no company in the URL, no stray dashes
 or empty brackets are left behind.
 
-## Sharing settings with your team
+## 👥 Sharing settings with your team
 
 Everyone in the team can work from the same markings, so a colleague opening a
 customer's production environment sees the same red you do.
@@ -143,7 +152,7 @@ Importing goes through **Import / export > Choose file** and works as a merge: a
 rule you already have is overwritten in place, new rules are added, and rules
 that are not in the file are left alone.
 
-## Languages
+## 🌍 Languages
 
 The extension is available in Dutch and English. It follows the language of your
 browser: if that is set to English you see the English texts, otherwise the
@@ -152,14 +161,14 @@ Dutch ones. There is no switch and no setting.
 What is *not* translated: the texts you fill in yourself in a rule. Whatever you
 put in the ribbon, the banner or the tab title appears exactly as you type it.
 
-## Privacy
+## 🔒 Privacy
 
 Everything stays on your own machine. No server, no analytics, no tracking. The
 only network request BC Buddy makes is fetching the shared configuration file
 from the URL you configure yourself; leave that empty and no traffic leaves your
 machine at all. Full text in [PRIVACY.md](PRIVACY.md).
 
-## Troubleshooting
+## 🛟 Troubleshooting
 
 **The ribbon keeps its original colour.** The ribbon is found by its text
 ("Dynamics 365 Business Central"), so a BC client that renders it differently

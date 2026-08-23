@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The suites drive a real headless browser, so it is worth recording which
+      # one ran: a failure that only shows up here is usually a browser change.
+      - name: Report the browser
+        shell: powershell
+        run: |
+          $chrome = "$env:ProgramFiles\Google\Chrome\Application\chrome.exe"
+          if (Test-Path $chrome) {
+            Write-Host "Chrome $((Get-Item $chrome).VersionInfo.ProductVersion)"
+          } else {
+            Write-Host 'Chrome not at the expected path; run-tests.ps1 falls back to Edge or PATH.'
+          }
+
+      # run-tests.ps1 exits 1 when a check fails or a suite renders no results,
+      # so the step fails on its own.
+      - name: Run test suites
+        shell: powershell
+        run: .\tests\run-tests.ps1

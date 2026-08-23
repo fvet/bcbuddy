@@ -1,0 +1,51 @@
+name: Release
+
+# Tag-driven on purpose. Every submission to the Chrome Web Store costs review
+# time, so a release should be a deliberate act rather than a side effect of
+# merging.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Catch the mismatch before anything is built. A release tagged v1.0.2
+      # containing a package that declares 1.0.1 is rejected by the store, and
+      # by then the release already exists.
+      - name: Tag must match the manifest version
+        shell: powershell
+        run: |
+          $manifest = Get-Content manifest.json -Raw | ConvertFrom-Json
+          $tag = '${{ github.ref_name }}' -replace '^v', ''
+          Write-Host "manifest.json: $($manifest.version)"
+          Write-Host "tag:           $tag"
+          if ($manifest.version -ne $tag) {
+            throw "Tag $tag does not match version $($manifest.version) in manifest.json."
+          }
+
+      - name: Run test suites
+        shell: powershell
+        run: .\tests\run-tests.ps1
+
+      - name: Build package
+        shell: powershell
+        run: .\tools\build-package.ps1
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/bcbuddy-*.zip
+          generate_release_notes: true
+          body: |
+            Upload the attached ZIP in the Chrome Web Store dashboard.
+            Publishing there still goes through review; this release does not
+            ship anything to users by itself.
