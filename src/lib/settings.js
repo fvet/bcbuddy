@@ -8,7 +8,7 @@
 
   var STORAGE_KEY = 'settings';
   var EXPORT_APP = 'bc-buddy';
-  var SCHEMA_VERSION = 1;
+  var SCHEMA_VERSION = 2;
 
   var BRAND_NAME = 'Dynamics 365 Business Central';
   var DEFAULT_RIBBON_TEXT = BRAND_NAME + ' - {company} ({environment})';
@@ -102,8 +102,7 @@
     };
   }
 
-  // The display settings a rule can hold itself or take from a layout. Colour
-  // is not among them: that stays rule-specific.
+  // Display settings live on layouts. Colour and favicon letters stay on the rule.
   var DISPLAY_KEYS = ['border', 'banner', 'ribbon', 'title', 'favicon'];
 
   // Fixed id, so normalize() always yields the same result.
@@ -146,12 +145,20 @@
     };
   }
 
+  /** Signature of appearance for migrating pre-layout rules into shared layouts. */
+  function lookKey(source) {
+    var display = normalizeDisplay(source);
+    display.favicon.text = '';
+    return JSON.stringify(DISPLAY_KEYS.map(function (key) { return display[key]; }));
+  }
+
   function normalizeRule(r) {
     r = r || {};
     var conditions = Array.isArray(r.conditions) ? r.conditions.map(normalizeCondition) : [];
     if (!conditions.length) conditions = [normalizeCondition({})];
+    var favicon = r.favicon || {};
 
-    var rule = {
+    return {
       id: str(r.id) || uid(),
       name: str(r.name, BCBuddy.t('newRuleName')),
       enabled: bool(r.enabled, true),
@@ -159,13 +166,10 @@
       conditions: conditions,
       color: BCBuddy.toHex(r.color || PALETTE[0]),
       textColor: r.textColor === 'auto' || !r.textColor ? 'auto' : BCBuddy.toHex(r.textColor),
-      // The id of the layout that drives the appearance.
-      layoutId: str(r.layoutId)
+      // Each rule picks its own layout; appearance comes from that layout.
+      layoutId: str(r.layoutId),
+      favicon: { text: str(favicon.text, '').slice(0, 2) }
     };
-
-    var display = normalizeDisplay(r);
-    DISPLAY_KEYS.forEach(function (key) { rule[key] = display[key]; });
-    return rule;
   }
 
   function normalizeLayout(l) {
@@ -213,19 +217,24 @@
   }
 
   /**
-   * Returns the rule as it should be drawn: if a layout applies, the display
-   * settings come from there. Name, conditions and colour always stay on the
-   * rule itself. If the layout no longer exists, we fall back to what the rule
-   * itself has stored.
+   * Returns the rule as it should be drawn: display comes from the chosen
+   * layout. Name, conditions, colour and favicon letters stay on the rule.
+   * Without a layout, legacy embedded display on the rule (or defaults) is used
+   * so drawing never crashes.
    */
   function resolveRule(rule, layouts, autoLayouts) {
+    if (!rule) return rule;
     var layout = effectiveLayout(rule, layouts, autoLayouts);
-    if (!layout) return rule;
-
+    var display = normalizeDisplay(layout || rule);
     var resolved = {};
-    Object.keys(rule).forEach(function (key) { resolved[key] = rule[key]; });
-    DISPLAY_KEYS.forEach(function (key) { resolved[key] = layout[key]; });
-    resolved.favicon = { enabled: layout.favicon.enabled, text: rule.favicon.text };
+    Object.keys(rule).forEach(function (key) {
+      if (DISPLAY_KEYS.indexOf(key) === -1) resolved[key] = rule[key];
+    });
+    DISPLAY_KEYS.forEach(function (key) { resolved[key] = display[key]; });
+    resolved.favicon = {
+      enabled: display.favicon.enabled,
+      text: str((rule.favicon && rule.favicon.text) || '', '').slice(0, 2)
+    };
     return resolved;
   }
 
@@ -259,17 +268,19 @@
 
   /**
    * Appearance lives in layouts, so every rule points at one. If there are no
-   * layouts yet, we derive them from the rules: rules that look the same share
-   * a layout, so the migration does not change what is drawn today. An empty
-   * configuration simply gets a Default.
+   * layouts yet, we derive them from the raw rules (which may still carry
+   * embedded display from before the split): rules that look the same share a
+   * layout, so the migration does not change what is drawn today. An empty
+   * configuration simply gets a Default. Each rule keeps its own layoutId.
    */
-  function withDefaultLayout(layouts, rules) {
+  function withDefaultLayout(layouts, rules, rawRules) {
     if (!layouts.length) {
       var byLook = {};
-      rules.forEach(function (rule) {
-        var look = JSON.stringify(DISPLAY_KEYS.map(function (key) { return rule[key]; }));
+      var sources = (rawRules && rawRules.length) ? rawRules : rules;
+      sources.forEach(function (source) {
+        var look = lookKey(source);
         if (byLook[look]) return;
-        var layout = normalizeLayout(rule);
+        var layout = normalizeLayout(source);
         layout.id = layouts.length ? uid() : DEFAULT_LAYOUT_ID;
         layout.name = layouts.length
           ? BCBuddy.t('newLayoutName') + ' ' + (layouts.length + 1)
@@ -285,13 +296,14 @@
         layouts.push(fresh);
       }
 
-      rules.forEach(function (rule) {
-        var look = JSON.stringify(DISPLAY_KEYS.map(function (key) { return rule[key]; }));
+      rules.forEach(function (rule, index) {
+        var source = (rawRules && rawRules[index]) ? rawRules[index] : rule;
+        var look = lookKey(source);
         if (byLook[look]) rule.layoutId = byLook[look].id;
       });
     }
 
-    // A rule without a valid layout follows the first.
+    // A rule without a valid layout follows the first; a valid layoutId is kept.
     rules.forEach(function (rule) {
       if (!findById(layouts, rule.layoutId)) rule.layoutId = layouts[0].id;
     });
@@ -301,19 +313,25 @@
   function normalize(settings) {
     var s = settings || {};
     var hosted = s.hosted || {};
-    var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
+    var rawRules = Array.isArray(s.rules) ? s.rules : [];
+    var rules = rawRules.map(normalizeRule);
     var layouts = (Array.isArray(s.layouts) ? s.layouts : []).map(normalizeLayout);
+    var rawHostedRules = Array.isArray(hosted.rules) ? hosted.rules : [];
+    var hostedRules = rawHostedRules.map(normalizeRule);
+    var hostedLayouts = (Array.isArray(hosted.layouts) ? hosted.layouts : []).map(normalizeLayout);
 
     return {
       version: SCHEMA_VERSION,
       enabled: bool(s.enabled, true),
       rules: rules,
-      layouts: withDefaultLayout(layouts, rules),
+      layouts: withDefaultLayout(layouts, rules, rawRules),
       hosted: {
         url: str(hosted.url),
         active: normalizeActive(hosted),
-        rules: (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule),
-        layouts: (Array.isArray(hosted.layouts) ? hosted.layouts : []).map(normalizeLayout),
+        rules: hostedRules,
+        layouts: (hostedRules.length || hostedLayouts.length)
+          ? withDefaultLayout(hostedLayouts, hostedRules, rawHostedRules)
+          : hostedLayouts,
         sourceName: str(hosted.sourceName),
         lastSync: hosted.lastSync || null,
         lastError: hosted.lastError || null,
@@ -389,11 +407,28 @@
       throw new Error(BCBuddy.t('errOtherApp', data.app));
     }
 
+    var normalizedRules = rules.map(normalizeRule);
+    var normalizedLayouts = layouts.map(normalizeLayout);
+    // Older files may embed display on the rule with no layouts array. Derive
+    // layouts only when that leftover appearance is present; a clean rules-only
+    // file keeps using the importer's layouts after merge/normalize.
+    if (!normalizedLayouts.length && rules.some(hasEmbeddedDisplay)) {
+      normalizedLayouts = withDefaultLayout([], normalizedRules, rules);
+    } else if (normalizedLayouts.length) {
+      withDefaultLayout(normalizedLayouts, normalizedRules);
+    }
+
     return {
-      rules: rules.map(normalizeRule),
-      layouts: layouts.map(normalizeLayout),
+      rules: normalizedRules,
+      layouts: normalizedLayouts,
       name: name
     };
+  }
+
+  function hasEmbeddedDisplay(raw) {
+    if (!raw || typeof raw !== 'object') return false;
+    if (raw.border || raw.banner || raw.ribbon || raw.title) return true;
+    return !!(raw.favicon && Object.prototype.hasOwnProperty.call(raw.favicon, 'enabled'));
   }
 
   /**

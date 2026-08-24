@@ -15,14 +15,36 @@ src/
   lib/settings.js      storage, defaults, normalisation, import/export
   content/content.js   draws frame, banner, ribbon, title and favicon
   content/content.css  the accompanying styling
-  options/             options page (options.js + helpers, cards, hosted modules)
+  options/             options.html/css; options.js plus helpers, cards, hosted
   popup/               popup on the extension icon
-examples/              example of a shared configuration
+examples/              example of a shared configuration (schema version 2)
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store
 store/                 listing copy, privacy answers and screenshots
 ```
+
+## 📦 Settings model
+
+Stored settings use schema version 2 (`SCHEMA_VERSION` in `settings.js`).
+Exports carry `"app": "bc-buddy"` and `"version": 2`.
+
+- A **rule** holds identity and matching: `id`, `name`, `enabled`, `note`,
+  `conditions`, `color`, `textColor`, `layoutId`, and `favicon.text` (at most
+  two letters). Appearance fields no longer live on the rule.
+- A **layout** holds appearance: `border`, `banner`, `ribbon`, `title`, and
+  `favicon.enabled`. Favicon letters stay on the rule; layouts keep
+  `favicon.text` empty.
+- `resolveRule()` merges them for drawing: appearance from the chosen layout,
+  letters from the rule. Without a layout it falls back to defaults, or to
+  legacy embedded display still present on an old rule object, so drawing
+  never crashes.
+
+`normalize()` always ensures every rule points at a valid layout. If settings
+arrive with no layouts yet, layouts are derived from any embedded display still
+on the raw rules (same look → shared layout); an empty configuration gets a
+Default. After that, display fields are dropped from the rule objects. Hosted
+(shared) rules go through the same path.
 
 ## ⚙️ How the content script behaves
 
@@ -67,17 +89,19 @@ On-prem the server instance sits where the environment would be
 
 The extension reads only its own format: an object with a `rules` array and
 optionally a `layouts` array (as the export produces), or a bare array of rules.
-Exports carry `"app": "bc-buddy"`, and a file naming a different app is
-rejected. If there is no layout in the file, the rules that are read follow the
-first layout of whoever imports them.
+A file naming a different `app` is rejected.
 
-Importing merges: a rule you already have (same id, otherwise same name) is
-overwritten in place, new rules are added, and rules that are not in the file are
-left alone.
+If the file has no layouts:
 
-If you already had rules from before layouts were split out, layouts are derived
-from them on the first read: rules that looked the same share a layout, so
-existing markings stay unchanged.
+- rules that still embed display (`border` / `banner` / `ribbon` / `title`, or
+  `favicon.enabled`) get layouts derived from that look;
+- a clean rules-only file derives nothing; after merge, `normalize()` assigns
+  the importer's first layout.
+
+Importing merges both lists (layouts first, then rules): same id (else same
+name) overwrites in place, new items are added, items missing from the file are
+left alone. Layouts go first so rules can point at something that already
+exists.
 
 ## 🌍 Adding a language
 

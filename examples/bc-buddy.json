@@ -1,0 +1,113 @@
+{
+  "app": "bc-buddy",
+  "version": 2,
+  "name": "",
+  "exportedAt": "2026-08-24T11:46:33.267Z",
+  "layouts": [
+    {
+      "id": "default",
+      "name": "Default",
+      "border": {
+        "enabled": true,
+        "width": 3
+      },
+      "banner": {
+        "enabled": false,
+        "position": "bottom-left",
+        "text": "{name}",
+        "fontSize": 0,
+        "opacity": 0.5
+      },
+      "ribbon": {
+        "enabled": true,
+        "text": "Dynamics 365 Business Central - {company} ({environment})"
+      },
+      "title": {
+        "enabled": false,
+        "text": "[{name}] {title}"
+      },
+      "favicon": {
+        "enabled": false,
+        "text": ""
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "6b77974b-29ad-4446-8f06-d658062d5d07",
+      "name": "DYNAVISIONTEST",
+      "enabled": true,
+      "note": "",
+      "conditions": [
+        {
+          "field": "environment",
+          "op": "equals",
+          "value": "DynavisionTEST"
+        }
+      ],
+      "color": "#c4314b",
+      "textColor": "auto",
+      "layoutId": "default",
+      "favicon": {
+        "text": ""
+      }
+    },
+    {
+      "id": "93630a20-5865-4255-bc41-d0d478dc8c33",
+      "name": "Production",
+      "enabled": true,
+      "note": "",
+      "conditions": [
+        {
+          "field": "environment",
+          "op": "equals",
+          "value": "Production"
+        }
+      ],
+      "color": "#107c10",
+      "textColor": "#ffffff",
+      "layoutId": "default",
+      "favicon": {
+        "text": ""
+      }
+    },
+    {
+      "id": "ede14334-dc8d-4f90-b65f-0ffec7ba2f86",
+      "name": "Sandbox",
+      "enabled": true,
+      "note": "",
+      "conditions": [
+        {
+          "field": "environment",
+          "op": "equals",
+          "value": "Sandbox"
+        }
+      ],
+      "color": "#d83b01",
+      "textColor": "#ffffff",
+      "layoutId": "default",
+      "favicon": {
+        "text": ""
+      }
+    },
+    {
+      "id": "109ac190-edf9-4bcd-bd09-ba51ce5295c2",
+      "name": "QA",
+      "enabled": true,
+      "note": "",
+      "conditions": [
+        {
+          "field": "environment",
+          "op": "equals",
+          "value": "QA"
+        }
+      ],
+      "color": "#00b294",
+      "textColor": "#ffffff",
+      "layoutId": "default",
+      "favicon": {
+        "text": ""
+      }
+    }
+  ]
+}
