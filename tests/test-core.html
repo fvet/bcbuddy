@@ -35,13 +35,13 @@
 /* ---- chrome API stub ---------------------------------------------------- */
 var STORE = {};
 /*
- * chrome.i18n with the real messages from _locales/nl. Loaded synchronously
+ * chrome.i18n with the real messages from _locales/en (the default locale). Loaded synchronously
  * so the scripts below can use them immediately.
  */
 var MESSAGES = (function () {
   try {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '../_locales/nl/messages.json', false);
+    xhr.open('GET', '../_locales/en/messages.json', false);
     xhr.send();
     return JSON.parse(xhr.responseText);
   } catch (e) {
@@ -51,7 +51,7 @@ var MESSAGES = (function () {
 
 function i18nStub() {
   return {
-    getUILanguage: function () { return 'nl'; },
+    getUILanguage: function () { return 'en'; },
     getMessage: function (key, subs) {
       var entry = MESSAGES[key];
       if (!entry) return '';
@@ -203,31 +203,20 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('match: invalid regex fails without crash', BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: '[' }]), saas), false);
   check('match: nested quantifiers fail closed',
     BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: '(a+)+' }]), saas), false);
+  check('match: quantified alternation fails closed',
+    BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: '(a|a)+' }]), saas), false);
+  check('match: plain quantified group still allowed',
+    BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: '(sand)+box' }]), saas), true);
+  check('match: pipe in a character class is not alternation',
+    BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: '[a|s]+andbox' }]), saas), true);
   check('match: oversized regex fails closed',
     BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: new Array(202).join('a') }]), saas), false);
+  check('match: oversized subject fails closed',
+    BCBuddy.testCondition({ field: 'url', op: 'regex', value: 'a' },
+      { url: new Array(2050).join('a') }), false);
   check('match: not contains', BCBuddy.matchRule(r([{ field: 'environment', op: 'notContains', value: 'prod' }]), saas), true);
   check('match: empty value never matches', BCBuddy.matchRule(r([{ field: 'url', op: 'contains', value: '' }]), saas), false);
   check('match: disabled rule', BCBuddy.matchRule(BCBuddy.normalizeRule({ enabled: false, conditions: [{ field: 'url', op: 'contains', value: 'Sandbox' }] }), saas), false);
-
-  // does a rule target Business Central?
-  var bc = function (conds) { return BCBuddy.targetsBusinessCentral(BCBuddy.normalizeRule({ conditions: conds })); };
-  check('BC rule: condition on environment', bc([{ field: 'environment', op: 'contains', value: 'Sandbox' }]), true);
-  check('BC rule: condition on company', bc([{ field: 'company', op: 'contains', value: 'CRONUS' }]), true);
-  check('BC rule: empty environment condition counts too',
-    bc([{ field: 'environment', op: 'contains', value: '' }]), true);
-  check('BC rule: host with BC host',
-    bc([{ field: 'host', op: 'equals', value: 'businesscentral.dynamics.com' }]), true);
-  check('BC rule: URL with BC host',
-    bc([{ field: 'url', op: 'contains', value: 'https://businesscentral.dynamics.com/453d817a' }]), true);
-  check('BC rule: RegEx with escaped dots',
-    bc([{ field: 'url', op: 'regex', value: 'businesscentral\\.dynamics\\.com/.*' }]), true);
-  check('BC rule: other host does not count',
-    bc([{ field: 'host', op: 'equals', value: 'portal.azure.com' }]), false);
-  check('BC rule: tenant alone does not count',
-    bc([{ field: 'tenant', op: 'equals', value: '453d817a-d5b1-49c1-bdcf-d9474180a702' }]), false);
-  check('BC rule: one of multiple conditions suffices',
-    bc([{ field: 'host', op: 'equals', value: 'intranet.local' },
-        { field: 'company', op: 'contains', value: 'CRONUS' }]), true);
 
   // draft for a new rule, derived from a URL
   var bcDraft = BCBuddy.draftFromContext(saas);
@@ -247,7 +236,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.draftFromContext(BCBuddy.parseUrl('')).conditions,
     [{ field: 'environment', op: 'contains', value: '' }]);
   check('new rule: without URL a neutral name',
-    BCBuddy.draftFromContext(BCBuddy.parseUrl('')).name, 'NIEUWE REGEL');
+    BCBuddy.draftFromContext(BCBuddy.parseUrl('')).name,
+    chrome.i18n.getMessage('newRuleName').toUpperCase());
 
   // layouts: display separate from the rule
   var layout = BCBuddy.normalizeLayout({
@@ -258,7 +248,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     title: { enabled: true, text: 'L {title}' },
     favicon: { enabled: true, text: 'LA' }
   });
-  var gekoppeld = BCBuddy.normalizeRule({
+  var linkedRule = BCBuddy.normalizeRule({
     name: 'TEST', color: '#c4314b', layoutId: 'lay-1',
     conditions: [{ field: 'environment', op: 'contains', value: 'Sandbox' }],
     favicon: { text: 'TS' },
@@ -267,8 +257,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   });
 
   check('layout: has no color', Object.prototype.hasOwnProperty.call(layout, 'color'), false);
-  check('layout: rule drops embedded display', Object.prototype.hasOwnProperty.call(gekoppeld, 'ribbon'), false);
-  check('layout: rule keeps its own layoutId', gekoppeld.layoutId, 'lay-1');
+  check('layout: rule drops embedded display', Object.prototype.hasOwnProperty.call(linkedRule, 'ribbon'), false);
+  check('layout: rule keeps its own layoutId', linkedRule.layoutId, 'lay-1');
   check('layout: without choice rule follows the only layout',
     BCBuddy.resolveRule(BCBuddy.normalizeRule({}), [layout]).ribbon.text,
     'LAYOUT {environment}');
@@ -281,50 +271,48 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       [layout]).ribbon.text, 'LAYOUT {environment}');
   check('layout: without layouts uses defaults',
     BCBuddy.resolveRule(BCBuddy.normalizeRule({}), []).border.width, 3);
-  check('layout: legacy embedded display still resolves',
-    BCBuddy.resolveRule({ ribbon: { text: 'EIGEN' }, favicon: { text: '' } }, []).ribbon.text, 'EIGEN');
 
-  var opgelost = BCBuddy.resolveRule(gekoppeld, [layout]);
-  check('layout: ribbon comes from layout', opgelost.ribbon.text, 'LAYOUT {environment}');
-  check('layout: border comes from layout', opgelost.border.width, 4);
-  check('layout: banner comes from layout', opgelost.banner.position, 'bottom-left');
-  check('layout: title comes from layout', opgelost.title.text, 'L {title}');
-  check('layout: favicon enabled comes from layout', opgelost.favicon.enabled, true);
-  check('layout: favicon letters stay from rule', opgelost.favicon.text, 'TS');
+  var resolvedRule = BCBuddy.resolveRule(linkedRule, [layout]);
+  check('layout: ribbon comes from layout', resolvedRule.ribbon.text, 'LAYOUT {environment}');
+  check('layout: border comes from layout', resolvedRule.border.width, 4);
+  check('layout: banner comes from layout', resolvedRule.banner.position, 'bottom-left');
+  check('layout: title comes from layout', resolvedRule.title.text, 'L {title}');
+  check('layout: favicon enabled comes from layout', resolvedRule.favicon.enabled, true);
+  check('layout: favicon letters stay from rule', resolvedRule.favicon.text, 'TS');
   check('layout: layout carries no letters itself', layout.favicon.text, '');
-  check('layout: name stays from rule', opgelost.name, 'TEST');
-  check('layout: color stays from rule', opgelost.color, '#c4314b');
-  check('layout: conditions stay from rule', opgelost.conditions.length, 1);
-  check('layout: rule itself is not modified', gekoppeld.favicon.text, 'TS');
+  check('layout: name stays from rule', resolvedRule.name, 'TEST');
+  check('layout: color stays from rule', resolvedRule.color, '#c4314b');
+  check('layout: conditions stay from rule', resolvedRule.conditions.length, 1);
+  check('layout: rule itself is not modified', linkedRule.favicon.text, 'TS');
   check('layout: without layouts resolved rule has defaults',
-    BCBuddy.resolveRule(gekoppeld, []).border.width, 3);
+    BCBuddy.resolveRule(linkedRule, []).border.width, 3);
 
   var otherLayout = BCBuddy.normalizeLayout({
     id: 'lay-2', name: 'Compact', border: { width: 1 }, ribbon: { text: 'ANDERS' }
   });
-  var eigenLayout = BCBuddy.normalizeRule({ name: 'EIGEN', layoutId: 'lay-2' });
+  var ownLayout = BCBuddy.normalizeRule({ name: 'EIGEN', layoutId: 'lay-2' });
   check('layout: rule can pick its own layout',
-    BCBuddy.resolveRule(eigenLayout, [layout, otherLayout]).ribbon.text, 'ANDERS');
+    BCBuddy.resolveRule(ownLayout, [layout, otherLayout]).ribbon.text, 'ANDERS');
 
-  var metLayout = BCBuddy.normalize({
-    rules: [gekoppeld],
+  var withLayoutSettings = BCBuddy.normalize({
+    rules: [linkedRule],
     layouts: [layout]
   });
   check('layout: effective rules are resolved',
-    BCBuddy.effectiveRules(metLayout)[0].border.width, 4);
-  check('layout: stored in settings', metLayout.layouts.length, 1);
+    BCBuddy.effectiveRules(withLayoutSettings)[0].border.width, 4);
+  check('layout: stored in settings', withLayoutSettings.layouts.length, 1);
   check('layout: stored rule has no border',
-    Object.prototype.hasOwnProperty.call(metLayout.rules[0], 'border'), false);
+    Object.prototype.hasOwnProperty.call(withLayoutSettings.rules[0], 'border'), false);
 
   // shared rules look at shared layouts first
-  var gedeeld = BCBuddy.normalize({
+  var shared = BCBuddy.normalize({
     hosted: {
       rules: [BCBuddy.normalizeRule({ name: 'GEDEELD', layoutId: 'lay-h' })],
       layouts: [BCBuddy.normalizeLayout({ id: 'lay-h', name: 'Gedeeld', border: { width: 2 } })]
     }
   });
   check('layout: shared rule uses shared layout',
-    BCBuddy.effectiveRules(gedeeld)[0].border.width, 2);
+    BCBuddy.effectiveRules(shared)[0].border.width, 2);
 
   // first match wins, own rules before shared
   var settings = BCBuddy.normalize({
@@ -364,25 +352,20 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.render('{name}|{environment}|{env}|{company}|{tenant}|{title}', saas,
       { name: 'TEST', title: 'Company Information' }),
     'TEST|Sandbox|Sandbox|CRONUS BE|453d817a-d5b1-49c1-bdcf-d9474180a702|Company Information');
-  check('migration: old {brand} on rule becomes layout ribbon',
-    BCBuddy.normalize({
-      rules: [{ name: 'OUD', ribbon: { text: '{brand} - {environment}' } }]
-    }).layouts[0].ribbon.text,
-    'Dynamics 365 Business Central - {environment}');
   check('defaults: ribbon text with literal brand name', BCBuddy.normalizeLayout({}).ribbon.text,
     'Dynamics 365 Business Central - {company} ({environment})');
   check('advanced: no settings block anymore',
     Object.prototype.hasOwnProperty.call(BCBuddy.normalize(null), 'advanced'), false);
 
   // leading or trailing spaces in a text value are always accidental
-  var metSpaties = BCBuddy.normalizeRule({
+  var withSpaces = BCBuddy.normalizeRule({
     name: '  PROD  ',
     conditions: [{ field: 'company', op: 'equals', value: '  CRONUS BE ' }],
     favicon: { text: ' P ' }
   });
-  check('trim: name without spaces', metSpaties.name, 'PROD');
-  check('trim: condition without spaces', metSpaties.conditions[0].value, 'CRONUS BE');
-  check('trim: favicon letters without spaces', metSpaties.favicon.text, 'P');
+  check('trim: name without spaces', withSpaces.name, 'PROD');
+  check('trim: condition without spaces', withSpaces.conditions[0].value, 'CRONUS BE');
+  check('trim: favicon letters without spaces', withSpaces.favicon.text, 'P');
   check('trim: shared file URL too',
     BCBuddy.normalize({ hosted: { url: '  https://voorbeeld.be/x.json ' } }).hosted.url,
     'https://voorbeeld.be/x.json');
@@ -412,15 +395,9 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', active: true } }).hosted.active, true);
   check('hosted: turned off stays off',
     BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', active: false } }).hosted.active, false);
-  check('hosted: legacy autoSync switch is adopted',
-    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', autoSync: true } }).hosted.active, true);
-  check('hosted: legacy interval 0 means off',
-    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', intervalMinutes: 0 } }).hosted.active, false);
-  check('hosted: older interval means on',
-    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', intervalMinutes: 10080 } }).hosted.active, true);
-  check('hosted: legacy switch is not kept around',
+  check('hosted: no autoSync in the stored shape',
     Object.prototype.hasOwnProperty.call(def.hosted, 'autoSync'), false);
-  check('sync: no interval in settings anymore',
+  check('hosted: no intervalMinutes in the stored shape',
     Object.prototype.hasOwnProperty.call(def.hosted, 'intervalMinutes'), false);
   check('normalization: default border width', BCBuddy.normalizeLayout({}).border.width, 3);
   check('normalization: banner default half transparent',
@@ -440,21 +417,6 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('normalization: corner position preserved', BCBuddy.normalizeLayout({ banner: { position: 'bottom-left' } }).banner.position, 'bottom-left');
   check('normalization: empty rule gets a condition', BCBuddy.normalizeRule({}).conditions.length, 1);
 
-  var migrated = BCBuddy.normalize({
-    rules: [
-      { name: 'A', border: { width: 5 }, ribbon: { text: 'DIK' } },
-      { name: 'B', border: { width: 5 }, ribbon: { text: 'DIK' } },
-      { name: 'C', border: { width: 1 }, ribbon: { text: 'DUN' } }
-    ]
-  });
-  check('migration: same look shares a layout', migrated.layouts.length, 2);
-  check('migration: matching rules share layoutId',
-    migrated.rules[0].layoutId === migrated.rules[1].layoutId, true);
-  check('migration: different look gets its own layout',
-    migrated.rules[0].layoutId === migrated.rules[2].layoutId, false);
-  check('migration: look preserved on layout',
-    migrated.layouts.filter(function (l) { return l.id === migrated.rules[0].layoutId; })[0].border.width, 5);
-
   var exported = BCBuddy.toExport(settings, 'Bedrijf X');
   var roundtrip = BCBuddy.parseImport(JSON.stringify(exported));
   check('export/import: rule count', roundtrip.rules.length, 1);
@@ -465,8 +427,9 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   try { BCBuddy.parseImport('{"foo":1}'); } catch (e) { importError = e.message; }
   truthy('import: clear error for wrong file', importError.indexOf('rules') !== -1);
   importError = '';
-  try { BCBuddy.parseImport('{niet json'); } catch (e) { importError = e.message; }
-  truthy('import: clear error for invalid JSON', importError.indexOf('Ongeldige JSON') === 0);
+  try { BCBuddy.parseImport('{not json'); } catch (e) { importError = e.message; }
+  truthy('import: clear error for invalid JSON',
+    importError.indexOf(chrome.i18n.getMessage('errInvalidJson', ['']).replace(/\s*$/, '')) === 0);
 
   // merge on import
   function ruleNamed(name, extra) {
@@ -477,13 +440,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       conditions: [{ field: 'environment', op: 'contains', value: name }]
     });
   }
-  var bestaand = [ruleNamed('config 1'), ruleNamed('config 3'), ruleNamed('config 5')];
-  var bestand = [
+  var existingRules = [ruleNamed('config 1'), ruleNamed('config 3'), ruleNamed('config 5')];
+  var fileRules = [
     ruleNamed('config 1', { color: '#107c10' }),
     ruleNamed('config 2'),
     ruleNamed('config 3', { color: '#107c10' })
   ];
-  var merged = BCBuddy.mergeRules(bestaand, bestand);
+  var merged = BCBuddy.mergeRules(existingRules, fileRules);
   check('import: all rules present',
     merged.rules.map(function (r) { return r.name; }),
     ['config 1', 'config 3', 'config 5', 'config 2']);
@@ -491,43 +454,40 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('import: non-imported rule unchanged', merged.rules[2].color, '#c4314b');
   check('import: stats', merged.stats, { overwritten: 2, added: 1, kept: 1 });
 
-  var opNaam = BCBuddy.mergeRules(
+  var byName = BCBuddy.mergeRules(
     [BCBuddy.normalizeRule({ id: 'lokaal', name: 'TEST', color: '#c4314b' })],
-    [BCBuddy.normalizeRule({ id: 'gedeeld', name: ' test ', color: '#0f6cbd' })]);
-  check('import: match by name when id differs', opNaam.rules.length, 1);
-  check('import: adopts id from file', opNaam.rules[0].id, 'gedeeld');
-  check('import: color from file', opNaam.rules[0].color, '#0f6cbd');
+    [BCBuddy.normalizeRule({ id: 'shared', name: ' test ', color: '#0f6cbd' })]);
+  check('import: match by name when id differs', byName.rules.length, 1);
+  check('import: adopts id from file', byName.rules[0].id, 'shared');
+  check('import: color from file', byName.rules[0].color, '#0f6cbd');
 
   // layouts travel along in import and export
-  var metLayoutExport = BCBuddy.toExport(BCBuddy.normalize({ rules: [gekoppeld], layouts: [layout] }));
-  check('export: layouts included', metLayoutExport.layouts.length, 1);
-  check('export: link preserved', metLayoutExport.rules[0].layoutId, 'lay-1');
+  var withLayoutExported = BCBuddy.toExport(BCBuddy.normalize({ rules: [linkedRule], layouts: [layout] }));
+  check('export: layouts included', withLayoutExported.layouts.length, 1);
+  check('export: link preserved', withLayoutExported.rules[0].layoutId, 'lay-1');
 
-  var heen = BCBuddy.parseImport(JSON.stringify(metLayoutExport));
-  check('import: layouts read', heen.layouts.length, 1);
-  check('import: link read', heen.rules[0].layoutId, 'lay-1');
+  var imported = BCBuddy.parseImport(JSON.stringify(withLayoutExported));
+  check('import: layouts read', imported.layouts.length, 1);
+  check('import: link read', imported.rules[0].layoutId, 'lay-1');
   check('import: bare rule array without layouts', BCBuddy.parseImport('[]').layouts, []);
-  var bareImport = BCBuddy.parseImport(JSON.stringify([
-    { name: 'OUD', border: { width: 5 }, ribbon: { text: 'UIT REGEL' } }
-  ]));
-  check('import: bare array with display derives a layout', bareImport.layouts.length, 1);
-  check('import: derived layout keeps look', bareImport.layouts[0].border.width, 5);
-  check('import: derived rule has no border', Object.prototype.hasOwnProperty.call(bareImport.rules[0], 'border'), false);
-  check('import: rule still points at its layout', !!bareImport.rules[0].layoutId, true);
+  check('import: bare array with display derives no layout',
+    BCBuddy.parseImport(JSON.stringify([
+      { name: 'A', border: { width: 5 }, ribbon: { text: 'FROM RULE' } }
+    ])).layouts.length, 0);
   check('import: clean rules-only file derives no layout',
     BCBuddy.parseImport(JSON.stringify([{ name: 'A', color: '#c4314b' }])).layouts.length, 0);
 
-  var samengevoegd = BCBuddy.mergeLayouts(
+  var mergedResult = BCBuddy.mergeLayouts(
     [BCBuddy.normalizeLayout({ id: 'lay-1', name: 'Standaard', border: { width: 3 } })],
     [layout, BCBuddy.normalizeLayout({ id: 'lay-2', name: 'Compact' })]);
-  check('import: layout overwritten in place', samengevoegd.layouts[0].border.width, 4);
-  check('import: new layout added', samengevoegd.layouts.length, 2);
-  check('import: layout stats', samengevoegd.stats, { overwritten: 1, added: 1, kept: 0 });
+  check('import: layout overwritten in place', mergedResult.layouts[0].border.width, 4);
+  check('import: new layout added', mergedResult.layouts.length, 2);
+  check('import: layout stats', mergedResult.stats, { overwritten: 1, added: 1, kept: 0 });
 
   check('import: empty import leaves everything',
-    BCBuddy.mergeRules(bestaand, []).stats, { overwritten: 0, added: 0, kept: 3 });
+    BCBuddy.mergeRules(existingRules, []).stats, { overwritten: 0, added: 0, kept: 3 });
   check('import: import into empty list',
-    BCBuddy.mergeRules([], bestand).stats, { overwritten: 0, added: 3, kept: 0 });
+    BCBuddy.mergeRules([], fileRules).stats, { overwritten: 0, added: 3, kept: 0 });
 
   check('raw-url: github blob becomes raw',
     BCBuddy.toRawUrl('https://github.com/bedrijf/repo/blob/main/bc-buddy.json'),
@@ -604,12 +564,23 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       // Because a ribbon was found here once, it is picked up again immediately
       // after a redraw — the brake on searching only applies as long as no
       // ribbon has ever been seen.
+      // A button that appears in the ribbon after the first pass must lose its
+      // background too. The walk remembers which elements paint nothing so it
+      // can skip them; a node it has never seen must not be skipped with them.
+      var late = document.createElement('button');
+      late.type = 'button';
+      late.className = 'hdr-btn';
+      late.textContent = '+';
+      document.querySelector('.hdr-icons').appendChild(late);
+
       var mark = document.querySelector('[data-bcb-brand]');
       if (mark) mark.removeAttribute('data-bcb-brand');
       document.body.appendChild(document.createElement('span'));
       setTimeout(function () {
         truthy('DOM: on-prem ribbon found again after redraw',
           !!document.querySelector('[data-bcb-brand]'));
+        check('DOM: button added later also loses its background',
+          getComputedStyle(late).backgroundColor, 'rgba(0, 0, 0, 0)');
 
         var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
         document.getElementById('results').textContent =

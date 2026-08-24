@@ -28,7 +28,6 @@
   function parseUrl(href) {
     var ctx = {
       url: String(href || ''),
-      rawurl: String(href || ''),
       host: '',
       path: '',
       tenant: '',
@@ -110,14 +109,26 @@
   // Long enough for real BC URL patterns; short enough to keep ReDoS bounded.
   var REGEX_MAX_LEN = 200;
 
+  // A subject longer than this is not a URL anyone navigated to, and the cost
+  // of backtracking grows with it. Bounding both ends keeps the worst case
+  // finite even for a pattern the filter below does not recognise.
+  var SUBJECT_MAX_LEN = 2048;
+
   /**
    * Runs a user/shared RegEx against a subject. Invalid patterns, oversized
-   * ones and nested-quantifier shapes (the usual ReDoS form) all fail closed —
-   * the condition simply does not match, same as a syntax error.
+   * ones and the quantifier shapes below all fail closed — the condition simply
+   * does not match, same as a syntax error.
+   *
+   * The filter is deliberately conservative rather than complete: deciding
+   * whether an arbitrary pattern backtracks catastrophically is not something
+   * a source scan can settle. It rejects the shapes that show up in practice
+   * and bounds the subject; a pattern that slips through is still bounded by
+   * that length, not by the filter.
    */
   function safeRegexTest(pattern, subject) {
     if (pattern.length > REGEX_MAX_LEN) return false;
-    if (hasNestedQuantifiers(pattern)) return false;
+    if (subject.length > SUBJECT_MAX_LEN) return false;
+    if (hasRiskyQuantifier(pattern)) return false;
     try {
       return new RegExp(pattern, 'i').test(subject);
     } catch (e) {
@@ -126,21 +137,25 @@
   }
 
   /**
-   * Detects (…*…)+ / (…+)+ / […]+* style nesting: a group or class whose body
-   * already contains a quantifier, then quantified again. That is the shape
-   * that explodes on crafted input; plain alternation and single quantifiers
-   * are allowed.
+   * Detects a group or class that is quantified while its body already
+   * contains a quantifier — (…*…)+ / (…+)+ / […]+* — or a quantified group
+   * containing alternation, which is the (a|a)+ shape. Both explode on crafted
+   * input. A quantified group without either, like (abc)+, is allowed.
    */
-  function hasNestedQuantifiers(source) {
+  function hasRiskyQuantifier(source) {
     var i = 0;
     while (i < source.length) {
       var ch = source.charAt(i);
       if (ch === '\\') { i += 2; continue; }
       if (ch === '(' || ch === '[') {
-        var close = ch === '(' ? findGroupEnd(source, i) : findClassEnd(source, i);
+        var isGroup = ch === '(';
+        var close = isGroup ? findGroupEnd(source, i) : findClassEnd(source, i);
         if (close < 0) return false;
         var inner = stripEscapes(source.slice(i + 1, close));
-        if (/[*+?{]/.test(inner) && isQuantifierAt(source, close + 1)) return true;
+        // Alternation only carries that risk inside a group; in a character
+        // class a '|' is just another character.
+        var risky = /[*+?{]/.test(inner) || (isGroup && inner.indexOf('|') !== -1);
+        if (risky && isQuantifierAt(source, close + 1)) return true;
         i = close + 1;
         continue;
       }
@@ -191,25 +206,6 @@
     });
     if (!conds.length) return false;
     return conds.every(function (c) { return testCondition(c, ctx); });
-  }
-
-  var BC_HOST = 'businesscentral.dynamics.com';
-
-  /**
-   * Does this rule target Business Central? That is the case for a condition
-   * on environment or company, or for a condition on host or URL that contains
-   * the BC host. Backslashes are ignored, so a RegEx like
-   * "businesscentral\.dynamics\.com" is recognised too.
-   */
-  function targetsBusinessCentral(rule) {
-    var conds = (rule && rule.conditions) || [];
-    return conds.some(function (cond) {
-      if (!cond) return false;
-      if (cond.field === 'environment' || cond.field === 'company') return true;
-      if (cond.field !== 'url') return false;
-      var value = String(cond.value == null ? '' : cond.value).replace(/\\/g, '').toLowerCase();
-      return value.indexOf(BC_HOST) !== -1;
-    });
   }
 
   /** First match wins; list order decides priority. */
@@ -350,7 +346,6 @@
   BCBuddy.testCondition = testCondition;
   BCBuddy.matchRule = matchRule;
   BCBuddy.safeRegexTest = safeRegexTest;
-  BCBuddy.targetsBusinessCentral = targetsBusinessCentral;
   BCBuddy.findRule = findRule;
   BCBuddy.render = render;
   BCBuddy.renderTidy = renderTidy;

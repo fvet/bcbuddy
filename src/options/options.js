@@ -14,7 +14,9 @@
       testUrl: '',
       panel: 'environments',
       ctx: null,
-      selfWrite: false,
+      // Hash of the settings we last wrote ourselves, to tell our own change
+      // event apart from someone else's.
+      lastWriteHash: '',
       saveTimer: null,
       // Which rule is being dragged right now (null = none).
       dragIndex: null,
@@ -130,13 +132,20 @@
     return layouts.length ? layouts[0].id : '';
   };
 
+  /**
+   * Records what we are about to store, so the change event it causes can be
+   * recognised as our own. See the storage listener in init().
+   */
+  page.markOwnWrite = function (settings) {
+    page.state.lastWriteHash = BCBuddy.hash(BCBuddy.normalize(settings));
+  };
+
   page.save = function () {
     if (page.state.saveTimer) clearTimeout(page.state.saveTimer);
     page.state.saveTimer = setTimeout(function () {
-      page.state.selfWrite = true;
+      page.markOwnWrite(page.state.settings);
       // Saving is silent; only report when it fails.
       BCBuddy.saveSettings(page.state.settings).then(null, function (err) {
-        page.state.selfWrite = false;
         page.setStatus(t('saveFailed', err.message), true);
       });
     }, 250);
@@ -220,8 +229,13 @@
 
     chrome.storage.onChanged.addListener(function (changes, area) {
       if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
-      if (state.selfWrite) { state.selfWrite = false; return; }
-      state.settings = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
+      var incoming = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
+      // Our own write comes back as an event too. Compare what arrived against
+      // what we last sent, rather than swallowing the next event whatever it
+      // is: the service worker may write between our save and this callback,
+      // and that update must not be the one we discard.
+      if (BCBuddy.hash(incoming) === state.lastWriteHash) return;
+      state.settings = incoming;
       page.renderAll();
     });
   }

@@ -346,7 +346,8 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .grid { display: flex; flex-wrap: wrap; gap: 12px; }
 .grid--two > * { flex: 1 1 320px; }
 .grid--hosted { align-items: end; }
-.grid--style { align-items: end; }
+/* Top-align so Colour (short swatch) shares a baseline with Text colour / Layout. */
+.grid--style { align-items: start; }
 
 /* -------------------------------------------------------------- tester */
 
@@ -412,7 +413,6 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .rule--layout .rule__name { flex: 1 1 220px; }
 .display { display: flex; flex-direction: column; }
 [data-display][hidden] { display: none; }
-[data-layout-note] { margin: 0; }
 .rule--collapsed .rule__body { display: none; }
 .rule--collapsed { gap: 0; }
 .rule__swatch {
@@ -514,7 +514,8 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   cursor: help;
   vertical-align: middle;
 }
-.hint:hover, .hint:focus { color: var(--text); border-color: var(--accent); outline: none; }
+.hint:hover, .hint:focus { color: var(--text); border-color: var(--accent); }
+.hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .hint__bubble {
   position: absolute;
@@ -554,19 +555,20 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 }
 .hint__bubble code { margin-right: 3px; }
 
-.palette { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 2px 0 6px; }
+.palette { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .palette button {
   width: 22px; height: 22px; border-radius: 50%;
   border: 2px solid transparent;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18);
+  background: var(--swatch);
   cursor: pointer;
   padding: 0;
 }
 .palette button:hover { transform: scale(1.12); }
-/* The colour the rule currently has gets a ring. */
+/* Selected: outer ring + gap + inner disc, all in the swatch colour. */
 .palette button[aria-pressed="true"] {
-  border-color: var(--text);
-  box-shadow: none;
+  padding: 3px;
+  background-clip: content-box;
+  border-color: var(--swatch);
 }
 
 /* The free colour pick sits at the end of the palette. Squarer than the dots,

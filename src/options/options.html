@@ -199,7 +199,9 @@
         <button type="button" class="rule__swatch" data-swatch data-action="toggle"
                 aria-expanded="false" data-i18n-title="toggleDetails"></button>
         <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="ruleNamePlaceholder">
-        <span class="match" data-match aria-hidden="true"></span>
+        <!-- The glyph is decorative; role+aria-label carry the state instead,
+             so it is not a tick that only sighted users can read. -->
+        <span class="match" data-match role="img"></span>
         <div class="rule__tools">
           <label class="switch switch--compact" data-i18n-title="ruleActiveTitle">
             <input type="checkbox" class="toggle" data-path="enabled"><span data-i18n="ruleOn">On</span>

@@ -63,6 +63,15 @@ foreach ($suite in $suites) {
     $failed = $lines | Where-Object { $_ -match '^FAIL' }
     $total = ($lines | Where-Object { $_ -match 'TOTAL' }) -join ''
 
+    # No TOTAL means the suite never finished — a script error part-way leaves
+    # the results element on "running...". Without this the suite reports OK
+    # simply because it produced no FAIL lines.
+    if (-not $total) {
+        Write-Host "$suite : DID NOT COMPLETE (no TOTAL; check for a script error)" -ForegroundColor Red
+        $totalFailed++
+        continue
+    }
+
     if ($failed) {
         Write-Host "$suite" -ForegroundColor Red
         $body -split "`n" | Where-Object { $_ -match '^FAIL|expected:|got:|^\s{8}' } | ForEach-Object { Write-Host "  $_" }

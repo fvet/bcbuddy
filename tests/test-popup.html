@@ -35,13 +35,13 @@ var TAB_URL = 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d947
   'Productie?company=CONTOSO%20BE&page=21';
 
 /*
- * chrome.i18n with the real messages from _locales/nl. Loaded synchronously
+ * chrome.i18n with the real messages from _locales/en (the default locale). Loaded synchronously
  * so the scripts below can use them immediately.
  */
 var MESSAGES = (function () {
   try {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '../_locales/nl/messages.json', false);
+    xhr.open('GET', '../_locales/en/messages.json', false);
     xhr.send();
     return JSON.parse(xhr.responseText);
   } catch (e) {
@@ -51,7 +51,7 @@ var MESSAGES = (function () {
 
 function i18nStub() {
   return {
-    getUILanguage: function () { return 'nl'; },
+    getUILanguage: function () { return 'en'; },
     getMessage: function (key, subs) {
       var entry = MESSAGES[key];
       if (!entry) return '';
@@ -114,7 +114,7 @@ function loadScript(src) {
   return new Promise(function (resolve, reject) {
     var s = document.createElement('script');
     s.src = src; s.onload = resolve;
-    s.onerror = function () { reject(new Error('kon ' + src + ' niet laden')); };
+    s.onerror = function () { reject(new Error('could not load ' + src)); };
     document.head.appendChild(s);
   });
 }
@@ -140,7 +140,7 @@ fetch(ROOT + 'src/popup/popup.html')
     check('popup: brand name at top',
       document.querySelector('header .brand-name').textContent, 'BC Buddy');
     check('popup: document lang follows UI language',
-      document.documentElement.lang, 'nl');
+      document.documentElement.lang, 'en');
     truthy('popup: logo beside brand name', !!document.querySelector('header svg.brand'));
     check('popup: brand dot uses rule color',
       document.getElementById('brandDot').style.fill, 'rgb(196, 49, 75)');
@@ -148,17 +148,18 @@ fetch(ROOT + 'src/popup/popup.html')
     check('popup: active rule shown',
       document.querySelector('#parsed div:first-child dd').textContent, 'PROD');
     check('popup: local rule with same id as shared stays local',
-      document.querySelector('#parsed div:first-child dd').title, 'PROD — eigen regel');
+      document.querySelector('#parsed div:first-child dd').title,
+      'PROD — ' + chrome.i18n.getMessage('popupOwnRule'));
     truthy('popup: company from URL', document.getElementById('parsed').textContent.indexOf('CONTOSO BE') !== -1);
     truthy('popup: environment from URL', document.getElementById('parsed').textContent.indexOf('Productie') !== -1);
     check('popup: rule precedes URL fields, tenant omitted',
       Array.prototype.map.call(document.querySelectorAll('#parsed dt'), function (dt) { return dt.textContent; }),
-      ['Regel', 'Omgeving', 'Bedrijf']);
+      [chrome.i18n.getMessage('labelRule'), chrome.i18n.getMessage('labelEnvironment'), chrome.i18n.getMessage('labelCompany')]);
     truthy('popup: tenant is not shown',
       document.getElementById('parsed').textContent.indexOf('453d817a') === -1);
     truthy('popup: toggle is on', document.getElementById('enabled').checked);
     check('popup: add rule button label',
-      document.getElementById('addRule').textContent, 'Regel toevoegen');
+      document.getElementById('addRule').textContent, chrome.i18n.getMessage('addRule'));
     truthy('popup: no button when a rule already matches',
       document.getElementById('addRule').offsetParent === null);
     truthy('popup: sync visible with shared URL',
@@ -194,10 +195,10 @@ fetch(ROOT + 'src/popup/popup.html')
   .then(function () {
     check('popup: only the found fields',
       Array.prototype.map.call(document.querySelectorAll('#parsed dt'), function (dt) { return dt.textContent; }),
-      ['Regel', 'Omgeving']);
+      [chrome.i18n.getMessage('labelRule'), chrome.i18n.getMessage('labelEnvironment')]);
     check('popup: corresponding values',
       Array.prototype.map.call(document.querySelectorAll('#parsed dd'), function (dd) { return dd.textContent; }),
-      ['Geen Business Central', 'shopping']);
+      [chrome.i18n.getMessage('popupNotBc'), 'shopping']);
 
     // Without a matching rule the button is shown, and it prepares a draft.
     truthy('popup: button shown when no rule matches',
@@ -234,6 +235,27 @@ fetch(ROOT + 'src/popup/popup.html')
   .then(function () {
     truthy('popup: sync hidden for http URL',
       document.getElementById('syncNow').offsetParent === null);
+
+    // The service worker never answers. The status must end up on the failure
+    // text instead of staying on "synchronising" for good.
+    STORE.settings.hosted.url = 'https://example.com/bc.json';
+    chrome.runtime.sendMessage = function () {
+      return Promise.reject(new Error('message port closed'));
+    };
+    document.getElementById('app').innerHTML = POPUP_BODY;
+    return loadScript(ROOT + 'src/popup/popup.js?sync-fails');
+  })
+  .then(function () { return new Promise(function (r) { setTimeout(r, 300); }); })
+  .then(function () {
+    document.getElementById('syncNow').click();
+    return new Promise(function (r) { setTimeout(r, 200); });
+  })
+  .then(function () {
+    var status = document.getElementById('status');
+    check('popup: unanswered sync is reported',
+      status.textContent, chrome.i18n.getMessage('syncFailedShort'));
+    truthy('popup: unanswered sync marks the status as an error',
+      status.className.indexOf('status--error') !== -1);
   })
   .catch(function (err) { results.push('FAIL  harness: ' + err.message); })
   .then(function () {

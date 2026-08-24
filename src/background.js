@@ -7,6 +7,15 @@ importScripts('/src/lib/i18n.js', '/src/lib/match.js', '/src/lib/settings.js');
 var BCBuddy = self.BCBuddy;
 var ALARM_SYNC = 'bcb-sync';
 
+// A shared file that never answers must not leave the options page or the
+// popup on "Synchronising..." with no way out.
+var FETCH_TIMEOUT_MS = 15000;
+
+// Far more than any realistic set of rules needs, and well under the storage
+// quota. A file above this cannot be saved anyway, so it is refused up front
+// with a readable message instead of failing later on chrome.storage.local.
+var MAX_HOSTED_SIZE = 1024 * 1024;
+
 chrome.runtime.onInstalled.addListener(function (details) {
   scheduleSync();
   if (details.reason === 'install') {
@@ -58,7 +67,7 @@ function isExtensionPage(sender) {
 /* ------------------------------------------------------------------ sync */
 
 function scheduleSync() {
-  BCBuddy.loadSettings().then(function (settings) {
+  return BCBuddy.loadSettings().then(function (settings) {
     // clearAll also drops any alarm name left by an older build.
     return chrome.alarms.clearAll().then(function () {
       if (!settings.hosted.url || !settings.hosted.active) return;
@@ -67,6 +76,9 @@ function scheduleSync() {
         periodInMinutes: BCBuddy.SYNC_INTERVAL_MINUTES
       });
     });
+  }).catch(function () {
+    // Nothing sensible to do here and nobody to tell: there is no UI on the
+    // service worker. The alarm stays as it is and the next startup retries.
   });
 }
 
@@ -77,15 +89,41 @@ function fetchHosted(url) {
   } catch (err) {
     return Promise.reject(err);
   }
-  return fetch(target, { cache: 'no-cache', credentials: 'omit' })
+  return fetch(target, {
+    cache: 'no-cache',
+    credentials: 'omit',
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
+  })
     .then(function (response) {
       if (!response.ok) throw new Error(BCBuddy.t('errHttp', [response.status, response.statusText]));
+      if (tooLarge(response.headers.get('content-length'))) throw oversized();
       return response.text();
     })
     .then(function (text) {
+      // The header is advisory and may be missing or wrong, so the body has
+      // the last word. Characters rather than bytes is close enough for a
+      // guard, and errs on the safe side for multi-byte text.
+      if (tooLarge(text.length)) throw oversized();
       var parsed = BCBuddy.parseImport(text);
       return { ok: true, rules: parsed.rules, name: parsed.name, hash: BCBuddy.hash(text), url: target };
+    })
+    .catch(function (err) {
+      // AbortSignal.timeout() rejects with a TimeoutError whose own message
+      // ("signal timed out") is neither translated nor informative.
+      if (err && err.name === 'TimeoutError') {
+        throw new Error(BCBuddy.t('errTimeout', [FETCH_TIMEOUT_MS / 1000]));
+      }
+      throw err;
     });
+}
+
+function tooLarge(size) {
+  var n = parseInt(size, 10);
+  return !isNaN(n) && n > MAX_HOSTED_SIZE;
+}
+
+function oversized() {
+  return new Error(BCBuddy.t('errTooLarge', [Math.round(MAX_HOSTED_SIZE / 1024)]));
 }
 
 /**
@@ -120,5 +158,10 @@ function syncHosted(options) {
         return { ok: false, error: settings.hosted.lastError };
       });
     });
+  }).catch(function (err) {
+    // Anything that got past the handler above — a failed read, or a save that
+    // hits the storage quota — still has to produce an answer. Every caller
+    // either reports it or ignores it; none of them may be left waiting.
+    return { ok: false, error: String(err && err.message || err) };
   });
 }

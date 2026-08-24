@@ -29,22 +29,24 @@ store/                 listing copy and screenshots
 Stored settings use schema version 2 (`SCHEMA_VERSION` in `settings.js`).
 Exports carry `"app": "bc-buddy"` and `"version": 2`.
 
-- A **rule** holds identity and matching: `id`, `name`, `enabled`, `note`,
+- A **rule** holds identity and matching: `id`, `name`, `enabled`,
   `conditions`, `color`, `textColor`, `layoutId`, and `favicon.text` (at most
   two letters). Appearance fields no longer live on the rule.
 - A **layout** holds appearance: `border`, `banner`, `ribbon`, `title`, and
   `favicon.enabled`. Favicon letters stay on the rule; layouts keep
   `favicon.text` empty.
 - `resolveRule()` merges them for drawing: appearance from the chosen layout,
-  letters from the rule. Without a layout it falls back to defaults, or to
-  legacy embedded display still present on an old rule object, so drawing
-  never crashes.
+  letters from the rule. Without a layout it falls back to the defaults, so
+  drawing never crashes.
 
-`normalize()` always ensures every rule points at a valid layout. If settings
-arrive with no layouts yet, layouts are derived from any embedded display still
-on the raw rules (same look → shared layout); an empty configuration gets a
-Default. After that, display fields are dropped from the rule objects. Hosted
-(shared) rules go through the same path.
+`normalize()` always ensures every rule points at a valid layout: a
+configuration with no layouts gets a Default, and a rule whose `layoutId` names
+nothing follows the first layout in the set. Display fields on a rule object are
+dropped. Hosted (shared) rules go through the same path.
+
+There is no migration path from an older shape. The extension had no public
+release before schema 2, so `normalize()` reads the current schema only —
+unknown fields are dropped rather than translated.
 
 ## ⚙️ How the content script behaves
 
@@ -85,18 +87,28 @@ Tenant and environment are both optional; the tenant is a GUID or a domain name.
 On-prem the server instance sits where the environment would be
 (`/BC240/?company=...`) and the tenant comes from the query.
 
+## 🛡️ RegEx conditions
+
+A `regex` condition runs a pattern that came from the user or from a shared
+file, so `safeRegexTest()` in `match.js` bounds it: the pattern is capped at 200
+characters, the subject at 2048, and patterns are rejected when a group or class
+is quantified while its body already holds a quantifier — `(a+)+` — or when a
+quantified group contains alternation — `(a|a)+`. Anything rejected fails
+closed: the condition simply does not match, exactly as a syntax error does.
+
+That filter is conservative, not complete — whether an arbitrary pattern
+backtracks catastrophically is not decidable from a source scan. It covers the
+shapes that occur in practice; the length caps are what bound the rest.
+
 ## 📄 Import format
 
 The extension reads only its own format: an object with a `rules` array and
 optionally a `layouts` array (as the export produces), or a bare array of rules.
 A file naming a different `app` is rejected.
 
-If the file has no layouts:
-
-- rules that still embed display (`border` / `banner` / `ribbon` / `title`, or
-  `favicon.enabled`) get layouts derived from that look;
-- a clean rules-only file derives nothing; after merge, `normalize()` assigns
-  the importer's first layout.
+A file with no layouts derives none: after the merge, `normalize()` points its
+rules at the importer's own first layout. Display fields on a rule in the file
+are ignored — appearance only travels in a `layouts` array.
 
 Importing merges both lists (layouts first, then rules): same id (else same
 name) overwrites in place, new items are added, items missing from the file are

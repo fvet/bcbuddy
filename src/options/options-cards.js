@@ -132,7 +132,7 @@
           BCBuddy.PALETTE.forEach(function (color) {
             var button = document.createElement('button');
             button.type = 'button';
-            button.style.background = color;
+            button.style.setProperty('--swatch', color);
             button.dataset.action = 'pick-color';
             button.dataset.color = color;
             button.title = color;
@@ -167,9 +167,11 @@
         var matched = isLayout ? true : BCBuddy.matchRule(item, ctx);
         var badge = card.querySelector('[data-match]');
         if (badge) {
+          var matchLabel = t(matched ? 'matchYes' : 'matchNo');
           badge.textContent = matched ? '\u2713' : '\u25CB';
           badge.className = 'match ' + (matched ? 'match--yes' : 'match--no');
-          badge.title = t(matched ? 'matchYes' : 'matchNo');
+          badge.title = matchLabel;
+          badge.setAttribute('aria-label', matchLabel);
         }
         var preview = card.querySelector('[data-preview]');
         if (preview) preview.classList.toggle('preview--nomatch', !matched);
@@ -178,9 +180,19 @@
           var cond = item.conditions[Number(row.dataset.index)];
           var dot = row.querySelector('[data-cond-match]');
           var hasValue = cond && String(cond.value || '').trim() !== '';
+          var condMatches = hasValue && BCBuddy.testCondition(cond, ctx);
+          var condLabel = hasValue ? t(condMatches ? 'conditionMatches' : 'conditionNoMatch') : '';
           dot.className = 'dot-indicator ' +
-            (!hasValue ? '' : (BCBuddy.testCondition(cond, ctx) ? 'dot-indicator--on' : 'dot-indicator--off'));
-          dot.title = !hasValue ? '' : t(BCBuddy.testCondition(cond, ctx) ? 'conditionMatches' : 'conditionNoMatch');
+            (!hasValue ? '' : (condMatches ? 'dot-indicator--on' : 'dot-indicator--off'));
+          dot.title = condLabel;
+          // An empty condition says nothing; only a filled one is announced.
+          if (condLabel) {
+            dot.setAttribute('role', 'img');
+            dot.setAttribute('aria-label', condLabel);
+          } else {
+            dot.removeAttribute('role');
+            dot.removeAttribute('aria-label');
+          }
         });
 
         // Favicon letters belong to the rule, and only when the layout draws them.
@@ -239,7 +251,7 @@
        * same file), so the list belongs in the key.
        */
       page.expandKey = function (kind, item, readOnly) {
-        return kind + ':' + (readOnly ? 'gedeeld:' : 'eigen:') + item.id;
+        return kind + ':' + (readOnly ? 'shared:' : 'own:') + item.id;
       };
 
       /** Colour for a layout preview: from the first rule that uses it. */

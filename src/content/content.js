@@ -52,6 +52,10 @@
   // search again at most once every so many milliseconds.
   var BRAND_RETRY_MS = 2000;
 
+  // How often the ribbon walk forgets which elements painted nothing, so a
+  // background BC added to a node that stayed in place is picked up again.
+  var REPAINT_SWEEP_MS = 2000;
+
   var state = {
     settings: null,
     rule: null,
@@ -71,7 +75,12 @@
     lastBrandSearch: 0,
     bcSeen: false,
     // Ribbon elements whose own background we turn off.
-    painted: []
+    painted: [],
+    // Ribbon elements already found to paint nothing, and when that memory was
+    // last cleared. A WeakSet rather than an attribute: this is our bookkeeping
+    // and it has no business showing up in someone else's DOM.
+    unpainted: new WeakSet(),
+    lastPaintSweep: 0
   };
 
   init();
@@ -97,6 +106,22 @@
 
   function read() {
     return BCBuddy.loadSettings().catch(function () { return BCBuddy.normalize(null); });
+  }
+
+  /**
+   * BCBuddy.effectiveRules() re-normalizes the whole configuration on every
+   * call — wasted work when apply() runs on the poll and on every burst of DOM
+   * changes. state.settings is replaced wholesale whenever storage changes, so
+   * its identity is a safe cache key.
+   */
+  var rulesCache = { source: null, rules: null };
+
+  function effectiveRules(settings) {
+    if (rulesCache.source !== settings) {
+      rulesCache.source = settings;
+      rulesCache.rules = BCBuddy.effectiveRules(settings);
+    }
+    return rulesCache.rules;
   }
 
   function start() {
@@ -160,7 +185,7 @@
    */
   function shouldWatch(settings, rule) {
     if (!settings || !settings.enabled) return false;
-    if (!BCBuddy.effectiveRules(settings).length) return false;
+    if (!effectiveRules(settings).length) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
@@ -198,7 +223,7 @@
     // custom host runs Business Central, so filtering on the BC host would
     // shut out on-prem installs.
     var rule = settings.enabled
-      ? BCBuddy.findRule(BCBuddy.effectiveRules(settings), state.ctx)
+      ? BCBuddy.findRule(effectiveRules(settings), state.ctx)
       : null;
 
     var changed = !sameRule(rule, state.rule);
@@ -217,7 +242,10 @@
   }
 
   function sameRule(a, b) {
-    if (!a || !b) return a === b;
+    // The cache hands back the same object while settings are unchanged, so in
+    // the steady state this costs one comparison instead of two stringifies.
+    if (a === b) return true;
+    if (!a || !b) return false;
     return a.id === b.id && JSON.stringify(a) === JSON.stringify(b);
   }
 
@@ -347,19 +375,36 @@
    * icons.
    */
   function clearRibbonPaint(root) {
+    // Most of a ribbon paints nothing, and reading a computed style is the
+    // expensive part of this walk. Elements already found transparent are
+    // remembered and skipped; a new node carries no such memory and is read on
+    // the very next pass. Every so often the memory is dropped, so an element
+    // BC repainted in place — a class or an inline style on a node that stayed
+    // put — is looked at again.
+    if (Date.now() - state.lastPaintSweep >= REPAINT_SWEEP_MS) {
+      state.lastPaintSweep = Date.now();
+      state.unpainted = new WeakSet();
+    }
+    stripPaint(root);
+  }
+
+  function stripPaint(root) {
     var nodes = root.querySelectorAll('*');
     for (var i = 0; i < nodes.length; i++) {
       var el = nodes[i];
       // Anything that needs its own background to stay readable or visible
       // we leave alone.
       if (KEEP_PAINT[el.tagName]) continue;
-      if (el.shadowRoot) clearRibbonPaint(el.shadowRoot);
-      if (el.hasAttribute('data-bcb-paint')) continue;
+      if (el.shadowRoot) stripPaint(el.shadowRoot);
+      if (el.hasAttribute('data-bcb-paint') || state.unpainted.has(el)) continue;
 
       var style = getComputedStyle(el);
       // A gradient is bar styling; an image is content (an avatar).
       var gradient = style.backgroundImage.indexOf('gradient') !== -1;
-      if (!gradient && !paints(style.backgroundColor)) continue;
+      if (!gradient && !paints(style.backgroundColor)) {
+        state.unpainted.add(el);
+        continue;
+      }
 
       el.setAttribute('data-bcb-paint', el.getAttribute('style') || '');
       el.style.setProperty('background-color', 'transparent', 'important');
@@ -387,6 +432,9 @@
       el.removeAttribute('data-bcb-paint');
     });
     state.painted = [];
+    // The ribbon is being handed back; nothing we learned about it still holds.
+    state.unpainted = new WeakSet();
+    state.lastPaintSweep = 0;
   }
 
   function getBrandElement() {
@@ -497,12 +545,17 @@
     var existing = document.querySelector('link[data-bcb-favicon]');
     var label = (rule.favicon.text || rule.name || '').trim();
     var signature = rule.color + '|' + label;
+
+    // The page can add icons of its own at any moment — the BC client does — so
+    // this runs on every pass, not only when our own icon changes. Otherwise a
+    // late <link rel="icon"> quietly wins over ours.
+    hideFavicons();
+
     if (existing && existing.getAttribute('data-bcb-favicon') === signature) return;
 
     var href = drawFavicon(rule.color, label);
     if (!href) return;
 
-    hideFavicons();
     var link = existing || document.createElement('link');
     link.rel = FAVICON_REL;
     link.type = 'image/png';

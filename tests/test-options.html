@@ -23,13 +23,13 @@ var BC_TAB = { id: 3, active: false, lastAccessed: 100,
 var TABS = [OPTIONS_TAB, GOOGLE_TAB, BC_TAB];
 
 /*
- * chrome.i18n with the real messages from _locales/nl. Loaded synchronously
+ * chrome.i18n with the real messages from _locales/en (the default locale). Loaded synchronously
  * so the scripts below can use them immediately.
  */
 var MESSAGES = (function () {
   try {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '../_locales/nl/messages.json', false);
+    xhr.open('GET', '../_locales/en/messages.json', false);
     xhr.send();
     return JSON.parse(xhr.responseText);
   } catch (e) {
@@ -39,7 +39,7 @@ var MESSAGES = (function () {
 
 function i18nStub() {
   return {
-    getUILanguage: function () { return 'nl'; },
+    getUILanguage: function () { return 'en'; },
     getMessage: function (key, subs) {
       var entry = MESSAGES[key];
       if (!entry) return '';
@@ -328,7 +328,7 @@ function assertOptions() {
   var cards = document.querySelectorAll('#ruleList .rule');
   check('options: own rules rendered', cards.length, 2);
   check('options: document lang follows UI language',
-    document.documentElement.lang, 'nl');
+    document.documentElement.lang, 'en');
   check('options: shared rule rendered', document.querySelectorAll('#hostedList .rule').length, 1);
 
   var first = cards[0];
@@ -341,11 +341,23 @@ function assertOptions() {
     'Dynamics 365 Business Central - Sandbox - CRONUS BE (Standaard)');
   check('options: match is a checkmark', first.querySelector('[data-match]').textContent, '✓');
   check('options: with tooltip on hover',
-    first.querySelector('[data-match]').title, 'Past op de test-URL');
+    first.querySelector('[data-match]').title, chrome.i18n.getMessage('matchYes'));
   check('options: no match is a neutral circle',
     cards[1].querySelector('[data-match]').textContent, '○');
   check('options: tooltip on hover there too',
-    cards[1].querySelector('[data-match]').title, 'Past niet op de test-URL');
+    cards[1].querySelector('[data-match]').title, chrome.i18n.getMessage('matchNo'));
+
+  // The glyph alone is invisible to a screen reader, so the state sits on the
+  // element as a label rather than behind aria-hidden.
+  check('a11y: match state is exposed, not hidden',
+    first.querySelector('[data-match]').getAttribute('aria-hidden'), null);
+  check('a11y: match state carries a label',
+    first.querySelector('[data-match]').getAttribute('aria-label'), chrome.i18n.getMessage('matchYes'));
+  check('a11y: no-match state carries its own label',
+    cards[1].querySelector('[data-match]').getAttribute('aria-label'), chrome.i18n.getMessage('matchNo'));
+  check('a11y: a filled condition announces whether it matches',
+    first.querySelector('[data-cond-match]').getAttribute('aria-label'),
+    chrome.i18n.getMessage('conditionMatches'));
   check('options: banner in layout preview',
     layoutOne.querySelector('[data-preview-banner]').className,
     'preview__banner preview__banner--top-right preview__banner--visible');
@@ -390,7 +402,8 @@ function assertOptions() {
     sharedHead.offsetParent === null);
   sharedHead.hidden = false;
   check('options: section heading is Rules',
-    document.getElementById('addRule').closest('.section-head').querySelector('h2').textContent, 'Regels');
+    document.getElementById('addRule').closest('.section-head').querySelector('h2').textContent,
+    chrome.i18n.getMessage('rulesHeading'));
   truthy('options: list no longer inside shared config card',
     !document.getElementById('syncNow').closest('.card').contains(document.getElementById('hostedList')));
   check('options: clear only via cross on shared rules',
@@ -403,7 +416,7 @@ function assertOptions() {
   hostedCard.querySelector('[data-action="toggle"]').click();
   truthy('options: shared rule expands', !hostedCard.classList.contains('rule--collapsed'));
   truthy('options: shared rule has no chip anymore',
-    hostedCard.textContent.indexOf('Gedeeld') === -1);
+    hostedCard.textContent.indexOf(chrome.i18n.getMessage('sharedRules')) === -1);
   truthy('options: shared rule cannot be dragged',
     hostedCard.querySelector('[data-grip]').disabled);
   truthy('options: sync status shows source',
@@ -413,7 +426,7 @@ function assertOptions() {
   check('options: no auto-update toggle',
     document.getElementById('hostedAutoSync'), null);
   check('options: button label is Synchronise',
-    document.getElementById('syncNow').textContent, 'Synchroniseren');
+    document.getElementById('syncNow').textContent, chrome.i18n.getMessage('syncNow'));
   truthy('options: sync enabled with URL',
     !document.getElementById('syncNow').disabled);
   truthy('options: active config is not dimmed',
@@ -421,12 +434,13 @@ function assertOptions() {
   truthy('options: choose file matches other button style',
     document.getElementById('importFileBtn').classList.contains('btn--primary'));
   truthy('options: active config says daily update',
-    document.getElementById('hostedStatus').textContent.indexOf('elke dag') !== -1);
+    document.getElementById('hostedStatus').textContent
+      .indexOf(chrome.i18n.getMessage('statusDaily')) !== -1);
   check('options: no interval choice anymore', document.getElementById('hostedInterval'), null);
   check('options: no advanced block anymore', document.getElementById('pollMs'), null);
   check('options: and no reset button', document.getElementById('resetAll'), null);
-  truthy('options: trust warning present',
-    document.querySelector('.trust-note').textContent.indexOf('zelf beheert') !== -1);
+  check('options: trust warning present',
+    document.querySelector('.trust-note').textContent, chrome.i18n.getMessage('sharedTrust'));
   truthy('options: intro mentions HTTPS',
     document.querySelector('[data-i18n="sharedIntro"]').textContent.indexOf('HTTPS') !== -1);
 
@@ -445,8 +459,7 @@ function assertOptions() {
     !document.getElementById('syncNow').disabled);
 
   check('options: subtitle no longer says "Environment marker"',
-    document.querySelector('.topbar__brand p').textContent.trim(),
-    'Markeer je Business Central omgevingen met kleur, kader en een eigen ribbon.');
+    document.querySelector('.topbar__brand p').textContent.trim(), chrome.i18n.getMessage('tagline'));
   truthy('options: raw link help removed',
     document.getElementById('app').textContent.indexOf('raw-variant') === -1);
   truthy('options: help no longer refers to list above',
@@ -456,7 +469,8 @@ function assertOptions() {
   check('options: no URL import', document.getElementById('importUrl'), null);
   check('options: no name on export', document.getElementById('exportName'), null);
   check('options: no clipboard button', document.getElementById('exportCopy'), null);
-  check('options: export button renamed', document.getElementById('exportDownload').textContent, 'Exporteer');
+  check('options: export button renamed',
+    document.getElementById('exportDownload').textContent, chrome.i18n.getMessage('exportButton'));
   truthy('options: file picker present', !!document.getElementById('importFileBtn'));
 
   // display lives only at layout level now
@@ -470,13 +484,13 @@ function assertOptions() {
     ['bottom', 'top-right', 'top-left', 'bottom-right', 'bottom-left']);
   check('options: no opacity on frame',
     layoutOne.querySelector('[data-path="border.opacity"]'), null);
-  var breedte = layoutOne.querySelector('input[data-path="border.width"]');
-  check('options: frame width is a slider', breedte.type, 'range');
-  check('options: range 1 to 5', [breedte.min, breedte.max, breedte.step], ['1', '5', '1']);
+  var borderWidth = layoutOne.querySelector('input[data-path="border.width"]');
+  check('options: frame width is a slider', borderWidth.type, 'range');
+  check('options: range 1 to 5', [borderWidth.min, borderWidth.max, borderWidth.step], ['1', '5', '1']);
   check('options: toggle label is Ribbon',
     layoutOne.querySelector('[data-i18n="ribbonToggle"]').textContent, 'Ribbon');
   check('options: and Tab title',
-    layoutOne.querySelector('[data-i18n="titleToggle"]').textContent, 'Tabtitel');
+    layoutOne.querySelector('[data-i18n="titleToggle"]').textContent, chrome.i18n.getMessage('titleToggle'));
 
   // a rule preview does not show a ribbon on a non-BC site
   var condField = first.querySelector('select[data-cond="field"]');
@@ -493,7 +507,7 @@ function assertOptions() {
   setCondition('environment', 'Sandbox');
 
   check('options: layout preview shows BC page',
-    layoutOne.querySelector('[data-preview-page]').textContent, 'Business Central pagina');
+    layoutOne.querySelector('[data-preview-page]').textContent, chrome.i18n.getMessage('previewPageBc'));
   truthy('options: layout always shows ribbon',
     !layoutOne.querySelector('[data-preview-ribbon]').hidden);
 
@@ -579,12 +593,12 @@ function assertOptions() {
     document.querySelector('#ruleList [data-action="up"]'), null);
 
   // leading or trailing spaces disappear when you leave the field
-  var naamVeld = document.querySelectorAll('#ruleList .rule')[0].querySelector('.rule__name');
-  var naamWas = naamVeld.value;
-  naamVeld.value = '  ' + naamWas + '  ';
-  naamVeld.dispatchEvent(new Event('input', { bubbles: true }));
-  naamVeld.dispatchEvent(new Event('change', { bubbles: true }));
-  check('options: spaces around name trimmed', naamVeld.value, naamWas);
+  var nameField = document.querySelectorAll('#ruleList .rule')[0].querySelector('.rule__name');
+  var nameBefore = nameField.value;
+  nameField.value = '  ' + nameBefore + '  ';
+  nameField.dispatchEvent(new Event('input', { bubbles: true }));
+  nameField.dispatchEvent(new Event('change', { bubbles: true }));
+  check('options: spaces around name trimmed', nameField.value, nameBefore);
 
   // without mouse: the grip moves with arrow keys
   var second = document.querySelectorAll('#ruleList .rule')[1];
@@ -601,33 +615,33 @@ function assertOptions() {
     rerendered[0].classList.contains('rule--collapsed'));
 
   // with the mouse: drop the top rule below the last one
-  var namen = function () {
+  var ruleNames = function () {
     return Array.prototype.map.call(
       document.querySelectorAll('#ruleList .rule .rule__name'), function (i) { return i.value; });
   };
-  var voor = namen();
+  var namesBefore = ruleNames();
   var dragged = document.querySelectorAll('#ruleList .rule')[0];
   var transfer = new DataTransfer();
   dragged.querySelector('[data-grip]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
   truthy('options: grip makes card draggable', dragged.draggable);
   dragged.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: transfer }));
 
-  var laatste = document.querySelectorAll('#ruleList .rule')[voor.length - 1];
-  var onderrand = laatste.getBoundingClientRect().bottom - 2;
-  laatste.dispatchEvent(new DragEvent('dragover',
-    { bubbles: true, cancelable: true, dataTransfer: transfer, clientY: onderrand }));
+  var lastCard = document.querySelectorAll('#ruleList .rule')[namesBefore.length - 1];
+  var bottomEdge = lastCard.getBoundingClientRect().bottom - 2;
+  lastCard.dispatchEvent(new DragEvent('dragover',
+    { bubbles: true, cancelable: true, dataTransfer: transfer, clientY: bottomEdge }));
   truthy('options: target rule shows drop position',
-    laatste.classList.contains('rule--drop-after'));
-  laatste.dispatchEvent(new DragEvent('drop',
-    { bubbles: true, cancelable: true, dataTransfer: transfer, clientY: onderrand }));
-  check('options: dragged rule is now at bottom', namen(), voor.slice(1).concat(voor[0]));
+    lastCard.classList.contains('rule--drop-after'));
+  lastCard.dispatchEvent(new DragEvent('drop',
+    { bubbles: true, cancelable: true, dataTransfer: transfer, clientY: bottomEdge }));
+  check('options: dragged rule is now at bottom', ruleNames(), namesBefore.slice(1).concat(namesBefore[0]));
 
   // and back again, so the rest of the test can continue with the old order
-  document.querySelectorAll('#ruleList .rule')[voor.length - 1].querySelector('[data-grip]')
+  document.querySelectorAll('#ruleList .rule')[namesBefore.length - 1].querySelector('[data-grip]')
     .dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }));
-  document.querySelectorAll('#ruleList .rule')[voor.length - 2].querySelector('[data-grip]')
+  document.querySelectorAll('#ruleList .rule')[namesBefore.length - 2].querySelector('[data-grip]')
     .dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }));
-  check('options: arrows move them back to top', namen(), voor);
+  check('options: arrows move them back to top', ruleNames(), namesBefore);
 
   // add a condition
   var card0 = document.querySelectorAll('#ruleList .rule')[0];
@@ -653,7 +667,8 @@ function assertOptions() {
       document.getElementById('status').textContent, '');
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
     return assertNav().then(assertLayouts).then(importFile)
-      .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared);
+      .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
+      .then(assertExternalWrite);
   });
 }
 
@@ -670,7 +685,7 @@ function assertParsedUrl() {
   setUrl('https://www.google.com/shopping');
   check('URL: only found labels',
     Array.prototype.map.call(parsed.querySelectorAll('dt'), function (dt) { return dt.textContent; }),
-    ['Omgeving:']);
+    [chrome.i18n.getMessage('labelEnvironment') + ':']);
   check('URL: corresponding values',
     Array.prototype.map.call(parsed.querySelectorAll('dd'), function (dd) { return dd.textContent; }),
     ['shopping']);
@@ -687,17 +702,17 @@ function assertParsedUrl() {
     fresh.querySelector('[data-cond="value"]').value,
     'url contains https://www.google.com/shopping');
   check('new rule: matches test URL immediately',
-    fresh.querySelector('[data-match]').title, 'Past op de test-URL');
+    fresh.querySelector('[data-match]').title, chrome.i18n.getMessage('matchYes'));
   check('new rule: no preview on rule', fresh.querySelector('[data-preview]'), null);
 
   setUrl('niet-een-url');
   check('URL: message when nothing recognised',
-    parsed.textContent, 'Niets herkend in deze URL.');
+    parsed.textContent, chrome.i18n.getMessage('nothingRecognised'));
 
   setUrl('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox?company=CRONUS%20BE');
   check('URL: all four fields on full BC URL',
     Array.prototype.map.call(parsed.querySelectorAll('dt'), function (dt) { return dt.textContent; }),
-    ['Omgeving:', 'Bedrijf:', 'Tenant:']);
+    [chrome.i18n.getMessage('labelEnvironment') + ':', chrome.i18n.getMessage('labelCompany') + ':', chrome.i18n.getMessage('labelTenant') + ':']);
 
   return assertTabPicker(input);
 }
@@ -725,7 +740,7 @@ function assertTabPicker(input) {
   }).then(function () {
     check('tab: nothing usable leaves test URL unchanged', input.value, 'ongewijzigd');
     check('tab: and reports it',
-      document.getElementById('status').textContent, 'Geen open tabblad met een bruikbare URL gevonden.');
+      document.getElementById('status').textContent, chrome.i18n.getMessage('noUsableTab'));
     TABS = [OPTIONS_TAB, GOOGLE_TAB, BC_TAB];
   });
 }
@@ -763,7 +778,7 @@ function assertNav() {
   items[2].click();
   var about = document.querySelector('.panel[data-panel="about"]');
   truthy('nav: about section no longer called Help',
-    items[2].textContent.trim() === 'Over');
+    items[2].textContent.trim() === chrome.i18n.getMessage('navAbout'));
   truthy('nav: and explains what the extension does',
     about.querySelector('[data-i18n="aboutIntro"]').textContent.length > 60);
   check('nav: with email address',
@@ -879,7 +894,19 @@ function assertSharedCopy() {
 
 /* ---- the clear button wipes shared rules and disables them -------------- */
 function assertClearShared() {
+  // Wiping every shared rule asks first, so a stray click cannot do it.
+  var confirmed = window.confirm;
+  var asked = 0;
+  window.confirm = function () { asked++; return false; };
   document.getElementById('clearShared').click();
+  check('clear: refused leaves the rules alone',
+    document.querySelectorAll('#hostedList .rule').length, 1);
+  truthy('clear: confirmation was asked', asked === 1);
+
+  window.confirm = function () { return true; };
+  document.getElementById('clearShared').click();
+  window.confirm = confirmed;
+
   return wait(400).then(function () {
     check('clear: no shared rules left',
       document.querySelectorAll('#hostedList .rule').length, 0);
@@ -888,7 +915,8 @@ function assertClearShared() {
     truthy('clear: URL remains ready to sync again',
       !!STORE.settings.hosted.url);
     truthy('clear: reported in status',
-      document.getElementById('hostedStatus').textContent.indexOf('gewist') !== -1);
+      document.getElementById('hostedStatus').textContent
+        .indexOf(chrome.i18n.getMessage('sharedCleared')) !== -1);
     truthy('clear: URL dimmed when inactive',
       document.getElementById('hostedUrl').closest('.field').classList.contains('field--inactive'));
 
@@ -938,10 +966,40 @@ function importFile() {
       STORE.settings.rules[0].id, 'imp-1');
     var status = document.getElementById('importStatus').textContent;
     check('import: status mentions overwritten and added',
-      /1 overschreven/.test(status) && /1 toegevoegd/.test(status) ? 'ok' : status, 'ok');
+      status.indexOf(chrome.i18n.getMessage('importOverwritten', ['1'])) !== -1 &&
+      status.indexOf(chrome.i18n.getMessage('importAdded', ['1'])) !== -1 ? 'ok' : status, 'ok');
     truthy('import: zero counts omitted', !/\b0\s/.test(status));
     truthy('import: no layout line for file without layouts',
       status.indexOf('Layouts') === -1);
+  });
+}
+
+/* ---- a write from the service worker must not be mistaken for our own ---- */
+function assertExternalWrite() {
+  // The page saves something of its own, and before that change event is
+  // handled the service worker stores a synced rule set. Both events arrive;
+  // only the first is ours, and the second has to reach the screen.
+  document.getElementById('addRule').click();
+
+  return wait(400).then(function () {
+    var mine = document.querySelectorAll('#ruleList .rule').length;
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.hosted.url = 'https://example.com/shared.json';
+    stored.hosted.active = true;
+    stored.hosted.rules = [{
+      id: 'sw-1', name: 'FROM SERVICE WORKER', color: '#0f6cbd',
+      conditions: [{ field: 'environment', op: 'equals', value: 'SW' }]
+    }];
+    return chrome.storage.local.set({ settings: stored }).then(function () {
+      return wait(300);
+    }).then(function () {
+      check('external: own rules untouched',
+        document.querySelectorAll('#ruleList .rule').length, mine);
+      check('external: rules from the service worker are rendered',
+        document.querySelectorAll('#hostedList .rule').length, 1);
+      check('external: and carry its name',
+        document.querySelector('#hostedList .rule .rule__name').value, 'FROM SERVICE WORKER');
+    });
   });
 }
 

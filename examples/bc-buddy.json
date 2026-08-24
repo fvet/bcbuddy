@@ -37,7 +37,6 @@
       "id": "6b77974b-29ad-4446-8f06-d658062d5d07",
       "name": "DYNAVISIONTEST",
       "enabled": true,
-      "note": "",
       "conditions": [
         {
           "field": "environment",
@@ -56,7 +55,6 @@
       "id": "93630a20-5865-4255-bc41-d0d478dc8c33",
       "name": "Production",
       "enabled": true,
-      "note": "",
       "conditions": [
         {
           "field": "environment",
@@ -75,7 +73,6 @@
       "id": "ede14334-dc8d-4f90-b65f-0ffec7ba2f86",
       "name": "Sandbox",
       "enabled": true,
-      "note": "",
       "conditions": [
         {
           "field": "environment",
@@ -94,7 +91,6 @@
       "id": "109ac190-edf9-4bcd-bd09-ba51ce5295c2",
       "name": "QA",
       "enabled": true,
-      "note": "",
       "conditions": [
         {
           "field": "environment",

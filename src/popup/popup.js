@@ -55,6 +55,10 @@
           return;
         }
         setStatus(t('syncLoaded', result.count));
+      }, function () {
+        // The service worker never answered — restarted mid-sync, for example.
+        // Without this the status stays on "Synchronising..." for good.
+        setStatus(t('syncFailedShort'), true);
       });
     });
 

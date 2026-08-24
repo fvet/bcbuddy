@@ -27,6 +27,7 @@
           if (!page.applyHostedUrl(el.hostedUrl.value, { persist: true, immediate: true })) return;
           page.setHostedStatus(t('syncing'));
           // Save first so the service worker sees the URL that is on screen.
+          page.markOwnWrite(state.settings);
           BCBuddy.saveSettings(state.settings).then(function () {
             return chrome.runtime.sendMessage({ type: 'bcb:sync' });
           }).then(function (result) {
@@ -35,6 +36,11 @@
               return;
             }
             page.setHostedStatus(t(result.unchanged ? 'syncLoadedUnchanged' : 'syncLoaded', result.count), 'ok');
+          }, function (err) {
+            // Saving failed, or the service worker never answered. Either way
+            // the status must not stay on "Synchronising...".
+            page.setHostedStatus(
+              t('syncFailed', String(err && err.message || err) || t('syncUnknownError')), 'error');
           });
         });
       };
@@ -52,8 +58,8 @@
           state.settings.hosted.active = false;
           if (options.persist) {
             if (options.immediate) {
+              // The caller stores it right away and marks that write itself.
               if (state.saveTimer) clearTimeout(state.saveTimer);
-              state.selfWrite = true;
             } else {
               page.save();
             }
@@ -67,8 +73,8 @@
           state.settings.hosted.url = resolved;
           if (options.persist) {
             if (options.immediate) {
+              // The caller stores it right away and marks that write itself.
               if (state.saveTimer) clearTimeout(state.saveTimer);
-              state.selfWrite = true;
             } else {
               page.save();
             }
@@ -93,6 +99,9 @@
        */
       page.clearSharedRules = function () {
         var hosted = state.settings.hosted;
+        // Deleting one rule asks first; wiping the whole shared set should not
+        // be the one destructive action that goes through on a single click.
+        if (!confirm(t('clearSharedConfirm', [hosted.rules.length]))) return;
         hosted.rules = [];
         hosted.layouts = [];
         hosted.lastHash = '';
