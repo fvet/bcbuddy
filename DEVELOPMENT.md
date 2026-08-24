@@ -481,3 +481,13 @@ does not have.
 Nothing is published until the first deployment runs, and deployments run on
 release. To put the site up before the next one, start the **Site** workflow by
 hand from the Actions tab.
+
+## 📄 Licence
+
+MIT, in [`LICENSE`](LICENSE) at the root of the repository. There is no CLA: a
+contribution is offered under the same terms as the rest of the project, which
+is what opening a pull request against a public repository already means.
+
+The licence text carries a copyright year. It is the year the notice was written,
+not a range to keep current — MIT does not require it to move, and a yearly
+commit that changes nothing else is noise.

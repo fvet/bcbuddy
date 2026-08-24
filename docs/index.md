@@ -46,7 +46,10 @@ marked tab title and a coloured tab icon.
   [Privacy](privacy.md).
 
 BC Buddy is a Chrome and Edge extension (Manifest V3), and is available in
-Dutch and English. It follows the language of your browser.
+Dutch and English. It follows the language of your browser. It is open source
+under the
+[MIT licence](https://github.com/fvet/bcbuddy/blob/main/LICENSE), so you are
+free to use it at work, change it and pass it on.
 
 ## Installing
 

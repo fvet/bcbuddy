@@ -5,6 +5,10 @@
   and the PNG icons. Tests, samples, the SVG sources and the icon build script
   stay out — they only make the package larger and give the reviewer files to
   read that do nothing.
+
+  LICENSE is the exception to that rule. The ZIP is a copy of the software, and
+  MIT asks for the notice to travel with every copy; at a kilobyte it is not
+  worth reasoning about whether the author can waive it against himself.
 #>
 [CmdletBinding()]
 param(
@@ -23,6 +27,7 @@ if (-not $version) { throw 'No version in manifest.json.' }
 # What goes into the package.
 $include = @(
   'manifest.json',
+  'LICENSE',
   'src',
   '_locales',
   'icons\icon16.png',
