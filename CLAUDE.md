@@ -39,3 +39,8 @@ Prefer single sourcing over a second copy wherever it is cheap. `docs/privacy.md
 and `docs/whats-new.md` are `pymdownx.snippets` includes of `PRIVACY.md` and
 `CHANGELOG.md`, and `tools/mkdocs_assets.py` adds the `store/` screenshots and
 `examples/bc-buddy.json` to the MkDocs build instead of duplicating them.
+
+`docs/whats-new.md` includes only the `released` section of `CHANGELOG.md`, the
+part below the `<!-- --8<-- [start:released] -->` marker. Leave that marker
+directly under `## Unreleased`: the release workflow matches on it, and it is
+what keeps unreleased notes off the site.

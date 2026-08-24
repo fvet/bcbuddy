@@ -286,6 +286,26 @@ renames that heading to the version and today's date, appends an empty
 body. The file is also the site's *What's new* page, through the same
 `pymdownx.snippets` include used for the privacy policy.
 
+The site gets only part of it. `CHANGELOG.md` carries a marker line:
+
+```markdown
+<!-- --8<-- [start:released] -->
+```
+
+and `docs/whats-new.md` includes `CHANGELOG.md:released`, which is everything
+from that marker to the matching `[end:released]` at the bottom of the file. The
+release workflow keeps `## Unreleased` above the marker and writes each new
+version below it, so two things follow. Notes waiting for a release never reach
+the site — the same rule the whole site is built on. And the empty `Unreleased`
+heading is not published: the site is only ever built from a release tag, which
+is precisely the commit where the workflow has just emptied that section, so
+otherwise every deploy would carry a bare heading and a dead entry in the page's
+table of contents.
+
+The workflow matches on the marker as well as on the heading. A marker that has
+been moved or deleted fails the release rather than quietly publishing notes on
+the wrong side of the line.
+
 Writing them by hand is the point. `generate_release_notes` produced a list of
 merged pull requests — accurate, in the wording of whoever wrote the code, and
 led by whatever Dependabot happened to bump that week. Deciding what is worth
@@ -443,7 +463,9 @@ still catches a page pointing at a screenshot that has been renamed.
 [`PRIVACY.md`](PRIVACY.md) and [`CHANGELOG.md`](CHANGELOG.md) through
 `pymdownx.snippets`, for the same reason: the policy and the release notes on
 the site cannot drift from the ones in the repository. Both are files that get
-edited in a hurry, which is exactly when a second copy is forgotten.
+edited in a hurry, which is exactly when a second copy is forgotten. The
+changelog include takes only its `released` section — see
+[Release notes](#release-notes) for why.
 
 The rest of the pages are their own copy of what the README covers. Single
 sourcing that too was possible and not worth it — the README is a pitch that
