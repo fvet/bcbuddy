@@ -4,9 +4,9 @@ name: Release
 # costs review time, so a release stays a deliberate act — but the version, the
 # tag and the package are all produced here, so they cannot disagree.
 #
-# One workflow rather than two: a push made with GITHUB_TOKEN does not trigger
-# other workflows, so a tag pushed from here would never start a tag-triggered
-# job. Everything therefore happens inline.
+# One workflow rather than two: the tag is pushed from inside this run, so a
+# separate tag-triggered job would be a second place for the release to go
+# wrong. Everything therefore happens inline.
 on:
   workflow_dispatch:
     inputs:
@@ -56,6 +56,11 @@ jobs:
         with:
           # Full history so the release notes can be diffed against the last tag.
           fetch-depth: 0
+          # A ruleset keeps main closed to direct pushes, and GITHUB_TOKEN is not
+          # something that ruleset can exempt. The repository's write deploy key
+          # is on its bypass list, so the release commit goes out over SSH under
+          # that key; checkout points the remote at SSH for the rest of the job.
+          ssh-key: ${{ secrets.RELEASE_SSH_KEY }}
 
       # Before the version is touched: a failure here must not leave a bumped
       # manifest behind, half a release.
@@ -162,7 +167,9 @@ jobs:
           git add manifest.json
           git commit -m "Release v$version"
           git tag -a "v$version" -m "v$version"
-          git push origin HEAD:main --follow-tags
+          # Atomic: the branch and the tag land together or not at all, so a
+          # rejected push cannot leave a tag pointing at a commit no branch has.
+          git push origin HEAD:main --follow-tags --atomic
 
       - name: Publish the GitHub release
         uses: softprops/action-gh-release@v3

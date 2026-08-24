@@ -208,6 +208,25 @@ the website. Release calls it as a reusable workflow for the same reason: a
 `release` event raised with `GITHUB_TOKEN` starts nothing either. See
 [Website](#-website) below.
 
+### Dependency updates
+
+[`.github/dependabot.yml`](.github/dependabot.yml) watches the only two things
+here that come from somewhere else: the actions the workflows call, and the two
+packages in `tools/requirements-docs.txt`. The extension ships no runtime
+dependencies at all — `src/lib/` is our own code — so there is nothing else to
+track, and that is worth keeping true.
+
+Action bumps arrive as one grouped pull request a month, which `tests.yml`
+checks like any other. Read them anyway before merging: `release.yml` and the
+Pages deploy do **not** run on pull requests, so a bad bump to
+`softprops/action-gh-release`, `upload-pages-artifact` or `deploy-pages` would
+only show up at the next release. The pip entry stays quiet by design, because
+the requirements are pinned to a range; it earns its place through the security
+alerts rather than through version bumps.
+
+Alerts for known vulnerabilities are a separate switch, under Settings →
+Advanced Security, and do not come from this file.
+
 ## 🔑 Permissions
 
 - `storage` — keeping settings.
