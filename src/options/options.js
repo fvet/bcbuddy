@@ -5,8 +5,8 @@
 (function () {
   'use strict';
 
-  var BCEM = self.BCEM;
-  var t = BCEM.t;
+  var BCBuddy = self.BCBuddy;
+  var t = BCBuddy.t;
   var UI_KEY = 'ui';
   // Fields where leading or trailing spaces are never intentional.
   var TRIMMED_TYPES = ['text', 'url', 'search'];
@@ -48,7 +48,7 @@
 
   function init() {
     document.title = t('optionsTitle');
-    BCEM.applyI18n();
+    BCBuddy.applyI18n();
     [
       'status', 'globalEnabled', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
       'addRule', 'hostedUrl', 'syncNow',
@@ -60,7 +60,7 @@
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
-      BCEM.loadSettings(),
+      BCBuddy.loadSettings(),
       chrome.storage.local.get([UI_KEY, PENDING_KEY])
     ]).then(function (results) {
       state.settings = results[0];
@@ -71,7 +71,7 @@
 
       var pending = stored[PENDING_KEY];
       if (pending) {
-        var draft = BCEM.newRule(pending);
+        var draft = BCBuddy.newRule(pending);
         state.settings.rules.unshift(draft);
         state.expanded[expandKey('rule', draft, false)] = true;
         chrome.storage.local.remove(PENDING_KEY);
@@ -86,9 +86,9 @@
     });
 
     chrome.storage.onChanged.addListener(function (changes, area) {
-      if (area !== 'local' || !changes[BCEM.STORAGE_KEY]) return;
+      if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
       if (state.selfWrite) { state.selfWrite = false; return; }
-      state.settings = BCEM.normalize(changes[BCEM.STORAGE_KEY].newValue);
+      state.settings = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
       renderAll();
     });
   }
@@ -125,10 +125,10 @@
 
     el.addRule.addEventListener('click', function () {
       // The test URL is what the user has in mind; reuse it.
-      var draft = BCEM.draftFromContext(state.ctx);
-      var rule = BCEM.newRule({
+      var draft = BCBuddy.draftFromContext(state.ctx);
+      var rule = BCBuddy.newRule({
         name: draft.name,
-        color: BCEM.PALETTE[state.settings.rules.length % BCEM.PALETTE.length],
+        color: BCBuddy.PALETTE[state.settings.rules.length % BCBuddy.PALETTE.length],
         conditions: draft.conditions,
         layoutId: defaultLayoutId()
       });
@@ -146,7 +146,7 @@
     });
 
     el.addLayout.addEventListener('click', function () {
-      var layout = BCEM.newLayout({ name: t('newLayoutName') });
+      var layout = BCBuddy.newLayout({ name: t('newLayoutName') });
       state.settings.layouts.push(layout);
       state.expanded[expandKey('layout', layout, false)] = true;
       save();
@@ -324,8 +324,8 @@
       if (!applyHostedUrl(el.hostedUrl.value, { persist: true, immediate: true })) return;
       setHostedStatus(t('syncing'));
       // Save first so the service worker sees the URL that is on screen.
-      BCEM.saveSettings(state.settings).then(function () {
-        return chrome.runtime.sendMessage({ type: 'bcem:sync' });
+      BCBuddy.saveSettings(state.settings).then(function () {
+        return chrome.runtime.sendMessage({ type: 'bcb:sync' });
       }).then(function (result) {
         if (!result || !result.ok) {
           setHostedStatus(t('syncFailed', (result && result.error) || t('syncUnknownError')), 'error');
@@ -359,7 +359,7 @@
       return true;
     }
     try {
-      var resolved = BCEM.resolveHostedUrl(trimmed);
+      var resolved = BCBuddy.resolveHostedUrl(trimmed);
       el.hostedUrl.value = resolved;
       state.settings.hosted.url = resolved;
       if (options.persist) {
@@ -380,7 +380,7 @@
   }
 
   function updateSyncEnabled(url) {
-    el.syncNow.disabled = !String(url || '').trim() || !BCEM.hostedUrlAllowed(url);
+    el.syncNow.disabled = !String(url || '').trim() || !BCBuddy.hostedUrlAllowed(url);
   }
 
   /**
@@ -421,7 +421,7 @@
     });
 
     el.exportDownload.addEventListener('click', function () {
-      var data = BCEM.toExport(state.settings);
+      var data = BCBuddy.toExport(state.settings);
       var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
@@ -438,16 +438,16 @@
   function applyImport(text, source) {
     var parsed;
     try {
-      parsed = BCEM.parseImport(text);
+      parsed = BCBuddy.parseImport(text);
     } catch (e) {
       setImportStatus(t('importFailed', e.message), 'error');
       return;
     }
     // Layouts first, so rules can point at something that already exists.
-    var mergedLayouts = BCEM.mergeLayouts(state.settings.layouts, parsed.layouts);
+    var mergedLayouts = BCBuddy.mergeLayouts(state.settings.layouts, parsed.layouts);
     state.settings.layouts = mergedLayouts.layouts;
 
-    var merged = BCEM.mergeRules(state.settings.rules, parsed.rules);
+    var merged = BCBuddy.mergeRules(state.settings.rules, parsed.rules);
     state.settings.rules = merged.rules;
     save();
     renderRules();
@@ -490,7 +490,7 @@
   }
 
   function refreshContext() {
-    state.ctx = BCEM.parseUrl(state.testUrl);
+    state.ctx = BCBuddy.parseUrl(state.testUrl);
     renderParsed();
     renderRules();
     renderHosted();
@@ -524,7 +524,7 @@
       el.parsed.appendChild(wrap);
     });
 
-    var active = BCEM.findRule(BCEM.effectiveRules(state.settings), ctx);
+    var active = BCBuddy.findRule(BCBuddy.effectiveRules(state.settings), ctx);
     el.brandDot.style.fill = active ? active.color : "var(--muted)";
   }
 
@@ -583,7 +583,7 @@
   /** Layout a new rule gets: Default, otherwise the first one. */
   function defaultLayoutId() {
     var layouts = state.settings.layouts;
-    var preferred = BCEM.findById(layouts, BCEM.DEFAULT_LAYOUT_ID);
+    var preferred = BCBuddy.findById(layouts, BCBuddy.DEFAULT_LAYOUT_ID);
     if (preferred) return preferred.id;
     return layouts.length ? layouts[0].id : '';
   }
@@ -599,7 +599,7 @@
       return;
     }
     // Legacy http:// URLs stay visible but cannot sync until upgraded.
-    if (!BCEM.hostedUrlAllowed(h.url)) {
+    if (!BCBuddy.hostedUrlAllowed(h.url)) {
       setHostedStatus(t('errHttpsOnly'), 'error');
       return;
     }
@@ -652,7 +652,7 @@
     // rule has no explicit choice yet.
     if (kind === 'rule') fillLayoutPicker(card, item, readOnly);
 
-    BCEM.applyI18n(card);
+    BCBuddy.applyI18n(card);
     card.querySelectorAll('[data-tokens]').forEach(function (bubble) {
       bubble.innerHTML = tokenHelp();
     });
@@ -700,7 +700,7 @@
     });
 
     // Set the value only now: the options did not exist above.
-    var auto = BCEM.effectiveLayout(rule, layouts);
+    var auto = BCBuddy.effectiveLayout(rule, layouts);
     if (auto) select.value = auto.id;
   }
 
@@ -710,8 +710,8 @@
     rule.conditions.forEach(function (cond, ci) {
       var row = document.getElementById('conditionTemplate').content.firstElementChild.cloneNode(true);
       row.dataset.index = String(ci);
-      fillSelect(row.querySelector('[data-cond="field"]'), BCEM.FIELDS, cond.field);
-      fillSelect(row.querySelector('[data-cond="op"]'), BCEM.OPERATORS, cond.op);
+      fillSelect(row.querySelector('[data-cond="field"]'), BCBuddy.FIELDS, cond.field);
+      fillSelect(row.querySelector('[data-cond="op"]'), BCBuddy.OPERATORS, cond.op);
       row.querySelector('[data-cond="value"]').value = cond.value;
       host.appendChild(row);
     });
@@ -724,7 +724,7 @@
     var custom = card.querySelector('[data-custom-color]');
     host.textContent = '';
     if (!readOnly) {
-      BCEM.PALETTE.forEach(function (color) {
+      BCBuddy.PALETTE.forEach(function (color) {
         var button = document.createElement('button');
         button.type = 'button';
         button.style.background = color;
@@ -746,9 +746,9 @@
 
     // A layout has no colour of its own: the preview borrows from the first rule
     // that uses it, otherwise a neutral one.
-    var shown = isLayout ? item : BCEM.resolveRule(item, layoutsFor(readOnly));
+    var shown = isLayout ? item : BCBuddy.resolveRule(item, layoutsFor(readOnly));
     var color = isLayout ? layoutSampleColor(item) : item.color;
-    var textColor = !isLayout && item.textColor !== 'auto' ? item.textColor : BCEM.idealText(color);
+    var textColor = !isLayout && item.textColor !== 'auto' ? item.textColor : BCBuddy.idealText(color);
 
     card.style.setProperty('--rule-color', color);
     card.classList.toggle('rule--disabled', item.enabled === false);
@@ -759,7 +759,7 @@
       button.setAttribute('aria-pressed', button.dataset.color === color ? 'true' : 'false');
     });
 
-    var matched = isLayout ? true : BCEM.matchRule(item, ctx);
+    var matched = isLayout ? true : BCBuddy.matchRule(item, ctx);
     var badge = card.querySelector('[data-match]');
     if (badge) {
       badge.textContent = matched ? '\u2713' : '\u25CB';
@@ -774,8 +774,8 @@
       var dot = row.querySelector('[data-cond-match]');
       var hasValue = cond && String(cond.value || '').trim() !== '';
       dot.className = 'dot-indicator ' +
-        (!hasValue ? '' : (BCEM.testCondition(cond, ctx) ? 'dot-indicator--on' : 'dot-indicator--off'));
-      dot.title = !hasValue ? '' : t(BCEM.testCondition(cond, ctx) ? 'conditionMatches' : 'conditionNoMatch');
+        (!hasValue ? '' : (BCBuddy.testCondition(cond, ctx) ? 'dot-indicator--on' : 'dot-indicator--off'));
+      dot.title = !hasValue ? '' : t(BCBuddy.testCondition(cond, ctx) ? 'conditionMatches' : 'conditionNoMatch');
     });
 
     // Favicon letters belong to the rule, and only when the layout draws them.
@@ -793,7 +793,7 @@
     if (shown.ribbon.enabled) {
       ribbon.style.background = color;
       ribbon.style.color = textColor;
-      brand.textContent = BCEM.renderTidy(shown.ribbon.text, ctx, {
+      brand.textContent = BCBuddy.renderTidy(shown.ribbon.text, ctx, {
         name: item.name, title: t('previewTitle')
       }) || originalBrand;
     } else {
@@ -813,9 +813,9 @@
     banner.className = 'preview__banner preview__banner--' + shown.banner.position +
       (shown.banner.enabled ? ' preview__banner--visible' : '');
     if (shown.banner.enabled) {
-      banner.style.background = BCEM.toRgba(color, shown.banner.opacity);
+      banner.style.background = BCBuddy.toRgba(color, shown.banner.opacity);
       banner.style.color = textColor;
-      banner.textContent = BCEM.renderTidy(shown.banner.text || '{name}', ctx, { name: item.name });
+      banner.textContent = BCBuddy.renderTidy(shown.banner.text || '{name}', ctx, { name: item.name });
     }
 
     // A layout is independent of conditions, so the ribbon is always shown.
@@ -843,7 +843,7 @@
     state.settings.rules.concat(state.settings.hosted.rules).forEach(function (rule) {
       if (!user && rule.layoutId === layout.id) user = rule;
     });
-    return user ? user.color : BCEM.PALETTE[8];
+    return user ? user.color : BCBuddy.PALETTE[8];
   }
 
   function closeHints() {
@@ -879,15 +879,15 @@
     var source = state.settings.hosted.rules[index];
     if (!source) return;
 
-    var copy = BCEM.newRule(source);
+    var copy = BCBuddy.newRule(source);
     copy.name = source.name;
     copy.layoutId = source.layoutId;
 
     var copiedLayout = false;
-    if (copy.layoutId && !BCEM.findById(state.settings.layouts, copy.layoutId)) {
-      var layout = BCEM.findById(state.settings.hosted.layouts, copy.layoutId);
+    if (copy.layoutId && !BCBuddy.findById(state.settings.layouts, copy.layoutId)) {
+      var layout = BCBuddy.findById(state.settings.hosted.layouts, copy.layoutId);
       if (layout) {
-        state.settings.layouts.push(BCEM.normalizeLayout(layout));
+        state.settings.layouts.push(BCBuddy.normalizeLayout(layout));
         copiedLayout = true;
       }
     }
@@ -920,7 +920,7 @@
       });
       state.settings.layouts.splice(index, 1);
     } else if (action === 'duplicate') {
-      var copy = BCEM.newLayout(layout);
+      var copy = BCBuddy.newLayout(layout);
       copy.name = t('copySuffix', layout.name);
       state.settings.layouts.splice(index + 1, 0, copy);
       state.expanded[expandKey('layout', copy, false)] = true;
@@ -1039,7 +1039,7 @@
         renderParsed();
         return;
       case 'duplicate':
-        var copy = BCEM.newRule(rule);
+        var copy = BCBuddy.newRule(rule);
         copy.name = t('copySuffix', rule.name);
         state.settings.rules.splice(index + 1, 0, copy);
         state.expanded[expandKey('rule', copy, false)] = true;
@@ -1078,7 +1078,7 @@
     state.saveTimer = setTimeout(function () {
       state.selfWrite = true;
       // Saving is silent; only report when it fails.
-      BCEM.saveSettings(state.settings).then(null, function (err) {
+      BCBuddy.saveSettings(state.settings).then(null, function (err) {
         state.selfWrite = false;
         setStatus(t('saveFailed', err.message), true);
       });
@@ -1101,7 +1101,7 @@
       return tab.lastAccessed || (tab.active ? 1 : 0);
     }
     usable.sort(function (a, b) {
-      var bc = (BCEM.parseUrl(b.url).isbc ? 1 : 0) - (BCEM.parseUrl(a.url).isbc ? 1 : 0);
+      var bc = (BCBuddy.parseUrl(b.url).isbc ? 1 : 0) - (BCBuddy.parseUrl(a.url).isbc ? 1 : 0);
       return bc || score(b) - score(a);
     });
     return usable[0].url;
@@ -1157,7 +1157,7 @@
     if (input.type === 'checkbox') {
       input.checked = !!value;
     } else if (input.type === 'color') {
-      input.value = BCEM.toHex(value);
+      input.value = BCBuddy.toHex(value);
     } else {
       input.value = value == null ? '' : value;
     }

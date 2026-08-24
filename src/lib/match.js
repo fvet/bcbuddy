@@ -5,7 +5,7 @@
  */
 (function (root) {
   'use strict';
-  var BCEM = root.BCEM || (root.BCEM = {});
+  var BCBuddy = root.BCBuddy || (root.BCBuddy = {});
 
   var GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   var BC_HOST_RE = /(^|\.)businesscentral\.dynamics(-tie)?\.com$/i;
@@ -346,22 +346,22 @@
     return luminance(background) > 0.179 ? '#000000' : '#ffffff';
   }
 
-  BCEM.parseUrl = parseUrl;
-  BCEM.testCondition = testCondition;
-  BCEM.matchRule = matchRule;
-  BCEM.safeRegexTest = safeRegexTest;
-  BCEM.targetsBusinessCentral = targetsBusinessCentral;
-  BCEM.findRule = findRule;
-  BCEM.render = render;
-  BCEM.renderTidy = renderTidy;
-  BCEM.tidy = tidy;
-  BCEM.parseColor = parseColor;
-  BCEM.toHex = toHex;
-  BCEM.toRgba = toRgba;
-  BCEM.luminance = luminance;
-  BCEM.idealText = idealText;
-  BCEM.TOKENS = TOKENS;
-  BCEM.FIELDS = FIELDS;
-  BCEM.OPERATORS = OPERATORS;
-  BCEM.safeDecode = safeDecode;
+  BCBuddy.parseUrl = parseUrl;
+  BCBuddy.testCondition = testCondition;
+  BCBuddy.matchRule = matchRule;
+  BCBuddy.safeRegexTest = safeRegexTest;
+  BCBuddy.targetsBusinessCentral = targetsBusinessCentral;
+  BCBuddy.findRule = findRule;
+  BCBuddy.render = render;
+  BCBuddy.renderTidy = renderTidy;
+  BCBuddy.tidy = tidy;
+  BCBuddy.parseColor = parseColor;
+  BCBuddy.toHex = toHex;
+  BCBuddy.toRgba = toRgba;
+  BCBuddy.luminance = luminance;
+  BCBuddy.idealText = idealText;
+  BCBuddy.TOKENS = TOKENS;
+  BCBuddy.FIELDS = FIELDS;
+  BCBuddy.OPERATORS = OPERATORS;
+  BCBuddy.safeDecode = safeDecode;
 })(typeof self !== 'undefined' ? self : this);

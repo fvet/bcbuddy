@@ -6,27 +6,27 @@
 (function () {
   'use strict';
 
-  var BCEM = self.BCEM;
-  var t = BCEM.t;
+  var BCBuddy = self.BCBuddy;
+  var t = BCBuddy.t;
   var el = {};
   var current = { settings: null, ctx: null, rule: null, isHosted: false, tab: null };
 
   init();
 
   function init() {
-    BCEM.applyI18n();
+    BCBuddy.applyI18n();
     ['brandDot', 'parsed', 'enabled', 'addRule', 'openOptions', 'syncNow', 'status']
       .forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
-      BCEM.loadSettings(),
+      BCBuddy.loadSettings(),
       chrome.tabs.query({ active: true, currentWindow: true })
     ]).then(function (results) {
       current.settings = results[0];
       current.tab = results[1] && results[1][0];
-      current.ctx = BCEM.parseUrl((current.tab && current.tab.url) || '');
-      var rules = BCEM.effectiveRules(current.settings);
-      current.rule = current.settings.enabled ? BCEM.findRule(rules, current.ctx) : null;
+      current.ctx = BCBuddy.parseUrl((current.tab && current.tab.url) || '');
+      var rules = BCBuddy.effectiveRules(current.settings);
+      current.rule = current.settings.enabled ? BCBuddy.findRule(rules, current.ctx) : null;
       // Decide by position, not by id: an own rule may share an id with a
       // shared one (that happens after an import from the same file).
       current.isHosted = !!current.rule &&
@@ -36,7 +36,7 @@
 
     el.enabled.addEventListener('change', function () {
       current.settings.enabled = el.enabled.checked;
-      BCEM.saveSettings(current.settings).then(function () {
+      BCBuddy.saveSettings(current.settings).then(function () {
         setStatus(t(el.enabled.checked ? 'popupEnabledMsg' : 'popupDisabledMsg'));
       });
     });
@@ -49,7 +49,7 @@
     el.syncNow.addEventListener('click', function () {
       if (el.syncNow.hidden) return;
       setStatus(t('syncing'));
-      chrome.runtime.sendMessage({ type: 'bcem:sync' }).then(function (result) {
+      chrome.runtime.sendMessage({ type: 'bcb:sync' }).then(function (result) {
         if (!result || !result.ok) {
           setStatus((result && result.error) || t('syncFailedShort'), true);
           return;
@@ -59,8 +59,8 @@
     });
 
     el.addRule.addEventListener('click', function () {
-      var draft = BCEM.draftFromContext(current.ctx);
-      draft.color = BCEM.PALETTE[current.settings.rules.length % BCEM.PALETTE.length];
+      var draft = BCBuddy.draftFromContext(current.ctx);
+      draft.color = BCBuddy.PALETTE[current.settings.rules.length % BCBuddy.PALETTE.length];
       chrome.storage.local.set({ pendingRule: draft }).then(function () {
         chrome.runtime.openOptionsPage();
         window.close();
@@ -77,7 +77,7 @@
     // Sync only makes sense when a shared HTTPS URL is configured — same
     // gate as the options page. Without one, Options is the place to set it.
     var hostedUrl = current.settings.hosted && current.settings.hosted.url;
-    el.syncNow.hidden = !hostedUrl || !BCEM.hostedUrlAllowed(hostedUrl);
+    el.syncNow.hidden = !hostedUrl || !BCBuddy.hostedUrlAllowed(hostedUrl);
 
     // The active rule comes first, in the same list as what we read from the
     // URL. Of the rest we only show what this URL reveals; empty is noise.

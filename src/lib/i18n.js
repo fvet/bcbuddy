@@ -5,7 +5,7 @@
  */
 (function (root) {
   'use strict';
-  var BCEM = root.BCEM || (root.BCEM = {});
+  var BCBuddy = root.BCBuddy || (root.BCBuddy = {});
 
   /**
    * Translates a key. $1, $2, ... in the message are replaced by the given
@@ -58,7 +58,7 @@
     });
   }
 
-  BCEM.t = t;
-  BCEM.applyI18n = apply;
-  BCEM.applyDocumentLang = applyDocumentLang;
+  BCBuddy.t = t;
+  BCBuddy.applyI18n = apply;
+  BCBuddy.applyDocumentLang = applyDocumentLang;
 })(typeof self !== 'undefined' ? self : this);

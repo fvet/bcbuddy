@@ -38,7 +38,7 @@ function Find-Browser {
 $browser = Find-Browser
 
 $testDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$work = Join-Path $env:TEMP 'bcem-tests'
+$work = Join-Path $env:TEMP 'bcbuddy-tests'
 if (-not (Test-Path $work)) { New-Item -ItemType Directory -Path $work | Out-Null }
 
 $suites = @('test-core.html', 'test-options.html', 'test-popup.html')

@@ -3,18 +3,18 @@
  * All colours come from CSS variables the content script sets on <html>.
  */
 
-#bcem-frame {
+#bcb-frame {
   position: fixed;
   inset: 0;
   z-index: 2147483646;
   pointer-events: none;
   box-sizing: border-box;
   border-style: solid;
-  border-width: var(--bcem-border-width, 3px);
-  border-color: var(--bcem-color, #c4314b);
+  border-width: var(--bcb-border-width, 3px);
+  border-color: var(--bcb-color, #c4314b);
 }
 
-.bcem-bar {
+.bcb-bar {
   position: fixed;
   left: 0;
   right: 0;
@@ -28,22 +28,22 @@
   padding: 3px 12px;
   font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   font-weight: 600;
-  font-size: var(--bcem-bar-font-size, 13px);
+  font-size: var(--bcb-bar-font-size, 13px);
   line-height: 1.35;
   letter-spacing: 0.02em;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background-color: var(--bcem-bar-bg, #c4314b);
-  color: var(--bcem-text, #ffffff);
+  background-color: var(--bcb-bar-bg, #c4314b);
+  color: var(--bcb-text, #ffffff);
   text-shadow: none;
 }
 
-.bcem-bar--bottom { bottom: 0; }
+.bcb-bar--bottom { bottom: 0; }
 
 /* Diagonal ribbon in a corner of the window. */
-.bcem-corner {
+.bcb-corner {
   position: fixed;
   z-index: 2147483647;
   pointer-events: none;
@@ -56,36 +56,36 @@
   padding: 0 26px;
   font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   font-weight: 700;
-  font-size: var(--bcem-bar-font-size, 15px);
+  font-size: var(--bcb-bar-font-size, 15px);
   line-height: 1;
   letter-spacing: 0.03em;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
-  background-color: var(--bcem-bar-bg, #c4314b);
-  color: var(--bcem-text, #ffffff);
+  background-color: var(--bcb-bar-bg, #c4314b);
+  color: var(--bcb-text, #ffffff);
   box-shadow: 0 2px 12px rgba(0, 0, 0, .35);
   text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
 }
 
-.bcem-corner--top-right { top: 45px; right: -72px; transform: rotate(45deg); }
-.bcem-corner--top-left { top: 45px; left: -72px; transform: rotate(-45deg); }
-.bcem-corner--bottom-right { bottom: 45px; right: -72px; transform: rotate(-45deg); }
-.bcem-corner--bottom-left { bottom: 45px; left: -72px; transform: rotate(45deg); }
+.bcb-corner--top-right { top: 45px; right: -72px; transform: rotate(45deg); }
+.bcb-corner--top-left { top: 45px; left: -72px; transform: rotate(-45deg); }
+.bcb-corner--bottom-right { bottom: 45px; right: -72px; transform: rotate(-45deg); }
+.bcb-corner--bottom-left { bottom: 45px; left: -72px; transform: rotate(45deg); }
 
 /* The BC ribbon (black bar at the top) takes the colour of the rule. */
-[data-bcem-ribbon] {
-  background-color: var(--bcem-color, #c4314b) !important;
+[data-bcb-ribbon] {
+  background-color: var(--bcb-color, #c4314b) !important;
   background-image: none !important;
   transition: background-color 120ms ease-out;
 }
 
-[data-bcem-ribbon],
-[data-bcem-brand] {
-  color: var(--bcem-text, #ffffff) !important;
+[data-bcb-ribbon],
+[data-bcb-brand] {
+  color: var(--bcb-text, #ffffff) !important;
 }
 
-[data-bcem-brand] {
+[data-bcb-brand] {
   white-space: nowrap;
   font-weight: 600 !important;
 }
@@ -93,6 +93,6 @@
 /* The buttons and separators on the right of the ribbon carry their own dark
    background. That has to go, otherwise black blocks remain between the icons.
    Input fields keep theirs: they need their own background to stay readable. */
-[data-bcem-ribbon] *:not(svg):not(img):not(input):not(textarea):not(select) {
+[data-bcb-ribbon] *:not(svg):not(img):not(input):not(textarea):not(select) {
   background-color: transparent !important;
 }

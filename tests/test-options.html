@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>BCEM options harness</title>
+<title>BCBuddy options harness</title>
 <style>#results { white-space: pre-wrap; font-family: monospace; padding: 12px; }</style>
 </head>
 <body>
@@ -643,7 +643,7 @@ function assertOptions() {
   // wait until save + message have run (and the earlier debounce has settled)
   return wait(500).then(function () {
     check('options: sync sends message',
-      SENT.length > 0 && SENT[SENT.length - 1].type, 'bcem:sync');
+      SENT.length > 0 && SENT[SENT.length - 1].type, 'bcb:sync');
     truthy('options: settings saved', !!STORE.settings && STORE.settings.rules.length === 3);
     check('options: save reports nothing',
       document.getElementById('status').textContent, '');

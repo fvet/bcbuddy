@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>BCEM core</title>
+<title>BCBuddy core</title>
 <link rel="stylesheet" href="../src/content/content.css">
 <style>
   body { font-family: monospace; margin: 0; }
@@ -89,15 +89,15 @@ window.chrome = {
 
 <script>
 /* ---- seed settings for the content script ------------------------------- */
-var BCEM = window.BCEM;
+var BCBuddy = window.BCBuddy;
 /*
  * Display lives in a layout here, and the rule deliberately has different own
  * settings beside it. Everything the content script draws below therefore
  * demonstrably comes from the layout.
  */
-STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
+STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   enabled: true,
-  layouts: [BCEM.normalizeLayout({
+  layouts: [BCBuddy.normalizeLayout({
     id: 'lay-core',
     name: 'Harness',
     ribbon: { enabled: true, text: 'Dynamics 365 Business Central - GEMARKEERD ({name})' },
@@ -106,7 +106,7 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
     title: { enabled: true, text: '[{name}] {title}' },
     favicon: { enabled: true }
   })],
-  rules: [BCEM.normalizeRule({
+  rules: [BCBuddy.normalizeRule({
     name: 'HARNESS',
     color: '#006600',
     layoutId: 'lay-core',
@@ -134,7 +134,7 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
   var SAAS = 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox?company=CRONUS%20BE&page=1&dc=0&bookmark=B_TwAAAAJ7';
   var ONPREM = 'https://bc-server.local:8080/BC240/?company=CRONUS%20Belgium&tenant=default';
 
-  var saas = BCEM.parseUrl(SAAS);
+  var saas = BCBuddy.parseUrl(SAAS);
   check('parseUrl SaaS: environment', saas.environment, 'Sandbox');
   check('parseUrl SaaS: company', saas.company, 'CRONUS BE');
   check('parseUrl SaaS: tenant', saas.tenant, '453d817a-d5b1-49c1-bdcf-d9474180a702');
@@ -142,7 +142,7 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
   check('parseUrl SaaS: isbc', saas.isbc, true);
   check('parseUrl SaaS: url decoded', saas.url.indexOf('CRONUS BE') !== -1, true);
 
-  var onprem = BCEM.parseUrl(ONPREM);
+  var onprem = BCBuddy.parseUrl(ONPREM);
   check('parseUrl onprem: server instance as environment', onprem.environment, 'BC240');
   check('parseUrl onprem: tenant from query', onprem.tenant, 'default');
   check('parseUrl onprem: company', onprem.company, 'CRONUS Belgium');
@@ -156,7 +156,7 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
    * and the tenant comes from the query.
    */
   function velden(url) {
-    var c = BCEM.parseUrl(url);
+    var c = BCBuddy.parseUrl(url);
     return [c.tenant, c.environment, c.company];
   }
   check('URL: without tenant and without environment',
@@ -179,40 +179,40 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
   check('URL: on-prem without https',
     velden('http://bcserver/BC240/?company=CRONUS%20Belgium&page=21'), ['', 'BC240', 'CRONUS Belgium']);
 
-  check('parseUrl: garbage yields empty context', BCEM.parseUrl('niet-een-url').host, '');
+  check('parseUrl: garbage yields empty context', BCBuddy.parseUrl('niet-een-url').host, '');
   check('parseUrl: no page field anymore',
     Object.prototype.hasOwnProperty.call(saas, 'page'), false);
   check('operators: RegEx is last',
-    BCEM.OPERATORS.map(function (o) { return o.value; }),
+    BCBuddy.OPERATORS.map(function (o) { return o.value; }),
     ['contains', 'equals', 'startsWith', 'endsWith', 'notContains', 'regex']);
   check('fields: page is no longer a choice',
-    BCEM.FIELDS.map(function (f) { return f.value; }),
+    BCBuddy.FIELDS.map(function (f) { return f.value; }),
     ['environment', 'company', 'tenant', 'url']);
   check('template: {page} is no longer a token',
-    BCEM.render('{page}', saas, {}), '{page}');
+    BCBuddy.render('{page}', saas, {}), '{page}');
 
   // matching
-  var r = function (conds) { return BCEM.normalizeRule({ name: 'x', conditions: conds }); };
-  check('match: value somewhere in URL', BCEM.matchRule(r([{ field: 'url', op: 'contains', value: 'Sandbox' }]), saas), true);
-  check('match: company with space', BCEM.matchRule(r([{ field: 'company', op: 'equals', value: 'cronus be' }]), saas), true);
-  check('match: AND, both true', BCEM.matchRule(r([
+  var r = function (conds) { return BCBuddy.normalizeRule({ name: 'x', conditions: conds }); };
+  check('match: value somewhere in URL', BCBuddy.matchRule(r([{ field: 'url', op: 'contains', value: 'Sandbox' }]), saas), true);
+  check('match: company with space', BCBuddy.matchRule(r([{ field: 'company', op: 'equals', value: 'cronus be' }]), saas), true);
+  check('match: AND, both true', BCBuddy.matchRule(r([
     { field: 'environment', op: 'contains', value: 'sand' },
     { field: 'company', op: 'contains', value: 'CRONUS' }]), saas), true);
-  check('match: AND, one false', BCEM.matchRule(r([
+  check('match: AND, one false', BCBuddy.matchRule(r([
     { field: 'environment', op: 'contains', value: 'sand' },
     { field: 'company', op: 'contains', value: 'CONTOSO' }]), saas), false);
-  check('match: regex', BCEM.matchRule(r([{ field: 'environment', op: 'regex', value: '^sand(box)?$' }]), saas), true);
-  check('match: invalid regex fails without crash', BCEM.matchRule(r([{ field: 'url', op: 'regex', value: '[' }]), saas), false);
+  check('match: regex', BCBuddy.matchRule(r([{ field: 'environment', op: 'regex', value: '^sand(box)?$' }]), saas), true);
+  check('match: invalid regex fails without crash', BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: '[' }]), saas), false);
   check('match: nested quantifiers fail closed',
-    BCEM.matchRule(r([{ field: 'url', op: 'regex', value: '(a+)+' }]), saas), false);
+    BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: '(a+)+' }]), saas), false);
   check('match: oversized regex fails closed',
-    BCEM.matchRule(r([{ field: 'url', op: 'regex', value: new Array(202).join('a') }]), saas), false);
-  check('match: not contains', BCEM.matchRule(r([{ field: 'environment', op: 'notContains', value: 'prod' }]), saas), true);
-  check('match: empty value never matches', BCEM.matchRule(r([{ field: 'url', op: 'contains', value: '' }]), saas), false);
-  check('match: disabled rule', BCEM.matchRule(BCEM.normalizeRule({ enabled: false, conditions: [{ field: 'url', op: 'contains', value: 'Sandbox' }] }), saas), false);
+    BCBuddy.matchRule(r([{ field: 'url', op: 'regex', value: new Array(202).join('a') }]), saas), false);
+  check('match: not contains', BCBuddy.matchRule(r([{ field: 'environment', op: 'notContains', value: 'prod' }]), saas), true);
+  check('match: empty value never matches', BCBuddy.matchRule(r([{ field: 'url', op: 'contains', value: '' }]), saas), false);
+  check('match: disabled rule', BCBuddy.matchRule(BCBuddy.normalizeRule({ enabled: false, conditions: [{ field: 'url', op: 'contains', value: 'Sandbox' }] }), saas), false);
 
   // does a rule target Business Central?
-  var bc = function (conds) { return BCEM.targetsBusinessCentral(BCEM.normalizeRule({ conditions: conds })); };
+  var bc = function (conds) { return BCBuddy.targetsBusinessCentral(BCBuddy.normalizeRule({ conditions: conds })); };
   check('BC rule: condition on environment', bc([{ field: 'environment', op: 'contains', value: 'Sandbox' }]), true);
   check('BC rule: condition on company', bc([{ field: 'company', op: 'contains', value: 'CRONUS' }]), true);
   check('BC rule: empty environment condition counts too',
@@ -232,27 +232,27 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
         { field: 'company', op: 'contains', value: 'CRONUS' }]), true);
 
   // draft for a new rule, derived from a URL
-  var bcDraft = BCEM.draftFromContext(saas);
+  var bcDraft = BCBuddy.draftFromContext(saas);
   check('new rule: name from environment', bcDraft.name, 'SANDBOX');
   check('new rule: environment and company from BC URL', bcDraft.conditions,
     [{ field: 'environment', op: 'equals', value: 'Sandbox' },
      { field: 'company', op: 'equals', value: 'CRONUS BE' }]);
 
-  var googleDraft = BCEM.draftFromContext(BCEM.parseUrl('https://www.google.com/shopping'));
+  var googleDraft = BCBuddy.draftFromContext(BCBuddy.parseUrl('https://www.google.com/shopping'));
   check('new rule: full URL for non-BC site', googleDraft.conditions,
     [{ field: 'url', op: 'contains', value: 'https://www.google.com/shopping' }]);
   check('new rule: name for non-BC site', googleDraft.name, 'SHOPPING');
 
-  var hostOnly = BCEM.draftFromContext(BCEM.parseUrl('https://intranet.local/'));
+  var hostOnly = BCBuddy.draftFromContext(BCBuddy.parseUrl('https://intranet.local/'));
   check('new rule: name falls back to host', hostOnly.name, 'INTRANET.LOCAL');
   check('new rule: without URL an empty condition',
-    BCEM.draftFromContext(BCEM.parseUrl('')).conditions,
+    BCBuddy.draftFromContext(BCBuddy.parseUrl('')).conditions,
     [{ field: 'environment', op: 'contains', value: '' }]);
   check('new rule: without URL a neutral name',
-    BCEM.draftFromContext(BCEM.parseUrl('')).name, 'NIEUWE REGEL');
+    BCBuddy.draftFromContext(BCBuddy.parseUrl('')).name, 'NIEUWE REGEL');
 
   // layouts: display separate from the rule
-  var layout = BCEM.normalizeLayout({
+  var layout = BCBuddy.normalizeLayout({
     id: 'lay-1', name: 'Standaard',
     ribbon: { enabled: true, text: 'LAYOUT {environment}' },
     border: { enabled: true, width: 4 },
@@ -260,7 +260,7 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
     title: { enabled: true, text: 'L {title}' },
     favicon: { enabled: true, text: 'LA' }
   });
-  var gekoppeld = BCEM.normalizeRule({
+  var gekoppeld = BCBuddy.normalizeRule({
     name: 'TEST', color: '#c4314b', layoutId: 'lay-1',
     conditions: [{ field: 'environment', op: 'contains', value: 'Sandbox' }],
     ribbon: { enabled: false, text: 'EIGEN TEKST' },
@@ -269,19 +269,19 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
 
   check('layout: has no color', Object.prototype.hasOwnProperty.call(layout, 'color'), false);
   check('layout: without choice rule follows the only layout',
-    BCEM.resolveRule(BCEM.normalizeRule({ ribbon: { text: 'EIGEN' } }), [layout]).ribbon.text,
+    BCBuddy.resolveRule(BCBuddy.normalizeRule({ ribbon: { text: 'EIGEN' } }), [layout]).ribbon.text,
     'LAYOUT {environment}');
   check('layout: without choice rule follows first layout',
-    BCEM.resolveRule(BCEM.normalizeRule({ ribbon: { text: 'EIGEN' } }),
-      [layout, BCEM.normalizeLayout({ id: 'lay-2', name: 'Tweede' })]).ribbon.text,
+    BCBuddy.resolveRule(BCBuddy.normalizeRule({ ribbon: { text: 'EIGEN' } }),
+      [layout, BCBuddy.normalizeLayout({ id: 'lay-2', name: 'Tweede' })]).ribbon.text,
     'LAYOUT {environment}');
   check('layout: missing layout falls back to first',
-    BCEM.resolveRule(BCEM.normalizeRule({ layoutId: 'bestaat-niet', ribbon: { text: 'EIGEN' } }),
+    BCBuddy.resolveRule(BCBuddy.normalizeRule({ layoutId: 'bestaat-niet', ribbon: { text: 'EIGEN' } }),
       [layout]).ribbon.text, 'LAYOUT {environment}');
   check('layout: without layouts rule stays itself',
-    BCEM.resolveRule(BCEM.normalizeRule({ ribbon: { text: 'EIGEN' } }), []).ribbon.text, 'EIGEN');
+    BCBuddy.resolveRule(BCBuddy.normalizeRule({ ribbon: { text: 'EIGEN' } }), []).ribbon.text, 'EIGEN');
 
-  var opgelost = BCEM.resolveRule(gekoppeld, [layout]);
+  var opgelost = BCBuddy.resolveRule(gekoppeld, [layout]);
   check('layout: ribbon comes from layout', opgelost.ribbon.text, 'LAYOUT {environment}');
   check('layout: border comes from layout', opgelost.border.width, 4);
   check('layout: banner comes from layout', opgelost.banner.position, 'bottom-left');
@@ -294,74 +294,74 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
   check('layout: conditions stay from rule', opgelost.conditions.length, 1);
   check('layout: rule itself is not modified', gekoppeld.ribbon.text, 'EIGEN TEKST');
   check('layout: unknown layout falls back to rule',
-    BCEM.resolveRule(gekoppeld, []).border.width, 2);
+    BCBuddy.resolveRule(gekoppeld, []).border.width, 2);
 
-  var metLayout = BCEM.normalize({
+  var metLayout = BCBuddy.normalize({
     rules: [gekoppeld],
     layouts: [layout]
   });
   check('layout: effective rules are resolved',
-    BCEM.effectiveRules(metLayout)[0].border.width, 4);
+    BCBuddy.effectiveRules(metLayout)[0].border.width, 4);
   check('layout: stored in settings', metLayout.layouts.length, 1);
 
   // shared rules look at shared layouts first
-  var gedeeld = BCEM.normalize({
+  var gedeeld = BCBuddy.normalize({
     hosted: {
-      rules: [BCEM.normalizeRule({ name: 'GEDEELD', layoutId: 'lay-h' })],
-      layouts: [BCEM.normalizeLayout({ id: 'lay-h', name: 'Gedeeld', border: { width: 2 } })]
+      rules: [BCBuddy.normalizeRule({ name: 'GEDEELD', layoutId: 'lay-h' })],
+      layouts: [BCBuddy.normalizeLayout({ id: 'lay-h', name: 'Gedeeld', border: { width: 2 } })]
     }
   });
   check('layout: shared rule uses shared layout',
-    BCEM.effectiveRules(gedeeld)[0].border.width, 2);
+    BCBuddy.effectiveRules(gedeeld)[0].border.width, 2);
 
   // first match wins, own rules before shared
-  var settings = BCEM.normalize({
-    rules: [BCEM.normalizeRule({ name: 'EIGEN', conditions: [{ field: 'environment', op: 'contains', value: 'sandbox' }] })],
-    hosted: { rules: [BCEM.normalizeRule({ name: 'GEDEELD', conditions: [{ field: 'url', op: 'contains', value: 'businesscentral' }] })] }
+  var settings = BCBuddy.normalize({
+    rules: [BCBuddy.normalizeRule({ name: 'EIGEN', conditions: [{ field: 'environment', op: 'contains', value: 'sandbox' }] })],
+    hosted: { rules: [BCBuddy.normalizeRule({ name: 'GEDEELD', conditions: [{ field: 'url', op: 'contains', value: 'businesscentral' }] })] }
   });
-  check('priority: own rule beats shared', BCEM.findRule(BCEM.effectiveRules(settings), saas).name, 'EIGEN');
+  check('priority: own rule beats shared', BCBuddy.findRule(BCBuddy.effectiveRules(settings), saas).name, 'EIGEN');
 
   // templates
   var tpl = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
   check('template: full ribbon text',
-    BCEM.renderTidy(tpl, saas, { name: 'TEST' }),
+    BCBuddy.renderTidy(tpl, saas, { name: 'TEST' }),
     'Dynamics 365 Business Central - Sandbox - CRONUS BE (TEST)');
-  var noCompany = BCEM.parseUrl('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox');
+  var noCompany = BCBuddy.parseUrl('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox');
   check('template: empty company leaves no clutter',
-    BCEM.renderTidy(tpl, noCompany, { name: 'TEST' }),
+    BCBuddy.renderTidy(tpl, noCompany, { name: 'TEST' }),
     'Dynamics 365 Business Central - Sandbox (TEST)');
   check('template: empty token between dashes keeps one dash',
-    BCEM.renderTidy('D365 - {company} - {name}', noCompany, { name: 'TEST' }),
+    BCBuddy.renderTidy('D365 - {company} - {name}', noCompany, { name: 'TEST' }),
     'D365 - TEST');
   check('template: only empty tokens yields empty text',
-    BCEM.renderTidy('{company} ({company})', noCompany, {}), '');
+    BCBuddy.renderTidy('{company} ({company})', noCompany, {}), '');
   check('template: empty token at start',
-    BCEM.renderTidy('{company} - {environment}', noCompany, {}), 'Sandbox');
-  check('color: text on green', BCEM.idealText('#107c10'), '#ffffff');
-  check('color: text on blue', BCEM.idealText('#0f6cbd'), '#ffffff');
-  check('color: text on white', BCEM.idealText('#ffffff'), '#000000');
-  check('template: {env} alias', BCEM.renderTidy('{env}', saas, {}), 'Sandbox');
-  check('template: unknown token stays', BCEM.render('{zzz}', saas, {}), '{zzz}');
-  check('template: {brand} is no longer a token', BCEM.render('{brand}', saas, {}), '{brand}');
-  check('template: {host} is no longer a token', BCEM.render('{host}', saas, {}), '{host}');
+    BCBuddy.renderTidy('{company} - {environment}', noCompany, {}), 'Sandbox');
+  check('color: text on green', BCBuddy.idealText('#107c10'), '#ffffff');
+  check('color: text on blue', BCBuddy.idealText('#0f6cbd'), '#ffffff');
+  check('color: text on white', BCBuddy.idealText('#ffffff'), '#000000');
+  check('template: {env} alias', BCBuddy.renderTidy('{env}', saas, {}), 'Sandbox');
+  check('template: unknown token stays', BCBuddy.render('{zzz}', saas, {}), '{zzz}');
+  check('template: {brand} is no longer a token', BCBuddy.render('{brand}', saas, {}), '{brand}');
+  check('template: {host} is no longer a token', BCBuddy.render('{host}', saas, {}), '{host}');
   check('template: only listed tokens are replaced',
-    BCEM.render('{url} {path} {isbc} {rawurl}', saas, {}), '{url} {path} {isbc} {rawurl}');
+    BCBuddy.render('{url} {path} {isbc} {rawurl}', saas, {}), '{url} {path} {isbc} {rawurl}');
   check('template: supported tokens',
-    BCEM.TOKENS, ['name', 'environment', 'env', 'company', 'tenant', 'title']);
+    BCBuddy.TOKENS, ['name', 'environment', 'env', 'company', 'tenant', 'title']);
   check('template: all supported tokens replaced',
-    BCEM.render('{name}|{environment}|{env}|{company}|{tenant}|{title}', saas,
+    BCBuddy.render('{name}|{environment}|{env}|{company}|{tenant}|{title}', saas,
       { name: 'TEST', title: 'Company Information' }),
     'TEST|Sandbox|Sandbox|CRONUS BE|453d817a-d5b1-49c1-bdcf-d9474180a702|Company Information');
   check('migration: old {brand} in rule becomes brand name',
-    BCEM.normalizeRule({ ribbon: { text: '{brand} - {environment}' } }).ribbon.text,
+    BCBuddy.normalizeRule({ ribbon: { text: '{brand} - {environment}' } }).ribbon.text,
     'Dynamics 365 Business Central - {environment}');
-  check('defaults: ribbon text with literal brand name', BCEM.normalizeRule({}).ribbon.text,
+  check('defaults: ribbon text with literal brand name', BCBuddy.normalizeRule({}).ribbon.text,
     'Dynamics 365 Business Central - {company} ({environment})');
   check('advanced: no settings block anymore',
-    Object.prototype.hasOwnProperty.call(BCEM.normalize(null), 'advanced'), false);
+    Object.prototype.hasOwnProperty.call(BCBuddy.normalize(null), 'advanced'), false);
 
   // leading or trailing spaces in a text value are always accidental
-  var metSpaties = BCEM.normalizeRule({
+  var metSpaties = BCBuddy.normalizeRule({
     name: '  PROD  ',
     conditions: [{ field: 'company', op: 'equals', value: '  CRONUS BE ' }],
     ribbon: { text: ' {company} ' }
@@ -370,76 +370,76 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
   check('trim: condition without spaces', metSpaties.conditions[0].value, 'CRONUS BE');
   check('trim: ribbon text without spaces', metSpaties.ribbon.text, '{company}');
   check('trim: shared file URL too',
-    BCEM.normalize({ hosted: { url: '  https://voorbeeld.be/x.json ' } }).hosted.url,
+    BCBuddy.normalize({ hosted: { url: '  https://voorbeeld.be/x.json ' } }).hosted.url,
     'https://voorbeeld.be/x.json');
 
   // colors
-  check('color: rgba to hex', BCEM.toHex('rgba(188,0,0,1)'), '#bc0000');
-  check('color: short hex', BCEM.toHex('#fc0'), '#ffcc00');
-  check('color: text on dark', BCEM.idealText('#bc0000'), '#ffffff');
-  check('color: text on light', BCEM.idealText('#eaa300'), '#000000');
-  check('color: rgba with opacity', BCEM.toRgba('#bc0000', 0.5), 'rgba(188,0,0,0.5)');
+  check('color: rgba to hex', BCBuddy.toHex('rgba(188,0,0,1)'), '#bc0000');
+  check('color: short hex', BCBuddy.toHex('#fc0'), '#ffcc00');
+  check('color: text on dark', BCBuddy.idealText('#bc0000'), '#ffffff');
+  check('color: text on light', BCBuddy.idealText('#eaa300'), '#000000');
+  check('color: rgba with opacity', BCBuddy.toRgba('#bc0000', 0.5), 'rgba(188,0,0,0.5)');
 
   // normalization and import/export
-  var def = BCEM.normalize(null);
+  var def = BCBuddy.normalize(null);
   check('defaults: no rules', def.rules.length, 0);
   check('defaults: there is always a layout', def.layouts.length, 1);
   check('defaults: it is named Default', def.layouts[0].name, 'Default');
   check('defaults: with a fixed id', def.layouts[0].id, 'default');
   check('defaults: extension enabled', def.enabled, true);
   check('defaults: shared config is off', def.hosted.active, false);
-  check('sync: daily interval', BCEM.SYNC_INTERVAL_MINUTES, 1440);
+  check('sync: daily interval', BCBuddy.SYNC_INTERVAL_MINUTES, 1440);
   check('hosted: cannot be active without URL',
-    BCEM.normalize({ hosted: { active: true } }).hosted.active, false);
+    BCBuddy.normalize({ hosted: { active: true } }).hosted.active, false);
   check('hosted: URL without first sync stays off',
-    BCEM.normalize({ hosted: { url: 'https://x.be/b.json' } }).hosted.active, false);
+    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json' } }).hosted.active, false);
   check('hosted: once on stays on',
-    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', active: true } }).hosted.active, true);
+    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', active: true } }).hosted.active, true);
   check('hosted: turned off stays off',
-    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', active: false } }).hosted.active, false);
+    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', active: false } }).hosted.active, false);
   check('hosted: legacy autoSync switch is adopted',
-    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', autoSync: true } }).hosted.active, true);
+    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', autoSync: true } }).hosted.active, true);
   check('hosted: legacy interval 0 means off',
-    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', intervalMinutes: 0 } }).hosted.active, false);
+    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', intervalMinutes: 0 } }).hosted.active, false);
   check('hosted: older interval means on',
-    BCEM.normalize({ hosted: { url: 'https://x.be/b.json', intervalMinutes: 10080 } }).hosted.active, true);
+    BCBuddy.normalize({ hosted: { url: 'https://x.be/b.json', intervalMinutes: 10080 } }).hosted.active, true);
   check('hosted: legacy switch is not kept around',
     Object.prototype.hasOwnProperty.call(def.hosted, 'autoSync'), false);
   check('sync: no interval in settings anymore',
     Object.prototype.hasOwnProperty.call(def.hosted, 'intervalMinutes'), false);
-  check('normalization: default border width', BCEM.normalizeRule({}).border.width, 3);
+  check('normalization: default border width', BCBuddy.normalizeRule({}).border.width, 3);
   check('normalization: banner default half transparent',
-    BCEM.normalizeLayout({}).banner.opacity, 0.5);
+    BCBuddy.normalizeLayout({}).banner.opacity, 0.5);
   check('normalization: saved opacity is kept',
-    BCEM.normalizeLayout({ banner: { opacity: 0.8 } }).banner.opacity, 0.8);
+    BCBuddy.normalizeLayout({ banner: { opacity: 0.8 } }).banner.opacity, 0.8);
   check('normalization: favicon letters capped at two',
-    BCEM.normalizeRule({ favicon: { text: 'ABCD' } }).favicon.text, 'AB');
-  check('normalization: default width', BCEM.normalizeRule({}).border.width, 3);
-  check('normalization: width capped', BCEM.normalizeRule({ border: { width: 999 } }).border.width, 5);
-  check('normalization: width at least 1', BCEM.normalizeRule({ border: { width: 0 } }).border.width, 1);
+    BCBuddy.normalizeRule({ favicon: { text: 'ABCD' } }).favicon.text, 'AB');
+  check('normalization: default width', BCBuddy.normalizeRule({}).border.width, 3);
+  check('normalization: width capped', BCBuddy.normalizeRule({ border: { width: 999 } }).border.width, 5);
+  check('normalization: width at least 1', BCBuddy.normalizeRule({ border: { width: 0 } }).border.width, 1);
   check('normalization: no opacity on border anymore',
-    Object.prototype.hasOwnProperty.call(BCEM.normalizeRule({}).border, 'opacity'), false);
-  check('normalization: unknown position falls back', BCEM.normalizeRule({ banner: { position: 'zijkant' } }).banner.position, 'bottom');
-  check('normalization: top bar position no longer exists', BCEM.normalizeRule({ banner: { position: 'top' } }).banner.position, 'bottom');
-  check('normalization: corner position preserved', BCEM.normalizeRule({ banner: { position: 'bottom-left' } }).banner.position, 'bottom-left');
-  check('normalization: empty rule gets a condition', BCEM.normalizeRule({}).conditions.length, 1);
+    Object.prototype.hasOwnProperty.call(BCBuddy.normalizeRule({}).border, 'opacity'), false);
+  check('normalization: unknown position falls back', BCBuddy.normalizeRule({ banner: { position: 'zijkant' } }).banner.position, 'bottom');
+  check('normalization: top bar position no longer exists', BCBuddy.normalizeRule({ banner: { position: 'top' } }).banner.position, 'bottom');
+  check('normalization: corner position preserved', BCBuddy.normalizeRule({ banner: { position: 'bottom-left' } }).banner.position, 'bottom-left');
+  check('normalization: empty rule gets a condition', BCBuddy.normalizeRule({}).conditions.length, 1);
 
-  var exported = BCEM.toExport(settings, 'Bedrijf X');
-  var roundtrip = BCEM.parseImport(JSON.stringify(exported));
+  var exported = BCBuddy.toExport(settings, 'Bedrijf X');
+  var roundtrip = BCBuddy.parseImport(JSON.stringify(exported));
   check('export/import: rule count', roundtrip.rules.length, 1);
   check('export/import: name preserved', roundtrip.name, 'Bedrijf X');
   check('export/import: rule name preserved', roundtrip.rules[0].name, 'EIGEN');
-  check('import: bare array works', BCEM.parseImport('[{"name":"A","conditions":[{"field":"url","op":"contains","value":"x"}]}]').rules[0].name, 'A');
+  check('import: bare array works', BCBuddy.parseImport('[{"name":"A","conditions":[{"field":"url","op":"contains","value":"x"}]}]').rules[0].name, 'A');
   var importError = '';
-  try { BCEM.parseImport('{"foo":1}'); } catch (e) { importError = e.message; }
+  try { BCBuddy.parseImport('{"foo":1}'); } catch (e) { importError = e.message; }
   truthy('import: clear error for wrong file', importError.indexOf('rules') !== -1);
   importError = '';
-  try { BCEM.parseImport('{niet json'); } catch (e) { importError = e.message; }
+  try { BCBuddy.parseImport('{niet json'); } catch (e) { importError = e.message; }
   truthy('import: clear error for invalid JSON', importError.indexOf('Ongeldige JSON') === 0);
 
   // merge on import
   function ruleNamed(name, extra) {
-    return BCEM.normalizeRule({
+    return BCBuddy.normalizeRule({
       id: (extra && extra.id) || 'id-' + name,
       name: name,
       color: (extra && extra.color) || '#c4314b',
@@ -452,7 +452,7 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
     ruleNamed('config 2'),
     ruleNamed('config 3', { color: '#107c10' })
   ];
-  var merged = BCEM.mergeRules(bestaand, bestand);
+  var merged = BCBuddy.mergeRules(bestaand, bestand);
   check('import: all rules present',
     merged.rules.map(function (r) { return r.name; }),
     ['config 1', 'config 3', 'config 5', 'config 2']);
@@ -460,65 +460,65 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
   check('import: non-imported rule unchanged', merged.rules[2].color, '#c4314b');
   check('import: stats', merged.stats, { overwritten: 2, added: 1, kept: 1 });
 
-  var opNaam = BCEM.mergeRules(
-    [BCEM.normalizeRule({ id: 'lokaal', name: 'TEST', color: '#c4314b' })],
-    [BCEM.normalizeRule({ id: 'gedeeld', name: ' test ', color: '#0f6cbd' })]);
+  var opNaam = BCBuddy.mergeRules(
+    [BCBuddy.normalizeRule({ id: 'lokaal', name: 'TEST', color: '#c4314b' })],
+    [BCBuddy.normalizeRule({ id: 'gedeeld', name: ' test ', color: '#0f6cbd' })]);
   check('import: match by name when id differs', opNaam.rules.length, 1);
   check('import: adopts id from file', opNaam.rules[0].id, 'gedeeld');
   check('import: color from file', opNaam.rules[0].color, '#0f6cbd');
 
   // layouts travel along in import and export
-  var metLayoutExport = BCEM.toExport(BCEM.normalize({ rules: [gekoppeld], layouts: [layout] }));
+  var metLayoutExport = BCBuddy.toExport(BCBuddy.normalize({ rules: [gekoppeld], layouts: [layout] }));
   check('export: layouts included', metLayoutExport.layouts.length, 1);
   check('export: link preserved', metLayoutExport.rules[0].layoutId, 'lay-1');
 
-  var heen = BCEM.parseImport(JSON.stringify(metLayoutExport));
+  var heen = BCBuddy.parseImport(JSON.stringify(metLayoutExport));
   check('import: layouts read', heen.layouts.length, 1);
   check('import: link read', heen.rules[0].layoutId, 'lay-1');
-  check('import: bare rule array without layouts', BCEM.parseImport('[]').layouts, []);
+  check('import: bare rule array without layouts', BCBuddy.parseImport('[]').layouts, []);
 
-  var samengevoegd = BCEM.mergeLayouts(
-    [BCEM.normalizeLayout({ id: 'lay-1', name: 'Standaard', border: { width: 3 } })],
-    [layout, BCEM.normalizeLayout({ id: 'lay-2', name: 'Compact' })]);
+  var samengevoegd = BCBuddy.mergeLayouts(
+    [BCBuddy.normalizeLayout({ id: 'lay-1', name: 'Standaard', border: { width: 3 } })],
+    [layout, BCBuddy.normalizeLayout({ id: 'lay-2', name: 'Compact' })]);
   check('import: layout overwritten in place', samengevoegd.layouts[0].border.width, 4);
   check('import: new layout added', samengevoegd.layouts.length, 2);
   check('import: layout stats', samengevoegd.stats, { overwritten: 1, added: 1, kept: 0 });
 
   check('import: empty import leaves everything',
-    BCEM.mergeRules(bestaand, []).stats, { overwritten: 0, added: 0, kept: 3 });
+    BCBuddy.mergeRules(bestaand, []).stats, { overwritten: 0, added: 0, kept: 3 });
   check('import: import into empty list',
-    BCEM.mergeRules([], bestand).stats, { overwritten: 0, added: 3, kept: 0 });
+    BCBuddy.mergeRules([], bestand).stats, { overwritten: 0, added: 3, kept: 0 });
 
   check('raw-url: github blob becomes raw',
-    BCEM.toRawUrl('https://github.com/bedrijf/repo/blob/main/bc-buddy.json'),
+    BCBuddy.toRawUrl('https://github.com/bedrijf/repo/blob/main/bc-buddy.json'),
     'https://raw.githubusercontent.com/bedrijf/repo/main/bc-buddy.json');
   check('raw-url: raw stays unchanged',
-    BCEM.toRawUrl('https://raw.githubusercontent.com/b/r/main/x.json'),
+    BCBuddy.toRawUrl('https://raw.githubusercontent.com/b/r/main/x.json'),
     'https://raw.githubusercontent.com/b/r/main/x.json');
   check('hosted-url: https stays as-is',
-    BCEM.resolveHostedUrl('https://example.com/bc-buddy.json'),
+    BCBuddy.resolveHostedUrl('https://example.com/bc-buddy.json'),
     'https://example.com/bc-buddy.json');
   check('hosted-url: http github blob becomes https raw',
-    BCEM.resolveHostedUrl('http://github.com/bedrijf/repo/blob/main/bc-buddy.json'),
+    BCBuddy.resolveHostedUrl('http://github.com/bedrijf/repo/blob/main/bc-buddy.json'),
     'https://raw.githubusercontent.com/bedrijf/repo/main/bc-buddy.json');
   var httpsError = '';
-  try { BCEM.resolveHostedUrl('http://example.com/bc-buddy.json'); }
+  try { BCBuddy.resolveHostedUrl('http://example.com/bc-buddy.json'); }
   catch (e) { httpsError = e.message; }
-  check('hosted-url: http rejected', httpsError, BCEM.t('errHttpsOnly'));
-  truthy('hosted-url: empty URL is allowed', BCEM.hostedUrlAllowed(''));
-  check('hosted-url: http is not allowed', BCEM.hostedUrlAllowed('http://example.com/x.json'), false);
-  truthy('hash: differs for different content', BCEM.hash('a') !== BCEM.hash('b'));
-  truthy('hash: equal for same content', BCEM.hash('abc') === BCEM.hash('abc'));
+  check('hosted-url: http rejected', httpsError, BCBuddy.t('errHttpsOnly'));
+  truthy('hosted-url: empty URL is allowed', BCBuddy.hostedUrlAllowed(''));
+  check('hosted-url: http is not allowed', BCBuddy.hostedUrlAllowed('http://example.com/x.json'), false);
+  truthy('hash: differs for different content', BCBuddy.hash('a') !== BCBuddy.hash('b'));
+  truthy('hash: equal for same content', BCBuddy.hash('abc') === BCBuddy.hash('abc'));
 
   /* ---- DOM effects from the content script ------------------------------- */
   setTimeout(function () {
-    var brand = document.querySelector('[data-bcem-brand]');
+    var brand = document.querySelector('[data-bcb-brand]');
     truthy('DOM: brand element found', !!brand);
     if (brand) {
       check('DOM: ribbon text rewritten', brand.textContent, 'Dynamics 365 Business Central - GEMARKEERD (HARNESS)');
-      check('DOM: original text preserved', brand.getAttribute('data-bcem-orig'), 'Dynamics 365 Business Central');
+      check('DOM: original text preserved', brand.getAttribute('data-bcb-orig'), 'Dynamics 365 Business Central');
     }
-    var band = document.querySelector('[data-bcem-ribbon]');
+    var band = document.querySelector('[data-bcb-ribbon]');
     truthy('DOM: ribbon band found', !!band);
     if (band) {
       check('DOM: band is the full header', band.id, 'fakeHeader');
@@ -535,41 +535,41 @@ STORE[BCEM.STORAGE_KEY] = BCEM.normalize({
       getComputedStyle(document.querySelector('.hdr-search')).backgroundColor, 'rgb(255, 255, 255)');
     truthy('DOM: avatar keeps its image',
       getComputedStyle(document.querySelector('.hdr-avatar')).backgroundImage.indexOf('logo.svg') !== -1);
-    var frame = document.getElementById('bcem-frame');
+    var frame = document.getElementById('bcb-frame');
     // This harness is not a businesscentral.dynamics.com address. That it still
     // renders is exactly what an on-prem installation needs.
-    check('DOM: this is not a BC host', BCEM.parseUrl(location.href).isbc, false);
+    check('DOM: this is not a BC host', BCBuddy.parseUrl(location.href).isbc, false);
     truthy('DOM: frame drawn outside BC host too', !!frame);
     if (frame) check('DOM: frame width', getComputedStyle(frame).borderTopWidth, '5px');
 
-    var banner = document.getElementById('bcem-banner');
+    var banner = document.getElementById('bcb-banner');
     truthy('DOM: banner drawn', !!banner);
     if (banner) {
-      check('DOM: banner is a corner ribbon', banner.className, 'bcem-corner bcem-corner--top-right');
+      check('DOM: banner is a corner ribbon', banner.className, 'bcb-corner bcb-corner--top-right');
       check('DOM: banner text', banner.textContent, 'HARNESS');
     }
-    check('DOM: tab title changed', document.title, '[HARNESS] BCEM core');
-    truthy('DOM: favicon replaced', !!document.querySelector('link[data-bcem-favicon]'));
+    check('DOM: tab title changed', document.title, '[HARNESS] BCBuddy core');
+    truthy('DOM: favicon replaced', !!document.querySelector('link[data-bcb-favicon]'));
 
     // idempotent: running again must not break anything
     var before = brand ? brand.textContent : '';
     document.body.appendChild(document.createElement('span')); // triggers the observer
     setTimeout(function () {
-      var again = document.querySelector('[data-bcem-brand]');
+      var again = document.querySelector('[data-bcb-brand]');
       check('DOM: idempotent after DOM change', again ? again.textContent : '', before);
-      check('DOM: no duplicate frames', document.querySelectorAll('#bcem-frame').length, 1);
-      check('DOM: no duplicate banners', document.querySelectorAll('#bcem-banner').length, 1);
+      check('DOM: no duplicate frames', document.querySelectorAll('#bcb-frame').length, 1);
+      check('DOM: no duplicate banners', document.querySelectorAll('#bcb-banner').length, 1);
 
       // This harness does not run on a BC host, like an on-prem installation.
       // Because a ribbon was found here once, it is picked up again immediately
       // after a redraw — the brake on searching only applies as long as no
       // ribbon has ever been seen.
-      var mark = document.querySelector('[data-bcem-brand]');
-      if (mark) mark.removeAttribute('data-bcem-brand');
+      var mark = document.querySelector('[data-bcb-brand]');
+      if (mark) mark.removeAttribute('data-bcb-brand');
       document.body.appendChild(document.createElement('span'));
       setTimeout(function () {
         truthy('DOM: on-prem ribbon found again after redraw',
-          !!document.querySelector('[data-bcem-brand]'));
+          !!document.querySelector('[data-bcb-brand]'));
 
         var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
         document.getElementById('results').textContent =

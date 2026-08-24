@@ -1,10 +1,10 @@
 /*
  * BC Buddy - storage, defaults, normalisation and import/export.
- * Requires match.js (for BCEM.toHex).
+ * Requires match.js (for BCBuddy.toHex).
  */
 (function (root) {
   'use strict';
-  var BCEM = root.BCEM || (root.BCEM = {});
+  var BCBuddy = root.BCBuddy || (root.BCBuddy = {});
 
   var STORAGE_KEY = 'settings';
   var EXPORT_APP = 'bc-buddy';
@@ -87,8 +87,8 @@
 
   function normalizeCondition(c) {
     c = c || {};
-    var fields = BCEM.FIELDS.map(function (f) { return f.value; });
-    var ops = BCEM.OPERATORS.map(function (o) { return o.value; });
+    var fields = BCBuddy.FIELDS.map(function (f) { return f.value; });
+    var ops = BCBuddy.OPERATORS.map(function (o) { return o.value; });
 
     // 'host' no longer exists as a field. An old condition on it still works
     // as "the URL contains that host", which comes to the same thing.
@@ -153,12 +153,12 @@
 
     var rule = {
       id: str(r.id) || uid(),
-      name: str(r.name, BCEM.t('newRuleName')),
+      name: str(r.name, BCBuddy.t('newRuleName')),
       enabled: bool(r.enabled, true),
       note: str(r.note),
       conditions: conditions,
-      color: BCEM.toHex(r.color || PALETTE[0]),
-      textColor: r.textColor === 'auto' || !r.textColor ? 'auto' : BCEM.toHex(r.textColor),
+      color: BCBuddy.toHex(r.color || PALETTE[0]),
+      textColor: r.textColor === 'auto' || !r.textColor ? 'auto' : BCBuddy.toHex(r.textColor),
       // The id of the layout that drives the appearance.
       layoutId: str(r.layoutId)
     };
@@ -172,7 +172,7 @@
     l = l || {};
     var layout = {
       id: str(l.id) || uid(),
-      name: str(l.name, BCEM.t('newLayoutName'))
+      name: str(l.name, BCBuddy.t('newLayoutName'))
     };
     var display = normalizeDisplay(l);
     DISPLAY_KEYS.forEach(function (key) { layout[key] = display[key]; });
@@ -247,7 +247,7 @@
     if (!conditions.length) {
       conditions.push({ field: 'environment', op: 'contains', value: '' });
     }
-    var name = (ctx && (ctx.environment || ctx.host)) || BCEM.t('newRuleName');
+    var name = (ctx && (ctx.environment || ctx.host)) || BCBuddy.t('newRuleName');
     return { name: name.toUpperCase(), conditions: conditions };
   }
 
@@ -272,8 +272,8 @@
         var layout = normalizeLayout(rule);
         layout.id = layouts.length ? uid() : DEFAULT_LAYOUT_ID;
         layout.name = layouts.length
-          ? BCEM.t('newLayoutName') + ' ' + (layouts.length + 1)
-          : BCEM.t('defaultLayoutName');
+          ? BCBuddy.t('newLayoutName') + ' ' + (layouts.length + 1)
+          : BCBuddy.t('defaultLayoutName');
         byLook[look] = layout;
         layouts.push(layout);
       });
@@ -281,7 +281,7 @@
       if (!layouts.length) {
         var fresh = normalizeLayout({});
         fresh.id = DEFAULT_LAYOUT_ID;
-        fresh.name = BCEM.t('defaultLayoutName');
+        fresh.name = BCBuddy.t('defaultLayoutName');
         layouts.push(fresh);
       }
 
@@ -372,7 +372,7 @@
     try {
       data = typeof text === 'string' ? JSON.parse(text) : text;
     } catch (e) {
-      throw new Error(BCEM.t('errInvalidJson', e.message));
+      throw new Error(BCBuddy.t('errInvalidJson', e.message));
     }
     var rules = null;
     var layouts = [];
@@ -384,9 +384,9 @@
       layouts = Array.isArray(data.layouts) ? data.layouts : [];
       name = str(data.name);
     }
-    if (!rules) throw new Error(BCEM.t('errNoRules'));
+    if (!rules) throw new Error(BCBuddy.t('errNoRules'));
     if (data && data.app && data.app !== EXPORT_APP) {
-      throw new Error(BCEM.t('errOtherApp', data.app));
+      throw new Error(BCBuddy.t('errOtherApp', data.app));
     }
 
     return {
@@ -482,8 +482,8 @@
    */
   function resolveHostedUrl(url) {
     var target = toRawUrl(url);
-    if (!target) throw new Error(BCEM.t('errNoUrl'));
-    if (!/^https:\/\//i.test(target)) throw new Error(BCEM.t('errHttpsOnly'));
+    if (!target) throw new Error(BCBuddy.t('errNoUrl'));
+    if (!/^https:\/\//i.test(target)) throw new Error(BCBuddy.t('errHttpsOnly'));
     return target;
   }
 
@@ -498,35 +498,35 @@
     }
   }
 
-  BCEM.STORAGE_KEY = STORAGE_KEY;
-  BCEM.SCHEMA_VERSION = SCHEMA_VERSION;
-  BCEM.EXPORT_APP = EXPORT_APP;
-  BCEM.PALETTE = PALETTE;
-  BCEM.POSITIONS = POSITIONS;
-  BCEM.isCorner = isCorner;
-  BCEM.SYNC_INTERVAL_MINUTES = SYNC_INTERVAL_MINUTES;
-  BCEM.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;
-  BCEM.uid = uid;
-  BCEM.newRule = newRule;
-  BCEM.newLayout = newLayout;
-  BCEM.draftFromContext = draftFromContext;
-  BCEM.normalizeRule = normalizeRule;
-  BCEM.normalizeLayout = normalizeLayout;
-  BCEM.resolveRule = resolveRule;
-  BCEM.effectiveLayout = effectiveLayout;
-  BCEM.findById = findById;
-  BCEM.DISPLAY_KEYS = DISPLAY_KEYS;
-  BCEM.DEFAULT_LAYOUT_ID = DEFAULT_LAYOUT_ID;
-  BCEM.normalize = normalize;
-  BCEM.effectiveRules = effectiveRules;
-  BCEM.loadSettings = load;
-  BCEM.saveSettings = save;
-  BCEM.toExport = toExport;
-  BCEM.parseImport = parseImport;
-  BCEM.mergeRules = mergeRules;
-  BCEM.mergeLayouts = mergeLayouts;
-  BCEM.hash = hash;
-  BCEM.toRawUrl = toRawUrl;
-  BCEM.resolveHostedUrl = resolveHostedUrl;
-  BCEM.hostedUrlAllowed = hostedUrlAllowed;
+  BCBuddy.STORAGE_KEY = STORAGE_KEY;
+  BCBuddy.SCHEMA_VERSION = SCHEMA_VERSION;
+  BCBuddy.EXPORT_APP = EXPORT_APP;
+  BCBuddy.PALETTE = PALETTE;
+  BCBuddy.POSITIONS = POSITIONS;
+  BCBuddy.isCorner = isCorner;
+  BCBuddy.SYNC_INTERVAL_MINUTES = SYNC_INTERVAL_MINUTES;
+  BCBuddy.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;
+  BCBuddy.uid = uid;
+  BCBuddy.newRule = newRule;
+  BCBuddy.newLayout = newLayout;
+  BCBuddy.draftFromContext = draftFromContext;
+  BCBuddy.normalizeRule = normalizeRule;
+  BCBuddy.normalizeLayout = normalizeLayout;
+  BCBuddy.resolveRule = resolveRule;
+  BCBuddy.effectiveLayout = effectiveLayout;
+  BCBuddy.findById = findById;
+  BCBuddy.DISPLAY_KEYS = DISPLAY_KEYS;
+  BCBuddy.DEFAULT_LAYOUT_ID = DEFAULT_LAYOUT_ID;
+  BCBuddy.normalize = normalize;
+  BCBuddy.effectiveRules = effectiveRules;
+  BCBuddy.loadSettings = load;
+  BCBuddy.saveSettings = save;
+  BCBuddy.toExport = toExport;
+  BCBuddy.parseImport = parseImport;
+  BCBuddy.mergeRules = mergeRules;
+  BCBuddy.mergeLayouts = mergeLayouts;
+  BCBuddy.hash = hash;
+  BCBuddy.toRawUrl = toRawUrl;
+  BCBuddy.resolveHostedUrl = resolveHostedUrl;
+  BCBuddy.hostedUrlAllowed = hostedUrlAllowed;
 })(typeof self !== 'undefined' ? self : this);

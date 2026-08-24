@@ -15,16 +15,16 @@
 (function () {
   'use strict';
 
-  var BCEM = self.BCEM;
-  if (!BCEM) return;
+  var BCBuddy = self.BCBuddy;
+  if (!BCBuddy) return;
 
   // The Business Central client renders parts of the UI in an iframe. The frame,
   // banner, title and favicon belong in the top window; we paint the ribbon in
   // every frame where we find it.
   var IS_TOP = window.top === window.self;
 
-  var FRAME_ID = 'bcem-frame';
-  var BANNER_ID = 'bcem-banner';
+  var FRAME_ID = 'bcb-frame';
+  var BANNER_ID = 'bcb-banner';
   var FAVICON_REL = 'icon';
 
   var BRAND_PATTERNS = [
@@ -81,8 +81,8 @@
 
     try {
       chrome.storage.onChanged.addListener(function (changes, area) {
-        if (area !== 'local' || !changes[BCEM.STORAGE_KEY]) return;
-        state.settings = BCEM.normalize(changes[BCEM.STORAGE_KEY].newValue);
+        if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
+        state.settings = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
         clearAll();
         state.rule = null;
         apply();
@@ -91,7 +91,7 @@
   }
 
   function read() {
-    return BCEM.loadSettings().catch(function () { return BCEM.normalize(null); });
+    return BCBuddy.loadSettings().catch(function () { return BCBuddy.normalize(null); });
   }
 
   function start() {
@@ -134,7 +134,7 @@
     var urlChanged = href !== state.href;
     if (urlChanged) {
       state.href = href;
-      state.ctx = BCEM.parseUrl(href);
+      state.ctx = BCBuddy.parseUrl(href);
       // A different page may be a different site: start over, and allow a
       // search immediately.
       state.lastBrandSearch = 0;
@@ -145,7 +145,7 @@
     // custom host runs Business Central, so filtering on the BC host would
     // shut out on-prem installs.
     var rule = settings.enabled
-      ? BCEM.findRule(BCEM.effectiveRules(settings), state.ctx)
+      ? BCBuddy.findRule(BCBuddy.effectiveRules(settings), state.ctx)
       : null;
 
     var changed = !sameRule(rule, state.rule);
@@ -175,12 +175,12 @@
 
   function setVariables(rule) {
     var root = document.documentElement;
-    var text = rule.textColor === 'auto' ? BCEM.idealText(rule.color) : rule.textColor;
-    root.style.setProperty('--bcem-color', rule.color);
-    root.style.setProperty('--bcem-text', text);
-    root.style.setProperty('--bcem-border-width', rule.border.width + 'px');
-    root.style.setProperty('--bcem-bar-bg', BCEM.toRgba(rule.color, rule.banner.opacity));
-    root.style.setProperty('--bcem-bar-font-size', (rule.banner.fontSize || 13) + 'px');
+    var text = rule.textColor === 'auto' ? BCBuddy.idealText(rule.color) : rule.textColor;
+    root.style.setProperty('--bcb-color', rule.color);
+    root.style.setProperty('--bcb-text', text);
+    root.style.setProperty('--bcb-border-width', rule.border.width + 'px');
+    root.style.setProperty('--bcb-bar-bg', BCBuddy.toRgba(rule.color, rule.banner.opacity));
+    root.style.setProperty('--bcb-bar-font-size', (rule.banner.fontSize || 13) + 'px');
   }
 
   /* ---------------------------------------------------------------- frame */
@@ -212,8 +212,8 @@
     }
     if (!document.body) return;
 
-    var corner = BCEM.isCorner(rule.banner.position);
-    var className = (corner ? 'bcem-corner bcem-corner--' : 'bcem-bar bcem-bar--') + rule.banner.position;
+    var corner = BCBuddy.isCorner(rule.banner.position);
+    var className = (corner ? 'bcb-corner bcb-corner--' : 'bcb-bar bcb-bar--') + rule.banner.position;
 
     if (!el) {
       el = document.createElement('div');
@@ -225,10 +225,10 @@
     }
     if (el.className !== className) el.className = className;
 
-    var text = BCEM.renderTidy(rule.banner.text || '{name}', state.ctx, extras(rule));
+    var text = BCBuddy.renderTidy(rule.banner.text || '{name}', state.ctx, extras(rule));
     if (el.textContent !== text) {
       el.textContent = text;
-      el.removeAttribute('data-bcem-fitted');
+      el.removeAttribute('data-bcb-fitted');
     }
     autoFit(el, rule, corner);
   }
@@ -243,7 +243,7 @@
       return;
     }
     var signature = el.textContent + '|' + el.clientWidth;
-    if (el.getAttribute('data-bcem-fitted') === signature) return;
+    if (el.getAttribute('data-bcb-fitted') === signature) return;
 
     var max = corner ? 18 : 14;
     var min = 9;
@@ -253,7 +253,7 @@
       size -= 1;
       el.style.fontSize = size + 'px';
     }
-    el.setAttribute('data-bcem-fitted', signature);
+    el.setAttribute('data-bcb-fitted', signature);
   }
 
   /* --------------------------------------------------------------- ribbon */
@@ -266,19 +266,19 @@
     var brand = getBrandElement();
     if (!brand) return;
 
-    var original = brand.getAttribute('data-bcem-orig');
+    var original = brand.getAttribute('data-bcb-orig');
     if (original == null) {
       original = (brand.textContent || '').trim();
-      brand.setAttribute('data-bcem-orig', original);
+      brand.setAttribute('data-bcb-orig', original);
     }
-    brand.setAttribute('data-bcem-brand', '');
+    brand.setAttribute('data-bcb-brand', '');
 
-    var text = BCEM.renderTidy(rule.ribbon.text, state.ctx, extras(rule));
+    var text = BCBuddy.renderTidy(rule.ribbon.text, state.ctx, extras(rule));
     if (text && brand.textContent !== text) brand.textContent = text;
 
     var band = getBandElement(brand);
     if (!band) return;
-    if (!band.hasAttribute('data-bcem-ribbon')) band.setAttribute('data-bcem-ribbon', '');
+    if (!band.hasAttribute('data-bcb-ribbon')) band.setAttribute('data-bcb-ribbon', '');
     clearRibbonPaint(band);
   }
 
@@ -297,14 +297,14 @@
       // we leave alone.
       if (KEEP_PAINT[el.tagName]) continue;
       if (el.shadowRoot) clearRibbonPaint(el.shadowRoot);
-      if (el.hasAttribute('data-bcem-paint')) continue;
+      if (el.hasAttribute('data-bcb-paint')) continue;
 
       var style = getComputedStyle(el);
       // A gradient is bar styling; an image is content (an avatar).
       var gradient = style.backgroundImage.indexOf('gradient') !== -1;
       if (!gradient && !paints(style.backgroundColor)) continue;
 
-      el.setAttribute('data-bcem-paint', el.getAttribute('style') || '');
+      el.setAttribute('data-bcb-paint', el.getAttribute('style') || '');
       el.style.setProperty('background-color', 'transparent', 'important');
       if (gradient) el.style.setProperty('background-image', 'none', 'important');
       state.painted.push(el);
@@ -321,19 +321,19 @@
 
   function restorePaint() {
     state.painted.forEach(function (el) {
-      var original = el.getAttribute('data-bcem-paint');
+      var original = el.getAttribute('data-bcb-paint');
       if (original) {
         el.setAttribute('style', original);
       } else {
         el.removeAttribute('style');
       }
-      el.removeAttribute('data-bcem-paint');
+      el.removeAttribute('data-bcb-paint');
     });
     state.painted = [];
   }
 
   function getBrandElement() {
-    var marked = document.querySelector('[data-bcem-brand]');
+    var marked = document.querySelector('[data-bcb-brand]');
     if (marked && marked.isConnected) return marked;
     if (!brandSearchDue()) return null;
 
@@ -378,7 +378,7 @@
 
   /** The full bar that holds the brand name: outermost element that takes the full width at the top of the page. */
   function getBandElement(brand) {
-    var existing = document.querySelector('[data-bcem-ribbon]');
+    var existing = document.querySelector('[data-bcb-ribbon]');
     if (existing && existing.isConnected && existing.contains(brand)) return existing;
 
     var vw = window.innerWidth;
@@ -393,15 +393,15 @@
   }
 
   function releaseRibbon() {
-    var brand = document.querySelector('[data-bcem-brand]');
+    var brand = document.querySelector('[data-bcb-brand]');
     if (brand) {
-      var original = brand.getAttribute('data-bcem-orig');
+      var original = brand.getAttribute('data-bcb-orig');
       if (original != null && brand.textContent !== original) brand.textContent = original;
-      brand.removeAttribute('data-bcem-brand');
-      brand.removeAttribute('data-bcem-orig');
+      brand.removeAttribute('data-bcb-brand');
+      brand.removeAttribute('data-bcb-orig');
     }
-    var band = document.querySelector('[data-bcem-ribbon]');
-    if (band) band.removeAttribute('data-bcem-ribbon');
+    var band = document.querySelector('[data-bcb-ribbon]');
+    if (band) band.removeAttribute('data-bcb-ribbon');
     restorePaint();
   }
 
@@ -419,7 +419,7 @@
       // BC wrote the title itself: that is our new baseline.
       state.titleOriginal = document.title;
     }
-    var next = BCEM.renderTidy(rule.title.text, state.ctx, extras(rule));
+    var next = BCBuddy.renderTidy(rule.title.text, state.ctx, extras(rule));
     if (next && document.title !== next) {
       document.title = next;
       state.titleApplied = next;
@@ -430,17 +430,17 @@
 
   function applyFavicon(rule) {
     if (!rule.favicon.enabled) {
-      var ours = document.querySelector('link[data-bcem-favicon]');
+      var ours = document.querySelector('link[data-bcb-favicon]');
       if (ours) {
         ours.remove();
         restoreFavicons();
       }
       return;
     }
-    var existing = document.querySelector('link[data-bcem-favicon]');
+    var existing = document.querySelector('link[data-bcb-favicon]');
     var label = (rule.favicon.text || rule.name || '').trim();
     var signature = rule.color + '|' + label;
-    if (existing && existing.getAttribute('data-bcem-favicon') === signature) return;
+    if (existing && existing.getAttribute('data-bcb-favicon') === signature) return;
 
     var href = drawFavicon(rule.color, label);
     if (!href) return;
@@ -449,26 +449,26 @@
     var link = existing || document.createElement('link');
     link.rel = FAVICON_REL;
     link.type = 'image/png';
-    link.setAttribute('data-bcem-favicon', signature);
+    link.setAttribute('data-bcb-favicon', signature);
     link.href = href;
     if (!link.parentNode) (document.head || document.documentElement).appendChild(link);
   }
 
   function hideFavicons() {
-    var links = document.querySelectorAll('link[rel~="icon" i]:not([data-bcem-favicon])');
+    var links = document.querySelectorAll('link[rel~="icon" i]:not([data-bcb-favicon])');
     for (var i = 0; i < links.length; i++) {
-      if (!links[i].hasAttribute('data-bcem-was-rel')) {
-        links[i].setAttribute('data-bcem-was-rel', links[i].rel);
+      if (!links[i].hasAttribute('data-bcb-was-rel')) {
+        links[i].setAttribute('data-bcb-was-rel', links[i].rel);
       }
-      links[i].rel = 'bcem-disabled-icon';
+      links[i].rel = 'bcb-disabled-icon';
     }
   }
 
   function restoreFavicons() {
-    var links = document.querySelectorAll('link[data-bcem-was-rel]');
+    var links = document.querySelectorAll('link[data-bcb-was-rel]');
     for (var i = 0; i < links.length; i++) {
-      links[i].rel = links[i].getAttribute('data-bcem-was-rel');
-      links[i].removeAttribute('data-bcem-was-rel');
+      links[i].rel = links[i].getAttribute('data-bcb-was-rel');
+      links[i].removeAttribute('data-bcb-was-rel');
     }
   }
 
@@ -487,7 +487,7 @@
 
       var initials = label.replace(/[^\p{L}\p{N}]/gu, '').slice(0, 2).toUpperCase();
       if (initials) {
-        ctx2d.fillStyle = BCEM.idealText(color);
+        ctx2d.fillStyle = BCBuddy.idealText(color);
         ctx2d.font = 'bold ' + (initials.length > 1 ? 17 : 22) + 'px "Segoe UI", Arial, sans-serif';
         ctx2d.textAlign = 'center';
         ctx2d.textBaseline = 'middle';
@@ -523,15 +523,15 @@
     }
     state.titleApplied = null;
 
-    var favicon = document.querySelector('link[data-bcem-favicon]');
+    var favicon = document.querySelector('link[data-bcb-favicon]');
     if (favicon) {
       favicon.remove();
       restoreFavicons();
     }
 
     var root = document.documentElement;
-    ['--bcem-color', '--bcem-text', '--bcem-border-width',
-      '--bcem-bar-bg', '--bcem-bar-font-size'].forEach(function (v) {
+    ['--bcb-color', '--bcb-text', '--bcb-border-width',
+      '--bcb-bar-bg', '--bcb-bar-font-size'].forEach(function (v) {
       root.style.removeProperty(v);
     });
   }
