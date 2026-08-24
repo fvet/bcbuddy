@@ -64,7 +64,7 @@
   "newRuleName": { "message": "Nieuwe regel" },
   "copySuffix": { "message": "$1 (kopie)" },
   "previewPageBc": { "message": "Business Central pagina" },
-  "previewTitle": { "message": "Company Information" },
+  "previewTitle": { "message": "Bedrijfsgegevens" },
   "conditionsHeading": { "message": "Voorwaarden" },
   "addCondition": { "message": "Voorwaarde toevoegen" },
   "removeCondition": { "message": "Voorwaarde verwijderen" },

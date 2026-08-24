@@ -1,164 +1,461 @@
 {
-  "extDescription": { "message": "See at a glance which Business Central environment you are in: your own colour in the top bar, frame, banner and tab icon." },
-  "optionsTitle": { "message": "BC Buddy - options" },
-  "tagline": { "message": "Tell your Business Central environments apart with colour, a frame and your own ribbon." },
+  "extDescription": {
+    "message": "See at a glance which Business Central environment you are in: your own colour in the top bar, frame, banner and tab icon.",
+    "description": "The description in the store listing. Hard limit of 132 characters, per language: a longer one is rejected at upload."
+  },
+  "optionsTitle": {
+    "message": "BC Buddy - options",
+    "description": "Title of the options page. BC Buddy is a product name and stays as it is."
+  },
+  "tagline": {
+    "message": "Tell your Business Central environments apart with colour, a frame and your own ribbon.",
+    "description": "One-line summary under the title on the options page."
+  },
   "extensionActive": { "message": "Extension active" },
-  "saveFailed": { "message": "Saving failed: $1" },
+  "saveFailed": {
+    "message": "Saving failed: $1",
+    "description": "Shown when the settings could not be stored. $1 is the error message from the browser."
+  },
   "testUrlLabel": { "message": "Test URL" },
   "testUrlHint": { "message": "(drives the previews below)" },
   "useOpenTab": { "message": "From open tab" },
-  "useOpenTabTitle": { "message": "Takes the URL from an open tab, preferring a Business Central tab" },
+  "useOpenTabTitle": {
+    "message": "Takes the URL from an open tab, preferring a Business Central tab",
+    "description": "Tooltip on the button next to the test URL."
+  },
   "noUsableTab": { "message": "No open tab with a usable URL found." },
   "nothingRecognised": { "message": "Nothing recognised in this URL." },
-  "labelRule": { "message": "Rule" },
-  "labelEnvironment": { "message": "Environment" },
-  "labelCompany": { "message": "Company" },
-  "labelTenant": { "message": "Tenant" },
+  "labelRule": {
+    "message": "Rule",
+    "description": "Column heading above the name of a rule."
+  },
+  "labelEnvironment": {
+    "message": "Environment",
+    "description": "Business Central term for the environment a tenant runs (production, sandbox). Use the word the Business Central UI uses in this language, not a literal translation."
+  },
+  "labelCompany": {
+    "message": "Company",
+    "description": "Business Central term for a company inside an environment. Use the word the Business Central UI uses in this language."
+  },
+  "labelTenant": {
+    "message": "Tenant",
+    "description": "Business Central term for the tenant the environment belongs to. Use the word the Business Central UI uses in this language."
+  },
   "rulesHeading": { "message": "Rules" },
   "addRule": { "message": "Add rule" },
   "rulesIntro": { "message": "Which environment gets which colour. The first matching rule wins." },
   "emptyRules": { "message": "No rules yet. Click Add rule or import a configuration." },
   "sharedHeading": { "message": "Shared configuration" },
-  "sharedIntro": { "message": "Host a JSON file on a public HTTPS URL (e.g. a raw GitHub link) so everyone in the company uses the same markers." },
-  "sharedTrust": { "message": "Only use a URL you control (for example your team's repository). The file can define rules that mark any site." },
+  "sharedIntro": {
+    "message": "Host a JSON file on a public HTTPS URL (e.g. a raw GitHub link) so everyone in the company uses the same markers.",
+    "description": "JSON, HTTPS and GitHub are names and stay as they are."
+  },
+  "sharedTrust": {
+    "message": "Only use a URL you control (for example your team\u0027s repository). The file can define rules that mark any site.",
+    "description": "Warning about pointing the extension at a file somebody else controls."
+  },
   "hostedUrlLabel": { "message": "URL of the shared file" },
   "statusDaily": { "message": "Updated every day." },
   "syncNow": { "message": "Synchronise" },
   "syncing": { "message": "Syncing..." },
-  "syncFailed": { "message": "Failed: $1" },
+  "syncFailed": {
+    "message": "Failed: $1",
+    "description": "$1 is the reason the download failed."
+  },
   "syncUnknownError": { "message": "unknown error" },
-  "syncLoaded": { "message": "Loaded $1 shared rule(s)." },
-  "syncLoadedUnchanged": { "message": "Loaded $1 shared rule(s) (unchanged)." },
-  "copiedToOwn": { "message": "Copied $1 rule(s) to your own rules." },
+  "syncLoaded": {
+    "message": "Loaded $1 shared rule(s).",
+    "description": "$1 is a number of rules. The (s) is an English shortcut for the plural; use whatever the language really needs."
+  },
+  "syncLoadedUnchanged": {
+    "message": "Loaded $1 shared rule(s) (unchanged).",
+    "description": "$1 is a number of rules. Unchanged means the file was the same as the last time it was fetched."
+  },
+  "copiedToOwn": {
+    "message": "Copied $1 rule(s) to your own rules.",
+    "description": "$1 is a number of rules copied out of the shared configuration into the user\u0027s own list."
+  },
   "statusNoHosted": { "message": "No shared file configured yet." },
   "statusNotSynced": { "message": "Not synced yet." },
-  "statusSyncError": { "message": "Last attempt ($1) failed: $2" },
-  "statusHosted": { "message": "$1 rule(s), last updated $2." },
-  "statusHostedNamed": { "message": "$1 rule(s) from \"$2\", last updated $3." },
+  "statusSyncError": {
+    "message": "Last attempt ($1) failed: $2",
+    "description": "$1 is a date and time, $2 the error message."
+  },
+  "statusHosted": {
+    "message": "$1 rule(s), last updated $2.",
+    "description": "$1 is a number of rules, $2 a date."
+  },
+  "statusHostedNamed": {
+    "message": "$1 rule(s) from \"$2\", last updated $3.",
+    "description": "$1 is a number of rules, $2 the name the shared file gives itself, $3 a date."
+  },
   "unknownDate": { "message": "unknown" },
   "importExportHeading": { "message": "Import / export" },
   "importHeading": { "message": "Import" },
   "importIntro": { "message": "From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. This does not touch the shared configuration." },
   "chooseFile": { "message": "Choose file..." },
-  "importFailed": { "message": "Failed: $1" },
+  "importFailed": {
+    "message": "Failed: $1",
+    "description": "$1 is the reason the import failed."
+  },
   "importReadFailed": { "message": "Could not read the file." },
-  "importDone": { "message": "$1 rule(s) from $2: $3." },
-  "importOverwritten": { "message": "$1 overwritten" },
-  "importAdded": { "message": "$1 added" },
-  "importKept": { "message": "$1 unchanged" },
-  "importNone": { "message": "nothing changed" },
+  "importDone": {
+    "message": "$1 rule(s) from $2: $3.",
+    "description": "$1 is a number of rules, $2 the file name, $3 a summary put together from importOverwritten, importAdded and importKept."
+  },
+  "importOverwritten": {
+    "message": "$1 overwritten",
+    "description": "$1 is a number of rules. Ends up inside importDone, so it stays a fragment: no capital, no full stop."
+  },
+  "importAdded": {
+    "message": "$1 added",
+    "description": "$1 is a number of rules. Ends up inside importDone, so it stays a fragment: no capital, no full stop."
+  },
+  "importKept": {
+    "message": "$1 unchanged",
+    "description": "$1 is a number of rules. Ends up inside importDone, so it stays a fragment: no capital, no full stop."
+  },
+  "importNone": {
+    "message": "nothing changed",
+    "description": "Stands in for the summary in importDone when the file changed nothing."
+  },
   "exportHeading": { "message": "Export" },
   "exportIntro": { "message": "Exports your own rules only, in the format this extension also reads." },
   "exportButton": { "message": "Export" },
-  "exportDone": { "message": "Exported $1 rule(s) to bc-buddy.json." },
-  "ruleNamePlaceholder": { "message": "Name (e.g. TEST)" },
-  "ruleOn": { "message": "On" },
+  "exportDone": {
+    "message": "Exported $1 rule(s) to bc-buddy.json.",
+    "description": "$1 is a number of rules. bc-buddy.json is a file name and stays as it is."
+  },
+  "ruleNamePlaceholder": {
+    "message": "Name (e.g. TEST)",
+    "description": "Placeholder in the name field of a rule. TEST is an example of what somebody might call an environment."
+  },
+  "ruleOn": {
+    "message": "On",
+    "description": "Label on the on/off switch of a rule. Keep it short: the switch is narrow."
+  },
   "ruleActiveTitle": { "message": "Rule active" },
   "toggleDetails": { "message": "Show or hide details" },
   "dragToReorder": { "message": "Drag to reorder (or arrow up/down)" },
   "duplicate": { "message": "Duplicate" },
   "deleteRule": { "message": "Delete" },
-  "deleteConfirm": { "message": "Delete rule \"$1\"?" },
-  "matchYes": { "message": "Matches the test URL" },
-  "matchNo": { "message": "Does not match the test URL" },
+  "deleteConfirm": {
+    "message": "Delete rule \"$1\"?",
+    "description": "Asked before a rule is deleted. $1 is the name the user gave it."
+  },
+  "matchYes": {
+    "message": "Matches the test URL",
+    "description": "Shown on a rule that matches the test URL filled in above."
+  },
+  "matchNo": {
+    "message": "Does not match the test URL",
+    "description": "Shown on a rule that does not match the test URL filled in above."
+  },
   "newRuleName": { "message": "New rule" },
-  "copySuffix": { "message": "$1 (copy)" },
-  "previewPageBc": { "message": "Business Central page" },
-  "previewTitle": { "message": "Company Information" },
+  "copySuffix": {
+    "message": "$1 (copy)",
+    "description": "Name of a duplicated rule or layout. $1 is the name of the original."
+  },
+  "previewPageBc": {
+    "message": "Business Central page",
+    "description": "Caption on the mock Business Central page in the preview."
+  },
+  "previewTitle": {
+    "message": "Company Information",
+    "description": "The name of a real Business Central page, shown on the mock page in the preview. Use the name that page has in this language."
+  },
   "conditionsHeading": { "message": "Conditions" },
   "addCondition": { "message": "Add condition" },
   "removeCondition": { "message": "Remove condition" },
-  "conditionValuePlaceholder": { "message": "e.g. Sandbox, CRONUS BE or a full URL" },
-  "conditionMatches": { "message": "Matches" },
-  "conditionNoMatch": { "message": "Does not match" },
-  "fieldUrl": { "message": "Url" },
-  "fieldEnvironment": { "message": "Environment" },
-  "fieldCompany": { "message": "Company" },
-  "fieldTenant": { "message": "Tenant" },
-  "opContains": { "message": "contains" },
-  "opEquals": { "message": "equals" },
-  "opStartsWith": { "message": "starts with" },
-  "opEndsWith": { "message": "ends with" },
-  "opRegex": { "message": "RegEx" },
-  "opNotContains": { "message": "does not contain" },
-  "displayHeading": { "message": "Appearance" },
+  "conditionValuePlaceholder": {
+    "message": "e.g. Sandbox, CRONUS BE or a full URL",
+    "description": "Examples of what a condition can look for. Sandbox is a Business Central term; CRONUS BE is the name of Microsoft\u0027s demo company and stays as it is."
+  },
+  "conditionMatches": {
+    "message": "Matches",
+    "description": "Choice in a condition: the rule applies when the condition is true."
+  },
+  "conditionNoMatch": {
+    "message": "Does not match",
+    "description": "Choice in a condition: the rule applies when the condition is false."
+  },
+  "fieldUrl": {
+    "message": "Url",
+    "description": "Part of the address a condition looks at. Stays URL in most languages."
+  },
+  "fieldEnvironment": {
+    "message": "Environment",
+    "description": "Business Central term for the environment a tenant runs (production, sandbox). Use the word the Business Central UI uses in this language."
+  },
+  "fieldCompany": {
+    "message": "Company",
+    "description": "Business Central term for a company inside an environment. Use the word the Business Central UI uses in this language."
+  },
+  "fieldTenant": {
+    "message": "Tenant",
+    "description": "Business Central term for the tenant the environment belongs to. Use the word the Business Central UI uses in this language."
+  },
+  "opContains": {
+    "message": "contains",
+    "description": "Operator in a condition, read as one line: environment contains TEST. Lowercase on purpose, it sits in the middle of that line."
+  },
+  "opEquals": {
+    "message": "equals",
+    "description": "Operator in a condition, read as one line: environment equals TEST. Lowercase on purpose, it sits in the middle of that line."
+  },
+  "opStartsWith": {
+    "message": "starts with",
+    "description": "Operator in a condition, read as one line: environment starts with TEST. Lowercase on purpose, it sits in the middle of that line."
+  },
+  "opEndsWith": {
+    "message": "ends with",
+    "description": "Operator in a condition, read as one line: environment ends with TEST. Lowercase on purpose, it sits in the middle of that line."
+  },
+  "opRegex": {
+    "message": "RegEx",
+    "description": "Operator in a condition: match on a regular expression. Usually stays RegEx."
+  },
+  "opNotContains": {
+    "message": "does not contain",
+    "description": "Operator in a condition, read as one line: environment does not contain TEST. Lowercase on purpose, it sits in the middle of that line."
+  },
+  "displayHeading": {
+    "message": "Appearance",
+    "description": "Heading above everything that decides what a marked page looks like."
+  },
   "colour": { "message": "Colour" },
   "customColour": { "message": "Pick a custom colour" },
   "textColour": { "message": "Text colour" },
-  "textAuto": { "message": "Automatic" },
+  "textAuto": {
+    "message": "Automatic",
+    "description": "Choice for the text colour: the extension picks black or white itself, whichever reads better on the chosen colour."
+  },
   "textWhite": { "message": "White" },
   "textBlack": { "message": "Black" },
-  "ribbonToggle": { "message": "Ribbon" },
-  "ribbonText": { "message": "Ribbon text" },
-  "borderToggle": { "message": "Frame around the page" },
-  "borderWidth": { "message": "Thickness (px)" },
-  "bannerToggle": { "message": "Banner" },
-  "bannerPosition": { "message": "Position" },
-  "posBottom": { "message": "Bar at the bottom" },
-  "posTopRight": { "message": "Ribbon top right" },
-  "posTopLeft": { "message": "Ribbon top left" },
-  "posBottomRight": { "message": "Ribbon bottom right" },
-  "posBottomLeft": { "message": "Ribbon bottom left" },
-  "bannerText": { "message": "Text" },
-  "bannerFontSize": { "message": "Text size (0 = auto)" },
+  "ribbonToggle": {
+    "message": "Ribbon",
+    "description": "Switch for a diagonal coloured strip across a corner of the page. This is NOT the Office or Business Central ribbon toolbar: do not use that term."
+  },
+  "ribbonText": {
+    "message": "Ribbon text",
+    "description": "The text printed on the diagonal corner strip, see ribbonToggle."
+  },
+  "borderToggle": {
+    "message": "Frame around the page",
+    "description": "Switch for a coloured border drawn around the whole page."
+  },
+  "borderWidth": {
+    "message": "Thickness (px)",
+    "description": "Thickness of that border. px is a unit and stays as it is."
+  },
+  "bannerToggle": {
+    "message": "Banner",
+    "description": "Switch for a coloured bar with text along an edge of the page."
+  },
+  "bannerPosition": {
+    "message": "Position",
+    "description": "Where that bar sits."
+  },
+  "posBottom": {
+    "message": "Bar at the bottom",
+    "description": "Position of the banner: a full-width bar along the bottom of the page."
+  },
+  "posTopRight": {
+    "message": "Ribbon top right",
+    "description": "Position of the banner: a diagonal strip across the top right corner. Ribbon here means that strip, not a toolbar."
+  },
+  "posTopLeft": {
+    "message": "Ribbon top left",
+    "description": "Position of the banner: a diagonal strip across the top left corner. Ribbon here means that strip, not a toolbar."
+  },
+  "posBottomRight": {
+    "message": "Ribbon bottom right",
+    "description": "Position of the banner: a diagonal strip across the bottom right corner. Ribbon here means that strip, not a toolbar."
+  },
+  "posBottomLeft": {
+    "message": "Ribbon bottom left",
+    "description": "Position of the banner: a diagonal strip across the bottom left corner. Ribbon here means that strip, not a toolbar."
+  },
+  "bannerText": {
+    "message": "Text",
+    "description": "The text on the banner, see bannerToggle."
+  },
+  "bannerFontSize": {
+    "message": "Text size (0 = auto)",
+    "description": "Size of the banner text. Zero means the extension works it out itself."
+  },
   "bannerOpacity": { "message": "Opacity" },
-  "titleToggle": { "message": "Tab title" },
-  "titleText": { "message": "Title" },
-  "faviconToggle": { "message": "Replace the favicon" },
-  "faviconLetters": { "message": "Letters" },
-  "tokensAria": { "message": "Which tokens can you use?" },
-  "tokensHeading": { "message": "Tokens" },
-  "tokenName": { "message": "name of the rule" },
-  "tokenEnvironment": { "message": "environment" },
-  "tokenCompany": { "message": "company" },
-  "tokenTitle": { "message": "original tab title" },
-  "tokensFooter": { "message": "A token that stays empty disappears together with the separator next to it." },
-  "tokenOr": { "message": "or" },
-  "popupOwnRule": { "message": "own rule" },
-  "popupShared": { "message": "shared configuration" },
+  "titleToggle": {
+    "message": "Tab title",
+    "description": "Switch for replacing the title of the browser tab. The tab, not the Business Central page."
+  },
+  "titleText": {
+    "message": "Title",
+    "description": "What the browser tab is called once titleToggle is on."
+  },
+  "faviconToggle": {
+    "message": "Replace the favicon",
+    "description": "Switch for replacing the small icon on the browser tab. Favicon is the usual word in most languages."
+  },
+  "faviconLetters": {
+    "message": "Letters",
+    "description": "The one or two letters drawn on that tab icon."
+  },
+  "tokensAria": {
+    "message": "Which tokens can you use?",
+    "description": "Opens the list of tokens, see tokensHeading."
+  },
+  "tokensHeading": {
+    "message": "Tokens",
+    "description": "A token here is a placeholder the user types into a text, such as {name}, and the extension fills in. Nothing to do with a security token."
+  },
+  "tokenName": {
+    "message": "name of the rule",
+    "description": "Explains the {name} token, see tokensHeading. Lowercase: it is read after the token itself."
+  },
+  "tokenEnvironment": {
+    "message": "environment",
+    "description": "Explains the {environment} token, see tokensHeading. Lowercase: it is read after the token itself."
+  },
+  "tokenCompany": {
+    "message": "company",
+    "description": "Explains the {company} token, see tokensHeading. Lowercase: it is read after the token itself."
+  },
+  "tokenTitle": {
+    "message": "original tab title",
+    "description": "Explains the {title} token, see tokensHeading. Lowercase: it is read after the token itself."
+  },
+  "tokensFooter": {
+    "message": "A token that stays empty disappears together with the separator next to it.",
+    "description": "Closing line under the list of tokens."
+  },
+  "tokenOr": {
+    "message": "or",
+    "description": "Joins two token names that mean the same thing, as in {name} or {rule}."
+  },
+  "popupOwnRule": {
+    "message": "own rule",
+    "description": "Says where the rule in force came from. A fragment that follows other text, hence lowercase."
+  },
+  "popupShared": {
+    "message": "shared configuration",
+    "description": "Says where the rule in force came from. A fragment that follows other text, hence lowercase."
+  },
   "popupDisabled": { "message": "Extension is off" },
   "popupBcNoMatch": { "message": "No matching rule" },
-  "popupNotBc": { "message": "Not Business Central" },
+  "popupNotBc": {
+    "message": "Not Business Central",
+    "description": "Shown in the popup when the tab is not a Business Central page."
+  },
   "popupEnabledMsg": { "message": "Enabled." },
   "popupDisabledMsg": { "message": "Disabled." },
   "openOptions": { "message": "Options" },
-  "syncShort": { "message": "Sync" },
+  "syncShort": {
+    "message": "Sync",
+    "description": "Short form of syncNow for the popup, where the button is narrow."
+  },
   "syncFailedShort": { "message": "Syncing failed." },
   "errNoHostedUrl": { "message": "No shared URL configured." },
   "errNotActive": { "message": "The shared configuration is off." },
   "errNoUrl": { "message": "No URL configured." },
-  "errHttpsOnly": { "message": "The shared file must be served over HTTPS." },
-  "errHttp": { "message": "HTTP $1 $2" },
-  "clearSharedConfirm": { "message": "Remove the $1 shared rules and switch the shared configuration off? The URL stays, so one click on Synchronise brings them back." },
-  "errTimeout": { "message": "The shared file did not respond within $1 seconds." },
-  "errTooLarge": { "message": "The shared file is too large (limit $1 kB)." },
-  "errInvalidJson": { "message": "Invalid JSON: $1" },
-  "errNoRules": { "message": "No \"rules\" found in this file." },
-  "errOtherApp": { "message": "This file belongs to another application ($1)." },
-  "importLayouts": { "message": " Layouts: $1." },
+  "errHttpsOnly": {
+    "message": "The shared file must be served over HTTPS.",
+    "description": "HTTPS is a protocol name and stays as it is."
+  },
+  "errHttp": {
+    "message": "HTTP $1 $2",
+    "description": "$1 is an HTTP status code, $2 the status text that came with it."
+  },
+  "clearSharedConfirm": {
+    "message": "Remove the $1 shared rules and switch the shared configuration off? The URL stays, so one click on Synchronise brings them back.",
+    "description": "$1 is a number of rules. Synchronise is the button labelled syncNow: use the same wording."
+  },
+  "errTimeout": {
+    "message": "The shared file did not respond within $1 seconds.",
+    "description": "$1 is a number of seconds."
+  },
+  "errTooLarge": {
+    "message": "The shared file is too large (limit $1 kB).",
+    "description": "$1 is a size in kilobytes."
+  },
+  "errInvalidJson": {
+    "message": "Invalid JSON: $1",
+    "description": "$1 is the error from the parser. JSON is a format name and stays as it is."
+  },
+  "errNoRules": {
+    "message": "No \"rules\" found in this file.",
+    "description": "The word rules between quotes is a key in the file itself and stays in English."
+  },
+  "errOtherApp": {
+    "message": "This file belongs to another application ($1).",
+    "description": "$1 is the name of the application the file says it belongs to."
+  },
+  "importLayouts": {
+    "message": " Layouts: $1.",
+    "description": "Appended to importDone, which is why it starts with a space. $1 is a number of layouts, see layoutsHeading."
+  },
   "emptyLayouts": { "message": "No layouts yet. Add one to reuse the same appearance across several rules." },
-  "layoutsIntro": { "message": "What a marker looks like: ribbon, frame, banner, tab title and favicon." },
+  "layoutsIntro": {
+    "message": "What a marker looks like: ribbon, frame, banner, tab title and favicon.",
+    "description": "Explains what a layout holds, see layoutsHeading."
+  },
   "deleteLayout": { "message": "Delete layout" },
-  "deleteLayoutConfirm": { "message": "Delete layout \"$1\"? $2 rule(s) will fall back to their own settings." },
-  "layoutsHeading": { "message": "Layouts" },
-  "newLayoutName": { "message": "New layout" },
-  "copiedLayouts": { "message": " Also copied $1 layout(s)." },
+  "deleteLayoutConfirm": {
+    "message": "Delete layout \"$1\"? $2 rule(s) will fall back to their own settings.",
+    "description": "$1 is the name of the layout, $2 a number of rules that were using it."
+  },
+  "layoutsHeading": {
+    "message": "Layouts",
+    "description": "A layout here is this extension\u0027s own idea: a saved set of appearance settings that several rules can share. It is not a Business Central report layout."
+  },
+  "newLayoutName": {
+    "message": "New layout",
+    "description": "The name a freshly added layout gets, see layoutsHeading."
+  },
+  "copiedLayouts": {
+    "message": " Also copied $1 layout(s).",
+    "description": "Appended to copiedToOwn, which is why it starts with a space. $1 is a number of layouts."
+  },
   "layoutPreviewNote": { "message": "Sample colour; every rule keeps its own." },
-  "layoutLabel": { "message": "Layout" },
-  "layoutNamePlaceholder": { "message": "Name (e.g. Default)" },
+  "layoutLabel": {
+    "message": "Layout",
+    "description": "Label on the field that picks a layout for a rule, see layoutsHeading."
+  },
+  "layoutNamePlaceholder": {
+    "message": "Name (e.g. Default)",
+    "description": "Placeholder in the name field of a layout. Default is an example of what somebody might call one."
+  },
   "addLayout": { "message": "Add layout" },
-  "navEnvironments": { "message": "Environments" },
+  "navEnvironments": {
+    "message": "Environments",
+    "description": "Navigation item leading to the rules, one per Business Central environment."
+  },
   "navAbout": { "message": "About" },
   "navSettings": { "message": "Settings" },
   "navSections": { "message": "Sections" },
-  "defaultLayoutName": { "message": "Default" },
-  "lastLayout": { "message": "The last layout cannot be removed: there must always be one." },
-  "aboutIntro": { "message": "BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident." },
+  "defaultLayoutName": {
+    "message": "Default",
+    "description": "The name of the layout that is there from the start. A name somebody sees in a list, not the word standard as a setting."
+  },
+  "lastLayout": {
+    "message": "The last layout cannot be removed: there must always be one.",
+    "description": "Shown when somebody tries to delete the only layout left."
+  },
+  "aboutIntro": {
+    "message": "BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.",
+    "description": "Business Central, production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
+  },
   "aboutContact": { "message": "Contact" },
   "aboutDocs": { "message": "Documentation" },
   "aboutSource": { "message": "Source code" },
-  "clearShared": { "message": "Clear shared rules and stop updating" },
+  "clearShared": {
+    "message": "Clear shared rules and stop updating",
+    "description": "Button that throws away the shared rules and stops the daily update."
+  },
   "sharedRules": { "message": "Shared rules" },
   "sharedCleared": { "message": "Shared rules cleared. They are no longer updated." },
-  "copyShared": { "message": "Make your own copy of this rule" }
+  "copyShared": {
+    "message": "Make your own copy of this rule",
+    "description": "Turns a shared rule into a copy the user owns and can edit."
+  }
 }

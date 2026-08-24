@@ -164,6 +164,9 @@ English ones. There is no switch and no setting.
 What is *not* translated: the texts you fill in yourself in a rule. Whatever you
 put in the ribbon, the banner or the tab title appears exactly as you type it.
 
+Would you like BC Buddy in your own language? Contributions are welcome —
+[TRANSLATING.md](TRANSLATING.md) says what is involved.
+
 ## 🔒 Privacy
 
 Everything stays on your own machine. No server, no analytics, no tracking. The
