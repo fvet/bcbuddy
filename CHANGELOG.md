@@ -11,17 +11,14 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.4 — 2026-08-24
+
 ### Added
 
 - BC Buddy is published under the MIT licence: use it at work, change it and
   pass it on.
-
-### Fixed
-
-- The sample Business Central page in the layout preview is called
-  *Bedrijfsgegevens* in Dutch, the way the page itself is.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.3 — 2026-08-24
 
