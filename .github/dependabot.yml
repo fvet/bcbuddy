@@ -1,0 +1,25 @@
+# Dependency updates. The extension itself has no runtime dependencies, so the
+# only surfaces worth watching are the actions the workflows call and the two
+# packages that build the website.
+version: 2
+updates:
+  # Grouped into a single pull request, so a month's worth of bumps is one
+  # review rather than five. tests.yml runs on pull requests and covers these.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci
+
+  # tools/requirements-docs.txt is pinned to a range on purpose, so this stays
+  # quiet until MkDocs 2 or Material 10. It is here for the security alerts.
+  - package-ecosystem: pip
+    directory: /tools
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: docs
