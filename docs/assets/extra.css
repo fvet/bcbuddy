@@ -1,0 +1,70 @@
+/* The cyan of the Business Central control add-in style guide, the same colour
+   the logo uses. Material's own "cyan" accent is a shade off. */
+:root {
+  --bcb-cyan: #00b7c3;
+}
+
+[data-md-color-accent='cyan'] {
+  --md-accent-fg-color: var(--bcb-cyan);
+  --md-accent-fg-color--transparent: rgba(0, 183, 195, 0.1);
+}
+
+/* Link colour per scheme: the brand cyan itself is too pale on white, and the
+   default darker blue is too dim on the slate background. */
+[data-md-color-scheme='default'] {
+  --md-typeset-a-color: #00808a;
+}
+
+[data-md-color-scheme='slate'] {
+  --md-typeset-a-color: #2ad3de;
+}
+
+/* Home page ------------------------------------------------------------- */
+
+.bcb-hero {
+  margin: 0 0 2.5rem;
+}
+
+.bcb-hero .bcb-tagline {
+  font-size: 1.15rem;
+  font-weight: 300;
+  line-height: 1.6;
+  margin-top: 0.4rem;
+}
+
+.md-typeset .bcb-hero .md-button {
+  margin: 0.6rem 0.4rem 0 0;
+}
+
+/* Screenshots read as part of the page, not as floating images. */
+.md-typeset figure img {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.2rem;
+}
+
+.md-typeset figure figcaption {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.75rem;
+  margin-top: 0.4rem;
+  max-width: none;
+}
+
+/* A ribbon the way the extension draws it, for the example on the home page. */
+.bcb-ribbon {
+  border-radius: 0.2rem;
+  color: #fff;
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 1.2rem 0;
+  padding: 0.7rem 1rem;
+}
+
+.bcb-ribbon.bcb-production {
+  background: #c62828;
+}
+
+.bcb-ribbon.bcb-sandbox {
+  background: #2e7d32;
+}

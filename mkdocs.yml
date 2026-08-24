@@ -1,0 +1,87 @@
+# The BC Buddy website, published to GitHub Pages.
+#
+# Deployment is deliberately tied to a release rather than to a push on main:
+# see .github/workflows/pages.yml for why. Preview it locally with
+# `mkdocs serve` after `pip install -r tools/requirements-docs.txt`.
+
+site_name: BC Buddy
+site_description: Give every Business Central environment its own colour, so you never post in production by mistake.
+site_url: https://fvet.github.io/bcbuddy/
+site_author: Frédéric Vercaemst
+copyright: BC Buddy is open source and stores nothing outside your own browser.
+
+repo_url: https://github.com/fvet/bcbuddy
+repo_name: fvet/bcbuddy
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    # A black header rather than a coloured one: the logo carries the grey and
+    # the cyan of the Business Central style guide, and both stay legible on it.
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: black
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: black
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - content.action.edit
+    - content.code.copy
+    - search.highlight
+    - search.suggest
+    - toc.follow
+
+extra_css:
+  - assets/extra.css
+
+# Screenshots and the example configuration live outside docs/; this adds them
+# to the build without keeping a second copy.
+hooks:
+  - tools/mkdocs_assets.py
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+  # Lets docs/privacy.md include the PRIVACY.md that ships with the repository,
+  # so the policy on the site and the one in the repository cannot disagree.
+  - pymdownx.snippets:
+      base_path: ['.']
+      check_paths: true
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Rules and matching: matching.md
+  - Layouts: layouts.md
+  - Sharing with your team: sharing.md
+  - Troubleshooting: troubleshooting.md
+  - Privacy: privacy.md

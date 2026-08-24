@@ -21,8 +21,10 @@ examples/              example of a shared configuration (schema version 2)
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store;
-                       get-cws-token.ps1: one-off OAuth setup for releases
+                       get-cws-token.ps1: one-off OAuth setup for releases;
+                       mkdocs_assets.py + requirements-docs.txt: the website
 store/                 listing copy and screenshots
+docs/                  the website (its mkdocs.yml lives in the root)
 ```
 
 ## 📦 Settings model
@@ -183,8 +185,9 @@ browser lives somewhere else — it beats editing the list.
 
 ## 🤖 Continuous integration
 
-Two workflows, both on `windows-latest` because the runner scripts are
-PowerShell and the image ships Chrome and Edge.
+Three workflows. The two that touch the extension itself run on
+`windows-latest`, because the runner scripts are PowerShell and the image ships
+Chrome and Edge; the one that builds the website runs on `ubuntu-latest`.
 
 [`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs the suites on
 every push to `main`, on pull requests, and on demand. `run-tests.ps1` exits 1
@@ -199,6 +202,11 @@ It is one workflow rather than two on purpose. A push made with `GITHUB_TOKEN`
 does not trigger other workflows, so a tag pushed from a job would never start a
 tag-triggered job: the release would silently produce nothing. Everything
 therefore happens inline.
+
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds and deploys
+the website. Release calls it as a reusable workflow for the same reason: a
+`release` event raised with `GITHUB_TOKEN` starts nothing either. See
+[Website](#-website) below.
 
 ## 🔑 Permissions
 
@@ -337,4 +345,75 @@ The listing copy sits in [`store/description-nl.txt`](store/description-nl.txt)
 and [`store/description-en.txt`](store/description-en.txt), and the screenshots
 in `store/`. For the privacy practices tab at submission — single purpose and a
 justification per permission — and for the privacy policy URL the store points
-at, use [`PRIVACY.md`](PRIVACY.md).
+at, use [`PRIVACY.md`](PRIVACY.md) — the store field takes a URL, so point it
+at <https://fvet.github.io/bcbuddy/privacy/>, which is that same file published
+by the site.
+
+## 🌐 Website
+
+[fvet.github.io/bcbuddy](https://fvet.github.io/bcbuddy/) is built from `docs/`
+with [MkDocs](https://www.mkdocs.org/) and the
+[Material](https://squidfunk.github.io/mkdocs-material/) theme. Configuration is
+in [`mkdocs.yml`](mkdocs.yml); the pages are plain Markdown.
+
+Preview it locally:
+
+```bash
+pip install -r tools/requirements-docs.txt
+mkdocs serve
+```
+
+That serves on `http://127.0.0.1:8000/bcbuddy/` — under the same path as GitHub
+Pages, because `site_url` carries it — and reloads as you edit. `site/` and
+`.cache/` are build output and are ignored.
+
+### When it goes live
+
+**On a release, and not before.** Documentation lands on `main` well ahead of the
+release that ships the feature, and a site that describes a button nobody has yet
+sends people looking for something that is not there. Erring behind the
+extension is cheap; erring ahead of it is a support message.
+
+`pages.yml` therefore has three ways in:
+
+| Trigger | What happens |
+|---|---|
+| Called by `release.yml` | Builds from the tag that run created, then deploys |
+| Pull request | Builds only, so a broken link fails review, not release day |
+| Run by hand | Builds and deploys — for a correction that should not wait |
+
+The manual run is the escape hatch. Release-gating is right for feature
+documentation; it would be silly if fixing a typo or a privacy line needed a
+store submission.
+
+Note that even a deployed site is not in step with what people have installed:
+the store still reviews the upload, and Chrome rolls updates out over days.
+"Never ahead" is achievable, "exactly equal" is not.
+
+### Files from outside docs/
+
+Screenshots live in `store/` because the store listing is built from there, and
+`examples/bc-buddy.json` is the shared configuration people point at.
+[`tools/mkdocs_assets.py`](tools/mkdocs_assets.py) is an MkDocs hook that adds
+those originals to the build instead of keeping a second copy in `docs/`. It
+registers them as files rather than copying them in afterwards, so `--strict`
+still catches a page pointing at a screenshot that has been renamed.
+
+`docs/privacy.md` is a one-line include of [`PRIVACY.md`](PRIVACY.md) through
+`pymdownx.snippets`, for the same reason: the policy on the site and the policy
+in the repository cannot drift apart.
+
+The rest of the pages are their own copy of what the README covers. Single
+sourcing that too was possible and not worth it — the README is a pitch that
+ends in a link, the site is seven pages with a navigation.
+
+### One-time setup: turning Pages on
+
+**Settings → Pages → Build and deployment → Source: GitHub Actions.** Without
+that, `deploy-pages` fails with a message about Pages not being enabled; the
+default ("Deploy from a branch") looks for committed HTML, which this repository
+does not have.
+
+Nothing is published until the first deployment runs, and deployments run on
+release. To put the site up before the next one, start the **Site** workflow by
+hand from the Actions tab.

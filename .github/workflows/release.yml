@@ -37,6 +37,11 @@ jobs:
   release:
     runs-on: windows-latest
 
+    # Read by the site job below, so the website is built from the very commit
+    # this run tagged.
+    outputs:
+      tag: v${{ steps.version.outputs.next }}
+
     steps:
       - name: Release from main only
         shell: pwsh
@@ -221,3 +226,22 @@ jobs:
             -Uri "https://www.googleapis.com/chromewebstore/v1.1/items/$env:EXTENSION_ID/publish"
           Write-Host "status: $($result.status -join ', ')"
           if ($result.statusDetail) { Write-Host ($result.statusDetail -join "`n") }
+
+  # The website documents the extension people can actually install, so it goes
+  # out with the release rather than on every push to main.
+  #
+  # Called rather than triggered: the tag and the GitHub release above are both
+  # created with GITHUB_TOKEN, and neither would start a workflow of its own.
+  #
+  # If this job fails the release itself still stands — the tag, the GitHub
+  # release and the store upload have all happened by then. Run the Site
+  # workflow by hand from the Actions tab to publish the site afterwards.
+  site:
+    needs: release
+    uses: ./.github/workflows/pages.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    with:
+      ref: ${{ needs.release.outputs.tag }}

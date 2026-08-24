@@ -1,0 +1,96 @@
+name: Site
+
+# The website follows the released extension, not main.
+#
+# Documentation is written well before it ships: describing a feature that is
+# not in anyone's browser yet sends people looking for a button that is not
+# there. The site is therefore deployed from the release workflow, which calls
+# this one and passes the tag it just created.
+#
+# It cannot be triggered by `on: release` or by the tag being pushed. Both of
+# those events are raised with GITHUB_TOKEN, and an event raised with
+# GITHUB_TOKEN does not start another workflow — the deployment would silently
+# never run. See the note at the top of release.yml.
+#
+# Two other ways in: a pull request builds the site without deploying it, so a
+# broken link is caught in review rather than on release day, and it can be
+# started by hand for a correction that should not wait for a release.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Tag or commit to build from; empty means the default branch'
+        type: string
+        required: false
+        default: ''
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'tools/mkdocs_assets.py'
+      - 'tools/requirements-docs.txt'
+      - 'PRIVACY.md'
+      - 'examples/**'
+      - 'icons/logo.svg'
+      - 'store/*.png'
+      - '.github/workflows/pages.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Empty on a pull request or a manual run, which leaves checkout on
+          # its default. The release workflow passes the tag it created, so the
+          # site is built from exactly what was released.
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/requirements-docs.txt
+
+      - name: Install MkDocs
+        run: pip install -r tools/requirements-docs.txt
+
+      # --strict turns a broken link or a missing screenshot into a failure
+      # rather than a line in the log nobody reads.
+      - name: Build the site
+        run: mkdocs build --strict
+
+      - name: Upload the site
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    # Never two deployments at once, and never cancel one halfway: the live
+    # site would be left as whatever the interrupted upload had reached.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

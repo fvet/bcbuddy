@@ -18,7 +18,8 @@ marked tab title and a coloured tab icon.
 
 ![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](store/screenshot-1-1280x800.png)
 
-A Chrome/Edge extension (Manifest V3). Working on the extension itself is
+A Chrome/Edge extension (Manifest V3). The full documentation is on the website:
+**<https://fvet.github.io/bcbuddy/>**. Working on the extension itself is
 covered in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## 📥 Installing
