@@ -10,13 +10,17 @@
 }
 
 /* Link colour per scheme: the brand cyan itself is too pale on white, and the
-   default darker blue is too dim on the slate background. */
+   default indigo is dim against the slate background.
+
+   !important is needed, not sloppiness: the palette stylesheet sets
+   --md-typeset-a-color with !important for the slate scheme, so an override of
+   equal or even higher specificity loses without it. */
 [data-md-color-scheme='default'] {
-  --md-typeset-a-color: #00808a;
+  --md-typeset-a-color: #00808a !important;
 }
 
 [data-md-color-scheme='slate'] {
-  --md-typeset-a-color: #2ad3de;
+  --md-typeset-a-color: #2ad3de !important;
 }
 
 /* Home page ------------------------------------------------------------- */
