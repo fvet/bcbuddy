@@ -8,7 +8,7 @@ site_name: BC Buddy
 site_description: Give every Business Central environment its own colour, so you never post in production by mistake.
 site_url: https://fvet.github.io/bcbuddy/
 site_author: Frédéric Vercaemst
-copyright: BC Buddy is open source and stores nothing outside your own browser.
+copyright: BC Buddy is open source under the MIT licence and stores nothing outside your own browser.
 
 repo_url: https://github.com/fvet/bcbuddy
 repo_name: fvet/bcbuddy

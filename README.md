@@ -184,3 +184,9 @@ read. A rule whose conditions never all hold at once never fires.
 
 **A shared rule will not change.** Shared rules are read-only by design. Use the
 copy button to get your own editable version, which takes precedence.
+
+## 📄 Licence
+
+MIT — the full text is in [LICENSE](LICENSE). Use it, change it and pass it on,
+inside a company as well; the copyright notice and the licence text have to
+travel with it.
