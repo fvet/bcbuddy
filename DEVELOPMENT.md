@@ -7,7 +7,7 @@ Working on BC Buddy itself. For what the extension does and how to use it, see
 
 ```
 manifest.json
-_locales/              nl (default) and en
+_locales/              en (default) and nl
 src/
   background.js        service worker: synchronises the shared file
   lib/i18n.js          fetching translations
@@ -105,8 +105,8 @@ exists.
 
 ## 🌍 Adding a language
 
-The texts live in [`_locales/nl/messages.json`](_locales/nl/messages.json) and
-[`_locales/en/messages.json`](_locales/en/messages.json); `nl` is the default and
+The texts live in [`_locales/en/messages.json`](_locales/en/messages.json) and
+[`_locales/nl/messages.json`](_locales/nl/messages.json); `en` is the default and
 the fallback. Adding a language comes down to a new folder with the same keys.
 
 The tests check that both files contain the same keys, that every key the code

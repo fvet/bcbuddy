@@ -156,8 +156,8 @@ that are not in the file are left alone.
 ## 🌍 Languages
 
 The extension is available in Dutch and English. It follows the language of your
-browser: if that is set to English you see the English texts, otherwise the
-Dutch ones. There is no switch and no setting.
+browser: if that is set to Dutch you see the Dutch texts, otherwise the
+English ones. There is no switch and no setting.
 
 What is *not* translated: the texts you fill in yourself in a rule. Whatever you
 put in the ribbon, the banner or the tab title appears exactly as you type it.
