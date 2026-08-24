@@ -1,6 +1,6 @@
 /*
  * BC Buddy - service worker.
- * Houdt de gedeelde configuratie (bv. een raw GitHub-URL) actueel.
+ * Keeps the shared configuration (e.g. a raw GitHub URL) up to date.
  */
 importScripts('/src/lib/i18n.js', '/src/lib/match.js', '/src/lib/settings.js');
 
@@ -39,17 +39,21 @@ chrome.storage.onChanged.addListener(function (changes, area) {
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
+  // Only options/popup (extension pages). Content scripts share our id but
+  // their sender.url is the page they run in — refuse those.
+  if (!isExtensionPage(sender)) return;
   if (message.type === 'bcem:sync') {
     syncHosted({ reason: 'manual', force: true }).then(sendResponse);
-    return true; // async antwoord
-  }
-  if (message.type === 'bcem:preview') {
-    fetchHosted(message.url).then(sendResponse, function (err) {
-      sendResponse({ ok: false, error: String(err && err.message || err) });
-    });
-    return true;
+    return true; // async response
   }
 });
+
+/** True when the message came from one of our own extension pages. */
+function isExtensionPage(sender) {
+  if (!sender || sender.id !== chrome.runtime.id) return false;
+  var url = sender.url || '';
+  return url.indexOf(chrome.runtime.getURL('/')) === 0;
+}
 
 /* ------------------------------------------------------------------ sync */
 
@@ -65,8 +69,12 @@ function scheduleSync() {
 }
 
 function fetchHosted(url) {
-  var target = BCEM.toRawUrl(url);
-  if (!target) return Promise.reject(new Error(BCEM.t('errNoUrl')));
+  var target;
+  try {
+    target = BCEM.resolveHostedUrl(url);
+  } catch (err) {
+    return Promise.reject(err);
+  }
   return fetch(target, { cache: 'no-cache', credentials: 'omit' })
     .then(function (response) {
       if (!response.ok) throw new Error(BCEM.t('errHttp', [response.status, response.statusText]));
@@ -79,21 +87,21 @@ function fetchHosted(url) {
 }
 
 /**
- * Haalt de gedeelde configuratie op en schrijft ze weg als 'hosted.rules'.
- * Eigen regels blijven ongemoeid; ze hebben voorrang bij het matchen.
+ * Fetches the shared configuration and stores it as 'hosted.rules'.
+ * Own rules are left alone; they take priority when matching.
  */
 function syncHosted(options) {
   options = options || {};
   return BCEM.loadSettings().then(function (settings) {
     if (!settings.hosted.url) return { ok: false, error: BCEM.t('errNoHostedUrl') };
-    // Staat de gedeelde configuratie uit, dan loopt enkel een handmatige sync.
+    // If the shared configuration is off, only a manual sync runs.
     if (!options.force && !settings.hosted.active) {
       return { ok: false, error: BCEM.t('errNotActive') };
     }
     return fetchHosted(settings.hosted.url).then(function (result) {
       var unchanged = result.hash === settings.hosted.lastHash;
-      // Synchroniseren zet de gedeelde configuratie meteen aan: vanaf nu wordt
-      // ze elke dag bijgewerkt, tot je ze wist of de URL leeghaalt.
+      // Syncing turns the shared configuration on immediately: from now on it
+      // is updated every day, until you clear it or empty the URL.
       settings.hosted.active = true;
       settings.hosted.rules = result.rules;
       settings.hosted.sourceName = result.name;
@@ -112,4 +120,3 @@ function syncHosted(options) {
     });
   });
 }
-

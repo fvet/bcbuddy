@@ -19,7 +19,7 @@
       "id": "opvallend",
       "name": "Opvallend",
       "note": "Voor productie: dikker kader en een lint in de hoek.",
-      "border": { "enabled": true, "width": 6 },
+      "border": { "enabled": true, "width": 5 },
       "banner": { "enabled": true, "position": "top-right", "text": "{name}", "fontSize": 0, "opacity": 0.95 },
       "ribbon": {
         "enabled": true,

@@ -1,6 +1,6 @@
 :root {
-  /* Zie options.css: laat de browser zijn eigen onderdelen in het juiste
-     thema tekenen en voorkom een witte flits bij het openen. */
+  /* See options.css: let the browser paint its own controls in the right
+     theme and avoid a white flash on open. */
   color-scheme: light dark;
 
   --bg: #ffffff;
@@ -82,12 +82,12 @@ input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px;
   white-space: nowrap;
 }
 .btn:hover { background: var(--surface-2); }
-/* Expliciet, zodat een latere display-regel op .btn het verbergen niet stilletjes
-   ongedaan maakt (dat gebeurde eerder met de kop boven de gedeelde regels). */
+/* Explicit, so a later display rule on .btn does not silently undo hiding
+   (that happened earlier with the heading above the shared rules). */
 .btn[hidden] { display: none; }
 .btn--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); flex: 1 1 100%; }
-/* Achtergrond en tekstkleur expliciet herhalen: anders wint .btn:hover met zijn
-   grijze achtergrond en blijft de donkere tekst onleesbaar. */
+/* Repeat background and text colour explicitly: otherwise .btn:hover wins with
+   its grey background and the dark text becomes unreadable. */
 .btn--primary:hover { background: var(--accent); color: var(--accent-text); filter: brightness(1.08); }
 
 .status { margin: 0; min-height: 16px; font-size: 11.5px; color: var(--muted); }

@@ -1,15 +1,16 @@
 /*
  * BC Buddy - content script.
  *
- * Zoekt de regel die bij de huidige URL past en tekent:
- *   - een gekleurd kader rond de pagina
- *   - een banner boven- of onderaan
- *   - de BC-ribbon in de kleur van de regel, met een eigen tekst
- *   - optioneel de tabtitel en de favicon
+ * Finds the rule that matches the current URL and draws:
+ *   - a coloured frame around the page
+ *   - a banner at the top or bottom
+ *   - the BC ribbon in the rule's colour, with custom text
+ *   - optionally the tab title and the favicon
  *
- * Business Central is een SPA die zijn eigen DOM voortdurend hertekent. Daarom
- * is alles idempotent: reassert() mag zo vaak lopen als nodig en doet niets
- * wanneer alles al klopt. Dat voorkomt ook een lus met de MutationObserver.
+ * Business Central is a SPA that continually redraws its own DOM. Everything
+ * is therefore idempotent: reassert() may run as often as needed and does
+ * nothing when everything already matches. That also prevents a loop with the
+ * MutationObserver.
  */
 (function () {
   'use strict';
@@ -17,9 +18,9 @@
   var BCEM = self.BCEM;
   if (!BCEM) return;
 
-  // De Business Central client rendert delen van de UI in een iframe. Het kader,
-  // de banner, de titel en de favicon horen in het bovenste venster; de ribbon
-  // tekenen we in elk frame waar we hem vinden.
+  // The Business Central client renders parts of the UI in an iframe. The frame,
+  // banner, title and favicon belong in the top window; we paint the ribbon in
+  // every frame where we find it.
   var IS_TOP = window.top === window.self;
 
   var FRAME_ID = 'bcem-frame';
@@ -32,23 +33,23 @@
     /^business\s+central$/i
   ];
 
-  // Elementen in de ribbon die hun eigen achtergrond mogen houden.
+  // Ribbon elements that may keep their own background.
   var KEEP_PAINT = { INPUT: 1, TEXTAREA: 1, SELECT: 1, IMG: 1, CANVAS: 1, VIDEO: 1, svg: 1 };
 
-  // Een burst DOM-wijzigingen wordt tot een enkele reassert gebundeld. Vier keer
-  // per seconde volstaat: BC hertekent zichzelf, wij hoeven daar niet elk
-  // animatieframe achteraan te lopen.
+  // A burst of DOM changes is bundled into a single reassert. Four times a
+  // second is enough: BC redraws itself; we do not need to chase every
+  // animation frame.
   var SCHEDULE_MS = 250;
 
-  // Vangnet naast de observer: BC kan hertekenen zonder dat wij het merken
-  // (bijvoorbeeld in een frame dat pas later meedoet).
+  // Safety net beside the observer: BC can redraw without us noticing
+  // (for example in a frame that joins later).
   var POLL_MS = 800;
 
-  // Zoeken naar de merknaam kamt het hele document uit. Op een Business
-  // Central-host loont dat - daar staat er een ribbon, en zodra we ze gevonden
-  // hebben, onthouden we ze. Elders is de kans klein: een gemarkeerde niet-BC
-  // site heeft er geen, en een on-prem installatie krijgt ze pas even na het
-  // laden. Daar zoeken we hoogstens eens per zoveel milliseconden opnieuw.
+  // Searching for the brand name combs the whole document. On a Business
+  // Central host that pays off — there is a ribbon, and once we have found it
+  // we remember it. Elsewhere the chance is small: a marked non-BC site has
+  // none, and an on-prem install only gets one shortly after load. There we
+  // search again at most once every so many milliseconds.
   var BRAND_RETRY_MS = 2000;
 
   var state = {
@@ -62,11 +63,11 @@
     scheduled: false,
     pollTimer: null,
     observer: null,
-    // Wanneer we voor het laatst het document uitkamden op zoek naar de ribbon,
-    // en of we er ooit een gevonden hebben (dan is dit Business Central).
+    // When we last combed the document looking for the ribbon, and whether we
+    // ever found one (then this is Business Central).
     lastBrandSearch: 0,
     bcSeen: false,
-    // Elementen in de ribbon waarvan we de eigen achtergrond uitzetten.
+    // Ribbon elements whose own background we turn off.
     painted: []
   };
 
@@ -86,7 +87,7 @@
         state.rule = null;
         apply();
       });
-    } catch (e) { /* extensie herladen; volgende paginalading pikt het op */ }
+    } catch (e) { /* extension reloaded; the next page load picks it up */ }
   }
 
   function read() {
@@ -113,7 +114,7 @@
     state.pollTimer = setInterval(apply, POLL_MS);
   }
 
-  /** Bundelt bursts van DOM-wijzigingen tot een enkele reassert. */
+  /** Bundles bursts of DOM changes into a single reassert. */
   function schedule() {
     if (state.scheduled) return;
     state.scheduled = true;
@@ -134,15 +135,15 @@
     if (urlChanged) {
       state.href = href;
       state.ctx = BCEM.parseUrl(href);
-      // Een andere pagina kan een andere site zijn: opnieuw beginnen, en meteen
-      // een zoektocht toestaan.
+      // A different page may be a different site: start over, and allow a
+      // search immediately.
       state.lastBrandSearch = 0;
       state.bcSeen = false;
     }
 
-    // Regels gelden op elke site. Aan de URL alleen valt niet te zien dat een
-    // eigen host Business Central draait, dus een filter op de BC-host zou
-    // on-prem installaties buitensluiten.
+    // Rules apply on every site. From the URL alone you cannot tell that a
+    // custom host runs Business Central, so filtering on the BC host would
+    // shut out on-prem installs.
     var rule = settings.enabled
       ? BCEM.findRule(BCEM.effectiveRules(settings), state.ctx)
       : null;
@@ -182,7 +183,7 @@
     root.style.setProperty('--bcem-bar-font-size', (rule.banner.fontSize || 13) + 'px');
   }
 
-  /* ---------------------------------------------------------------- kader */
+  /* ---------------------------------------------------------------- frame */
 
   function applyFrame(rule) {
     var el = document.getElementById(FRAME_ID);
@@ -233,8 +234,8 @@
   }
 
   /**
-   * Bij tekstgrootte 0 ("automatisch") krimpt de tekst tot ze past, net zoals
-   * de tekst in een hoeklint anders zou worden afgekapt.
+   * At font size 0 ("automatic") the text shrinks until it fits, just as the
+   * text in a corner ribbon would otherwise be clipped.
    */
   function autoFit(el, rule, corner) {
     if (rule.banner.fontSize > 0) {
@@ -282,24 +283,24 @@
   }
 
   /**
-   * De knoppen rechts in de ribbon dragen hun eigen achtergrond mee. Onze CSS
-   * raakt die niet altijd - BC zet ze soms rechtstreeks op het element, en dan
-   * wint die stijl - dus lezen we op wat er effectief geschilderd wordt en
-   * zetten we dat per element uit. Zo blijven er geen donkere blokjes tussen
-   * de icoontjes staan.
+   * The buttons on the right of the ribbon carry their own background. Our CSS
+   * does not always reach them — BC sometimes sets style directly on the
+   * element, and then that style wins — so we read what is actually painted
+   * and turn it off per element. That way no dark blocks remain between the
+   * icons.
    */
   function clearRibbonPaint(root) {
     var nodes = root.querySelectorAll('*');
     for (var i = 0; i < nodes.length; i++) {
       var el = nodes[i];
-      // Wat zijn eigen achtergrond nodig heeft om leesbaar of zichtbaar te
-      // blijven, laten we met rust.
+      // Anything that needs its own background to stay readable or visible
+      // we leave alone.
       if (KEEP_PAINT[el.tagName]) continue;
       if (el.shadowRoot) clearRibbonPaint(el.shadowRoot);
       if (el.hasAttribute('data-bcem-paint')) continue;
 
       var style = getComputedStyle(el);
-      // Een verloop is opmaak van de balk; een afbeelding is inhoud (een avatar).
+      // A gradient is bar styling; an image is content (an avatar).
       var gradient = style.backgroundImage.indexOf('gradient') !== -1;
       if (!gradient && !paints(style.backgroundColor)) continue;
 
@@ -310,7 +311,7 @@
     }
   }
 
-  /** Schildert deze kleur echt iets, of kijk je er dwars doorheen? */
+  /** Does this colour actually paint something, or can you see straight through it? */
   function paints(color) {
     var parts = /rgba?\(([^)]+)\)/.exec(color || '');
     if (!parts) return false;
@@ -339,7 +340,7 @@
     var nodes = document.querySelectorAll('span, a, div, h1, h2, button, p');
     for (var i = 0; i < nodes.length; i++) {
       var el = nodes[i];
-      if (el.children.length) continue; // enkel bladeren met eigen tekst
+      if (el.children.length) continue; // leaves with their own text only
       var text = (el.textContent || '').trim();
       if (!text || text.length > 90) continue;
       if (!isBrandText(text)) continue;
@@ -352,15 +353,15 @@
   }
 
   /**
-   * Mag er nu opnieuw naar de merknaam gezocht worden? Op Business Central
-   * altijd - daar wil je de balk meteen terug hebben als de client hertekent.
-   * Elders zou dat het hele document blijven uitkammen voor iets wat er
-   * hoogstwaarschijnlijk niet staat, dus daar geldt een wachttijd.
+   * May we search for the brand name again now? On Business Central always —
+   * you want the bar back immediately when the client redraws. Elsewhere that
+   * would keep combing the whole document for something that almost certainly
+   * is not there, so a wait applies.
    */
   function brandSearchDue() {
-    // Een on-prem installatie staat op een eigen host, dus die herkennen we niet
-    // aan de URL. Vonden we hier al eens een ribbon, dan is dit wel degelijk
-    // Business Central en zoeken we weer zonder rem.
+    // An on-prem install sits on its own host, so we do not recognise it from
+    // the URL. If we already found a ribbon here, this really is Business
+    // Central and we search again without a throttle.
     if (state.bcSeen || (state.ctx && state.ctx.isbc)) return true;
     var now = Date.now();
     if (now - state.lastBrandSearch < BRAND_RETRY_MS) return false;
@@ -375,7 +376,7 @@
     return false;
   }
 
-  /** De volledige balk waarin de merknaam staat: outermost element dat bovenaan de pagina de volle breedte inneemt. */
+  /** The full bar that holds the brand name: outermost element that takes the full width at the top of the page. */
   function getBandElement(brand) {
     var existing = document.querySelector('[data-bcem-ribbon]');
     if (existing && existing.isConnected && existing.contains(brand)) return existing;
@@ -404,7 +405,7 @@
     restorePaint();
   }
 
-  /* ---------------------------------------------------------------- titel */
+  /* ---------------------------------------------------------------- title */
 
   function applyTitle(rule) {
     if (!rule.title.enabled) {
@@ -415,7 +416,7 @@
       return;
     }
     if (document.title !== state.titleApplied) {
-      // BC heeft de titel zelf geschreven: dat is onze nieuwe basis.
+      // BC wrote the title itself: that is our new baseline.
       state.titleOriginal = document.title;
     }
     var next = BCEM.renderTidy(rule.title.text, state.ctx, extras(rule));
@@ -508,7 +509,7 @@
     ctx2d.closePath();
   }
 
-  /* ------------------------------------------------------------- opruimen */
+  /* ------------------------------------------------------------- cleanup */
 
   function clearAll() {
     var frame = document.getElementById(FRAME_ID);
@@ -545,15 +546,15 @@
   }
 
   /**
-   * In een iframe telt de URL van het bovenste venster: die bevat de omgeving
-   * en het bedrijf. Bij een cross-origin frame valt dit terug op de eigen URL.
+   * In an iframe the top window's URL counts: that holds the environment and
+   * the company. On a cross-origin frame this falls back to the own URL.
    */
   function contextHref() {
     if (!IS_TOP) {
       try {
         var topHref = window.top.location.href;
         if (topHref) return topHref;
-      } catch (e) { /* cross-origin: eigen URL gebruiken */ }
+      } catch (e) { /* cross-origin: use own URL */ }
     }
     return location.href;
   }

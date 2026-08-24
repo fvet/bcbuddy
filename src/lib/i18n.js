@@ -1,16 +1,16 @@
 /*
- * BC Buddy - vertalingen.
- * De taal volgt de taal van de browser: Chrome kiest zelf tussen _locales/nl
- * en _locales/en, met nl als terugval. Er is dus geen schakelaar en geen flits.
+ * BC Buddy - translations.
+ * Language follows the browser: Chrome picks between _locales/nl and
+ * _locales/en itself, with nl as fallback. So there is no switch and no flash.
  */
 (function (root) {
   'use strict';
   var BCEM = root.BCEM || (root.BCEM = {});
 
   /**
-   * Vertaalt een sleutel. $1, $2, ... in het bericht worden vervangen door de
-   * meegegeven waarden. Ontbreekt de sleutel, dan tonen we ze zelf, zodat een
-   * vergeten vertaling opvalt in plaats van een lege tekst achter te laten.
+   * Translates a key. $1, $2, ... in the message are replaced by the given
+   * values. If the key is missing we show the key itself, so a forgotten
+   * translation stands out instead of leaving empty text.
    */
   function t(key, substitutions) {
     var subs = substitutions == null ? [] :
@@ -18,18 +18,32 @@
     var message = '';
     try {
       message = chrome.i18n.getMessage(key, subs.map(String));
-    } catch (e) { /* buiten een extensie, bv. in een testpagina */ }
+    } catch (e) { /* outside an extension, e.g. on a test page */ }
     return message || key;
   }
 
   /**
-   * Vult de teksten in een stuk HTML in:
-   *   data-i18n              tekst van het element
-   *   data-i18n-title        title-attribuut
+   * Aligns <html lang> with the UI language Chrome chose for messages, so
+   * assistive tech matches the strings on screen. The attribute in the HTML
+   * files is only a pre-JS fallback (default_locale).
+   */
+  function applyDocumentLang() {
+    try {
+      var lang = chrome.i18n.getUILanguage();
+      if (lang) document.documentElement.lang = lang;
+    } catch (e) { /* outside an extension */ }
+  }
+
+  /**
+   * Fills in the texts in a piece of HTML:
+   *   data-i18n              element text
+   *   data-i18n-title        title attribute
    *   data-i18n-label        aria-label
    *   data-i18n-placeholder  placeholder
    */
   function apply(scope) {
+    // Always on the document: card-scoped applies must not leave lang stale.
+    applyDocumentLang();
     var root = scope || document;
     each(root, 'data-i18n', function (el, key) { el.textContent = t(key); });
     each(root, 'data-i18n-title', function (el, key) { el.title = t(key); });
@@ -46,4 +60,5 @@
 
   BCEM.t = t;
   BCEM.applyI18n = apply;
+  BCEM.applyDocumentLang = applyDocumentLang;
 })(typeof self !== 'undefined' ? self : this);

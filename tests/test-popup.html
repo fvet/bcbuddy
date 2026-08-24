@@ -14,8 +14,8 @@ var ROOT = '../';
 var STORE = {
   settings: {
     enabled: true,
-    // Zelfde id als de gedeelde regel hieronder: dat gebeurt wanneer je het
-    // gedeelde bestand importeert en de regel daarna lokaal aanpast.
+    // Same id as the shared rule below: that happens when you import the
+    // shared file and then edit the rule locally.
     rules: [
       { id: 'gedeeld-prod', name: 'PROD', color: '#c4314b',
         conditions: [{ field: 'environment', op: 'equals', value: 'Productie' }] }
@@ -35,8 +35,8 @@ var TAB_URL = 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d947
   'Productie?company=CONTOSO%20BE&page=21';
 
 /*
- * chrome.i18n met de echte berichten uit _locales/nl. Synchroon ingelezen,
- * zodat de scripts hieronder er meteen over beschikken.
+ * chrome.i18n with the real messages from _locales/nl. Loaded synchronously
+ * so the scripts below can use them immediately.
  */
 var MESSAGES = (function () {
   try {
@@ -51,6 +51,7 @@ var MESSAGES = (function () {
 
 function i18nStub() {
   return {
+    getUILanguage: function () { return 'nl'; },
     getMessage: function (key, subs) {
       var entry = MESSAGES[key];
       if (!entry) return '';
@@ -92,10 +93,10 @@ var results = [];
 function check(name, actual, expected) {
   var ok = JSON.stringify(actual) === JSON.stringify(expected);
   results.push((ok ? 'PASS  ' : 'FAIL  ') + name +
-    (ok ? '' : '\n        verwacht: ' + JSON.stringify(expected) + '\n        gekregen: ' + JSON.stringify(actual)));
+    (ok ? '' : '\n        expected: ' + JSON.stringify(expected) + '\n        got: ' + JSON.stringify(actual)));
 }
 function truthy(name, actual) {
-  results.push((actual ? 'PASS  ' : 'FAIL  ') + name + (actual ? '' : '  (kreeg: ' + JSON.stringify(actual) + ')'));
+  results.push((actual ? 'PASS  ' : 'FAIL  ') + name + (actual ? '' : '  (got: ' + JSON.stringify(actual) + ')'));
 }
 function cssRule(selector) {
   var found = null;
@@ -136,40 +137,44 @@ fetch(ROOT + 'src/popup/popup.html')
   })
   .then(function () { return new Promise(function (r) { setTimeout(r, 400); }); })
   .then(function () {
-    check('popup: de app staat bovenaan',
+    check('popup: brand name at top',
       document.querySelector('header .brand-name').textContent, 'BC Buddy');
-    truthy('popup: met het logo ernaast', !!document.querySelector('header svg.brand'));
-    check('popup: de merkbol krijgt de kleur van de regel',
+    check('popup: document lang follows UI language',
+      document.documentElement.lang, 'nl');
+    truthy('popup: logo beside brand name', !!document.querySelector('header svg.brand'));
+    check('popup: brand dot uses rule color',
       document.getElementById('brandDot').style.fill, 'rgb(196, 49, 75)');
 
-    check('popup: actieve regel getoond',
+    check('popup: active rule shown',
       document.querySelector('#parsed div:first-child dd').textContent, 'PROD');
-    check('popup: eigen regel met hetzelfde id als een gedeelde blijft "eigen"',
+    check('popup: local rule with same id as shared stays local',
       document.querySelector('#parsed div:first-child dd').title, 'PROD — eigen regel');
-    truthy('popup: bedrijf uit de URL', document.getElementById('parsed').textContent.indexOf('CONTOSO BE') !== -1);
-    truthy('popup: omgeving uit de URL', document.getElementById('parsed').textContent.indexOf('Productie') !== -1);
-    check('popup: de regel staat voor de velden uit de URL, zonder tenant',
+    truthy('popup: company from URL', document.getElementById('parsed').textContent.indexOf('CONTOSO BE') !== -1);
+    truthy('popup: environment from URL', document.getElementById('parsed').textContent.indexOf('Productie') !== -1);
+    check('popup: rule precedes URL fields, tenant omitted',
       Array.prototype.map.call(document.querySelectorAll('#parsed dt'), function (dt) { return dt.textContent; }),
       ['Regel', 'Omgeving', 'Bedrijf']);
-    truthy('popup: de tenant staat er niet meer bij',
+    truthy('popup: tenant is not shown',
       document.getElementById('parsed').textContent.indexOf('453d817a') === -1);
-    truthy('popup: schakelaar staat aan', document.getElementById('enabled').checked);
-    check('popup: knop heet gewoon Regel toevoegen',
+    truthy('popup: toggle is on', document.getElementById('enabled').checked);
+    check('popup: add rule button label',
       document.getElementById('addRule').textContent, 'Regel toevoegen');
-    truthy('popup: geen knop wanneer er al een regel past',
+    truthy('popup: no button when a rule already matches',
       document.getElementById('addRule').offsetParent === null);
+    truthy('popup: sync visible with shared URL',
+      document.getElementById('syncNow').offsetParent !== null);
 
-    // .btn:hover zet een grijze achtergrond; de primaire knop moet die
-    // overschrijven, anders staat er donkere tekst op een donkere knop.
-    check('popup: volgt het systeemthema zonder schakelaar',
+    // .btn:hover sets a grey background; the primary button must override that,
+    // otherwise you get dark text on a dark button.
+    check('popup: follows system theme without toggle',
       getComputedStyle(document.documentElement).colorScheme, 'light dark');
 
     var hover = cssRule('.btn--primary:hover');
-    truthy('popup: primaire knop heeft een eigen hover-regel', !!hover);
+    truthy('popup: primary button has its own hover rule', !!hover);
     if (hover) {
-      truthy('popup: hover zet zelf een achtergrond',
+      truthy('popup: hover sets its own background',
         !!(hover.style.background || hover.style.backgroundColor));
-      truthy('popup: hover zet zelf een tekstkleur', !!hover.style.color);
+      truthy('popup: hover sets its own text color', !!hover.style.color);
     }
 
     document.getElementById('enabled').checked = false;
@@ -177,9 +182,9 @@ fetch(ROOT + 'src/popup/popup.html')
     return new Promise(function (r) { setTimeout(r, 200); });
   })
   .then(function () {
-    check('popup: uitschakelen bewaard', STORE.settings.enabled, false);
+    check('popup: disabled state persisted', STORE.settings.enabled, false);
 
-    // opnieuw opbouwen voor een tab die geen Business Central is
+    // rebuild for a tab that is not Business Central
     STORE.settings.enabled = true;
     TAB_URL = 'https://www.google.com/shopping';
     document.getElementById('app').innerHTML = POPUP_BODY;
@@ -187,35 +192,54 @@ fetch(ROOT + 'src/popup/popup.html')
   })
   .then(function () { return new Promise(function (r) { setTimeout(r, 300); }); })
   .then(function () {
-    check('popup: enkel de gevonden velden',
+    check('popup: only the found fields',
       Array.prototype.map.call(document.querySelectorAll('#parsed dt'), function (dt) { return dt.textContent; }),
       ['Regel', 'Omgeving']);
-    check('popup: bijhorende waarden',
+    check('popup: corresponding values',
       Array.prototype.map.call(document.querySelectorAll('#parsed dd'), function (dd) { return dd.textContent; }),
       ['Geen Business Central', 'shopping']);
 
-    // Zonder passende regel staat de knop er wel, en die zet een concept klaar.
-    truthy('popup: wel een knop wanneer er geen regel past',
+    // Without a matching rule the button is shown, and it prepares a draft.
+    truthy('popup: button shown when no rule matches',
       document.getElementById('addRule').offsetParent !== null);
     document.getElementById('addRule').click();
     return new Promise(function (r) { setTimeout(r, 200); });
   })
   .then(function () {
-    truthy('popup: concept-regel klaargezet', !!STORE.pendingRule);
+    truthy('popup: draft rule prepared', !!STORE.pendingRule);
     if (STORE.pendingRule) {
-      check('popup: naam uit de omgeving', STORE.pendingRule.name, 'SHOPPING');
-      check('popup: buiten BC een voorwaarde op de volledige URL',
+      check('popup: name from environment', STORE.pendingRule.name, 'SHOPPING');
+      check('popup: outside BC, condition on full URL',
         STORE.pendingRule.conditions,
         [{ field: 'url', op: 'contains', value: 'https://www.google.com/shopping' }]);
-      truthy('popup: kleur meegegeven aan het concept', !!STORE.pendingRule.color);
+      truthy('popup: color included in draft', !!STORE.pendingRule.color);
     }
-    truthy('popup: optiespagina geopend', OPENED === 1);
+    truthy('popup: options page opened', OPENED === 1);
+
+    // Without a shared URL the Sync button has nothing useful to do.
+    STORE.settings.hosted.url = '';
+    document.getElementById('app').innerHTML = POPUP_BODY;
+    return loadScript(ROOT + 'src/popup/popup.js?zonder-url');
+  })
+  .then(function () { return new Promise(function (r) { setTimeout(r, 300); }); })
+  .then(function () {
+    truthy('popup: sync hidden without shared URL',
+      document.getElementById('syncNow').offsetParent === null);
+
+    STORE.settings.hosted.url = 'http://example.com/bc.json';
+    document.getElementById('app').innerHTML = POPUP_BODY;
+    return loadScript(ROOT + 'src/popup/popup.js?http-url');
+  })
+  .then(function () { return new Promise(function (r) { setTimeout(r, 300); }); })
+  .then(function () {
+    truthy('popup: sync hidden for http URL',
+      document.getElementById('syncNow').offsetParent === null);
   })
   .catch(function (err) { results.push('FAIL  harness: ' + err.message); })
   .then(function () {
     var failed = results.filter(function (l) { return l.indexOf('FAIL') === 0; });
     document.getElementById('results').textContent =
-      results.join('\n') + '\n\nTOTAAL: ' + results.length + ' checks, ' + failed.length + ' gefaald.';
+      results.join('\n') + '\n\nTOTAL: ' + results.length + ' checks, ' + failed.length + ' failed.';
   });
 </script>
 </body>

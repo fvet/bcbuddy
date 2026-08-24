@@ -1,18 +1,18 @@
 <#
-    Draait de testpagina's in headless Chrome (of Edge) en toont het resultaat.
+    Runs the test pages in headless Chrome (or Edge) and prints the result.
 
-    Gebruik:  powershell -ExecutionPolicy Bypass -File tests\run-tests.ps1
+    Usage:  powershell -ExecutionPolicy Bypass -File tests\run-tests.ps1
 #>
 
 $ErrorActionPreference = 'Stop'
 
 function Find-Browser {
-    # Expliciete keuze wint: op een build-agent staat de browser zelden waar we
-    # hem hier verwachten, en dan wil je hem kunnen aanwijzen zonder dit script
-    # aan te passen.
+    # Explicit choice wins: on a build agent the browser is rarely where we
+    # expect it here, and then you want to point at it without editing this
+    # script.
     if ($env:CHROME_PATH) {
         if (Test-Path $env:CHROME_PATH) { return $env:CHROME_PATH }
-        throw "CHROME_PATH verwijst naar niets: $env:CHROME_PATH"
+        throw "CHROME_PATH points to nothing: $env:CHROME_PATH"
     }
 
     $candidates = @(
@@ -25,14 +25,14 @@ function Find-Browser {
     $found = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
     if ($found) { return $found }
 
-    # Valt de vaste lijst tegen, dan telt wat er in PATH staat. Dat vangt zowel
-    # een andere installatiemap als een niet-Windows agent op.
+    # If the fixed list fails, what is on PATH counts. That covers both a
+    # different install folder and a non-Windows agent.
     foreach ($name in @('chrome', 'google-chrome', 'chromium', 'msedge')) {
         $command = Get-Command $name -ErrorAction SilentlyContinue
         if ($command) { return $command.Source }
     }
 
-    throw 'Geen Chrome of Edge gevonden. Zet CHROME_PATH naar het uitvoerbaar bestand.'
+    throw 'No Chrome or Edge found. Set CHROME_PATH to the executable.'
 }
 
 $browser = Find-Browser
@@ -54,18 +54,18 @@ foreach ($suite in $suites) {
 
     $dom = Get-Content $dumpFile -Raw
     $start = $dom.IndexOf('id="results"')
-    if ($start -lt 0) { Write-Host "$suite : GEEN RESULTATEN" -ForegroundColor Red; $totalFailed++; continue }
+    if ($start -lt 0) { Write-Host "$suite : NO RESULTS" -ForegroundColor Red; $totalFailed++; continue }
 
     $end = $dom.IndexOf('</div>', $start)
     $body = $dom.Substring($start + 13, $end - $start - 13)
     $lines = $body -split "`n"
 
     $failed = $lines | Where-Object { $_ -match '^FAIL' }
-    $total = ($lines | Where-Object { $_ -match 'TOTAAL' }) -join ''
+    $total = ($lines | Where-Object { $_ -match 'TOTAL' }) -join ''
 
     if ($failed) {
         Write-Host "$suite" -ForegroundColor Red
-        $body -split "`n" | Where-Object { $_ -match '^FAIL|verwacht:|gekregen:|^\s{8}' } | ForEach-Object { Write-Host "  $_" }
+        $body -split "`n" | Where-Object { $_ -match '^FAIL|expected:|got:|^\s{8}' } | ForEach-Object { Write-Host "  $_" }
         $totalFailed += $failed.Count
     } else {
         Write-Host "$suite  OK" -ForegroundColor Green
@@ -74,7 +74,7 @@ foreach ($suite in $suites) {
 }
 
 if ($totalFailed -gt 0) {
-    Write-Host "`n$totalFailed check(s) gefaald." -ForegroundColor Red
+    Write-Host "`n$totalFailed check(s) failed." -ForegroundColor Red
     exit 1
 }
-Write-Host "`nAlles geslaagd." -ForegroundColor Green
+Write-Host "`nAll passed." -ForegroundColor Green

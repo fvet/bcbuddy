@@ -1,6 +1,6 @@
 # Privacy policy - BC Buddy
 
-_Last updated: 23 August 2026_
+_Last updated: 24 August 2026_
 
 BC Buddy is a browser extension that colours and labels Business Central
 environments so you can tell them apart. **It does not collect, transmit or
@@ -27,11 +27,14 @@ read is stored, logged or sent anywhere.
 
 ## Network requests
 
-BC Buddy makes exactly one kind of network request: an HTTP `GET` of the
+BC Buddy makes exactly one kind of network request: an HTTPS `GET` of the
 shared configuration file, to the URL **you** entered in the options page.
-It is sent without cookies or credentials (`credentials: 'omit'`), and only
-if you configured such a URL. If you leave that field empty, the extension
-makes no network requests at all.
+Plain HTTP is refused. The request is sent without cookies or credentials
+(`credentials: 'omit'`), and only if you configured such a URL. If you leave
+that field empty, the extension makes no network requests at all.
+
+Treat that URL as trusted: the file can define rules that mark any site. Use
+a location you control (for example your team's repository).
 
 The operator of the server hosting that file (GitHub, for example) will see
 that request the same way it sees any other download. BC Buddy adds nothing
@@ -55,7 +58,7 @@ Questions or concerns: open an issue at
 
 # Privacyverklaring - BC Buddy
 
-_Laatst bijgewerkt: 23 augustus 2026_
+_Laatst bijgewerkt: 24 augustus 2026_
 
 BC Buddy kleurt en labelt je Business Central-omgevingen zodat je ze uit
 elkaar houdt. **De extensie verzamelt, verstuurt en verkoopt geen enkele
@@ -79,10 +82,14 @@ in je browser. Niets daarvan wordt bewaard, gelogd of doorgestuurd.
 
 ## Netwerkverkeer
 
-BC Buddy doet precies een soort verzoek: een HTTP `GET` van het gedeelde
-configuratiebestand, naar de URL die **jij** in de optiespagina invulde,
-zonder cookies of credentials. Vul je die niet in, dan doet de extensie
-helemaal geen netwerkverzoeken.
+BC Buddy doet precies een soort verzoek: een HTTPS `GET` van het gedeelde
+configuratiebestand, naar de URL die **jij** in de optiespagina invulde.
+Gewone HTTP wordt geweigerd. Het verzoek gaat zonder cookies of credentials.
+Vul je die URL niet in, dan doet de extensie helemaal geen netwerkverzoeken.
+
+Behandel die URL als vertrouwd: het bestand kan regels definiëren die elke
+site markeren. Gebruik alleen een locatie die je zelf beheert (bijvoorbeeld
+de repository van je team).
 
 ## Rechten
 

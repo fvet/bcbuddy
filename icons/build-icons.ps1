@@ -1,15 +1,15 @@
 <#
-    Rendert de PNG-iconen uit logo.svg met headless Chrome (of Edge).
+    Renders the PNG icons from logo.svg with headless Chrome (or Edge).
 
-    Gebruik:  powershell -ExecutionPolicy Bypass -File icons\build-icons.ps1
+    Usage:  powershell -ExecutionPolicy Bypass -File icons\build-icons.ps1
 
-    Elk formaat komt uit logo.svg, het volledige monogram: in de werkbalk, bij
-    de extensies en op de optiespagina hoort hetzelfde merk te staan.  De bron
-    wordt eerst op 512 px gerenderd en daarna teruggeschaald; headless Chrome
-    levert bij zeer kleine vensters niet altijd een betrouwbare screenshot.
+    Every size comes from logo.svg, the full monogram: the toolbar, the
+    extensions menu and the options page should show the same brand. The source
+    is rendered at 512 px first and then scaled down; headless Chrome does not
+    always produce a reliable screenshot at very small window sizes.
 
-    De letters worden mee gerasterd, dus het resultaat hangt niet af van Segoe
-    UI op de machine van de gebruiker - enkel op deze machine tijdens het bouwen.
+    The letters are rasterised with it, so the result does not depend on Segoe
+    UI on the user's machine — only on this machine during the build.
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -23,7 +23,7 @@ $candidates = @(
     "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe"
 )
 $browser = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-if (-not $browser) { throw 'Geen Chrome of Edge gevonden.' }
+if (-not $browser) { throw 'No Chrome or Edge found.' }
 
 $iconDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $work = Join-Path $env:TEMP 'bcbuddy-icons'
@@ -52,7 +52,7 @@ $svg
         --user-data-dir="$work\profile" --virtual-time-budget=4000 `
         --window-size="$render,$render" --screenshot="$pngFile" $url | Out-Null
 
-    if (-not (Test-Path $pngFile)) { throw "Renderen van $svgName mislukt." }
+    if (-not (Test-Path $pngFile)) { throw "Rendering $svgName failed." }
     return $pngFile
 }
 
@@ -91,15 +91,15 @@ foreach ($t in $targets) {
 
 
 <#
-    Het winkelicoon volgt andere regels dan het werkbalkicoon.  De Web Store
-    wil een 128x128 PNG waarin het merk zelf niet groter is dan 96x96: de
-    16 px rondom moeten doorzichtig blijven, want de store zet er zijn eigen
-    kader en schaduw omheen.  Vult de tekening de volledige 128 px, dan botst
-    ze tegen dat kader.
+    The store icon follows different rules from the toolbar icon. The Web Store
+    wants a 128x128 PNG where the brand itself is no larger than 96x96: the
+    16 px around it must stay transparent, because the store puts its own frame
+    and shadow around it. If the artwork fills the full 128 px, it collides
+    with that frame.
 
-    In de werkbalk geldt het omgekeerde - daar mag het merk net wel de ruimte
-    innemen - dus dit is een apart bestand en geen vervanging van icon128.png.
-    Het gaat ook niet mee in het pakket; je uploadt het in het dashboard.
+    In the toolbar the opposite applies — there the brand may fill the space —
+    so this is a separate file and not a replacement for icon128.png.
+    It also does not go in the package; you upload it in the dashboard.
 #>
 
 function Get-AlphaBounds([System.Drawing.Bitmap]$bmp) {
@@ -118,8 +118,8 @@ function Get-AlphaBounds([System.Drawing.Bitmap]$bmp) {
     for ($y = 0; $y -lt $bmp.Height; $y++) {
         $row = $y * $stride
         for ($x = 0; $x -lt $bmp.Width; $x++) {
-            # Alleen de alpha telt; halfdoorzichtige randpixels laten we meetellen
-            # vanaf 8, zodat antialiasing de rand niet kunstmatig oprekt.
+            # Only alpha counts; we include semi-transparent edge pixels from
+            # 8 up, so antialiasing does not artificially inflate the bound.
             if ($bytes[$row + $x * 4 + 3] -gt 8) {
                 if ($x -lt $minX) { $minX = $x }
                 if ($x -gt $maxX) { $maxX = $x }
@@ -128,7 +128,7 @@ function Get-AlphaBounds([System.Drawing.Bitmap]$bmp) {
             }
         }
     }
-    if ($maxX -lt 0) { throw 'De render is volledig doorzichtig.' }
+    if ($maxX -lt 0) { throw 'The render is fully transparent.' }
     return @{ X = $minX; Y = $minY; W = $maxX - $minX + 1; H = $maxY - $minY + 1 }
 }
 
@@ -136,8 +136,8 @@ function Save-StoreIcon([string]$sourcePng, [int]$canvas, [int]$content, [string
     $src = [System.Drawing.Bitmap]::FromFile($sourcePng)
     try {
         $bounds = Get-AlphaBounds $src
-        # Het merk is breder dan hoog; passen binnen 96x96 betekent dus schalen
-        # op de breedte en verticaal centreren.
+        # The brand is wider than tall; fitting within 96x96 means scaling on
+        # width and centering vertically.
         $scale = [Math]::Min($content / $bounds.W, $content / $bounds.H)
         $w = [int][Math]::Round($bounds.W * $scale)
         $h = [int][Math]::Round($bounds.H * $scale)
@@ -165,7 +165,7 @@ function Save-StoreIcon([string]$sourcePng, [int]$canvas, [int]$content, [string
 
 $storeIcon = Join-Path $iconDir 'store-icon128.png'
 $result = Save-StoreIcon $bigPng 128 96 $storeIcon
-Write-Host ("store-icon128.png  merk {0}x{1}, {2} px rand ({3} bytes)" -f `
+Write-Host ("store-icon128.png  brand {0}x{1}, {2} px margin ({3} bytes)" -f `
     $result.W, $result.H, $result.Pad, (Get-Item $storeIcon).Length) -ForegroundColor Green
 
-Write-Host "`nKlaar." -ForegroundColor Green
+Write-Host "`nDone." -ForegroundColor Green

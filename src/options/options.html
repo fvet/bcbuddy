@@ -56,7 +56,7 @@
         <span data-i18n="navAbout">Over</span>
       </button>
 
-      <!-- Onder de navigatie, los van de secties: de hoofdschakelaar. -->
+      <!-- Below the nav, separate from the sections: the master switch. -->
       <label class="switch nav__toggle">
         <input type="checkbox" class="toggle" id="globalEnabled">
         <span data-i18n="extensionActive">Extensie actief</span>
@@ -121,7 +121,8 @@
       <div class="section-head">
         <h2 data-i18n="sharedHeading">Gedeelde configuratie</h2>
       </div>
-      <p class="muted small" data-i18n="sharedIntro">Host een JSON-bestand op een publieke URL.</p>
+      <p class="muted small" data-i18n="sharedIntro">Host een JSON-bestand op een publieke HTTPS-URL.</p>
+      <p class="trust-note" data-i18n="sharedTrust">Gebruik alleen een URL die je zelf beheert. Het bestand kan regels definiëren die elke site markeren.</p>
 
       <div class="card">
         <div class="grid grid--hosted">
@@ -195,7 +196,7 @@
       <div class="rule__head">
         <button type="button" class="icon-btn rule__grip" data-action="grip" data-grip
                 data-i18n-title="dragToReorder">&#10303;</button>
-        <!-- Het kleurblokje is meteen de knop die de regel open- en dichtklapt. -->
+        <!-- The colour swatch is also the button that expands and collapses the rule. -->
         <button type="button" class="rule__swatch" data-swatch data-action="toggle"
                 aria-expanded="false" data-i18n-title="toggleDetails"></button>
         <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="ruleNamePlaceholder">

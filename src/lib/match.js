@@ -1,7 +1,7 @@
 /*
- * BC Buddy - URL parsing, rule matching en template rendering.
- * Pure functies, geen chrome.* API. Bruikbaar in content script, options,
- * popup en service worker (via importScripts).
+ * BC Buddy - URL parsing, rule matching and template rendering.
+ * Pure functions, no chrome.* API. Usable in the content script, options,
+ * popup and service worker (via importScripts).
  */
 (function (root) {
   'use strict';
@@ -9,7 +9,7 @@
 
   var GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   var BC_HOST_RE = /(^|\.)businesscentral\.dynamics(-tie)?\.com$/i;
-  // Segmenten die na de tenant kunnen staan maar zelf geen omgevingsnaam zijn.
+  // Segments that can follow the tenant but are not an environment name themselves.
   var NON_ENV_SEG = /^(deeplink|signin|_layouts|api|webhooks)$/i;
 
   function safeDecode(value) {
@@ -21,7 +21,7 @@
   }
 
   /**
-   * Ontleedt een URL naar de velden waarop regels kunnen matchen.
+   * Parses a URL into the fields rules can match on.
    * BC SaaS:   https://businesscentral.dynamics.com/{tenant}/{environment}?company=CRONUS%20BE&page=1
    * BC onprem: https://server/BC240/?company=CRONUS%20BE&tenant=default
    */
@@ -52,11 +52,11 @@
     var segs = u.pathname.split('/').filter(Boolean).map(safeDecode);
     if (segs.length) {
       if (GUID_RE.test(segs[0]) || segs[0].indexOf('.') !== -1) {
-        // /{tenantId of tenantdomein}/{environment}/...
+        // /{tenantId or tenant domain}/{environment}/...
         ctx.tenant = segs[0];
         ctx.environment = segs[1] && !NON_ENV_SEG.test(segs[1]) ? segs[1] : '';
       } else if (!NON_ENV_SEG.test(segs[0])) {
-        // /{environment}/... (onprem serverinstance of BC zonder tenant in het pad)
+        // /{environment}/... (onprem server instance or BC without tenant in the path)
         ctx.environment = segs[0];
       }
     }
@@ -66,7 +66,7 @@
     return ctx;
   }
 
-  // De opschriften komen uit de vertalingen: fieldUrl, opContains, enzovoort.
+  // Labels come from the translations: fieldUrl, opContains, and so on.
   var FIELDS = [
     { value: 'environment', key: 'fieldEnvironment' },
     { value: 'company', key: 'fieldCompany' },
@@ -80,7 +80,7 @@
     { value: 'startsWith', key: 'opStartsWith' },
     { value: 'endsWith', key: 'opEndsWith' },
     { value: 'notContains', key: 'opNotContains' },
-    // RegEx achteraan: de zeldzaamste keuze, en de enige die uitleg vraagt.
+    // RegEx last: the rarest choice, and the only one that needs explaining.
     { value: 'regex', key: 'opRegex' }
   ];
 
@@ -94,11 +94,7 @@
     var op = cond.op || 'contains';
 
     if (op === 'regex') {
-      try {
-        return new RegExp(value, 'i').test(subject);
-      } catch (e) {
-        return false;
-      }
+      return safeRegexTest(value, subject);
     }
     var a = subject.toLowerCase();
     var b = value.toLowerCase();
@@ -111,7 +107,83 @@
     }
   }
 
-  /** Alle ingevulde voorwaarden van een regel moeten kloppen (AND). */
+  // Long enough for real BC URL patterns; short enough to keep ReDoS bounded.
+  var REGEX_MAX_LEN = 200;
+
+  /**
+   * Runs a user/shared RegEx against a subject. Invalid patterns, oversized
+   * ones and nested-quantifier shapes (the usual ReDoS form) all fail closed —
+   * the condition simply does not match, same as a syntax error.
+   */
+  function safeRegexTest(pattern, subject) {
+    if (pattern.length > REGEX_MAX_LEN) return false;
+    if (hasNestedQuantifiers(pattern)) return false;
+    try {
+      return new RegExp(pattern, 'i').test(subject);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Detects (…*…)+ / (…+)+ / […]+* style nesting: a group or class whose body
+   * already contains a quantifier, then quantified again. That is the shape
+   * that explodes on crafted input; plain alternation and single quantifiers
+   * are allowed.
+   */
+  function hasNestedQuantifiers(source) {
+    var i = 0;
+    while (i < source.length) {
+      var ch = source.charAt(i);
+      if (ch === '\\') { i += 2; continue; }
+      if (ch === '(' || ch === '[') {
+        var close = ch === '(' ? findGroupEnd(source, i) : findClassEnd(source, i);
+        if (close < 0) return false;
+        var inner = stripEscapes(source.slice(i + 1, close));
+        if (/[*+?{]/.test(inner) && isQuantifierAt(source, close + 1)) return true;
+        i = close + 1;
+        continue;
+      }
+      i += 1;
+    }
+    return false;
+  }
+
+  function findGroupEnd(source, open) {
+    var depth = 0;
+    for (var i = open; i < source.length; i++) {
+      var ch = source.charAt(i);
+      if (ch === '\\') { i += 1; continue; }
+      if (ch === '(') depth += 1;
+      else if (ch === ')') {
+        depth -= 1;
+        if (depth === 0) return i;
+      }
+    }
+    return -1;
+  }
+
+  function findClassEnd(source, open) {
+    for (var i = open + 1; i < source.length; i++) {
+      var ch = source.charAt(i);
+      if (ch === '\\') { i += 1; continue; }
+      if (ch === ']') return i;
+    }
+    return -1;
+  }
+
+  function stripEscapes(text) {
+    return text.replace(/\\[\s\S]/g, '');
+  }
+
+  function isQuantifierAt(source, index) {
+    var ch = source.charAt(index);
+    if (ch === '*' || ch === '+' || ch === '?') return true;
+    if (ch !== '{') return false;
+    return /^\{\d+(?:,\d*)?\}/.test(source.slice(index));
+  }
+
+  /** All filled-in conditions of a rule must match (AND). */
   function matchRule(rule, ctx) {
     if (!rule || rule.enabled === false) return false;
     var conds = (rule.conditions || []).filter(function (c) {
@@ -124,10 +196,10 @@
   var BC_HOST = 'businesscentral.dynamics.com';
 
   /**
-   * Mikt deze regel op Business Central? Dat is zo bij een voorwaarde op
-   * omgeving of bedrijf, of bij een voorwaarde op host of URL waarin de
-   * BC-host voorkomt. Backslashes worden genegeerd, zodat een RegEx als
-   * "businesscentral\.dynamics\.com" ook herkend wordt.
+   * Does this rule target Business Central? That is the case for a condition
+   * on environment or company, or for a condition on host or URL that contains
+   * the BC host. Backslashes are ignored, so a RegEx like
+   * "businesscentral\.dynamics\.com" is recognised too.
    */
   function targetsBusinessCentral(rule) {
     var conds = (rule && rule.conditions) || [];
@@ -140,7 +212,7 @@
     });
   }
 
-  /** Eerste match wint; de volgorde in de lijst bepaalt de prioriteit. */
+  /** First match wins; list order decides priority. */
   function findRule(rules, ctx) {
     var list = rules || [];
     for (var i = 0; i < list.length; i++) {
@@ -151,11 +223,11 @@
 
   var TOKEN_RE = /\{(\w+)\}/g;
   var SEPARATOR = '[\\-–—·|/]';
-  // Markeert waar een token leeg was, zodat het bijhorende scheidingsteken mee kan verdwijnen.
+  // Marks where a token was empty, so the matching separator can disappear with it.
   var EMPTY = '\u0000';
 
-  // De tokens die in teksten vervangen worden. Wat hier niet in staat blijft
-  // letterlijk staan, zodat de lijst in de interface ook echt de lijst is.
+  // The tokens replaced in texts. Anything not listed here stays literal, so
+  // the list in the UI really is the list.
   var TOKENS = ['name', 'environment', 'env', 'company', 'tenant', 'title'];
 
   function buildMap(ctx, extra) {
@@ -171,7 +243,7 @@
     return map;
   }
 
-  /** Vervangt {tokens} door waarden uit de context. Onbekende tokens blijven staan. */
+  /** Replaces {tokens} with values from the context. Unknown tokens stay put. */
   function render(template, ctx, extra) {
     var map = buildMap(ctx, extra);
     return String(template == null ? '' : template).replace(TOKEN_RE, function (m, key) {
@@ -180,7 +252,7 @@
     });
   }
 
-  /** Ruimt lege haakjes, dubbele spaties en losse scheidingstekens aan de randen op. */
+  /** Cleans up empty brackets, double spaces and stray separators at the edges. */
   function tidy(text) {
     return String(text == null ? '' : text)
       .replace(/\(\s*\)|\[\s*\]/g, '')
@@ -191,9 +263,9 @@
   }
 
   /**
-   * Rendert een template en haalt weg wat een leeg token achterlaat.
-   * "BC - {environment} - {company} ({name})" wordt zonder bedrijf
-   * "BC - Sandbox (TEST)" in plaats van "BC - Sandbox -  (TEST)".
+   * Renders a template and removes what an empty token leaves behind.
+   * "BC - {environment} - {company} ({name})" without a company becomes
+   * "BC - Sandbox (TEST)" instead of "BC - Sandbox -  (TEST)".
    */
   function renderTidy(template, ctx, extra) {
     var map = buildMap(ctx, extra);
@@ -206,14 +278,14 @@
 
     var gap = new RegExp('(\\s*' + SEPARATOR + '\\s*)?' + EMPTY + '(\\s*' + SEPARATOR + '\\s*)?', 'g');
     text = text.replace(gap, function (match, before, after) {
-      // Staat het lege token tussen twee scheidingstekens, hou er dan een over.
+      // If the empty token sits between two separators, keep one.
       return before && after ? after : '';
     });
 
     return tidy(text);
   }
 
-  /* ---------- kleur helpers ---------- */
+  /* ---------- colour helpers ---------- */
 
   function parseColor(input) {
     var s = String(input == null ? '' : input).trim();
@@ -266,9 +338,9 @@
   }
 
   /**
-   * Wit of zwart, afhankelijk van wat het best leesbaar is op die achtergrond.
-   * De drempel 0.179 is het punt waarop het WCAG-contrast met zwart dat met wit
-   * overstijgt: sqrt(1.05 * 0.05) - 0.05.
+   * White or black, whichever reads best on that background.
+   * The 0.179 threshold is where WCAG contrast with black overtakes that with
+   * white: sqrt(1.05 * 0.05) - 0.05.
    */
   function idealText(background) {
     return luminance(background) > 0.179 ? '#000000' : '#ffffff';
@@ -277,6 +349,7 @@
   BCEM.parseUrl = parseUrl;
   BCEM.testCondition = testCondition;
   BCEM.matchRule = matchRule;
+  BCEM.safeRegexTest = safeRegexTest;
   BCEM.targetsBusinessCentral = targetsBusinessCentral;
   BCEM.findRule = findRule;
   BCEM.render = render;

@@ -130,12 +130,13 @@ customer's production environment sees the same red you do.
 
 1. Set up your layouts and rules and click **Export**; that produces
    `bc-buddy.json`, layouts included.
-2. Put that file somewhere everyone can reach it over HTTP — a repository, for
-   instance.
+2. Put that file somewhere everyone can reach it over HTTPS — a repository, for
+   instance. Only use a URL you control: the file can define rules that mark
+   any site.
 3. Everyone fills in the URL on the options page under **Shared configuration**:
    `https://raw.githubusercontent.com/company/repo/main/bc-buddy.json`
    An ordinary `github.com/.../blob/...` link is fine too; it is converted to
-   the raw variant automatically.
+   the raw variant automatically. Plain HTTP is refused.
 4. A click on **Synchronise** fetches the file and thereby switches the shared
    configuration on right away: from then on it is updated every day. There is
    no separate toggle — synchronising is the toggle.

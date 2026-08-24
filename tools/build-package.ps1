@@ -1,10 +1,10 @@
 <#
-  Bouwt het ZIP-bestand voor de Chrome Web Store / Edge Add-ons.
+  Builds the ZIP file for the Chrome Web Store / Edge Add-ons.
 
-  Enkel wat de extensie bij de gebruiker nodig heeft gaat mee: manifest,
-  src, _locales en de PNG-iconen. Tests, voorbeelden, de SVG-bronnen en het
-  icon-buildscript blijven achter - die maken het pakket enkel groter en
-  geven de reviewer bestanden te lezen die niets doen.
+  Only what the extension needs for the user goes in: manifest, src, _locales
+  and the PNG icons. Tests, samples, the SVG sources and the icon build script
+  stay out — they only make the package larger and give the reviewer files to
+  read that do nothing.
 #>
 [CmdletBinding()]
 param(
@@ -18,9 +18,9 @@ if (-not $OutDir) { $OutDir = Join-Path $root 'dist' }
 
 $manifest = Get-Content (Join-Path $root 'manifest.json') -Raw | ConvertFrom-Json
 $version = $manifest.version
-if (-not $version) { throw 'Geen version in manifest.json.' }
+if (-not $version) { throw 'No version in manifest.json.' }
 
-# Wat mee in het pakket gaat.
+# What goes into the package.
 $include = @(
   'manifest.json',
   'src',
@@ -37,7 +37,7 @@ New-Item -ItemType Directory -Path $staging | Out-Null
 try {
   foreach ($item in $include) {
     $source = Join-Path $root $item
-    if (-not (Test-Path $source)) { throw "Ontbreekt: $item" }
+    if (-not (Test-Path $source)) { throw "Missing: $item" }
     $target = Join-Path $staging $item
     $parent = Split-Path $target -Parent
     if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
@@ -51,16 +51,16 @@ try {
   Compress-Archive -Path (Join-Path $staging '*') -DestinationPath $zip -CompressionLevel Optimal
 
   $size = [math]::Round((Get-Item $zip).Length / 1KB, 1)
-  Write-Host "Pakket klaar: $zip ($size KB)"
+  Write-Host "Package ready: $zip ($size KB)"
 
-  # Kleine controle: het manifest moet bovenaan in de ZIP staan, niet in een
-  # submap - anders weigert de Web Store het pakket.
+  # Small check: the manifest must sit at the top of the ZIP, not in a
+  # subfolder — otherwise the Web Store rejects the package.
   Add-Type -AssemblyName System.IO.Compression.FileSystem
   $archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
   try {
     $names = $archive.Entries | ForEach-Object { $_.FullName }
-    if ($names -notcontains 'manifest.json') { throw 'manifest.json staat niet in de wortel van de ZIP.' }
-    Write-Host "$($names.Count) bestanden."
+    if ($names -notcontains 'manifest.json') { throw 'manifest.json is not at the root of the ZIP.' }
+    Write-Host "$($names.Count) files."
   } finally {
     $archive.Dispose()
   }

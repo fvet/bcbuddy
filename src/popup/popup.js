@@ -1,7 +1,7 @@
 /*
  * BC Buddy - popup.
- * Toont welke regel op het actieve tabblad van toepassing is en biedt
- * een snelkoppeling om er meteen een regel voor aan te maken.
+ * Shows which rule applies to the active tab and offers a shortcut to create
+ * a rule for it straight away.
  */
 (function () {
   'use strict';
@@ -27,8 +27,8 @@
       current.ctx = BCEM.parseUrl((current.tab && current.tab.url) || '');
       var rules = BCEM.effectiveRules(current.settings);
       current.rule = current.settings.enabled ? BCEM.findRule(rules, current.ctx) : null;
-      // Op positie bepalen, niet op id: een eigen regel mag hetzelfde id hebben
-      // als een gedeelde (dat gebeurt na een import uit hetzelfde bestand).
+      // Decide by position, not by id: an own rule may share an id with a
+      // shared one (that happens after an import from the same file).
       current.isHosted = !!current.rule &&
         rules.indexOf(current.rule) >= current.settings.rules.length;
       render();
@@ -47,6 +47,7 @@
     });
 
     el.syncNow.addEventListener('click', function () {
+      if (el.syncNow.hidden) return;
       setStatus(t('syncing'));
       chrome.runtime.sendMessage({ type: 'bcem:sync' }).then(function (result) {
         if (!result || !result.ok) {
@@ -71,12 +72,16 @@
     var rule = current.rule;
     el.enabled.checked = current.settings.enabled;
     el.brandDot.style.fill = rule ? rule.color : 'var(--muted)';
-    // Past er al een regel, dan valt er niets toe te voegen.
+    // If a rule already matches, there is nothing to add.
     el.addRule.hidden = !!rule;
+    // Sync only makes sense when a shared HTTPS URL is configured — same
+    // gate as the options page. Without one, Options is the place to set it.
+    var hostedUrl = current.settings.hosted && current.settings.hosted.url;
+    el.syncNow.hidden = !hostedUrl || !BCEM.hostedUrlAllowed(hostedUrl);
 
-    // De actieve regel staat vooraan, in dezelfde lijst als wat we uit de URL
-    // lezen. Van de rest tonen we enkel wat deze URL prijsgeeft; leeg is ruis.
-    // De tenant blijft weg: een GUID zegt niemand iets.
+    // The active rule comes first, in the same list as what we read from the
+    // URL. Of the rest we only show what this URL reveals; empty is noise.
+    // The tenant stays out: a GUID tells nobody anything.
     var pairs = [
       [t('labelEnvironment'), current.ctx.environment],
       [t('labelCompany'), current.ctx.company]
@@ -107,14 +112,14 @@
     return wrap;
   }
 
-  /** Zonder passende regel zegt het veld waarom er niets gebeurt. */
+  /** Without a matching rule the field explains why nothing happens. */
   function ruleText(rule) {
     if (rule) return rule.name;
     if (!current.settings.enabled) return t('popupDisabled');
     return t(current.ctx.isbc ? 'popupBcNoMatch' : 'popupNotBc');
   }
 
-  /** Waar de regel vandaan komt hoort niet in het rijtje thuis, wel in de tooltip. */
+  /** Where the rule comes from does not belong in the row, but in the tooltip. */
   function ruleTitle(rule) {
     if (!rule) return ruleText(rule);
     return rule.name + ' — ' + t(current.isHosted ? 'popupShared' : 'popupOwnRule');

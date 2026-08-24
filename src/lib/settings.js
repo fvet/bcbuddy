@@ -1,6 +1,6 @@
 /*
- * BC Buddy - opslag, defaults, normalisatie en import/export.
- * Vereist match.js (voor BCEM.toHex).
+ * BC Buddy - storage, defaults, normalisation and import/export.
+ * Requires match.js (for BCEM.toHex).
  */
 (function (root) {
   'use strict';
@@ -13,26 +13,26 @@
   var BRAND_NAME = 'Dynamics 365 Business Central';
   var DEFAULT_RIBBON_TEXT = BRAND_NAME + ' - {company} ({environment})';
 
-  // Kleine letters: toHex() normaliseert zo, waardoor vergelijkingen kloppen.
+  // Lowercase: toHex() normalises that way, so comparisons stay consistent.
   var PALETTE = [
-    '#c4314b', // rood - productie / let op
-    '#d83b01', // oranje
+    '#c4314b', // red - production / watch out
+    '#d83b01', // orange
     '#eaa300', // amber
-    '#498205', // lichtgroen
-    '#107c10', // groen
+    '#498205', // light green
+    '#107c10', // green
     '#00b294', // mint
     '#038387', // teal
-    '#005b70', // donkerteal
-    '#0f6cbd', // blauw
+    '#005b70', // dark teal
+    '#0f6cbd', // blue
     '#4f6bed', // indigo
-    '#8764b8', // paars
-    '#881798', // pruim
+    '#8764b8', // purple
+    '#881798', // plum
     '#e3008c', // magenta
-    '#4f5b62'  // grijs
+    '#4f5b62'  // grey
   ];
 
-  // 'bottom' is een balk over de volle breedte, de rest zijn diagonale linten
-  // in een hoek van het venster.
+  // 'bottom' is a full-width bar; the rest are diagonal ribbons in a corner
+  // of the window.
   var POSITIONS = ['bottom', 'top-right', 'top-left', 'bottom-right', 'bottom-left'];
   var CORNER_POSITIONS = POSITIONS.slice(1);
 
@@ -40,22 +40,22 @@
     return CORNER_POSITIONS.indexOf(position) !== -1;
   }
 
-  // Hoe vaak het gedeelde bestand gecontroleerd wordt zolang de gedeelde
-  // configuratie actief is.
+  // How often the shared file is checked while the shared configuration is
+  // active.
   var SYNC_INTERVAL_MINUTES = 1440;
 
   /**
-   * De gedeelde configuratie is 'actief' zodra je een keer gesynchroniseerd
-   * hebt; vanaf dan wordt ze dagelijks bijgewerkt. Ze gaat enkel uit wanneer de
-   * URL leeg is of wanneer je de gedeelde regels wist. Oudere instellingen
-   * hadden hier een schakelaar (autoSync) of een interval in minuten staan.
+   * The shared configuration is 'active' once you have synced once; from then
+   * on it is updated daily. It only turns off when the URL is empty or when
+   * you clear the shared rules. Older settings had a toggle (autoSync) or an
+   * interval in minutes here.
    */
   function normalizeActive(hosted) {
-    if (!str(hosted.url)) return false; // zonder bron valt er niets bij te werken
+    if (!str(hosted.url)) return false; // without a source there is nothing to update
     if (typeof hosted.active === 'boolean') return hosted.active;
     if (typeof hosted.autoSync === 'boolean') return hosted.autoSync;
     if (hosted.intervalMinutes != null) return parseInt(hosted.intervalMinutes, 10) !== 0;
-    return false; // een URL zonder eerste synchronisatie
+    return false; // a URL without a first sync
   }
 
   function uid() {
@@ -76,10 +76,10 @@
   }
 
   /**
-   * Elke tekstwaarde loopt hierlangs. Spaties voor of achter zijn altijd per
-   * ongeluk - in een naam, een voorwaarde of een URL leveren ze enkel regels op
-   * die niet passen - dus die knippen we er meteen af, waar de waarde ook
-   * vandaan komt: het scherm, een import of het gedeelde bestand.
+   * Every text value goes through here. Leading or trailing spaces are always
+   * accidental — in a name, a condition or a URL they only produce rules that
+   * do not match — so we trim them immediately, wherever the value came from:
+   * the screen, an import or the shared file.
    */
   function str(value, fallback) {
     return value == null ? (fallback || '') : String(value).trim();
@@ -90,8 +90,8 @@
     var fields = BCEM.FIELDS.map(function (f) { return f.value; });
     var ops = BCEM.OPERATORS.map(function (o) { return o.value; });
 
-    // 'host' bestaat niet meer als veld. Een oude voorwaarde daarop blijft
-    // werken als "de URL bevat die host", wat op hetzelfde neerkomt.
+    // 'host' no longer exists as a field. An old condition on it still works
+    // as "the URL contains that host", which comes to the same thing.
     if (c.field === 'host') {
       return { field: 'url', op: 'contains', value: str(c.value) };
     }
@@ -102,11 +102,11 @@
     };
   }
 
-  // De weergave-instellingen die een regel zelf kan hebben of van een layout
-  // kan overnemen. De kleur hoort daar niet bij: die blijft regelspecifiek.
+  // The display settings a rule can hold itself or take from a layout. Colour
+  // is not among them: that stays rule-specific.
   var DISPLAY_KEYS = ['border', 'banner', 'ribbon', 'title', 'favicon'];
 
-  // Vast id, zodat normalize() altijd hetzelfde resultaat geeft.
+  // Fixed id, so normalize() always yields the same result.
   var DEFAULT_LAYOUT_ID = 'default';
 
   function normalizeDisplay(source) {
@@ -126,13 +126,13 @@
         enabled: bool(banner.enabled, false),
         position: POSITIONS.indexOf(banner.position) !== -1 ? banner.position : 'bottom',
         text: str(banner.text, '{name}'),
-        fontSize: num(banner.fontSize, 0, 0, 72), // 0 = automatisch
+        fontSize: num(banner.fontSize, 0, 0, 72), // 0 = automatic
         opacity: num(banner.opacity, 0.5, 0.05, 1)
       },
       ribbon: {
         enabled: bool(ribbon.enabled, true),
-        // {brand} bestaat niet meer als token; oudere teksten krijgen de
-        // merknaam die het token vroeger opleverde.
+        // {brand} no longer exists as a token; older texts get the brand name
+        // the token used to produce.
         text: str(ribbon.text, DEFAULT_RIBBON_TEXT).replace(/\{brand\}/gi, BRAND_NAME)
       },
       title: {
@@ -141,7 +141,7 @@
       },
       favicon: {
         enabled: bool(favicon.enabled, false),
-        text: str(favicon.text, '').slice(0, 2) // twee tekens passen op een favicon
+        text: str(favicon.text, '').slice(0, 2) // two characters fit on a favicon
       }
     };
   }
@@ -159,7 +159,7 @@
       conditions: conditions,
       color: BCEM.toHex(r.color || PALETTE[0]),
       textColor: r.textColor === 'auto' || !r.textColor ? 'auto' : BCEM.toHex(r.textColor),
-      // Het id van de layout die de weergave bepaalt.
+      // The id of the layout that drives the appearance.
       layoutId: str(r.layoutId)
     };
 
@@ -176,7 +176,7 @@
     };
     var display = normalizeDisplay(l);
     DISPLAY_KEYS.forEach(function (key) { layout[key] = display[key]; });
-    // De letters op de favicon horen bij de regel, niet bij de layout.
+    // Favicon letters belong to the rule, not the layout.
     layout.favicon.text = '';
     return layout;
   }
@@ -196,8 +196,8 @@
   }
 
   /**
-   * De layout die voor deze regel geldt: de aangeduide, en anders de eerste uit
-   * de set. Zo heeft elke regel er altijd een.
+   * The layout that applies to this rule: the one pointed at, otherwise the
+   * first in the set. That way every rule always has one.
    */
   function effectiveLayout(rule, layouts, autoLayouts) {
     if (!rule) return null;
@@ -206,17 +206,17 @@
       if (chosen) return chosen;
     }
 
-    // Zonder (bestaande) keuze telt enkel de eigen set: een gedeelde regel mag
-    // niet ongemerkt de layout van de lezer overnemen.
+    // Without a (valid) choice only the own set counts: a shared rule must not
+    // silently pick up the reader's layout.
     var auto = autoLayouts === undefined ? (layouts || []) : autoLayouts;
     return auto.length ? auto[0] : null;
   }
 
   /**
-   * Levert de regel zoals ze getekend moet worden: geldt er een layout, dan
-   * komen de weergave-instellingen daarvandaan. Naam, voorwaarden en kleur
-   * blijven altijd van de regel zelf. Bestaat de layout niet (meer), dan vallen
-   * we terug op wat de regel zelf bewaard heeft.
+   * Returns the rule as it should be drawn: if a layout applies, the display
+   * settings come from there. Name, conditions and colour always stay on the
+   * rule itself. If the layout no longer exists, we fall back to what the rule
+   * itself has stored.
    */
   function resolveRule(rule, layouts, autoLayouts) {
     var layout = effectiveLayout(rule, layouts, autoLayouts);
@@ -230,10 +230,10 @@
   }
 
   /**
-   * Naam en voorwaarden voor een nieuwe regel, afgeleid van een URL.
-   * Bij Business Central pakken we omgeving en bedrijf, want dat zijn de
-   * velden die je in de praktijk wil onderscheiden. Bij een andere site is de
-   * URL zelf het enige zinvolle aanknopingspunt.
+   * Name and conditions for a new rule, derived from a URL. For Business
+   * Central we take environment and company, because those are the fields you
+   * want to tell apart in practice. For any other site the URL itself is the
+   * only useful hook.
    */
   function draftFromContext(ctx) {
     var conditions = [];
@@ -258,10 +258,10 @@
   }
 
   /**
-   * De weergave zit in layouts, dus elke regel wijst er een aan. Zijn er nog
-   * geen layouts, dan leiden we ze af uit de regels: regels die er hetzelfde
-   * uitzien delen een layout, waardoor de migratie niets verandert aan wat er
-   * vandaag getekend wordt. Bij een lege configuratie is er gewoon een Default.
+   * Appearance lives in layouts, so every rule points at one. If there are no
+   * layouts yet, we derive them from the rules: rules that look the same share
+   * a layout, so the migration does not change what is drawn today. An empty
+   * configuration simply gets a Default.
    */
   function withDefaultLayout(layouts, rules) {
     if (!layouts.length) {
@@ -291,7 +291,7 @@
       });
     }
 
-    // Een regel zonder geldige layout volgt de eerste.
+    // A rule without a valid layout follows the first.
     rules.forEach(function (rule) {
       if (!findById(layouts, rule.layoutId)) rule.layoutId = layouts[0].id;
     });
@@ -323,9 +323,9 @@
   }
 
   /**
-   * Effectieve regels: eigen regels eerst, daarna de gedeelde (eerste match
-   * wint), elk met hun layout al toegepast. Gedeelde regels kijken eerst naar de
-   * gedeelde layouts, zodat een gedeeld bestand op zichzelf klopt.
+   * Effective rules: own rules first, then the shared ones (first match wins),
+   * each with its layout already applied. Shared rules look at the shared
+   * layouts first, so a shared file stands on its own.
    */
   function effectiveRules(settings) {
     var s = normalize(settings);
@@ -364,8 +364,8 @@
   }
 
   /**
-   * Accepteert het eigen exportformaat of een kale array van regels.
-   * Gooit een Error met een leesbare melding.
+   * Accepts the own export format or a bare array of rules.
+   * Throws an Error with a readable message.
    */
   function parseImport(text) {
     var data;
@@ -397,11 +397,11 @@
   }
 
   /**
-   * Voegt geimporteerde regels samen met de bestaande.
-   *   - bestaat de regel al (zelfde id, anders zelfde naam): overschrijven op
-   *     zijn plaats, zodat de volgorde en dus de prioriteit behouden blijft
-   *   - staat ze er nog niet in: achteraan toevoegen
-   *   - regels die niet in het importbestand staan: laten staan
+   * Merges imported rules with the existing ones.
+   *   - if the rule already exists (same id, otherwise same name): overwrite in
+   *     place, so order and therefore priority are preserved
+   *   - if it is not in the list yet: append
+   *   - rules that are not in the import file: leave alone
    */
   function mergeItems(current, incoming, normalizeFn) {
     var items = (Array.isArray(current) ? current : []).map(normalizeFn);
@@ -429,8 +429,8 @@
         items.push(item);
         stats.added++;
       } else {
-        // Het item neemt het id uit het bestand over, zodat een volgende import
-        // meteen op id matcht in plaats van op naam.
+        // The item takes the id from the file, so a later import matches on id
+        // immediately instead of on name.
         items[index] = item;
         taken[index] = true;
         stats.overwritten++;
@@ -451,7 +451,7 @@
     return { layouts: merged.items, stats: merged.stats };
   }
 
-  /** Stabiele, korte hash om te zien of een gedeeld bestand gewijzigd is. */
+  /** Stable, short hash to tell whether a shared file has changed. */
   function hash(input) {
     var s = typeof input === 'string' ? input : JSON.stringify(input);
     var h = 5381;
@@ -462,8 +462,8 @@
   }
 
   /**
-   * Zet bekende hosting-URLs om naar hun raw-variant, zodat een geplakte
-   * GitHub/Azure DevOps-link ook gewoon werkt.
+   * Turns known hosting URLs into their raw form, so a pasted
+   * GitHub/Azure DevOps link just works.
    */
   function toRawUrl(url) {
     var u = str(url).trim();
@@ -473,6 +473,29 @@
     var gist = u.match(/^https?:\/\/gist\.github\.com\/([^/]+)\/([0-9a-f]+)$/i);
     if (gist) return 'https://gist.githubusercontent.com/' + gist[1] + '/' + gist[2] + '/raw';
     return u;
+  }
+
+  /**
+   * Shared configuration may only be fetched over HTTPS. The file can define
+   * rules that mark any site, so plain HTTP (and anything else) is refused —
+   * including after rewriting a GitHub blob link to its raw form.
+   */
+  function resolveHostedUrl(url) {
+    var target = toRawUrl(url);
+    if (!target) throw new Error(BCEM.t('errNoUrl'));
+    if (!/^https:\/\//i.test(target)) throw new Error(BCEM.t('errHttpsOnly'));
+    return target;
+  }
+
+  /** Empty is fine; a non-empty URL must resolve to HTTPS. */
+  function hostedUrlAllowed(url) {
+    if (!str(url)) return true;
+    try {
+      resolveHostedUrl(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   BCEM.STORAGE_KEY = STORAGE_KEY;
@@ -504,4 +527,6 @@
   BCEM.mergeLayouts = mergeLayouts;
   BCEM.hash = hash;
   BCEM.toRawUrl = toRawUrl;
+  BCEM.resolveHostedUrl = resolveHostedUrl;
+  BCEM.hostedUrlAllowed = hostedUrlAllowed;
 })(typeof self !== 'undefined' ? self : this);

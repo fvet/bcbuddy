@@ -1,7 +1,7 @@
 :root {
-  /* Laat de browser zijn eigen canvas, scrollbalken, selectievensters en
-     invoervelden meteen in het juiste thema tekenen. Zonder dit flitst de
-     pagina wit voor onze CSS geladen is, en blijven native onderdelen licht. */
+  /* Let the browser paint its own canvas, scrollbars, select menus and
+     input fields in the right theme straight away. Without this the page
+     flashes white before our CSS loads, and native controls stay light. */
   color-scheme: light dark;
 
   --bg: #f5f6f8;
@@ -84,8 +84,8 @@ a { color: var(--accent); }
 .topbar__brand p { margin: 2px 0 0; font-size: 12.5px; }
 .topbar__actions { display: flex; align-items: center; gap: 16px; }
 
-/* Het merk: BC met de uitsparing waar de bol tegenaan ligt.  Die bol krijgt de
-   kleur van de regel die op de test-URL past (zie options.js). */
+/* The brand: BC with the cut-out the dot sits against. That dot takes the
+   colour of the rule that matches the test URL (see options.js). */
 .brand {
   width: 44px; height: 44px;
   flex: none;
@@ -95,7 +95,7 @@ a { color: var(--accent); }
 .status { font-size: 12.5px; color: var(--ok); min-height: 18px; }
 .status--error { color: var(--danger); }
 
-/* ---------------------------------------------------------------- indeling */
+/* ---------------------------------------------------------------- layout */
 
 .layout {
   max-width: 1240px;
@@ -138,8 +138,9 @@ a { color: var(--accent); }
   font-weight: 600;
 }
 
-/* De hoofdschakelaar hoort niet bij de secties, dus staat ze los onderaan de
-   navigatie: opschrift links, vinkje rechts (vandaar row-reverse). */
+/* The master switch does not belong with the sections, so it sits separately
+   at the bottom of the nav: label on the left, toggle on the right (hence
+   row-reverse). */
 .nav__toggle {
   margin-top: 16px;
   padding: 14px 12px 0;
@@ -246,10 +247,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width
 .field input, .field select { color: var(--text); }
 .field--wide { flex: 1 1 260px; }
 .field--narrow { flex: 0 1 150px; }
-/* Het kleurblok is zo breed als het palet, zodat de tekstkleur ernaast blijft. */
+/* The colour block is as wide as the palette, so text colour stays beside it. */
 .field--colour { flex: 0 0 auto; max-width: 100%; }
 .field--layout { flex: 0 1 190px; }
-/* Zelfde demping als een regel die niet aanstaat (.rule--disabled). */
+/* Same mute as a rule that is off (.rule--disabled). */
 .field--inactive { opacity: .6; }
 
 .switch, .radio {
@@ -263,11 +264,11 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width
 }
 .switch--compact { font-size: 12px; color: var(--muted); }
 
-/* Een schuifknop in plaats van een vinkje, voor het aan/uit zetten van iets:
-   de extensie zelf, of een regel. Het blijft een gewone checkbox, dus
-   toetsenbord en schermlezers werken zoals ze horen; enkel het uiterlijk is
-   overgenomen. Het typeselector staat erbij omdat de algemene regel voor
-   checkboxes anders wint met haar breedte van 15px. */
+/* A switch instead of a tick, for turning something on/off: the extension
+   itself, or a rule. It remains an ordinary checkbox, so keyboard and screen
+   readers work as they should; only the look is restyled. The type selector
+   is there because the general checkbox rule would otherwise win with its
+   15px width. */
 input[type="checkbox"].toggle {
   appearance: none;
   -webkit-appearance: none;
@@ -306,7 +307,7 @@ input[type="checkbox"].toggle:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-/* Een gedeelde regel valt niet te wijzigen; dat moet je kunnen zien. */
+/* A shared rule cannot be edited; that should be visible. */
 input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 
 .btn {
@@ -321,11 +322,11 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   white-space: nowrap;
 }
 .btn:hover { background: var(--surface-2); }
-/* Uitgeschakeld: gedempt en niet aanklikbaar, ook geen hover-effect. */
+/* Disabled: muted and not clickable, no hover effect either. */
 .btn:disabled { opacity: .45; pointer-events: none; }
 .btn--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-/* Achtergrond en tekstkleur expliciet herhalen: anders wint .btn:hover met zijn
-   grijze achtergrond en blijft de donkere tekst onleesbaar. */
+/* Repeat background and text colour explicitly: otherwise .btn:hover wins with
+   its grey background and the dark text becomes unreadable. */
 .btn--primary:hover { background: var(--accent); color: var(--accent-text); filter: brightness(1.08); }
 .btn--small { align-self: flex-start; padding: 5px 10px; font-size: 12.5px; }
 
@@ -366,8 +367,8 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 /* --------------------------------------------------------------- rules */
 
 .rules { display: flex; flex-direction: column; gap: 12px; }
-/* Eigen en gedeelde regels staan in twee containers maar lezen als een lijst;
-   een lege container mag geen extra tussenruimte veroorzaken. */
+/* Own and shared rules live in two containers but read as one list;
+   an empty container must not add extra gap. */
 .rules:empty { display: none; }
 .rules--readonly .rule { opacity: .95; }
 
@@ -406,7 +407,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 
 .rule__body { display: flex; flex-direction: column; gap: 14px; }
 
-/* Een layoutkaart heeft geen eigen kleur, dus ook geen gekleurde rand. */
+/* A layout card has no colour of its own, so no coloured edge either. */
 .rule--layout { border-left-color: var(--border); }
 .rule--layout .rule__name { flex: 1 1 220px; }
 .display { display: flex; flex-direction: column; }
@@ -425,9 +426,8 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .rule__name { flex: 1 1 180px; font-weight: 600; }
 .rule__tools { display: flex; align-items: center; gap: 2px; margin-left: auto; }
 
-/* De greep waarmee je een regel naar een andere plek sleept. Gedeelde regels
-   staan vast, maar houden wel de plaats van de greep: zo blijft de lijst
-   netjes uitgelijnd. */
+/* The grip you drag a rule to another place with. Shared rules are fixed but
+   keep the grip's slot, so the list stays neatly aligned. */
 .rule__grip {
   flex: none;
   cursor: grab;
@@ -438,12 +438,12 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .rule[data-readonly="1"] .rule__grip { visibility: hidden; }
 
 .rule--dragging { opacity: .5; }
-/* Waar de regel terechtkomt als je nu loslaat. */
+/* Where the rule lands if you release now. */
 .rule--drop-before { box-shadow: 0 -3px 0 -1px var(--accent), var(--shadow); }
 .rule--drop-after { box-shadow: 0 3px 0 -1px var(--accent), var(--shadow); }
 
-/* Past de regel op de test-URL? Een vinkje of een kruisje; de uitleg staat in
-   de tooltip, zodat de kopregel kort blijft. */
+/* Does the rule match the test URL? A tick or a circle; the explanation is in
+   the tooltip, so the header row stays short. */
 .match {
   flex: none;
   width: 20px;
@@ -494,7 +494,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .option--off .option__body { display: none; }
 .option[hidden] { display: none; }
 
-/* Klein vraagteken naast een veld, met uitleg bij hover, focus of klik. */
+/* Small question mark beside a field, with help on hover, focus or click. */
 .hint {
   position: relative;
   display: inline-flex;
@@ -521,8 +521,8 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   top: calc(100% + 7px);
   left: -8px;
   z-index: 20;
-  /* Zichtbaar via visibility en niet via display, zodat er een wachttijd op
-     kan: zo springt de uitleg niet open als je er toevallig langs beweegt. */
+  /* Shown via visibility, not display, so a delay can apply: that way the
+     help does not pop open when you happen to move past it. */
   visibility: hidden;
   opacity: 0;
   transition: visibility 0s linear .45s, opacity .12s linear .45s;
@@ -546,7 +546,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   opacity: 1;
 }
 
-/* Aangeklikt blijft ze meteen staan. */
+/* Clicked, it stays open immediately. */
 .hint.is-open .hint__bubble {
   visibility: visible;
   opacity: 1;
@@ -563,14 +563,14 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   padding: 0;
 }
 .palette button:hover { transform: scale(1.12); }
-/* De kleur die de regel nu heeft, krijgt een ring. */
+/* The colour the rule currently has gets a ring. */
 .palette button[aria-pressed="true"] {
   border-color: var(--text);
   box-shadow: none;
 }
 
-/* De vrije kleurkeuze sluit achteraan het palet aan. Vierkanter dan de bolletjes,
-   zodat ze niet als zoveelste paletkleur leest. */
+/* The free colour pick sits at the end of the palette. Squarer than the dots,
+   so it does not read as yet another palette colour. */
 .palette__custom {
   width: 22px;
   height: 22px;
@@ -591,7 +591,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   background: var(--surface-2);
 }
 
-/* Een regel die niet op de test-URL past, toont een gedempt voorbeeld. */
+/* A rule that does not match the test URL shows a muted preview. */
 .preview--nomatch { opacity: .5; }
 
 .preview__ribbon {
@@ -626,8 +626,8 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   border-width: 0;
   border-color: transparent;
 }
-/* Het voorbeeld heeft een eigen achtergrond (een BC-pagina), los van het
-   paginathema; de tekst erop volgt die achtergrond, niet de tokens. */
+/* The preview has its own background (a BC page), separate from the page
+   theme; text on it follows that background, not the tokens. */
 .preview__page { color: #6b7280; font-size: 12px; }
 
 @media (prefers-color-scheme: dark) {
@@ -669,3 +669,15 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .sync-status { font-size: 12.5px; color: var(--muted); margin: 0; min-height: 18px; }
 .sync-status--ok { color: var(--ok); }
 .sync-status--error { color: var(--danger); }
+
+/* Trust boundary for the shared file: visible without looking like an error. */
+.trust-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.45;
+}

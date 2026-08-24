@@ -1,6 +1,6 @@
 /*
- * BC Buddy - optiespagina.
- * Wijzigingen worden automatisch bewaard (met een korte vertraging).
+ * BC Buddy - options page.
+ * Changes are saved automatically (after a short delay).
  */
 (function () {
   'use strict';
@@ -8,14 +8,14 @@
   var BCEM = self.BCEM;
   var t = BCEM.t;
   var UI_KEY = 'ui';
-  // Velden waar spaties voor of achter nooit bedoeld zijn.
+  // Fields where leading or trailing spaces are never intentional.
   var TRIMMED_TYPES = ['text', 'url', 'search'];
   var PENDING_KEY = 'pendingRule';
 
   var SAMPLE_URL = 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/' +
     'Sandbox?company=CRONUS%20BE&page=1';
 
-  /** Uitleg achter het vraagteken naast elk tekstveld. */
+  /** Help text behind the question mark beside each text field. */
   function tokenHelp() {
     function line(token, description) {
       return '<code>{' + token + '}</code> ' + description + '<br>';
@@ -35,10 +35,10 @@
     ctx: null,
     selfWrite: false,
     saveTimer: null,
-    // Welke regel er op dit moment versleept wordt (null = geen).
+    // Which rule is being dragged right now (null = none).
     dragIndex: null,
-    // Welke regels opengeklapt staan, per id. Regels beginnen ingeklapt zodat
-    // een lange lijst overzichtelijk blijft.
+    // Which rules are expanded, by id. Rules start collapsed so a long list
+    // stays easy to scan.
     expanded: {}
   };
 
@@ -80,7 +80,7 @@
       bind();
       renderAll();
     }).catch(function (err) {
-      // Anders blijft de pagina leeg zonder dat iemand weet waarom.
+      // Otherwise the page stays blank with no clue why.
       setStatus(String(err && err.message || err), true);
       throw err;
     });
@@ -93,7 +93,7 @@
     });
   }
 
-  /* --------------------------------------------------------------- binden */
+  /* --------------------------------------------------------------- binding */
 
   function bind() {
     el.globalEnabled.addEventListener('change', function () {
@@ -111,7 +111,7 @@
     });
 
     el.useCurrentTab.addEventListener('click', function () {
-      // De optiespagina is zelf de actieve tab, dus kijken we naar alle andere.
+      // The options page is the active tab itself, so look at every other tab.
       chrome.tabs.query({}).then(function (tabs) {
         var url = pickBrowsingTab(tabs);
         if (!url) {
@@ -124,7 +124,7 @@
     });
 
     el.addRule.addEventListener('click', function () {
-      // De test-URL is wat de gebruiker voor ogen heeft; die nemen we over.
+      // The test URL is what the user has in mind; reuse it.
       var draft = BCEM.draftFromContext(state.ctx);
       var rule = BCEM.newRule({
         name: draft.name,
@@ -133,14 +133,14 @@
         layoutId: defaultLayoutId()
       });
       state.settings.rules.push(rule);
-      state.expanded[expandKey('rule', rule, false)] = true; // een nieuwe regel staat meteen open
+      state.expanded[expandKey('rule', rule, false)] = true; // a new rule starts expanded
       save();
       renderRules();
       var cards = el.ruleList.querySelectorAll('.rule');
       var last = cards[cards.length - 1];
       if (last) {
         last.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Naam geselecteerd, zodat je de voorgestelde naam meteen kan overtypen.
+        // Name selected so you can overwrite the suggested name right away.
         last.querySelector('.rule__name').select();
       }
     });
@@ -151,7 +151,7 @@
       state.expanded[expandKey('layout', layout, false)] = true;
       save();
       renderLayouts();
-      renderRules(); // de keuzelijsten in de regels kennen de nieuwe layout nu
+      renderRules(); // rule dropdowns now include the new layout
       var cards = el.layoutList.querySelectorAll('.rule');
       var last = cards[cards.length - 1];
       if (last) {
@@ -165,7 +165,7 @@
       list.addEventListener('change', onRuleInput);
       list.addEventListener('click', onRuleClick);
     });
-    // Gedeelde regels en layouts zijn niet bewerkbaar, maar wel open te klappen.
+    // Shared rules and layouts are read-only, but can still be expanded.
     el.hostedList.addEventListener('click', onRuleClick);
     el.hostedLayoutList.addEventListener('click', onRuleClick);
 
@@ -177,23 +177,22 @@
     bindImportExport();
   }
 
-  /* ------------------------------------------------------------- verslepen */
+  /* ------------------------------------------------------------- drag */
 
   /**
-   * De volgorde bepaalt welke regel wint, dus die moet je vlot kunnen wijzigen:
-   * neem een kaart bij haar greep vast en laat ze vallen waar ze hoort. Enkel
-   * eigen regels; gedeelde regels houden de volgorde van het gedeelde bestand.
+   * Order decides which rule wins, so it must be easy to change: grab a card
+   * by its grip and drop it where it belongs. Own rules only; shared rules keep
+   * the order from the shared file.
    */
   function bindReorder() {
     var list = el.ruleList;
 
-    // Enkel de greep begint een sleepbeweging, anders kan je geen tekst meer
-    // selecteren in de kopregel.
+    // Only the grip starts a drag; otherwise you cannot select text in the header.
     list.addEventListener('mousedown', function (event) {
       var card = event.target.closest('[data-grip]') && event.target.closest('.rule');
       if (card) card.draggable = true;
     });
-    // Losgelaten zonder te slepen: de kaart is weer gewoon een kaart.
+    // Released without dragging: the card is a normal card again.
     list.addEventListener('mouseup', clearDrag);
 
     list.addEventListener('dragstart', function (event) {
@@ -202,13 +201,13 @@
       state.dragIndex = Number(card.dataset.index);
       card.classList.add('rule--dragging');
       event.dataTransfer.effectAllowed = 'move';
-      // Zonder inhoud weigeren sommige browsers de sleepbeweging te starten.
+      // Without payload some browsers refuse to start the drag.
       event.dataTransfer.setData('text/plain', card.dataset.index);
     });
 
     list.addEventListener('dragover', function (event) {
       if (state.dragIndex === null) return;
-      // Pas na preventDefault aanvaardt de browser hier een drop.
+      // The browser only accepts a drop here after preventDefault.
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
       var over = event.target.closest('.rule');
@@ -229,12 +228,12 @@
       move(state.settings.rules, from, to);
       save();
       renderRules();
-      renderParsed(); // een andere volgorde kan een andere regel laten winnen
+      renderParsed(); // a different order may let another rule win
     });
 
     list.addEventListener('dragend', clearDrag);
 
-    // Zonder muis: zet de focus op de greep en verplaats met de pijltjestoetsen.
+    // Without a mouse: focus the grip and move with the arrow keys.
     list.addEventListener('keydown', function (event) {
       if (!event.target.closest('[data-grip]')) return;
       var step = event.key === 'ArrowUp' ? -1 : (event.key === 'ArrowDown' ? 1 : 0);
@@ -252,13 +251,13 @@
     });
   }
 
-  /** Valt de kaart in de onderste helft, dan hoort de regel eronder. */
+  /** If the pointer is in the lower half of the card, the rule belongs below. */
   function dropsAfter(card, event) {
     var box = card.getBoundingClientRect();
     return event.clientY > box.top + box.height / 2;
   }
 
-  /** De plek in de lijst zoals ze er zonder de gesleepte regel uitziet. */
+  /** The list index as it looks without the dragged rule. */
   function dropIndex(event) {
     var over = event.target.closest('.rule');
     if (!over) return null;
@@ -275,8 +274,8 @@
   }
 
   /**
-   * De navigatie links wisselt tussen de panelen. Welke open stond onthouden we,
-   * zodat de pagina heropent waar je gebleven was.
+   * Left navigation switches between panels. We remember which was open so the
+   * page reopens where you left off.
    */
   function bindNav() {
     document.querySelectorAll('.nav__item').forEach(function (button) {
@@ -310,22 +309,24 @@
   }
 
   function bindHosted() {
-    // Al tijdens het typen: anders staat de knop nog uit op het moment dat je
-    // ze aanklikt, en gebeurt er niets.
+    // While typing: otherwise the button is still disabled when you click it
+    // and nothing happens. HTTP and other schemes stay disabled too.
     el.hostedUrl.addEventListener('input', function () {
-      el.syncNow.disabled = !el.hostedUrl.value.trim();
+      updateSyncEnabled(el.hostedUrl.value);
     });
     el.hostedUrl.addEventListener('change', function () {
       trimField(el.hostedUrl);
-      state.settings.hosted.url = el.hostedUrl.value;
-      // Zonder bron valt er niets bij te werken.
-      if (!state.settings.hosted.url) state.settings.hosted.active = false;
-      save();
+      if (!applyHostedUrl(el.hostedUrl.value, { persist: true })) return;
       renderHostedStatus();
     });
     el.syncNow.addEventListener('click', function () {
+      trimField(el.hostedUrl);
+      if (!applyHostedUrl(el.hostedUrl.value, { persist: true, immediate: true })) return;
       setHostedStatus(t('syncing'));
-      chrome.runtime.sendMessage({ type: 'bcem:sync' }).then(function (result) {
+      // Save first so the service worker sees the URL that is on screen.
+      BCEM.saveSettings(state.settings).then(function () {
+        return chrome.runtime.sendMessage({ type: 'bcem:sync' });
+      }).then(function (result) {
         if (!result || !result.ok) {
           setHostedStatus(t('syncFailed', (result && result.error) || t('syncUnknownError')), 'error');
           return;
@@ -336,9 +337,56 @@
   }
 
   /**
-   * Wist wat er van het gedeelde bestand kwam. De gedeelde configuratie gaat mee
-   * uit, anders staat alles er morgen gewoon weer. De URL blijft staan, zodat
-   * je met een klik op synchroniseren opnieuw kan beginnen.
+   * Accepts an empty URL, or an HTTPS one (GitHub blob links rewrite to raw).
+   * On failure the typed value stays so it can be fixed; storage is left alone.
+   */
+  function applyHostedUrl(value, options) {
+    options = options || {};
+    var trimmed = String(value == null ? '' : value).trim();
+    if (!trimmed) {
+      el.hostedUrl.value = '';
+      state.settings.hosted.url = '';
+      state.settings.hosted.active = false;
+      if (options.persist) {
+        if (options.immediate) {
+          if (state.saveTimer) clearTimeout(state.saveTimer);
+          state.selfWrite = true;
+        } else {
+          save();
+        }
+      }
+      updateSyncEnabled('');
+      return true;
+    }
+    try {
+      var resolved = BCEM.resolveHostedUrl(trimmed);
+      el.hostedUrl.value = resolved;
+      state.settings.hosted.url = resolved;
+      if (options.persist) {
+        if (options.immediate) {
+          if (state.saveTimer) clearTimeout(state.saveTimer);
+          state.selfWrite = true;
+        } else {
+          save();
+        }
+      }
+      updateSyncEnabled(resolved);
+      return true;
+    } catch (err) {
+      setHostedStatus(String(err && err.message || err), 'error');
+      updateSyncEnabled(trimmed);
+      return false;
+    }
+  }
+
+  function updateSyncEnabled(url) {
+    el.syncNow.disabled = !String(url || '').trim() || !BCEM.hostedUrlAllowed(url);
+  }
+
+  /**
+   * Clears what came from the shared file. The shared configuration is turned
+   * off too, otherwise everything reappears tomorrow. The URL stays so you can
+   * start again with one click on Synchronise.
    */
   function clearSharedRules() {
     var hosted = state.settings.hosted;
@@ -395,7 +443,7 @@
       setImportStatus(t('importFailed', e.message), 'error');
       return;
     }
-    // Eerst de layouts, zodat de regels erna meteen naar iets bestaands wijzen.
+    // Layouts first, so rules can point at something that already exists.
     var mergedLayouts = BCEM.mergeLayouts(state.settings.layouts, parsed.layouts);
     state.settings.layouts = mergedLayouts.layouts;
 
@@ -419,8 +467,8 @@
   }
 
   /**
-   * Somt op wat er echt gebeurd is. Een telling van nul zegt niets en maakt de
-   * zin enkel langer, dus die laten we weg.
+   * Summarises what actually happened. A count of zero adds nothing and only
+   * lengthens the sentence, so we omit it.
    */
   function counts(pairs) {
     var parts = [];
@@ -430,7 +478,7 @@
     return parts.join(', ');
   }
 
-  /* -------------------------------------------------------------- renderen */
+  /* -------------------------------------------------------------- rendering */
 
   function renderAll() {
     el.globalEnabled.checked = state.settings.enabled;
@@ -451,7 +499,7 @@
 
   function renderParsed() {
     var ctx = state.ctx;
-    // Enkel wat de URL effectief prijsgeeft; lege velden zijn ruis.
+    // Only what the URL actually reveals; empty fields are noise.
     var pairs = [
       [t('labelEnvironment'), ctx.environment],
       [t('labelCompany'), ctx.company],
@@ -519,20 +567,20 @@
       state.settings.hosted.rules.length > 0;
   }
 
-  /** De layouts waar een kaart uit kan kiezen: gedeelde kaarten zien beide sets. */
+  /** Layouts a card can pick from: shared cards see both sets. */
   function layoutsFor(readOnly) {
     return readOnly
       ? state.settings.hosted.layouts.concat(state.settings.layouts)
       : state.settings.layouts;
   }
 
-  /** Hoeveel regels naar deze layout verwijzen. */
+  /** How many rules reference this layout. */
   function layoutUsage(layout) {
     return state.settings.rules.concat(state.settings.hosted.rules)
       .filter(function (rule) { return rule.layoutId === layout.id; }).length;
   }
 
-  /** De layout die een nieuwe regel meekrijgt: Default, anders de eerste. */
+  /** Layout a new rule gets: Default, otherwise the first one. */
   function defaultLayoutId() {
     var layouts = state.settings.layouts;
     var preferred = BCEM.findById(layouts, BCEM.DEFAULT_LAYOUT_ID);
@@ -542,14 +590,17 @@
 
   function renderHostedStatus() {
     var h = state.settings.hosted;
-    // Zonder bron valt er niets op te halen.
-    el.syncNow.disabled = !h.url;
-    // Staat de gedeelde configuratie uit, dan dimmen we het veld - net zoals een
-    // regel die niet aanstaat.
+    updateSyncEnabled(h.url);
+    // When shared configuration is off, dim the field — like a disabled rule.
     var field = el.hostedUrl.closest('.field');
     if (field) field.classList.toggle('field--inactive', !h.active);
     if (!h.url) {
       setHostedStatus(t('statusNoHosted'));
+      return;
+    }
+    // Legacy http:// URLs stay visible but cannot sync until upgraded.
+    if (!BCEM.hostedUrlAllowed(h.url)) {
+      setHostedStatus(t('errHttpsOnly'), 'error');
       return;
     }
     if (h.lastError) {
@@ -566,11 +617,11 @@
     setHostedStatus(summary + (h.active ? ' ' + t('statusDaily') : ''), 'ok');
   }
 
-  /* ------------------------------------------------------------ regelkaart */
+  /* ------------------------------------------------------------ rule card */
 
   /**
-   * Bouwt een kaart voor een regel of een layout. Beide delen het weergaveblok
-   * uit displayTemplate, zodat die instellingen maar op een plek beschreven staan.
+   * Builds a card for a rule or a layout. Both share the display block from
+   * displayTemplate so those settings are described in one place only.
    */
   function createCard(item, index, options) {
     var kind = options.kind;
@@ -597,8 +648,8 @@
       setControlValue(input, getPath(item, input.dataset.path));
     });
 
-    // Na de velden: de keuzelijst bepaalt zelf wat er aangevinkt staat, ook
-    // wanneer de regel nog geen expliciete keuze heeft.
+    // After the fields: the dropdown decides what is selected, even when the
+    // rule has no explicit choice yet.
     if (kind === 'rule') fillLayoutPicker(card, item, readOnly);
 
     BCEM.applyI18n(card);
@@ -612,12 +663,12 @@
       card.querySelectorAll('input, select, button').forEach(function (input) {
         input.disabled = true;
       });
-      // Openklappen en de uitleg bekijken mag wel, ook al valt er niets te wijzigen.
+      // Expanding and viewing help is still allowed even though nothing is editable.
       card.querySelectorAll('[data-action="toggle"], [data-action="hint"]').forEach(function (button) {
         button.disabled = false;
       });
-      // Een gedeelde regel valt niet te wijzigen, maar je kan er wel een eigen
-      // kopie van maken en die daarna naar je hand zetten.
+      // A shared rule cannot be edited, but you can duplicate it into your own
+      // rules and tweak the copy.
       var tools = card.querySelector('.rule__tools');
       tools.textContent = '';
       if (kind === 'rule') {
@@ -648,7 +699,7 @@
       select.appendChild(option);
     });
 
-    // De waarde pas nu zetten: de opties bestaan hierboven nog niet.
+    // Set the value only now: the options did not exist above.
     var auto = BCEM.effectiveLayout(rule, layouts);
     if (auto) select.value = auto.id;
   }
@@ -668,8 +719,8 @@
 
   function renderPalette(card, rule, readOnly) {
     var host = card.querySelector('[data-palette]');
-    // De kleurkiezer staat in de sjabloon al in het palet; even opzij houden,
-    // zodat hij het leegmaken overleeft en achter de bolletjes terugkomt.
+    // The colour picker is already in the palette in the template; set it aside
+    // so clearing survives and it returns behind the swatches.
     var custom = card.querySelector('[data-custom-color]');
     host.textContent = '';
     if (!readOnly) {
@@ -687,14 +738,14 @@
     host.appendChild(custom);
   }
 
-  /** Werkt kleur, badge en voorbeeld van een kaart bij, zonder de kaart te hertekenen. */
+  /** Updates a card's colour, badge and preview without redrawing the card. */
   function updateCard(card, item) {
     var ctx = state.ctx;
     var isLayout = card.dataset.kind === 'layout';
     var readOnly = !!card.dataset.readonly;
 
-    // Een layout heeft geen eigen kleur: het voorbeeld leent die van de eerste
-    // regel die haar gebruikt, anders een neutrale.
+    // A layout has no colour of its own: the preview borrows from the first rule
+    // that uses it, otherwise a neutral one.
     var shown = isLayout ? item : BCEM.resolveRule(item, layoutsFor(readOnly));
     var color = isLayout ? layoutSampleColor(item) : item.color;
     var textColor = !isLayout && item.textColor !== 'auto' ? item.textColor : BCEM.idealText(color);
@@ -727,9 +778,9 @@
       dot.title = !hasValue ? '' : t(BCEM.testCondition(cond, ctx) ? 'conditionMatches' : 'conditionNoMatch');
     });
 
-    // De letters op de favicon horen bij de regel, en enkel wanneer de layout
-    // er een tekent. Een regelkaart heeft verder geen voorbeeld: dat hangt aan
-    // de layout, waar de weergave ook bewerkt wordt.
+    // Favicon letters belong to the rule, and only when the layout draws them.
+    // A rule card has no other preview: that lives on the layout, where display
+    // settings are edited too.
     if (!isLayout) {
       card.querySelector('[data-favicon-letters]').hidden = !shown.favicon.enabled;
       return;
@@ -752,12 +803,12 @@
     }
     brand.style.fontWeight = '600';
 
-    // Kader
+    // Frame
     var frame = card.querySelector('[data-preview-frame]');
     frame.style.borderWidth = shown.border.enabled ? Math.min(shown.border.width, 14) + 'px' : '0';
     frame.style.borderColor = color;
 
-    // Banner (balk of hoeklint)
+    // Banner (bar or corner ribbon)
     var banner = card.querySelector('[data-preview-banner]');
     banner.className = 'preview__banner preview__banner--' + shown.banner.position +
       (shown.banner.enabled ? ' preview__banner--visible' : '');
@@ -767,11 +818,11 @@
       banner.textContent = BCEM.renderTidy(shown.banner.text || '{name}', ctx, { name: item.name });
     }
 
-    // Een layout staat los van voorwaarden, dus de ribbon hoort er altijd bij.
+    // A layout is independent of conditions, so the ribbon is always shown.
     ribbon.hidden = false;
     card.querySelector('[data-preview-page]').textContent = t('previewPageBc');
 
-    // Secties in/uitklappen op basis van hun schakelaar
+    // Collapse sections based on their toggle
     card.querySelectorAll('.option').forEach(function (option) {
       var toggle = option.querySelector('input[type="checkbox"][data-path$=".enabled"]');
       option.classList.toggle('option--off', toggle && !toggle.checked);
@@ -779,14 +830,14 @@
   }
 
   /**
-   * Een eigen en een gedeelde regel kunnen hetzelfde id hebben (dat gebeurt na
-   * een import uit hetzelfde bestand), dus de lijst hoort bij de sleutel.
+   * An own and a shared rule can share the same id (after importing from the
+   * same file), so the list belongs in the key.
    */
   function expandKey(kind, item, readOnly) {
     return kind + ':' + (readOnly ? 'gedeeld:' : 'eigen:') + item.id;
   }
 
-  /** Kleur voor het voorbeeld van een layout: die van de eerste regel die haar gebruikt. */
+  /** Colour for a layout preview: from the first rule that uses it. */
   function layoutSampleColor(layout) {
     var user = null;
     state.settings.rules.concat(state.settings.hosted.rules).forEach(function (rule) {
@@ -818,11 +869,11 @@
     setExpanded(card, expanded);
   }
 
-  /* ----------------------------------------------------------- interacties */
+  /* ----------------------------------------------------------- interactions */
 
   /**
-   * Maakt van een gedeelde regel een eigen kopie. De layout waar ze aan hangt
-   * gaat mee, anders zou de kopie er anders uitzien dan het origineel.
+   * Turns a shared rule into an own copy. Its layout comes along, otherwise the
+   * copy would look different from the original.
    */
   function copySharedRule(index) {
     var source = state.settings.hosted.rules[index];
@@ -855,15 +906,15 @@
     if (!layout) return;
 
     if (action === 'delete') {
-      // Er moet er altijd een overblijven, anders heeft "volgt de enige layout"
-      // geen betekenis meer.
+      // At least one must remain, otherwise "follows the only layout" means
+      // nothing.
       if (state.settings.layouts.length < 2) {
         setStatus(t('lastLayout'), true);
         return;
       }
       var used = layoutUsage(layout);
       if (!confirm(t('deleteLayoutConfirm', [layout.name, used]))) return;
-      // De regels houden hun eigen instellingen, die nooit overschreven werden.
+      // Rules keep their own settings, which were never overwritten.
       state.settings.rules.forEach(function (rule) {
         if (rule.layoutId === layout.id) rule.layoutId = '';
       });
@@ -884,7 +935,7 @@
     renderParsed();
   }
 
-  /** De regel of de layout waar deze kaart bij hoort. */
+  /** The rule or layout this card belongs to. */
   function cardTarget(card) {
     var index = Number(card.dataset.index);
     return card.dataset.kind === 'layout'
@@ -898,8 +949,7 @@
     var target = cardTarget(card);
     if (!target) return;
 
-    // Bij het verlaten van een veld ook tonen wat er bewaard wordt: zonder
-    // spaties voor of achter.
+    // On blur, show what gets saved: no leading or trailing spaces.
     if (event.type === 'change') trimField(event.target);
 
     var pathInput = event.target.closest('[data-path]');
@@ -907,7 +957,7 @@
       var path = pathInput.dataset.path;
       setPath(target, path, controlValue(pathInput));
       if (path === 'banner.enabled' && target.banner.enabled) {
-        // Een banner die de pagina afdekt helpt niemand: half doorzichtig.
+        // A banner that covers the page helps nobody: half transparent.
         target.banner.opacity = 0.5;
         var opacityInput = card.querySelector('[data-path="banner.opacity"]');
         if (opacityInput) setControlValue(opacityInput, 0.5);
@@ -926,16 +976,16 @@
     renderParsed();
     save();
 
-    // Een wijziging aan een layout raakt elke regel die eraan hangt; die kaarten
-    // hertekenen we, de layoutkaart zelf blijft staan zodat de focus niet springt.
+    // A layout change affects every rule that uses it; redraw those cards while
+    // the layout card stays put so focus does not jump.
     if (card.dataset.kind === 'layout') {
       renderRules();
       renderHosted();
       return;
     }
 
-    // Andersom hangt de layoutkaart af van de regels: hoeveel er gekoppeld zijn
-    // en welke kleur het voorbeeld leent.
+    // Conversely the layout card depends on rules: how many are linked and which
+    // colour the preview borrows.
     var path = pathInput && pathInput.dataset.path;
     if (path === 'layoutId' || path === 'color') renderLayouts();
   }
@@ -946,7 +996,7 @@
     if (!card) return;
 
     if (button && button.dataset.action === 'hint') {
-      // Binnen een <label>: niet doorgeven aan het veld ernaast.
+      // Inside a <label>: do not pass through to the adjacent field.
       event.preventDefault();
       var wasOpen = button.classList.contains('is-open');
       closeHints();
@@ -955,8 +1005,8 @@
     }
     closeHints();
 
-    // Een klik op de kopregel klapt de regel open of dicht, behalve wanneer je
-    // een bedieningselement in die kopregel aanklikt.
+    // A click on the header expands or collapses the rule, unless you click a
+    // control in that header.
     var onHead = event.target.closest('.rule__head') &&
       !event.target.closest('input, select, label') &&
       (!button || button.dataset.action === 'toggle');
@@ -967,7 +1017,7 @@
     if (!button) return;
     var index = Number(card.dataset.index);
     if (card.dataset.readonly) {
-      // Het enige wat je met een gedeelde regel kan: er een eigen kopie van maken.
+      // The only thing you can do with a shared rule: duplicate it into your own rules.
       if (button.dataset.action === 'duplicate' && card.dataset.kind === 'rule') {
         copySharedRule(index);
       }
@@ -1027,7 +1077,7 @@
     if (state.saveTimer) clearTimeout(state.saveTimer);
     state.saveTimer = setTimeout(function () {
       state.selfWrite = true;
-      // Bewaren gebeurt vanzelf; enkel als het misloopt is er iets te melden.
+      // Saving is silent; only report when it fails.
       BCEM.saveSettings(state.settings).then(null, function (err) {
         state.selfWrite = false;
         setStatus(t('saveFailed', err.message), true);
@@ -1036,9 +1086,9 @@
   }
 
   /**
-   * Kiest uit de open tabbladen de URL die de gebruiker waarschijnlijk bedoelt:
-   * een Business Central tab krijgt voorrang, daarna het meest recent gebruikte
-   * tabblad. Tabbladen zonder http(s)-URL (zoals deze optiespagina) vallen af.
+   * Picks the open-tab URL the user probably means: a Business Central tab
+   * wins, then the most recently used tab. Tabs without an http(s) URL (like
+   * this options page) are skipped.
    */
   function pickBrowsingTab(tabs) {
     var usable = (tabs || []).filter(function (tab) {
@@ -1047,7 +1097,7 @@
     if (!usable.length) return '';
 
     function score(tab) {
-      // lastAccessed bestaat niet in elke Chrome-versie; dan telt "actief".
+      // lastAccessed is not in every Chrome version; then "active" counts.
       return tab.lastAccessed || (tab.active ? 1 : 0);
     }
     usable.sort(function (a, b) {
@@ -1064,9 +1114,9 @@
   }
 
   /**
-   * Knipt spaties voor en achter een ingetypte waarde weg. De opslag doet dit
-   * sowieso (zie str() in settings.js); dit zorgt dat het scherm hetzelfde
-   * toont. Geeft terug of er iets veranderde.
+   * Trims leading and trailing spaces from a typed value. Storage does this
+   * anyway (see str() in settings.js); this keeps the screen in sync. Returns
+   * whether anything changed.
    */
   function trimField(input) {
     if (!input || TRIMMED_TYPES.indexOf(input.type) === -1) return false;
