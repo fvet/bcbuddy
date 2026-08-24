@@ -20,7 +20,8 @@ src/
 examples/              example of a shared configuration (schema version 2)
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
-tools/                 build-package.ps1: the ZIP for the store
+tools/                 build-package.ps1: the ZIP for the store;
+                       get-cws-token.ps1: one-off OAuth setup for releases
 store/                 listing copy and screenshots
 ```
 
@@ -190,27 +191,14 @@ every push to `main`, on pull requests, and on demand. `run-tests.ps1` exits 1
 when a check fails or a suite renders no results, so the step fails by itself —
 no extra reporting glue.
 
-[`.github/workflows/release.yml`](.github/workflows/release.yml) fires on a
-`v*` tag. It first checks that the tag matches `version` in `manifest.json`,
-then runs the tests, builds the package and attaches the ZIP to a GitHub
-release. The version check runs before anything else: a release tagged `v1.0.2`
-carrying a package that declares `1.0.1` is rejected by the store, and by then
-the release already exists.
+[`.github/workflows/release.yml`](.github/workflows/release.yml) is started by
+hand from the Actions tab and does everything a release needs. See
+[Releasing](#-releasing) below.
 
-So cutting a release is: bump `version` in `manifest.json`, commit, tag
-`v<version>`, push the tag.
-
-Releasing is tag-driven rather than merge-driven on purpose. Every submission
-costs review time, so it should be a deliberate act.
-
-Publishing to the Chrome Web Store is *not* automated. The API can do it, but
-it needs an item that already exists (the first submission has to go through
-the dashboard by hand), a one-time OAuth setup in Google Cloud, and four repo
-secrets. The trap there: if the OAuth consent screen stays in "Testing" mode,
-refresh tokens expire after seven days and the pipeline breaks with an opaque
-`invalid_grant`. And an API publish still enters review like any other — with
-`<all_urls>` that is the slow queue, so a green tag would not mean users have
-it.
+It is one workflow rather than two on purpose. A push made with `GITHUB_TOKEN`
+does not trigger other workflows, so a tag pushed from a job would never start a
+tag-triggered job: the release would silently produce nothing. Everything
+therefore happens inline.
 
 ## 🔑 Permissions
 
@@ -232,18 +220,118 @@ the rest, register content scripts dynamically with `chrome.scripting`, and put
 a button on the options page for an on-prem user to grant their own host. That
 is a behaviour change, not a manifest tweak.
 
-## 🚀 Publishing
+## 🚀 Releasing
 
-Build the package for the Chrome Web Store or Edge Add-ons with:
+Cutting a release is one button: **Actions → Release → Run workflow**, on
+`main`. Pick how the version should move (`patch` / `minor` / `major`, or type
+an exact one), and what should happen at the store.
+
+The workflow computes the version, writes it into `manifest.json`, builds the
+package, commits, tags, publishes a GitHub release with the ZIP attached, and
+optionally uploads to the Chrome Web Store. Because it sets both the manifest
+version and the tag, the two cannot disagree — the old failure of a `v1.0.2` tag
+carrying a package that declares `1.0.1` is not reachable any more.
+
+The step order is deliberate:
+
+1. **Tests run before the version is touched**, so a red `main` cannot leave a
+   bumped manifest behind.
+2. **Nothing is pushed until the package is built and verified.** The ZIP's own
+   `manifest.json` is read back and compared with the expected version; if the
+   build or that check fails, `main` is untouched and the version is still free.
+3. **The store upload happens last.** The Web Store refuses a version it already
+   holds, so a version number cannot be retried. A failure anywhere earlier
+   costs nothing; a failure here costs that number and you release again with
+   the next one.
+
+A version must be one to four dot-separated integers, each 0–65535 — Chrome
+takes no suffix, so `1.2.0-rc.1` is not a version you can ship. The workflow
+also refuses a version that is not above the current one.
+
+### Draft or publish
+
+`store: draft` (the default) uploads the package and leaves it as a draft: the
+version already published stays live, and you submit from the dashboard when you
+are ready. `store: publish` uploads and submits for review. `store: none` skips
+the store entirely and only produces the GitHub release.
+
+Draft is the default because with `<all_urls>` the review queue is slow anyway,
+so auto-submitting saves a minute and costs the chance to catch a bad upload
+before it enters review.
+
+Either way the store still reviews it. A green workflow run does not mean users
+have the update.
+
+### One-time setup: letting the workflow push to main
+
+The workflow commits the version bump to `main`, which a protected branch will
+refuse. Grant the bot an exception in a **repository ruleset** (Settings →
+Rules → Rulesets): open the ruleset guarding `main`, and under **Bypass list**
+choose *Add bypass* → **Repository admin** and the **GitHub Actions** app.
+
+Classic branch protection has no equivalent — its bypass list does not accept
+`GITHUB_TOKEN`. If the repository still uses classic rules, either convert them
+to a ruleset (Settings → Branches offers this) or give the workflow a personal
+access token instead of the built-in one. The ruleset is the smaller change.
+
+`permissions: contents: write` in the workflow is required as well, and is
+already set.
+
+### One-time setup: the Chrome Web Store secrets
+
+The API can only *update* an item that already exists, so **the first
+submission has to go through the dashboard by hand**. Do that first; only then
+is there an item ID to automate against.
+
+Four repository secrets are needed (Settings → Secrets and variables → Actions
+→ *New repository secret*):
+
+| Secret | Where it comes from |
+|---|---|
+| `CWS_EXTENSION_ID` | The 32-character id of your item, from its dashboard URL |
+| `CWS_CLIENT_ID` | Google Cloud OAuth client |
+| `CWS_CLIENT_SECRET` | Same client |
+| `CWS_REFRESH_TOKEN` | `tools/get-cws-token.ps1`, below |
+
+In the [Google Cloud console](https://console.cloud.google.com/):
+
+1. Create or pick a project.
+2. **APIs & Services → Library →** enable the **Chrome Web Store API**.
+3. **OAuth consent screen →** User type *External*. Fill in the app name,
+   support email and developer contact. Then **publish it — set it to "In
+   production"**. This is the step people skip: while the screen is in
+   *Testing*, Google expires refresh tokens after seven days and the workflow
+   starts failing with an opaque `invalid_grant`.
+4. **Credentials → Create credentials → OAuth client ID →** application type
+   **Desktop app**. Copy the client id and client secret.
+
+Then swap those for a refresh token:
+
+```bash
+pwsh -File tools/get-cws-token.ps1 -ClientId <id> -ClientSecret <secret>
+```
+
+It opens a browser, catches Google's redirect on `localhost`, and prints the
+refresh token. Google will warn that the app is unverified — expected for an app
+only you use; choose *Advanced* and continue. The script prints the token and
+writes nothing to disk, so it cannot be committed by accident.
+
+Sign in with the account that **owns the store item**. A refresh token belongs
+to the account that granted it; one from a different Google account will
+authenticate fine and then fail on the item as "not found".
+
+### The package
+
+The ZIP the workflow uploads is the one this produces locally too:
 
 ```bash
 powershell -ExecutionPolicy Bypass -File tools/build-package.ps1
 ```
 
 That puts `dist/bcbuddy-<version>.zip` in place with only what the extension
-needs: manifest, `src`, `_locales` and the PNG icons. Tests, examples and the SVG
-sources stay behind. The script checks that `manifest.json` ends up in the root
-of the ZIP, which is the usual silent upload rejection.
+needs: manifest, `src`, `_locales` and the PNG icons. Tests, examples, the SVG
+sources and these tools stay behind. The script checks that `manifest.json` ends
+up in the root of the ZIP, which is the usual silent upload rejection.
 
 The listing copy sits in [`store/description-nl.txt`](store/description-nl.txt)
 and [`store/description-en.txt`](store/description-en.txt), and the screenshots

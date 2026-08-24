@@ -1,51 +1,223 @@
 name: Release
 
-# Tag-driven on purpose. Every submission to the Chrome Web Store costs review
-# time, so a release should be a deliberate act rather than a side effect of
-# merging.
+# Started by hand from the Actions tab, on main. Every submission to the store
+# costs review time, so a release stays a deliberate act — but the version, the
+# tag and the package are all produced here, so they cannot disagree.
+#
+# One workflow rather than two: a push made with GITHUB_TOKEN does not trigger
+# other workflows, so a tag pushed from here would never start a tag-triggered
+# job. Everything therefore happens inline.
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Which part of the version to raise'
+        type: choice
+        default: patch
+        options: [patch, minor, major]
+      version:
+        description: 'Exact version instead (e.g. 1.2.0) — overrides the choice above'
+        type: string
+        default: ''
+      store:
+        description: 'Chrome Web Store: upload as a draft, upload and submit for review, or nothing'
+        type: choice
+        default: draft
+        options: [draft, publish, none]
 
 permissions:
   contents: write
+
+# Two releases at once would race on the version in main.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v7
-
-      # Catch the mismatch before anything is built. A release tagged v1.0.2
-      # containing a package that declares 1.0.1 is rejected by the store, and
-      # by then the release already exists.
-      - name: Tag must match the manifest version
-        shell: powershell
+      - name: Release from main only
+        shell: pwsh
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          $manifest = Get-Content manifest.json -Raw | ConvertFrom-Json
-          $tag = '${{ github.ref_name }}' -replace '^v', ''
-          Write-Host "manifest.json: $($manifest.version)"
-          Write-Host "tag:           $tag"
-          if ($manifest.version -ne $tag) {
-            throw "Tag $tag does not match version $($manifest.version) in manifest.json."
+          if ($env:REF_NAME -ne 'main') {
+            throw "Releases are cut from main; this run is on '$env:REF_NAME'."
           }
 
+      - uses: actions/checkout@v7
+        with:
+          # Full history so the release notes can be diffed against the last tag.
+          fetch-depth: 0
+
+      # Before the version is touched: a failure here must not leave a bumped
+      # manifest behind, half a release.
       - name: Run test suites
         shell: powershell
         run: .\tests\run-tests.ps1
+
+      - name: Work out the next version
+        id: version
+        shell: pwsh
+        env:
+          # Through env, not interpolated into the script: an input is data.
+          BUMP: ${{ inputs.bump }}
+          EXPLICIT: ${{ inputs.version }}
+        run: |
+          $manifest = Get-Content manifest.json -Raw | ConvertFrom-Json
+          $current = [string]$manifest.version
+          $explicit = "$env:EXPLICIT".Trim()
+
+          if ($explicit) {
+            $next = $explicit
+          } else {
+            $parts = @($current -split '\.' | ForEach-Object { [int]$_ })
+            while ($parts.Count -lt 3) { $parts += 0 }
+            switch ($env:BUMP) {
+              'major' { $parts[0]++; $parts[1] = 0; $parts[2] = 0 }
+              'minor' { $parts[1]++; $parts[2] = 0 }
+              default { $parts[2]++ }
+            }
+            $next = ($parts[0..2]) -join '.'
+          }
+
+          # Chrome accepts one to four dot-separated integers, each 0-65535, and
+          # no suffix: '1.2.0-rc.1' is not a version the store will take.
+          $fields = @($next -split '\.')
+          if ($fields.Count -lt 1 -or $fields.Count -gt 4) {
+            throw "Version '$next' must have one to four parts."
+          }
+          foreach ($field in $fields) {
+            if ($field -notmatch '^(0|[1-9][0-9]*)$' -or [int]$field -gt 65535) {
+              throw "Version '$next' has an invalid part '$field' (0-65535, no leading zeros)."
+            }
+          }
+
+          # The store refuses a version it already holds, so going backwards
+          # would waste a release that cannot be retried under the same number.
+          $ordinal = { param($v) ($v -split '\.' | ForEach-Object { '{0:00000}' -f [int]$_ }) -join '' }
+          if ((& $ordinal $next) -le (& $ordinal $current)) {
+            throw "Version $next is not above the current $current."
+          }
+
+          Write-Host "$current -> $next"
+          "current=$current" | Out-File $env:GITHUB_OUTPUT -Append
+          "next=$next" | Out-File $env:GITHUB_OUTPUT -Append
+
+      - name: Write it into the manifest
+        shell: pwsh
+        run: |
+          $path = Join-Path $PWD 'manifest.json'
+          $raw = [System.IO.File]::ReadAllText($path)
+          # Only the version field: rewriting the file through ConvertTo-Json
+          # would reorder and reformat everything around it.
+          $pattern = '("version"\s*:\s*")[^"]*(")'
+          $hits = ([regex]$pattern).Matches($raw).Count
+          if ($hits -ne 1) { throw "Expected one version field in manifest.json, found $hits." }
+          $updated = [regex]::Replace($raw, $pattern, '${1}${{ steps.version.outputs.next }}${2}')
+          # WriteAllText gives UTF-8 without a BOM; Set-Content would add one.
+          [System.IO.File]::WriteAllText($path, $updated)
 
       - name: Build package
         shell: powershell
         run: .\tools\build-package.ps1
 
-      - name: Publish release
+      # Cheap guard against a slip in the rewrite above: what is in the ZIP is
+      # what reaches the store, so that is what gets checked.
+      - name: Package must declare the new version
+        shell: pwsh
+        run: |
+          $expected = '${{ steps.version.outputs.next }}'
+          $zip = Get-Item "dist/bcbuddy-$expected.zip" -ErrorAction Stop
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
+          try {
+            $entry = $archive.Entries | Where-Object { $_.FullName -eq 'manifest.json' }
+            if (-not $entry) { throw 'manifest.json is not at the root of the ZIP.' }
+            $reader = New-Object System.IO.StreamReader($entry.Open())
+            try { $packaged = ($reader.ReadToEnd() | ConvertFrom-Json).version } finally { $reader.Dispose() }
+          } finally {
+            $archive.Dispose()
+          }
+          if ($packaged -ne $expected) {
+            throw "The package declares $packaged, expected $expected."
+          }
+          Write-Host "Package declares $packaged."
+
+      # Only now does anything leave the runner: if the build or the check above
+      # failed, main is untouched and the version is still free.
+      - name: Commit and tag
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.next }}'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add manifest.json
+          git commit -m "Release v$version"
+          git tag -a "v$version" -m "v$version"
+          git push origin HEAD:main --follow-tags
+
+      - name: Publish the GitHub release
         uses: softprops/action-gh-release@v3
         with:
-          files: dist/bcbuddy-*.zip
+          tag_name: v${{ steps.version.outputs.next }}
+          name: v${{ steps.version.outputs.next }}
+          files: dist/bcbuddy-${{ steps.version.outputs.next }}.zip
           generate_release_notes: true
           body: |
-            Upload the attached ZIP in the Chrome Web Store dashboard.
-            Publishing there still goes through review; this release does not
-            ship anything to users by itself.
+            Chrome Web Store: `${{ inputs.store }}`.
+
+            A draft upload leaves the published version live; submit it from the
+            dashboard when you are ready. Publishing still enters review — this
+            release does not put anything in front of users by itself.
+
+      # Last, because the store refuses to take the same version twice: a failure
+      # anywhere earlier costs nothing, a failure here costs this version number.
+      - name: Upload to the Chrome Web Store
+        if: inputs.store != 'none'
+        shell: pwsh
+        env:
+          STORE_ACTION: ${{ inputs.store }}
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+        run: |
+          foreach ($name in 'CLIENT_ID', 'CLIENT_SECRET', 'REFRESH_TOKEN', 'EXTENSION_ID') {
+            if (-not (Get-Item "env:$name" -ErrorAction SilentlyContinue).Value) {
+              throw "Secret CWS_$name is not set on this repository."
+            }
+          }
+
+          # Refresh tokens die after seven days while the OAuth consent screen is
+          # in 'Testing'. That shows up here as an opaque invalid_grant.
+          $token = (Invoke-RestMethod -Method Post -Uri 'https://oauth2.googleapis.com/token' -Body @{
+            client_id     = $env:CLIENT_ID
+            client_secret = $env:CLIENT_SECRET
+            refresh_token = $env:REFRESH_TOKEN
+            grant_type    = 'refresh_token'
+          }).access_token
+
+          $headers = @{ Authorization = "Bearer $token"; 'x-goog-api-version' = '2' }
+          $zip = (Get-Item "dist/bcbuddy-${{ steps.version.outputs.next }}.zip").FullName
+
+          $upload = Invoke-RestMethod -Method Put -Headers $headers `
+            -Uri "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$env:EXTENSION_ID" `
+            -InFile $zip -ContentType 'application/zip'
+
+          Write-Host "uploadState: $($upload.uploadState)"
+          if ($upload.uploadState -eq 'FAILURE') {
+            throw ($upload.itemError | ForEach-Object { $_.error_detail }) -join '; '
+          }
+
+          if ($env:STORE_ACTION -ne 'publish') {
+            Write-Host 'Uploaded as a draft. Submit it from the dashboard when ready.'
+            exit 0
+          }
+
+          $result = Invoke-RestMethod -Method Post -Headers $headers -ContentType 'application/json' `
+            -Uri "https://www.googleapis.com/chromewebstore/v1.1/items/$env:EXTENSION_ID/publish"
+          Write-Host "status: $($result.status -join ', ')"
+          if ($result.statusDetail) { Write-Host ($result.statusDetail -join "`n") }
