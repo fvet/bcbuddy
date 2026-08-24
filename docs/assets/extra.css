@@ -72,3 +72,14 @@
 .bcb-ribbon.bcb-sandbox {
   background: #2e7d32;
 }
+
+/* Header ------------------------------------------------------------------ */
+
+/* Hide the GitHub repo link and star/fork counts: not useful chrome for a
+   BC-admin audience, and the source is still reachable via the edit pencil.
+   Both selectors are needed: on narrow screens the repo block moves from the
+   header into the nav drawer instead of disappearing. */
+.md-header__source,
+.md-nav__source {
+  display: none;
+}
