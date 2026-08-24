@@ -21,7 +21,7 @@ examples/              example of a shared configuration (schema version 2)
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store
-store/                 listing copy, privacy answers and screenshots
+store/                 listing copy and screenshots
 ```
 
 ## 📦 Settings model
@@ -234,8 +234,7 @@ sources stay behind. The script checks that `manifest.json` ends up in the root
 of the ZIP, which is the usual silent upload rejection.
 
 The listing copy sits in [`store/description-nl.txt`](store/description-nl.txt)
-and [`store/description-en.txt`](store/description-en.txt), the answers for the
-privacy practices tab — single purpose and a justification per permission — in
-[`store/privacy-practices.txt`](store/privacy-practices.txt), and the privacy
-policy the store points at in [`PRIVACY.md`](PRIVACY.md). The screenshots for the
-listing are in `store/`.
+and [`store/description-en.txt`](store/description-en.txt), and the screenshots
+in `store/`. For the privacy practices tab at submission — single purpose and a
+justification per permission — and for the privacy policy URL the store points
+at, use [`PRIVACY.md`](PRIVACY.md).

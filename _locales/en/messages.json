@@ -147,6 +147,7 @@
   "navEnvironments": { "message": "Environments" },
   "navAbout": { "message": "About" },
   "navSettings": { "message": "Settings" },
+  "navSections": { "message": "Sections" },
   "defaultLayoutName": { "message": "Default" },
   "lastLayout": { "message": "The last layout cannot be removed: there must always be one." },
   "aboutIntro": { "message": "BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident." },
