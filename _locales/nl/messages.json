@@ -155,6 +155,7 @@
   "lastLayout": { "message": "De laatste layout kan niet weg: er moet er altijd een zijn." },
   "aboutIntro": { "message": "BC Buddy geeft elke Business Central omgeving haar eigen kleur: ribbon, kader, banner, tabtitel en favicon. Zo zie je meteen of je in productie, een sandbox of een demo werkt, en pas je niet per ongeluk de verkeerde omgeving aan." },
   "aboutContact": { "message": "Contact" },
+  "aboutDocs": { "message": "Documentatie" },
   "aboutSource": { "message": "Broncode" },
   "clearShared": { "message": "Gedeelde regels wissen en niet meer bijwerken" },
   "sharedRules": { "message": "Gedeelde regels" },

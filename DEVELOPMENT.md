@@ -253,11 +253,12 @@ Cutting a release is one button: **Actions → Release → Run workflow**, on
 `main`. Pick how the version should move (`patch` / `minor` / `major`, or type
 an exact one), and what should happen at the store.
 
-The workflow computes the version, writes it into `manifest.json`, builds the
-package, commits, tags, publishes a GitHub release with the ZIP attached, and
-optionally uploads to the Chrome Web Store. Because it sets both the manifest
-version and the tag, the two cannot disagree — the old failure of a `v1.0.2` tag
-carrying a package that declares `1.0.1` is not reachable any more.
+The workflow computes the version, writes it into `manifest.json`, dates the
+`Unreleased` section of `CHANGELOG.md`, builds the package, commits, tags,
+publishes a GitHub release with the ZIP attached, and optionally uploads to the
+Chrome Web Store. Because it sets both the manifest version and the tag, the two
+cannot disagree — the old failure of a `v1.0.2` tag carrying a package that
+declares `1.0.1` is not reachable any more.
 
 The step order is deliberate:
 
@@ -274,6 +275,26 @@ The step order is deliberate:
 A version must be one to four dot-separated integers, each 0–65535 — Chrome
 takes no suffix, so `1.2.0-rc.1` is not a version you can ship. The workflow
 also refuses a version that is not above the current one.
+
+### Release notes
+
+[`CHANGELOG.md`](CHANGELOG.md) is written by hand, for users. Every change
+people notice gets a line under `## Unreleased` in the commit that makes it;
+dependency bumps, CI work and refactoring get nothing. On release the workflow
+renames that heading to the version and today's date, appends an empty
+`## Unreleased` above it, and passes the section to the GitHub release as its
+body. The file is also the site's *What's new* page, through the same
+`pymdownx.snippets` include used for the privacy policy.
+
+Writing them by hand is the point. `generate_release_notes` produced a list of
+merged pull requests — accurate, in the wording of whoever wrote the code, and
+led by whatever Dependabot happened to bump that week. Deciding what is worth
+telling people is a judgement, and it is cheapest to make while the change is
+fresh rather than on release day.
+
+An empty `Unreleased` section does not fail the run: a release cut for a
+dependency or a store requirement is legitimate. It logs a warning and the notes
+read *Maintenance release*.
 
 ### Draft or publish
 
@@ -418,13 +439,15 @@ those originals to the build instead of keeping a second copy in `docs/`. It
 registers them as files rather than copying them in afterwards, so `--strict`
 still catches a page pointing at a screenshot that has been renamed.
 
-`docs/privacy.md` is a one-line include of [`PRIVACY.md`](PRIVACY.md) through
-`pymdownx.snippets`, for the same reason: the policy on the site and the policy
-in the repository cannot drift apart.
+`docs/privacy.md` and `docs/whats-new.md` are one-line includes of
+[`PRIVACY.md`](PRIVACY.md) and [`CHANGELOG.md`](CHANGELOG.md) through
+`pymdownx.snippets`, for the same reason: the policy and the release notes on
+the site cannot drift from the ones in the repository. Both are files that get
+edited in a hurry, which is exactly when a second copy is forgotten.
 
 The rest of the pages are their own copy of what the README covers. Single
 sourcing that too was possible and not worth it — the README is a pitch that
-ends in a link, the site is seven pages with a navigation.
+ends in a link, the site is eight pages with a navigation.
 
 ### One-time setup: turning Pages on
 

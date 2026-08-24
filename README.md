@@ -19,8 +19,9 @@ marked tab title and a coloured tab icon.
 ![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](store/screenshot-1-1280x800.png)
 
 A Chrome/Edge extension (Manifest V3). The full documentation is on the website:
-**<https://fvet.github.io/bcbuddy/>**. Working on the extension itself is
-covered in [DEVELOPMENT.md](DEVELOPMENT.md).
+**<https://fvet.github.io/bcbuddy/>**. What changed in each version is in
+[CHANGELOG.md](CHANGELOG.md), and working on the extension itself is covered in
+[DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## 📥 Installing
 
@@ -134,10 +135,10 @@ customer's production environment sees the same green you do.
 2. Put that file somewhere everyone can reach it over HTTPS — a repository, for
    instance. Only use a URL you control: the file can define rules that mark
    any site.
-3. Everyone fills in the URL on the options page under **Shared configuration**:
-   `https://raw.githubusercontent.com/fvet/bcbuddy/main/examples/bc-buddy.json`
-   An ordinary `github.com/.../blob/...` link is fine too; it is converted to
-   the raw variant automatically. Plain HTTP is refused.
+3. Everyone fills in the URL on the options page under **Shared configuration**.
+   An ordinary `github.com/.../blob/...` link is fine; it is converted to the
+   raw variant automatically. Plain HTTP is refused. There is a worked example
+   to try first: `https://fvet.github.io/bcbuddy/examples/bc-buddy.json`.
 4. A click on **Synchronise** fetches the file and thereby switches the shared
    configuration on right away: from then on it is updated every day. There is
    no separate toggle — synchronising is the toggle.

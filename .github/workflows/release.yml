@@ -130,6 +130,66 @@ jobs:
           # WriteAllText gives UTF-8 without a BOM; Set-Content would add one.
           [System.IO.File]::WriteAllText($path, $updated)
 
+      # The notes people read are written by hand under '## Unreleased' as the
+      # changes land, so deciding what is worth mentioning happens in the pull
+      # request that caused it. This step only dates that section and opens an
+      # empty one for the next release. Generated notes were the alternative and
+      # they read like the commit log: dependency bumps and CI fixes in front of
+      # users, in wording aimed at whoever wrote the code.
+      - name: Close off the changelog
+        shell: pwsh
+        env:
+          # Through env, not interpolated into the script: an input is data.
+          STORE_ACTION: ${{ inputs.store }}
+        run: |
+          $path = Join-Path $PWD 'CHANGELOG.md'
+          $raw = [System.IO.File]::ReadAllText($path)
+          $nl = if ($raw -match "`r`n") { "`r`n" } else { "`n" }
+
+          # The heading, and everything under it up to the next version heading.
+          $pattern = '(?ms)^## Unreleased[ \t]*\r?$(.*?)(?=^## |\z)'
+          $section = [regex]::Match($raw, $pattern)
+          if (-not $section.Success) { throw "CHANGELOG.md has no '## Unreleased' section." }
+
+          $notes = $section.Groups[1].Value.Trim()
+          if (-not $notes) {
+            # Not a failure: a release can be worth cutting for a dependency or
+            # a store requirement with nothing to show for it. Saying so beats
+            # an empty section, and beats blocking the release.
+            $notes = 'Maintenance release - nothing that changes what you see.'
+            Write-Host '::warning::Nothing under Unreleased; the notes say so.'
+          }
+
+          # Built from the code point rather than typed, so the encoding this
+          # script is handed cannot turn the em dash into mojibake.
+          $dash = [char]0x2014
+          $heading = "## ${{ steps.version.outputs.next }} $dash $(Get-Date -Format 'yyyy-MM-dd')"
+
+          # Substring surgery rather than [regex]::Replace: a '$1' written in a
+          # changelog entry would otherwise be read as a capture group.
+          $replacement = "## Unreleased$nl$nl$heading$nl$nl$notes$nl$nl"
+          $updated = $raw.Substring(0, $section.Index) + $replacement +
+            $raw.Substring($section.Index + $section.Length)
+          [System.IO.File]::WriteAllText($path, $updated)
+
+          # The body of the GitHub release. Written to the runner's temp rather
+          # than the tree, so the commit below cannot pick it up. Joined from an
+          # array rather than a here-string: a here-string's closing '"@' has to
+          # sit at column 0, which would end this YAML block scalar early.
+          $body = @(
+            $notes,
+            '',
+            '---',
+            '',
+            "Chrome Web Store: ``$env:STORE_ACTION``.",
+            '',
+            'A draft upload leaves the published version live; submit it from the',
+            'dashboard when you are ready. Publishing still enters review',
+            "$dash this release does not put anything in front of users by itself."
+          ) -join "`n"
+          [System.IO.File]::WriteAllText((Join-Path $env:RUNNER_TEMP 'release-notes.md'), $body)
+          Write-Host $heading
+
       - name: Build package
         shell: powershell
         run: .\tools\build-package.ps1
@@ -164,7 +224,7 @@ jobs:
           $version = '${{ steps.version.outputs.next }}'
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add manifest.json
+          git add manifest.json CHANGELOG.md
           git commit -m "Release v$version"
           git tag -a "v$version" -m "v$version"
           # Atomic: the branch and the tag land together or not at all, so a
@@ -177,13 +237,9 @@ jobs:
           tag_name: v${{ steps.version.outputs.next }}
           name: v${{ steps.version.outputs.next }}
           files: dist/bcbuddy-${{ steps.version.outputs.next }}.zip
-          generate_release_notes: true
-          body: |
-            Chrome Web Store: `${{ inputs.store }}`.
-
-            A draft upload leaves the published version live; submit it from the
-            dashboard when you are ready. Publishing still enters review — this
-            release does not put anything in front of users by itself.
+          # The changelog section this run just dated, rather than a generated
+          # list of merged pull requests. See 'Close off the changelog' above.
+          body_path: ${{ runner.temp }}/release-notes.md
 
       # Last, because the store refuses to take the same version twice: a failure
       # anywhere earlier costs nothing, a failure here costs this version number.

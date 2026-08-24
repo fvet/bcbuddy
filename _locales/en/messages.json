@@ -155,6 +155,7 @@
   "lastLayout": { "message": "The last layout cannot be removed: there must always be one." },
   "aboutIntro": { "message": "BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident." },
   "aboutContact": { "message": "Contact" },
+  "aboutDocs": { "message": "Documentation" },
   "aboutSource": { "message": "Source code" },
   "clearShared": { "message": "Clear shared rules and stop updating" },
   "sharedRules": { "message": "Shared rules" },

@@ -24,11 +24,18 @@ behaviour change usually touches both. Check the counterpart in the same commit:
 | Troubleshooting | `docs/troubleshooting.md` |
 | Installing | `docs/index.md` |
 
+A change people notice also gets a line under `## Unreleased` in `CHANGELOG.md`,
+in the same commit that makes it. That file is for users, so it is written in
+their words and about what they see; build, CI, dependency and refactoring work
+stays out of it. The release workflow dates the `Unreleased` section, uses it as
+the GitHub release body and opens an empty one for next time — so an entry that
+was never written is a release note nobody gets.
+
 `DEVELOPMENT.md` is contributor-facing and overlaps neither; it drifts against
 code rather than against prose, so re-read it when `.github/workflows/`,
 `mkdocs.yml`, `manifest.json`, or the release or permission story changes.
 
 Prefer single sourcing over a second copy wherever it is cheap. `docs/privacy.md`
-is a `pymdownx.snippets` include of `PRIVACY.md`, and `tools/mkdocs_assets.py`
-adds the `store/` screenshots and `examples/bc-buddy.json` to the MkDocs build
-instead of duplicating them.
+and `docs/whats-new.md` are `pymdownx.snippets` includes of `PRIVACY.md` and
+`CHANGELOG.md`, and `tools/mkdocs_assets.py` adds the `store/` screenshots and
+`examples/bc-buddy.json` to the MkDocs build instead of duplicating them.
