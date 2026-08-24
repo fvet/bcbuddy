@@ -10,8 +10,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Added
 
-- **About** on the options page now links to the documentation site, alongside
-  the link to the source code.
 - The website has a *What's new* page, so you can see what changed in a version
   without reading the commit log.
 
@@ -24,14 +22,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   troubleshooting and the privacy policy. It is republished with every release,
   so it describes the version you can actually install.
 
-### Fixed
-
-- The README, the website and both store listings described production as red
-  and sandbox as green, while the example configuration people import ships the
-  opposite. The text now matches what you get: production green, sandbox red.
-- Links in the body of the website pages rendered in the default indigo instead
-  of the intended teal and cyan.
-
 ## 1.0.1 — 2026-08-24
 
 First public release.
@@ -43,8 +33,4 @@ First public release.
   on as many as you find useful.
 - **Shared settings.** Point a team at one configuration file and everyone gets
   the same markings, later changes included.
-- **Dutch and English**, following the language of your browser.
 - **Nothing leaves your machine.** No server, no analytics, no tracking.
-
-Version 1.0.0 was a development version and never shipped, so the history
-starts at 1.0.1.
