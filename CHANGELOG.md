@@ -4,7 +4,14 @@ What changed in each released version, written for the people who use BC Buddy.
 Build, packaging and refactoring work is deliberately left out — it is in the
 [commit history](https://github.com/fvet/bcbuddy/commits/main) if you want it.
 
+<!-- Entries for the next release go under Unreleased, as they land. The website
+     includes only what sits below the marker, so a note never reaches the site
+     before the release that ships it — and an Unreleased section that is empty,
+     which is its usual state, is not published as a bare heading. -->
+
 ## Unreleased
+
+<!-- --8<-- [start:released] -->
 
 ## 1.0.3 — 2026-08-24
 
@@ -34,3 +41,5 @@ First public release.
 - **Shared settings.** Point a team at one configuration file and everyone gets
   the same markings, later changes included.
 - **Nothing leaves your machine.** No server, no analytics, no tracking.
+
+<!-- --8<-- [end:released] -->

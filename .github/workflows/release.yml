@@ -146,10 +146,19 @@ jobs:
           $raw = [System.IO.File]::ReadAllText($path)
           $nl = if ($raw -match "`r`n") { "`r`n" } else { "`n" }
 
-          # The heading, and everything under it up to the next version heading.
-          $pattern = '(?ms)^## Unreleased[ \t]*\r?$(.*?)(?=^## |\z)'
+          # The website includes the file from this marker down, so the new
+          # version has to land below it while Unreleased stays above. Matching
+          # on it as well means a marker that was moved or lost fails the release
+          # rather than quietly publishing notes on the wrong side of the line.
+          $marker = '<!-- --8<-- [start:released] -->'
+
+          # The heading, everything under it, and the marker line's terminator:
+          # the whole block is written back out below, marker included.
+          $pattern = '(?ms)^## Unreleased[ \t]*\r?$(.*?)^' + [regex]::Escape($marker) + '[ \t]*\r?\n'
           $section = [regex]::Match($raw, $pattern)
-          if (-not $section.Success) { throw "CHANGELOG.md has no '## Unreleased' section." }
+          if (-not $section.Success) {
+            throw "CHANGELOG.md needs a '## Unreleased' section followed by the line '$marker'."
+          }
 
           $notes = $section.Groups[1].Value.Trim()
           if (-not $notes) {
@@ -167,7 +176,7 @@ jobs:
 
           # Substring surgery rather than [regex]::Replace: a '$1' written in a
           # changelog entry would otherwise be read as a capture group.
-          $replacement = "## Unreleased$nl$nl$heading$nl$nl$notes$nl$nl"
+          $replacement = "## Unreleased$nl$nl$marker$nl$nl$heading$nl$nl$notes$nl"
           $updated = $raw.Substring(0, $section.Index) + $replacement +
             $raw.Substring($section.Index + $section.Length)
           [System.IO.File]::WriteAllText($path, $updated)
