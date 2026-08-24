@@ -8,7 +8,7 @@ BC Buddy geeft elke omgeving een eigen kleur, zodat je in een oogopslag ziet waa
 - De tabtitel, bijvoorbeeld "[TEST] Company Information".
 - Een gekleurd icoontje op het tabblad, zodat je de juiste tab meteen terugvindt tussen tien andere.
 
-Je bepaalt zelf wanneer welke kleur verschijnt: per omgeving, per bedrijf of per klant. Productie rood, test oranje, sandbox groen - of hoe je het zelf wil.
+Je bepaalt zelf wanneer welke kleur verschijnt: per omgeving, per bedrijf of per klant. Productie groen, test oranje, sandbox rood - of hoe je het zelf wil.
 
 Werk je in een team, dan kan iedereen met dezelfde markeringen werken. Een keer instellen volstaat: je collega's krijgen ze automatisch mee en blijven mee als er iets verandert.
 

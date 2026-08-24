@@ -9,8 +9,8 @@ The options page opens on **Environments**. To mark your first environment:
    are unsure what to match on, paste a real BC URL into the **Test URL** field
    at the top; the page shows you which environment, company and tenant it read
    out of it, and previews the result live.
-4. Pick a colour. Red for production is the obvious start.
-5. Add a second rule for your sandbox in a different colour.
+4. Pick a colour — green for production.
+5. Add a second rule for your sandbox in red.
 
 <figure markdown>
 ![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](assets/screenshot-3-1280x800.png)

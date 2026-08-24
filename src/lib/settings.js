@@ -15,7 +15,7 @@
 
   // Lowercase: toHex() normalises that way, so comparisons stay consistent.
   var PALETTE = [
-    '#c4314b', // red - production / watch out
+    '#c4314b', // red - sandbox / watch out
     '#d83b01', // orange
     '#eaa300', // amber
     '#498205', // light green

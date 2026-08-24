@@ -8,7 +8,7 @@ BC Buddy gives every environment its own colour, so you can see at a glance wher
 - The tab title, for example "[TEST] Company Information".
 - A coloured icon on the tab, so you find the right one among ten others.
 
-You decide when each colour appears: per environment, per company or per customer. Production red, test orange, sandbox green - or whatever suits you.
+You decide when each colour appears: per environment, per company or per customer. Production green, test orange, sandbox red - or whatever suits you.
 
 Working in a team? Everyone can use the same markings. Set them up once and your colleagues get them automatically, including later changes.
 

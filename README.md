@@ -40,8 +40,8 @@ The options page opens on **Environments**. To mark your first environment:
    are unsure what to match on, paste a real BC URL into the **Test URL** field
    at the top; the page shows you which environment, company and tenant it read
    out of it, and previews the result live.
-4. Pick a colour. Red for production is the obvious start.
-5. Add a second rule for your sandbox in a different colour.
+4. Pick a colour — green for production.
+5. Add a second rule for your sandbox in red.
 
 ![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](store/screenshot-3-1280x800.png)
 
@@ -127,7 +127,7 @@ or empty brackets are left behind.
 ## 👥 Sharing settings with your team
 
 Everyone in the team can work from the same markings, so a colleague opening a
-customer's production environment sees the same red you do.
+customer's production environment sees the same green you do.
 
 1. Set up your layouts and rules and click **Export**; that produces
    `bc-buddy.json`, layouts included.
