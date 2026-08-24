@@ -6,6 +6,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+## 1.0.3 — 2026-08-24
+
 ### Added
 
 - **About** on the options page now links to the documentation site, alongside
