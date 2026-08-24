@@ -130,7 +130,8 @@ function report() {
 /* ---- syntax check of all script files ----------------------------------- */
 var FILES = [
   'src/lib/match.js', 'src/lib/settings.js', 'src/content/content.js',
-  'src/background.js', 'src/options/options.js', 'src/popup/popup.js'
+  'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
+  'src/options/options-hosted.js', 'src/options/options.js', 'src/popup/popup.js'
 ];
 
 Promise.all(FILES.map(function (f) {
@@ -312,6 +313,9 @@ function runOptions() {
       return loadScript(ROOT + 'src/lib/i18n.js')
         .then(function () { return loadScript(ROOT + 'src/lib/match.js'); })
         .then(function () { return loadScript(ROOT + 'src/lib/settings.js'); })
+        .then(function () { return loadScript(ROOT + 'src/options/options-helpers.js'); })
+        .then(function () { return loadScript(ROOT + 'src/options/options-cards.js'); })
+        .then(function () { return loadScript(ROOT + 'src/options/options-hosted.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options.js'); });
     })
     .then(function () {

@@ -15,7 +15,7 @@ src/
   lib/settings.js      storage, defaults, normalisation, import/export
   content/content.js   draws frame, banner, ribbon, title and favicon
   content/content.css  the accompanying styling
-  options/             options page
+  options/             options page (options.js + helpers, cards, hosted modules)
   popup/               popup on the extension icon
 examples/              example of a shared configuration
 tests/                 test pages + runner
@@ -30,6 +30,12 @@ The Business Central client is an SPA that redraws its DOM continuously. The
 content script is therefore fully idempotent: it re-examines the page on every
 DOM change and on URL changes, and does nothing as long as everything is already
 right.
+
+On pages that need no marking — extension off, no rules, or a non-BC host with
+no matching rule — it goes idle: the MutationObserver and the poll stop. It
+wakes again on navigation (`popstate` / `hashchange`) or when settings change.
+BC SaaS hosts and pages where a ribbon was already seen keep watching, so
+on-prem and SPA redraws are not missed.
 
 Parts of the BC client run in an iframe. The ribbon is therefore looked for in
 every frame, while frame, banner, title and favicon are drawn only in the main

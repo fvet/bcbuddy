@@ -63,6 +63,9 @@
     scheduled: false,
     pollTimer: null,
     observer: null,
+    // When idle we drop the MutationObserver and the poll: nothing to mark on
+    // this page, so chasing every DOM change only burns CPU.
+    idle: true,
     // When we last combed the document looking for the ribbon, and whether we
     // ever found one (then this is Business Central).
     lastBrandSearch: 0,
@@ -85,6 +88,8 @@
         state.settings = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
         clearAll();
         state.rule = null;
+        // Settings may have gained rules or turned the extension back on.
+        wake();
         apply();
       });
     } catch (e) { /* extension reloaded; the next page load picks it up */ }
@@ -95,18 +100,25 @@
   }
 
   function start() {
-    apply();
+    // apply() decides whether to watch; start idle so a no-op page never arms
+    // the observer and poll for a single frame.
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', apply, { once: true });
     }
-    window.addEventListener('popstate', apply);
-    window.addEventListener('hashchange', apply);
-    window.addEventListener('resize', schedule);
+    window.addEventListener('popstate', onNavigate);
+    window.addEventListener('hashchange', onNavigate);
+    window.addEventListener('resize', onResize);
+    apply();
+  }
 
-    state.observer = new MutationObserver(schedule);
-    state.observer.observe(document.documentElement, { childList: true, subtree: true });
+  function onNavigate() {
+    wake();
+    apply();
+  }
 
-    restartPoll();
+  function onResize() {
+    if (state.idle) return;
+    schedule();
   }
 
   function restartPoll() {
@@ -114,13 +126,54 @@
     state.pollTimer = setInterval(apply, POLL_MS);
   }
 
+  /** Stop watching the DOM: no matching work left on this page. */
+  function sleep() {
+    if (state.idle) return;
+    state.idle = true;
+    state.scheduled = false;
+    if (state.pollTimer) {
+      clearInterval(state.pollTimer);
+      state.pollTimer = null;
+    }
+    if (state.observer) {
+      state.observer.disconnect();
+      state.observer = null;
+    }
+  }
+
+  /** Resume observer + poll (BC SPA redraws, or settings just changed). */
+  function wake() {
+    if (!state.idle && state.observer && state.pollTimer) return;
+    state.idle = false;
+    if (!state.observer && document.documentElement) {
+      state.observer = new MutationObserver(schedule);
+      state.observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+    restartPoll();
+  }
+
+  /**
+   * Keep watching when something may still appear: a matching rule (reassert
+   * after BC redraws), a known BC SaaS host, or an on-prem page where we
+   * already saw the ribbon. Otherwise idle — most sites never need us again
+   * until the URL or settings change.
+   */
+  function shouldWatch(settings, rule) {
+    if (!settings || !settings.enabled) return false;
+    if (!BCBuddy.effectiveRules(settings).length) return false;
+    if (rule) return true;
+    if (state.ctx && state.ctx.isbc) return true;
+    if (state.bcSeen) return true;
+    return false;
+  }
+
   /** Bundles bursts of DOM changes into a single reassert. */
   function schedule() {
-    if (state.scheduled) return;
+    if (state.idle || state.scheduled) return;
     state.scheduled = true;
     setTimeout(function () {
       state.scheduled = false;
-      apply();
+      if (!state.idle) apply();
     }, SCHEDULE_MS);
   }
 
@@ -153,6 +206,10 @@
       clearAll();
       state.rule = rule;
     }
+
+    if (shouldWatch(settings, rule)) wake();
+    else sleep();
+
     if (!rule) return;
 
     setVariables(rule);
