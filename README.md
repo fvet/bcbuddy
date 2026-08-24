@@ -135,10 +135,10 @@ customer's production environment sees the same green you do.
 2. Put that file somewhere everyone can reach it over HTTPS — a repository, for
    instance. Only use a URL you control: the file can define rules that mark
    any site.
-3. Everyone fills in the URL on the options page under **Shared configuration**:
-   `https://raw.githubusercontent.com/fvet/bcbuddy/main/examples/bc-buddy.json`
-   An ordinary `github.com/.../blob/...` link is fine too; it is converted to
-   the raw variant automatically. Plain HTTP is refused.
+3. Everyone fills in the URL on the options page under **Shared configuration**.
+   An ordinary `github.com/.../blob/...` link is fine; it is converted to the
+   raw variant automatically. Plain HTTP is refused. There is a worked example
+   to try first: `https://fvet.github.io/bcbuddy/examples/bc-buddy.json`.
 4. A click on **Synchronise** fetches the file and thereby switches the shared
    configuration on right away: from then on it is updated every day. There is
    no separate toggle — synchronising is the toggle.

@@ -787,6 +787,9 @@ function assertNav() {
   check('nav: and link to github',
     about.querySelector('a[href^="https://github.com"]').getAttribute('href'),
     'https://github.com/fvet/bcbuddy');
+  check('nav: and link to the documentation site',
+    about.querySelector('a[href^="https://fvet.github.io"]').getAttribute('href'),
+    'https://fvet.github.io/bcbuddy/');
 
   items[0].click(); // back; the rest of the test works with the rules
   return Promise.resolve();

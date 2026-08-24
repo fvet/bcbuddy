@@ -8,6 +8,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Added
 
+- **About** on the options page now links to the documentation site, alongside
+  the link to the source code.
 - The website has a *What's new* page, so you can see what changed in a version
   without reading the commit log.
 
