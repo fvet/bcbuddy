@@ -121,10 +121,18 @@ function check(name, actual, expected) {
 function truthy(name, actual) {
   results.push((actual ? 'PASS  ' : 'FAIL  ') + name + (actual ? '' : '  (got: ' + JSON.stringify(actual) + ')'));
 }
+/*
+ * Not a verdict but something for a human to glance at, for what no check can
+ * decide on its own. The runner prints these and counts none of them.
+ */
+function note(text) {
+  results.push('NOTE  ' + text);
+}
 function report() {
   var failed = results.filter(function (l) { return l.indexOf('FAIL') === 0; });
+  var checks = results.filter(function (l) { return l.indexOf('NOTE') !== 0; });
   document.getElementById('results').textContent =
-    results.join('\n') + '\n\nTOTAL: ' + results.length + ' checks, ' + failed.length + ' failed.';
+    results.join('\n') + '\n\nTOTAL: ' + checks.length + ' checks, ' + failed.length + ' failed.';
 }
 
 /* ---- syntax check of all script files ----------------------------------- */
@@ -209,28 +217,188 @@ function assertBrandMark() {
   });
 }
 
-/* ---- translations: everything the code uses must exist ------------------ */
+/* ---- translations -------------------------------------------------------
+ * Everything below holds for a language nobody on the team can read: it looks
+ * at keys, placeholders, encoding and length, never at meaning. What these
+ * checks cannot judge is in TRANSLATING.md.
+ */
+
+/*
+ * The locale folder names the Web Store accepts. Upload rejects anything else,
+ * so a folder outside this list is a packaging mistake rather than a language.
+ * Mind the underscores: pt_BR, not pt-BR.
+ */
+var STORE_LOCALES = [
+  'am', 'ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'en_GB', 'en_US',
+  'es', 'es_419', 'et', 'fa', 'fi', 'fil', 'fr', 'gu', 'he', 'hi', 'hr', 'hu',
+  'id', 'it', 'ja', 'kn', 'ko', 'lt', 'lv', 'ml', 'mr', 'ms', 'nl', 'no', 'pl',
+  'pt_BR', 'pt_PT', 'ro', 'ru', 'sk', 'sl', 'sr', 'sv', 'sw', 'ta', 'te', 'th',
+  'tr', 'uk', 'vi', 'zh_CN', 'zh_TW'
+];
+
+/*
+ * A locale where this much of the text still equals the default locale was
+ * copied rather than translated. Below that line an identical string is only
+ * worth a look - plenty of words are the same in two languages - so those are
+ * printed as NOTE and fail nothing.
+ */
+var UNTRANSLATED_LIMIT = 0.4;
+
+/*
+ * Which locales there are. The runner reads _locales from disk and passes the
+ * folder names along, so a folder the Web Store would reject still arrives
+ * here and fails the check below. Opened by hand a page cannot list a
+ * directory, so then we probe: that finds every valid locale and quietly
+ * misses an invalid one.
+ */
+function localeFolders() {
+  var declared = /[?&]locales=([^&]*)/.exec(location.search);
+  if (declared) {
+    return Promise.resolve(decodeURIComponent(declared[1]).split(',').filter(Boolean));
+  }
+  return Promise.all(STORE_LOCALES.map(function (code) {
+    return fetch(ROOT + '_locales/' + code + '/messages.json')
+      .then(function () { return code; }, function () { return ''; });
+  })).then(function (found) { return found.filter(Boolean); });
+}
+
+/*
+ * Reads one messages.json as bytes rather than as text: a file saved in the
+ * Windows code page instead of UTF-8 is exactly the kind of thing that only
+ * shows on the accented letters of a language you do not speak.
+ */
+function loadLocale(code) {
+  return fetch(ROOT + '_locales/' + code + '/messages.json')
+    .then(function (r) { return r.arrayBuffer(); })
+    .then(function (buffer) {
+      var bytes = new Uint8Array(buffer);
+      var locale = {
+        code: code,
+        bom: bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF,
+        utf8: true,
+        error: '',
+        messages: {}
+      };
+      var text = '';
+      try {
+        text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+      } catch (e) {
+        locale.utf8 = false;
+        return locale;
+      }
+      try {
+        locale.messages = JSON.parse(text);
+      } catch (e) {
+        locale.error = e.message;
+      }
+      return locale;
+    });
+}
+
+/* The $1, $2, ... a message expects, without duplicates. $$ is a literal dollar. */
+function placeholders(message) {
+  var found = String(message).replace(/\$\$/g, '').match(/\$\d/g) || [];
+  return found.filter(function (p, i) { return found.indexOf(p) === i; }).sort();
+}
+
+function messageText(locale, key) {
+  return String((locale.messages[key] || {}).message || '');
+}
+
 function assertMessages() {
   var sources = FILES.concat(['src/options/options.html', 'src/popup/popup.html', 'manifest.json']);
-  return Promise.all([
-    fetch(ROOT + '_locales/nl/messages.json').then(function (r) { return r.json(); }),
-    fetch(ROOT + '_locales/en/messages.json').then(function (r) { return r.json(); }),
-    Promise.all(sources.map(function (f) {
-      return fetch(ROOT + f).then(function (r) { return r.text(); });
-    }))
-  ]).then(function (loaded) {
-    var nl = loaded[0];
-    var en = loaded[1];
-    var code = loaded[2].join('\n');
+  return localeFolders().then(function (codes) {
+    return Promise.all([
+      fetch(ROOT + 'manifest.json').then(function (r) { return r.json(); }),
+      Promise.all(codes.map(loadLocale)),
+      Promise.all(sources.map(function (f) {
+        return fetch(ROOT + f).then(function (r) { return r.text(); });
+      }))
+    ]);
+  }).then(function (loaded) {
+    var fallback = loaded[0].default_locale;
+    var locales = loaded[1];
+    var source = loaded[2].join('\n');
 
-    check('i18n: nl and en have the same keys',
-      Object.keys(nl).sort().filter(function (k) { return !en[k]; })
-        .concat(Object.keys(en).sort().filter(function (k) { return !nl[k]; })), []);
+    var base = null;
+    locales.forEach(function (l) { if (l.code === fallback) base = l; });
+
+    truthy('i18n: more than one language', locales.length > 1);
+    truthy('i18n: the default locale (' + fallback + ') is one of them', !!base);
+    if (!base) return;
+
+    check('i18n: every locale folder is a name the Web Store accepts',
+      locales.map(function (l) { return l.code; })
+        .filter(function (c) { return STORE_LOCALES.indexOf(c) < 0; }), []);
+
+    check('i18n: every messages.json is valid JSON',
+      locales.filter(function (l) { return l.error; })
+        .map(function (l) { return l.code + ': ' + l.error; }), []);
+
+    check('i18n: every messages.json is UTF-8 without a BOM',
+      locales.filter(function (l) { return !l.utf8 || l.bom; })
+        .map(function (l) { return l.code + ': ' + (l.utf8 ? 'starts with a BOM' : 'not valid UTF-8'); }), []);
+
+    var keys = Object.keys(base.messages).sort();
+    var others = locales.filter(function (l) { return l !== base; });
+
+    check('i18n: every locale has the same keys as ' + fallback,
+      others.reduce(function (out, l) {
+        keys.filter(function (k) { return !l.messages[k]; })
+          .forEach(function (k) { out.push(l.code + ': missing ' + k); });
+        Object.keys(l.messages).sort().filter(function (k) { return !base.messages[k]; })
+          .forEach(function (k) { out.push(l.code + ': unknown ' + k); });
+        return out;
+      }, []), []);
+
+    check('i18n: every message has text',
+      locales.reduce(function (out, l) {
+        Object.keys(l.messages).sort()
+          .filter(function (k) { return !messageText(l, k).trim(); })
+          .forEach(function (k) { out.push(l.code + ': ' + k); });
+        return out;
+      }, []), []);
+
+    // A dropped or invented $1 ships a broken sentence, and word order differs
+    // per language, so compare the set rather than the position.
+    check('i18n: every translation keeps the same placeholders',
+      others.reduce(function (out, l) {
+        keys.filter(function (k) { return !!l.messages[k]; }).forEach(function (k) {
+          var mine = placeholders(messageText(l, k));
+          var theirs = placeholders(messageText(base, k));
+          if (mine.join() !== theirs.join()) {
+            out.push(l.code + ': ' + k + ' has ' + (mine.join(' ') || 'none') +
+              ' instead of ' + (theirs.join(' ') || 'none'));
+          }
+        });
+        return out;
+      }, []), []);
+
+    // "$1 rule(s) from $2" says nothing about what gets substituted, so a
+    // message that uses a placeholder has to explain itself.
+    check('i18n: every message with a placeholder has a description',
+      keys.filter(function (k) {
+        return placeholders(messageText(base, k)).length &&
+          !String(base.messages[k].description || '').trim();
+      }), []);
+
+    others.forEach(function (l) {
+      var copied = keys.filter(function (k) {
+        return l.messages[k] && messageText(l, k).trim() === messageText(base, k).trim();
+      });
+      truthy('i18n: ' + l.code + ' is translated, not copied (' + copied.length + ' of ' +
+        keys.length + ' still reads as ' + fallback + ')',
+        copied.length < keys.length * UNTRANSLATED_LIMIT);
+      if (copied.length) {
+        note('i18n: ' + l.code + ' equals ' + fallback + ' word for word in ' +
+          copied.length + ' message(s): ' + copied.join(', '));
+      }
+    });
 
     function collect(into, pattern) {
       var match;
       var re = new RegExp(pattern, 'g');
-      while ((match = re.exec(code)) !== null) into[match[1]] = true;
+      while ((match = re.exec(source)) !== null) into[match[1]] = true;
     }
 
     // Definite keys: a message must exist for each of these.
@@ -248,20 +416,15 @@ function assertMessages() {
     var usedKeys = Object.keys(used).sort();
     truthy('i18n: keys are used', usedKeys.length > 40);
     check('i18n: no missing keys',
-      usedKeys.filter(function (k) { return !nl[k]; }), []);
+      usedKeys.filter(function (k) { return !base.messages[k]; }), []);
     check('i18n: no unused keys',
-      Object.keys(nl).sort().filter(function (k) { return !used[k] && !mentioned[k]; }), []);
-    check('i18n: every message has text in both languages',
-      Object.keys(nl).filter(function (k) {
-        return !String(nl[k].message || '').trim() || !String((en[k] || {}).message || '').trim();
-      }), []);
+      keys.filter(function (k) { return !used[k] && !mentioned[k]; }), []);
 
-    // The Web Store rejects a package whose description is longer than
-    // 132 characters — per language, so both files must fit.
+    // The Web Store rejects a package whose description is longer than 132
+    // characters - per language, so every file has to fit.
     check('i18n: description stays under 132 characters',
-      [['nl', nl], ['en', en]].filter(function (pair) {
-        return String(pair[1].extDescription.message || '').length > 132;
-      }).map(function (pair) { return pair[0]; }), []);
+      locales.filter(function (l) { return messageText(l, 'extDescription').length > 132; })
+        .map(function (l) { return l.code; }), []);
   });
 }
 

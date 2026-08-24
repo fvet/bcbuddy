@@ -7,7 +7,7 @@ Working on BC Buddy itself. For what the extension does and how to use it, see
 
 ```
 manifest.json
-_locales/              en (default) and nl
+_locales/              en (default) and nl; see TRANSLATING.md
 src/
   background.js        service worker: synchronises the shared file
   lib/i18n.js          fetching translations
@@ -123,11 +123,27 @@ exists.
 The texts live in [`_locales/en/messages.json`](_locales/en/messages.json) and
 [`_locales/nl/messages.json`](_locales/nl/messages.json); `en` is the default and
 the fallback. Adding a language comes down to a new folder with the same keys.
+The folder name has to be one the Web Store accepts — `fr`, `pt_BR`, with an
+underscore rather than a hyphen — because upload rejects anything else.
 
-The tests check that both files contain the same keys, that every key the code
-uses exists, that no unused keys are left lying around, and that the store
-description stays under 132 characters — the Web Store rejects a package whose
-description is longer, per locale.
+English is the source language, and its file carries a `description` per message
+for whoever translates it: what `$1` gets replaced with, which terms come from
+Business Central, and which words mean something other than they appear to. A
+message that uses a placeholder must have one; the tests insist. Write it when
+you add the message, not when somebody asks.
+
+The tests read every folder under `_locales/` rather than a fixed pair, so a new
+language is covered the moment it exists. They check the folder name, the
+encoding (UTF-8, no BOM), that the keys match `en` exactly, that every message
+has text, that the placeholders survive translation, that English explains its
+own placeholders, that a language is translated rather than copied, and that the
+store description stays under 132 characters — the Web Store rejects a package
+whose description is longer, per locale. Anything identical to the English is
+printed as a `NOTE`, which fails nothing but is worth reading.
+
+What no check can settle — the Business Central terminology, the false friends,
+and how to be sure a translation is right in a language you do not read — is in
+[TRANSLATING.md](TRANSLATING.md).
 
 ## 🎨 Logo and icons
 
@@ -177,6 +193,11 @@ powershell -ExecutionPolicy Bypass -File tests/run-tests.ps1
 You can also just open the pages in a browser; `test-core.html` works anywhere,
 while `test-options.html` and `test-popup.html` fetch the HTML and need the
 `--allow-file-access-from-files` flag for that (the runner already sets it).
+
+The runner passes the folder names under `_locales/` along in the URL, because a
+page cannot list a directory: that way a folder with a name the Web Store would
+reject still reaches the checks instead of being skipped. Opened by hand the
+page probes for the locales it knows about instead, which finds every valid one.
 
 The runner looks for a browser in this order: `CHROME_PATH` if set, then the
 usual Windows install paths for Chrome and Edge, then `chrome`,

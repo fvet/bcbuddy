@@ -38,14 +38,22 @@ function Find-Browser {
 $browser = Find-Browser
 
 $testDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$root = Split-Path -Parent $testDir
 $work = Join-Path $env:TEMP 'bcbuddy-tests'
 if (-not (Test-Path $work)) { New-Item -ItemType Directory -Path $work | Out-Null }
+
+# Which languages exist. A page cannot list a directory, so the folder names go
+# along in the URL: that way a folder with a name the Web Store rejects reaches
+# the checks instead of being quietly skipped.
+$locales = (Get-ChildItem (Join-Path $root '_locales') -Directory |
+    Select-Object -ExpandProperty Name | Sort-Object) -join ','
+if (-not $locales) { throw 'No language folders under _locales.' }
 
 $suites = @('test-core.html', 'test-options.html', 'test-popup.html')
 $totalFailed = 0
 
 foreach ($suite in $suites) {
-    $url = 'file:///' + ((Join-Path $testDir $suite) -replace '\\', '/')
+    $url = 'file:///' + ((Join-Path $testDir $suite) -replace '\\', '/') + '?locales=' + $locales
     $dumpFile = Join-Path $work ($suite + '.txt')
 
     & $browser --headless=new --disable-gpu --no-sandbox --allow-file-access-from-files `
@@ -61,6 +69,7 @@ foreach ($suite in $suites) {
     $lines = $body -split "`n"
 
     $failed = $lines | Where-Object { $_ -match '^FAIL' }
+    $notes = $lines | Where-Object { $_ -match '^NOTE' }
     $total = ($lines | Where-Object { $_ -match 'TOTAL' }) -join ''
 
     # No TOTAL means the suite never finished — a script error part-way leaves
@@ -79,6 +88,8 @@ foreach ($suite in $suites) {
     } else {
         Write-Host "$suite  OK" -ForegroundColor Green
     }
+    # Notes fail nothing, so they only help if they are printed either way.
+    if ($notes) { $notes | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkGray } }
     Write-Host "  $total"
 }
 
