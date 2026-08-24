@@ -1,7 +1,7 @@
 # Sharing with your team
 
 Everyone in the team can work from the same markings, so a colleague opening a
-customer's production environment sees the same red you do.
+customer's production environment sees the same green you do.
 
 ## Publishing a configuration
 

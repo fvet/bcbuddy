@@ -34,8 +34,8 @@ marked tab title and a coloured tab icon.
 ## What it does
 
 - **Colour per environment.** You decide when each colour appears: per
-  environment, per company or per customer. Production red, test orange,
-  sandbox green — or whatever suits you.
+  environment, per company or per customer. Production green, test orange,
+  sandbox red — or whatever suits you.
 - **Five ways to mark.** Ribbon, frame, banner, tab title and tab icon. Turn on
   as many as you find useful.
 - **Online and on-premises.** Both are recognised, including the server
