@@ -9,3 +9,26 @@ Exceptions that stay Dutch on purpose:
 
 - `_locales/nl/messages.json` — the Dutch UI locale
 - `store/*.txt` — store listing notes and Dutch listing copy
+
+## Documentation
+
+`README.md` and `docs/` describe the same features for different readers, so a
+behaviour change usually touches both. Check the counterpart in the same commit:
+
+| README section | Site page |
+|---|---|
+| Getting started | `docs/getting-started.md` |
+| How matching works | `docs/matching.md` |
+| Rules and layouts · What a layout can show · Tokens | `docs/layouts.md` |
+| Sharing settings with your team | `docs/sharing.md` |
+| Troubleshooting | `docs/troubleshooting.md` |
+| Installing | `docs/index.md` |
+
+`DEVELOPMENT.md` is contributor-facing and overlaps neither; it drifts against
+code rather than against prose, so re-read it when `.github/workflows/`,
+`mkdocs.yml`, `manifest.json`, or the release or permission story changes.
+
+Prefer single sourcing over a second copy wherever it is cheap. `docs/privacy.md`
+is a `pymdownx.snippets` include of `PRIVACY.md`, and `tools/mkdocs_assets.py`
+adds the `store/` screenshots and `examples/bc-buddy.json` to the MkDocs build
+instead of duplicating them.
