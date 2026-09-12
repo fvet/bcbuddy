@@ -232,7 +232,7 @@
         if (shown.banner.enabled) {
           banner.style.background = BCBuddy.toRgba(color, shown.banner.opacity);
           banner.style.color = textColor;
-          banner.textContent = BCBuddy.renderTidy(shown.banner.text || '{name}', ctx, { name: item.name });
+          banner.textContent = shown.banner.text || '{name}';
         }
 
         // A layout is independent of conditions, so the ribbon is always shown.

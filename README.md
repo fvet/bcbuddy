@@ -14,7 +14,8 @@ Dynamics 365 Business Central - CRONUS BE (Sandbox)
 ```
 
 Alongside that it can draw a coloured frame around the window, a banner, a
-marked tab title and a coloured tab icon.
+marked tab title and a coloured tab icon. It also automatically expands every
+page to wide layout and switches tile pages to list view.
 
 ![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](store/screenshot-1-1280x800.png)
 
@@ -24,6 +25,10 @@ A Chrome/Edge extension (Manifest V3). The full documentation is on the website:
 [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## 📥 Installing
+
+**From the store:** [Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl) — one click, options page opens automatically.
+
+**From source:**
 
 1. Open `chrome://extensions` (or `edge://extensions`).
 2. Turn on **Developer mode**.
@@ -59,10 +64,10 @@ broken down into fields you can match on:
 | `url` | the full, decoded URL |
 | `environment` | `Sandbox` |
 | `company` | `CRONUS BE` |
-| `tenant` | `453d817a-d5b1-49c1-bdcf-d9474180a702` |
+| `tenant` | `c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811` |
 
 ```
-https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox?company=CRONUS%20BE&page=1
+https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE&page=1
 ```
 
 So you can match on a value that simply occurs *somewhere in the URL* (`url` +
@@ -81,8 +86,9 @@ that in the conditions of your rule (for example `url` `contains`
 
 ## 🗂️ Rules and layouts
 
-The options page has a navigation on the left: **Environments** (layouts and
-rules), **Settings** (shared configuration, import/export) and **About**.
+The options page has a navigation on the left: **Maximize** (auto-wide layout),
+**Environments** (layouts and rules), **Settings** (shared configuration,
+import/export) and **About**.
 
 The difference between the two lists:
 

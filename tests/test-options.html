@@ -19,7 +19,7 @@ var SENT = [];
 var OPTIONS_TAB = { id: 1, url: 'chrome-extension://abcdef/src/options/options.html', active: true, lastAccessed: 300 };
 var GOOGLE_TAB = { id: 2, url: 'https://www.google.com/shopping', active: false, lastAccessed: 200 };
 var BC_TAB = { id: 3, active: false, lastAccessed: 100,
-  url: 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Productie?company=CONTOSO%20BE' };
+  url: 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Productie?company=CONTOSO%20BE' };
 var TABS = [OPTIONS_TAB, GOOGLE_TAB, BC_TAB];
 
 /*
@@ -741,13 +741,13 @@ function assertOptions() {
   var added = document.querySelectorAll('#ruleList .rule')[2];
   check('options: new rule takes name from test URL',
     added.querySelector('.rule__name').value, 'SANDBOX');
-  check('options: new rule copies environment and company',
+  check('options: new rule copies environment from test URL',
     Array.prototype.map.call(added.querySelectorAll('.condition'), function (row) {
       return row.querySelector('[data-cond="field"]').value + ' ' +
         row.querySelector('[data-cond="op"]').value + ' ' +
         row.querySelector('[data-cond="value"]').value;
     }),
-    ['environment equals Sandbox', 'company equals CRONUS BE']);
+    ['environment equals Sandbox']);
   truthy('options: new rule matches test URL immediately',
     added.querySelector('[data-match]').textContent === '\u2713');
   check('options: new rule gets default layout',
@@ -872,7 +872,7 @@ function assertParsedUrl() {
   check('URL: message when nothing recognised',
     parsed.textContent, chrome.i18n.getMessage('nothingRecognised'));
 
-  setUrl('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox?company=CRONUS%20BE');
+  setUrl('https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE');
   check('URL: all four fields on full BC URL',
     Array.prototype.map.call(parsed.querySelectorAll('dt'), function (dt) { return dt.textContent; }),
     [chrome.i18n.getMessage('labelEnvironment') + ':', chrome.i18n.getMessage('labelCompany') + ':', chrome.i18n.getMessage('labelTenant') + ':']);
@@ -918,30 +918,30 @@ function assertNav() {
     document.querySelector('.topbar__actions #globalEnabled'), null);
   check('nav: master toggle is a switch not checkbox',
     getComputedStyle(document.getElementById('globalEnabled')).width, '34px');
-  check('nav: three sections',
+  check('nav: four sections',
     Array.prototype.map.call(items, function (b) { return b.dataset.panel; }),
-    ['environments', 'settings', 'about']);
+    ['maximize', 'environments', 'settings', 'about']);
   check('nav: each section has an icon',
-    Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 3);
+    Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 4);
   check('nav: environments is open',
-    items[0].getAttribute('aria-current'), 'page');
+    items[1].getAttribute('aria-current'), 'page');
   truthy('nav: rules visible', !document.querySelector('.panel[data-panel="environments"]').hidden);
   truthy('nav: settings hidden', document.querySelector('.panel[data-panel="settings"]').hidden);
 
-  items[1].click();
+  items[2].click();
   truthy('nav: settings now visible', !document.querySelector('.panel[data-panel="settings"]').hidden);
   truthy('nav: environments now hidden', document.querySelector('.panel[data-panel="environments"]').hidden);
   check('nav: shared config under settings',
     document.getElementById('syncNow').closest('.panel').dataset.panel, 'settings');
   check('nav: layouts and rules under environments',
     document.getElementById('addLayout').closest('.panel').dataset.panel, 'environments');
-  check('nav: clicked section marked', items[1].getAttribute('aria-current'), 'page');
+  check('nav: clicked section marked', items[2].getAttribute('aria-current'), 'page');
   truthy('nav: choice remembered', STORE.ui && STORE.ui.panel === 'settings');
 
-  items[2].click();
+  items[3].click();
   var about = document.querySelector('.panel[data-panel="about"]');
   truthy('nav: about section no longer called Help',
-    items[2].textContent.trim() === chrome.i18n.getMessage('navAbout'));
+    items[3].textContent.trim() === chrome.i18n.getMessage('navAbout'));
   truthy('nav: and explains what the extension does',
     about.querySelector('[data-i18n="aboutIntro"]').textContent.length > 60);
   check('nav: with email address',
@@ -954,7 +954,7 @@ function assertNav() {
     about.querySelector('a[href^="https://fvet.github.io"]').getAttribute('href'),
     'https://fvet.github.io/bcbuddy/');
 
-  items[0].click(); // back; the rest of the test works with the rules
+  items[1].click(); // back to environments; the rest of the test works with the rules
   return Promise.resolve();
 }
 

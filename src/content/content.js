@@ -80,8 +80,31 @@
     // last cleared. A WeakSet rather than an attribute: this is our bookkeeping
     // and it has no business showing up in someone else's DOM.
     unpainted: new WeakSet(),
-    lastPaintSweep: 0
+    lastPaintSweep: 0,
+    // Maximize: reset on every URL change so a new BC page triggers it again.
+    maximizeApplied: false
   };
+
+  // Selectors for the BC wide-layout toggle and list-view chooser.
+  var WIDE_TOGGLE_SEL = 'button.ms-nav-layout-wide-toggle-button';
+  var LIST_CHOOSER_SEL = 'div[data-control-id="ListLayoutChooser"]:not([data-is-focusable="false"])';
+  var LIST_OPTION_SEL = 'div[data-control-id="0"]';
+  var LIST_ACTIVE_SEL = 'i.icon-NotBrickView:not([data-is-focusable="false"])';
+  var FOCUSABLE_BTN_SEL = 'button[data-is-focusable="true"]';
+
+  // Match BC SaaS and common on-prem URL shapes. Checked against the top
+  // window's href, even when running inside an iframe.
+  var MAXIMIZE_SAAS_RE = /(\.|^)dynamics\.com$/i;
+
+  function isMaximizeTarget(href) {
+    var u;
+    try { u = new URL(href); } catch (e) { return false; }
+    var host = u.hostname.toLowerCase();
+    if (MAXIMIZE_SAAS_RE.test(host)) return true;           // *.dynamics.com
+    if (/(?:^|\.)bc(?:\.|$)/.test(host)) return true;       // hostname is/contains 'bc' label
+    if (/^\/bc/i.test(u.pathname)) return true;             // path starts with /BC (on-prem)
+    return false;
+  }
 
   init();
 
@@ -185,10 +208,12 @@
    */
   function shouldWatch(settings, rule) {
     if (!settings || !settings.enabled) return false;
-    if (!effectiveRules(settings).length) return false;
+    var hasMaximize = settings.maximize && settings.maximize.enabled;
+    if (!effectiveRules(settings).length && !hasMaximize) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
+    if (hasMaximize && isMaximizeTarget(state.href)) return true;
     return false;
   }
 
@@ -217,6 +242,7 @@
       // search immediately.
       state.lastBrandSearch = 0;
       state.bcSeen = false;
+      state.maximizeApplied = false;
     }
 
     // Rules apply on every site. From the URL alone you cannot tell that a
@@ -235,10 +261,12 @@
     if (shouldWatch(settings, rule)) wake();
     else sleep();
 
-    if (!rule) return;
+    if (rule) {
+      setVariables(rule);
+      reassert(rule);
+    }
 
-    setVariables(rule);
-    reassert(rule);
+    applyMaximize();
   }
 
   function sameRule(a, b) {
@@ -619,6 +647,45 @@
     ctx2d.closePath();
   }
 
+  /* ------------------------------------------------------------- maximize */
+
+  /**
+   * Clicks the wide-layout toggle and switches tile pages to list view.
+   * Runs in every frame; only acts when the BC UI controls are present.
+   * Skips silently after the first successful attempt per URL change.
+   */
+  function applyMaximize() {
+    var settings = state.settings;
+    if (!settings || !settings.maximize || !settings.maximize.enabled) return;
+    if (state.maximizeApplied) return;
+    if (!isMaximizeTarget(state.href)) return;
+
+    var wideBtn = document.querySelector(WIDE_TOGGLE_SEL);
+    var chooser = document.querySelector(LIST_CHOOSER_SEL);
+    if (!wideBtn && !chooser) return; // not the frame that hosts the BC toolbar
+
+    state.maximizeApplied = true;
+
+    if (wideBtn && !wideBtn.classList.contains('is-checked') &&
+        wideBtn.getAttribute('aria-pressed') !== 'true') {
+      try { wideBtn.click(); } catch (e) {}
+    }
+
+    if (!document.querySelector(LIST_ACTIVE_SEL) && chooser) {
+      var menuBtn = chooser.querySelector(FOCUSABLE_BTN_SEL);
+      if (menuBtn && menuBtn.getAttribute('aria-expanded') !== 'true') {
+        try { menuBtn.click(); } catch (e) {}
+        setTimeout(function () {
+          var listDiv = document.querySelector(LIST_OPTION_SEL);
+          if (listDiv) {
+            var optBtn = listDiv.querySelector(FOCUSABLE_BTN_SEL);
+            if (optBtn) { try { optBtn.click(); } catch (e) {} }
+          }
+        }, 50);
+      }
+    }
+  }
+
   /* ------------------------------------------------------------- cleanup */
 
   function clearAll() {
@@ -644,6 +711,8 @@
       '--bcb-bar-bg', '--bcb-bar-font-size'].forEach(function (v) {
       root.style.removeProperty(v);
     });
+
+    state.maximizeApplied = false;
   }
 
   /* --------------------------------------------------------------- helpers */

@@ -6,7 +6,7 @@ rule applies. A URL is broken down into fields you can match on.
 Take this URL:
 
 ```
-https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox?company=CRONUS%20BE&page=1
+https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE&page=1
 ```
 
 BC Buddy reads it as:
@@ -16,7 +16,7 @@ BC Buddy reads it as:
 | `url` | the full, decoded URL |
 | `environment` | `Sandbox` |
 | `company` | `CRONUS BE` |
-| `tenant` | `453d817a-d5b1-49c1-bdcf-d9474180a702` |
+| `tenant` | `c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811` |
 
 So you can match on a value that simply occurs *somewhere in the URL* (`url`
 plus `contains`), or more precisely on environment or company.

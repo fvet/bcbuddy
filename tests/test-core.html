@@ -129,13 +129,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     results.push((actual ? 'PASS  ' : 'FAIL  ') + name + (actual ? '' : '  (got: ' + JSON.stringify(actual) + ')'));
   }
 
-  var SAAS = 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox?company=CRONUS%20BE&page=1&dc=0&bookmark=B_TwAAAAJ7';
+  var SAAS = 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE&page=1&dc=0&bookmark=B_TwAAAAJ7';
   var ONPREM = 'https://bc-server.local:8080/BC240/?company=CRONUS%20Belgium&tenant=default';
 
   var saas = BCBuddy.parseUrl(SAAS);
   check('parseUrl SaaS: environment', saas.environment, 'Sandbox');
   check('parseUrl SaaS: company', saas.company, 'CRONUS BE');
-  check('parseUrl SaaS: tenant', saas.tenant, '453d817a-d5b1-49c1-bdcf-d9474180a702');
+  check('parseUrl SaaS: tenant', saas.tenant, 'c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811');
   check('parseUrl SaaS: host', saas.host, 'businesscentral.dynamics.com');
   check('parseUrl SaaS: isbc', saas.isbc, true);
   check('parseUrl SaaS: url decoded', saas.url.indexOf('CRONUS BE') !== -1, true);
@@ -164,8 +164,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     velden('https://businesscentral.dynamics.com/Production/?company=CRONUS%20BE'),
     ['', 'Production', 'CRONUS BE']);
   check('URL: tenant as GUID without environment',
-    velden('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/?company=CRONUS%20BE'),
-    ['453d817a-d5b1-49c1-bdcf-d9474180a702', '', 'CRONUS BE']);
+    velden('https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/?company=CRONUS%20BE'),
+    ['c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811', '', 'CRONUS BE']);
   check('URL: tenant as domain name with environment',
     velden('https://businesscentral.dynamics.com/contoso.onmicrosoft.com/Sandbox/?company=CRONUS%20BE'),
     ['contoso.onmicrosoft.com', 'Sandbox', 'CRONUS BE']);
@@ -221,9 +221,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   // draft for a new rule, derived from a URL
   var bcDraft = BCBuddy.draftFromContext(saas);
   check('new rule: name from environment', bcDraft.name, 'SANDBOX');
-  check('new rule: environment and company from BC URL', bcDraft.conditions,
-    [{ field: 'environment', op: 'equals', value: 'Sandbox' },
-     { field: 'company', op: 'equals', value: 'CRONUS BE' }]);
+  check('new rule: environment from BC URL', bcDraft.conditions,
+    [{ field: 'environment', op: 'equals', value: 'Sandbox' }]);
 
   var googleDraft = BCBuddy.draftFromContext(BCBuddy.parseUrl('https://www.google.com/shopping'));
   check('new rule: full URL for non-BC site', googleDraft.conditions,
@@ -326,7 +325,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('template: full ribbon text',
     BCBuddy.renderTidy(tpl, saas, { name: 'TEST' }),
     'Dynamics 365 Business Central - Sandbox - CRONUS BE (TEST)');
-  var noCompany = BCBuddy.parseUrl('https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/Sandbox');
+  var noCompany = BCBuddy.parseUrl('https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox');
   check('template: empty company leaves no clutter',
     BCBuddy.renderTidy(tpl, noCompany, { name: 'TEST' }),
     'Dynamics 365 Business Central - Sandbox (TEST)');
@@ -351,7 +350,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('template: all supported tokens replaced',
     BCBuddy.render('{name}|{environment}|{env}|{company}|{tenant}|{title}', saas,
       { name: 'TEST', title: 'Company Information' }),
-    'TEST|Sandbox|Sandbox|CRONUS BE|453d817a-d5b1-49c1-bdcf-d9474180a702|Company Information');
+    'TEST|Sandbox|Sandbox|CRONUS BE|c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811|Company Information');
   check('defaults: ribbon text with literal brand name', BCBuddy.normalizeLayout({}).ribbon.text,
     'Dynamics 365 Business Central - {company} ({environment})');
   check('advanced: no settings block anymore',

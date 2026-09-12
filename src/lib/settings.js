@@ -229,7 +229,6 @@
     var conditions = [];
     if (ctx && ctx.isbc) {
       if (ctx.environment) conditions.push({ field: 'environment', op: 'equals', value: ctx.environment });
-      if (ctx.company) conditions.push({ field: 'company', op: 'equals', value: ctx.company });
     }
     if (!conditions.length && ctx && ctx.host && ctx.url) {
       conditions.push({ field: 'url', op: 'contains', value: ctx.url });
@@ -270,6 +269,7 @@
   function normalize(settings) {
     var s = settings || {};
     var hosted = s.hosted || {};
+    var maximize = s.maximize || {};
     var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
     var layouts = (Array.isArray(s.layouts) ? s.layouts : []).map(normalizeLayout);
     var hostedRules = (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule);
@@ -278,6 +278,9 @@
     return {
       version: SCHEMA_VERSION,
       enabled: bool(s.enabled, true),
+      maximize: {
+        enabled: bool(maximize.enabled, true)
+      },
       rules: rules,
       layouts: withDefaultLayout(layouts, rules),
       hosted: {

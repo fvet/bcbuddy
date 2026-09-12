@@ -29,7 +29,7 @@
     TRIMMED_TYPES: ['text', 'url', 'search'],
     UI_KEY: 'ui',
     PENDING_KEY: 'pendingRule',
-    SAMPLE_URL: 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/' +
+    SAMPLE_URL: 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
       'Sandbox?company=CRONUS%20BE&page=1'
   };
 
@@ -39,6 +39,7 @@
 
   page.renderAll = function () {
     page.el.globalEnabled.checked = page.state.settings.enabled;
+    page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
 
@@ -198,7 +199,7 @@
       'exportDownload', 'exportStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared',
-      'brandDot'
+      'brandDot', 'maximizeEnabled'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
@@ -210,7 +211,6 @@
       var ui = stored[page.UI_KEY] || {};
       state.testUrl = ui.testUrl || page.SAMPLE_URL;
       state.panel = ui.panel || 'environments';
-
       var pending = stored[page.PENDING_KEY];
       if (pending) {
         var draft = BCBuddy.newRule(pending);
@@ -245,6 +245,11 @@
   function bind() {
     el.globalEnabled.addEventListener('change', function () {
       state.settings.enabled = el.globalEnabled.checked;
+      page.save();
+    });
+
+    el.maximizeEnabled.addEventListener('change', function () {
+      state.settings.maximize.enabled = el.maximizeEnabled.checked;
       page.save();
     });
 
