@@ -1,5 +1,13 @@
 # Getting started
 
+## Maximize
+
+BC Buddy automatically expands every Business Central page to wide layout and
+switches tile pages to list view. It is on by default — no setup needed. To
+turn it off, open **Maximize** in the options and uncheck the toggle.
+
+## Environments
+
 The options page opens on **Environments**. To mark your first environment:
 
 1. Click **Add rule**.
@@ -29,6 +37,7 @@ The options page has a navigation on the left:
 
 | Section | What lives there |
 |---|---|
+| **Maximize** | Auto-wide layout and list view — on by default |
 | **Environments** | Your layouts and rules |
 | **Settings** | Shared configuration, import and export |
 | **About** | Version and links |

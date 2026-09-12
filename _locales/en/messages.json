@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "See at a glance which Business Central environment you are in: your own colour in the top bar, frame, banner and tab icon.",
+    "message": "See at a glance which Business Central environment you are in: colour in the top bar, frame, banner, tab icon and auto-wide pages.",
     "description": "The description in the store listing. Hard limit of 132 characters, per language: a longer one is rejected at upload."
   },
   "optionsTitle": {
@@ -8,7 +8,7 @@
     "description": "Title of the options page. BC Buddy is a product name and stays as it is."
   },
   "tagline": {
-    "message": "Tell your Business Central environments apart with colour, a frame and your own ribbon.",
+    "message": "Mark your Business Central environments with colour and expand every page to wide layout automatically.",
     "description": "One-line summary under the title on the options page."
   },
   "extensionActive": { "message": "Extension active" },
@@ -426,6 +426,19 @@
     "description": "Placeholder in the name field of a layout. Default is an example of what somebody might call one."
   },
   "addLayout": { "message": "Add layout" },
+  "navMaximize": {
+    "message": "Maximize",
+    "description": "Navigation item leading to the maximize panel."
+  },
+  "maximizeHeading": { "message": "Maximize" },
+  "maximizeIntro": {
+    "message": "Automatically expands every Business Central page to wide layout and switches tile pages to list view.",
+    "description": "Explains what the maximize feature does. Shown at the top of the Maximize panel."
+  },
+  "maximizeToggle": {
+    "message": "Maximize pages",
+    "description": "Label on the on/off switch for the maximize feature."
+  },
   "navEnvironments": {
     "message": "Environments",
     "description": "Navigation item leading to the rules, one per Business Central environment."
@@ -444,6 +457,10 @@
   "aboutIntro": {
     "message": "BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.",
     "description": "Business Central, production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
+  },
+  "aboutIntroMaximize": {
+    "message": "It also automatically expands every page to wide layout and switches tile pages to list view.",
+    "description": "Second paragraph in the About panel, describing the maximize feature."
   },
   "aboutContact": { "message": "Contact" },
   "aboutDocs": { "message": "Documentation" },

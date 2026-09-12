@@ -32,6 +32,12 @@
 
   <div class="layout">
     <nav class="nav" data-i18n-label="navSections" aria-label="Sections">
+      <button type="button" class="nav__item" data-panel="maximize">
+        <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M2 2h4M2 2v4M14 2h-4M14 2v4M2 14h4M2 14v-4M14 14h-4M14 14v-4"/>
+        </svg>
+        <span data-i18n="navMaximize">Maximize</span>
+      </button>
       <button type="button" class="nav__item" data-panel="environments" aria-current="page">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/>
@@ -63,6 +69,21 @@
     </nav>
 
     <main>
+    <div class="panel" data-panel="maximize" hidden>
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="maximizeHeading">Maximize</h2>
+      </div>
+      <p class="muted small" data-i18n="maximizeIntro">Automatically expands every Business Central page to wide layout and switches tile pages to list view.</p>
+      <div class="card">
+        <label class="switch">
+          <input type="checkbox" id="maximizeEnabled">
+          <span data-i18n="maximizeToggle">Maximize pages</span>
+        </label>
+      </div>
+    </section>
+    </div>
+
     <div class="panel" data-panel="environments">
     <section class="card tester">
       <div class="tester__row">
@@ -173,6 +194,7 @@
         </div>
         <div class="card">
           <p data-i18n="aboutIntro">BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.</p>
+          <p data-i18n="aboutIntroMaximize">It also automatically expands every page to wide layout and switches tile pages to list view.</p>
           <dl class="parsed">
             <div>
               <dt data-i18n="aboutContact">Contact</dt>

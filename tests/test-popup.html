@@ -31,7 +31,7 @@ var STORE = {
 };
 var OPENED = 0;
 var POPUP_BODY = '';
-var TAB_URL = 'https://businesscentral.dynamics.com/453d817a-d5b1-49c1-bdcf-d9474180a702/' +
+var TAB_URL = 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
   'Productie?company=CONTOSO%20BE&page=21';
 
 /*
@@ -156,7 +156,7 @@ fetch(ROOT + 'src/popup/popup.html')
       Array.prototype.map.call(document.querySelectorAll('#parsed dt'), function (dt) { return dt.textContent; }),
       [chrome.i18n.getMessage('labelRule'), chrome.i18n.getMessage('labelEnvironment'), chrome.i18n.getMessage('labelCompany')]);
     truthy('popup: tenant is not shown',
-      document.getElementById('parsed').textContent.indexOf('453d817a') === -1);
+      document.getElementById('parsed').textContent.indexOf('c1cf0fd8') === -1);
     truthy('popup: toggle is on', document.getElementById('enabled').checked);
     check('popup: add rule button label',
       document.getElementById('addRule').textContent, chrome.i18n.getMessage('addRule'));

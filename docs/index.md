@@ -12,7 +12,7 @@ you thought you were in a sandbox is easily done. BC Buddy gives every
 environment its own colour.</p>
 
 [Getting started](getting-started.md){ .md-button .md-button--primary }
-[Download](https://github.com/fvet/bcbuddy/releases/latest){ .md-button }
+[Install from Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl){ .md-button }
 [Source on GitHub](https://github.com/fvet/bcbuddy){ .md-button }
 
 </div>
@@ -33,6 +33,9 @@ marked tab title and a coloured tab icon.
 
 ## What it does
 
+- **Automatic wide layout.** Every page expands to full width and tile pages
+  switch to list view automatically — no clicking required. Toggle it off in
+  one click under **Maximize**.
 - **Colour per environment.** You decide when each colour appears: per
   environment, per company or per customer. Production green, test orange,
   sandbox red — or whatever suits you.
@@ -53,14 +56,19 @@ free to use it at work, change it and pass it on.
 
 ## Installing
 
-1. Download the latest `bcbuddy-*.zip` from the
-   [releases page](https://github.com/fvet/bcbuddy/releases/latest) and unpack
-   it, or clone the repository.
-2. Open `chrome://extensions` (or `edge://extensions`).
-3. Turn on **Developer mode**.
-4. Click **Load unpacked** and pick the folder you just unpacked.
-5. The options page opens automatically on first install.
+Click [Install from Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl)
+and confirm the browser prompt. The options page opens automatically on first
+install.
 
-Chrome 111 or newer is required.
+Chrome or Edge 111 or newer is required.
+
+??? note "Installing from source"
+
+    1. Download the latest `bcbuddy-*.zip` from the
+       [releases page](https://github.com/fvet/bcbuddy/releases/latest) and
+       unpack it, or clone the repository.
+    2. Open `chrome://extensions` (or `edge://extensions`).
+    3. Turn on **Developer mode**.
+    4. Click **Load unpacked** and pick the folder you just unpacked.
 
 [Set up your first environment](getting-started.md){ .md-button .md-button--primary }

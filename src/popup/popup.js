@@ -42,8 +42,14 @@
     });
 
     el.openOptions.addEventListener('click', function () {
-      chrome.runtime.openOptionsPage();
-      window.close();
+      chrome.storage.local.get('ui').then(function (stored) {
+        var ui = (stored && stored.ui) || {};
+        ui.panel = 'maximize';
+        return chrome.storage.local.set({ ui: ui });
+      }).then(function () {
+        chrome.runtime.openOptionsPage();
+        window.close();
+      });
     });
 
     el.syncNow.addEventListener('click', function () {
