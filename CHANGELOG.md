@@ -11,14 +11,16 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.7 — 2026-09-12
+
 ### Added
 
 - **Maximize** — new option (on by default) that automatically expands every
   Business Central page to wide layout and switches tile pages to list view.
   Works on SaaS (`*.dynamics.com`) and on-premises environments, including
   servers where the URL contains `/BC` in the path or `bc` as the hostname.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.4 — 2026-08-24
 
