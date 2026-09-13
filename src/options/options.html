@@ -139,6 +139,34 @@
     <div class="panel" data-panel="settings" hidden>
     <section>
       <div class="section-head">
+        <h2 data-i18n="supportHeading">Support</h2>
+      </div>
+      <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.</p>
+      <div class="card">
+        <div class="grid grid--hosted">
+          <label class="field field--wide">
+            <span data-i18n="helpdeskEmailLabel">Helpdesk email address</span>
+            <input type="email" id="helpdeskEmail" spellcheck="false"
+                   placeholder="helpdesk@example.com">
+            <span class="muted small" data-i18n="helpdeskEmailHint">Pre-filled in the To field when a user reports a problem.</span>
+          </label>
+          <div class="field field--colour">
+            <span data-i18n="helpdeskColorLabel">Colour</span>
+            <div class="palette">
+              <input type="color" id="helpdeskColor" class="palette__custom"
+                     data-i18n-title="customColour">
+            </div>
+          </div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="helpdeskRibbonLink">
+          <span data-i18n="helpdeskRibbonLink">Show a “Report a problem” link in the Business Central ribbon</span>
+        </label>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
         <h2 data-i18n="sharedHeading">Shared configuration</h2>
       </div>
       <p class="muted small" data-i18n="sharedIntro">Host a JSON file on a public HTTPS URL (e.g. a raw GitHub link) so everyone in the company uses the same markers.</p>
@@ -152,6 +180,7 @@
                    placeholder="https://raw.githubusercontent.com/fvet/bcbuddy/main/examples/bc-buddy.json">
           </label>
         </div>
+        <p class="muted small" id="hostedManagedNote" data-i18n="hostedManaged" hidden>Set by your organisation. The URL cannot be changed here; the shared configuration is loaded on every browser start.</p>
         <div class="row row--wrap">
           <button type="button" class="btn btn--primary" id="syncNow" data-i18n="syncNow">Synchronise</button>
         </div>

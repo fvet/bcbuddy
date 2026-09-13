@@ -55,6 +55,11 @@
     "description": "Warning about pointing the extension at a file somebody else controls."
   },
   "hostedUrlLabel": { "message": "URL of the shared file" },
+  "hostedManaged": { "message": "Set by your organisation. The URL cannot be changed here; the shared configuration is loaded on every browser start." },
+  "hostedManagedInvalid": {
+    "message": "Your organisation set a URL that cannot be used: $1",
+    "description": "$1 is an error message such as errHttpsOnly."
+  },
   "statusDaily": { "message": "Updated every day." },
   "syncNow": { "message": "Synchronise" },
   "syncing": { "message": "Syncing..." },
@@ -474,5 +479,257 @@
   "copyShared": {
     "message": "Make your own copy of this rule",
     "description": "Turns a shared rule into a copy the user owns and can edit."
+  },
+  "logSupport": {
+    "message": "Log Support Request",
+    "description": "Button in the popup that opens the floating support-request panel."
+  },
+  "logSupportNoTab": {
+    "message": "No active tab found.",
+    "description": "Shown in the popup when there is no tab to open the support panel on."
+  },
+  "logSupportFailed": {
+    "message": "Could not open the support panel.",
+    "description": "Shown in the popup when injecting the support panel fails."
+  },
+  "supportHeading": {
+    "message": "Support",
+    "description": "Heading of the Support section on the Settings panel."
+  },
+  "helpdeskEmailLabel": {
+    "message": "Helpdesk email address",
+    "description": "Label on the field where the user enters the support team's email address."
+  },
+  "helpdeskEmailHint": {
+    "message": "Pre-filled in the To field when a user reports a problem.",
+    "description": "Short hint below the helpdesk email field."
+  },
+  "helpdeskColorLabel": {
+    "message": "Colour",
+    "description": "Label on the colour picker for the helpdesk support panel accent colour."
+  },
+  "supportIntro": {
+    "message": "Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.",
+    "description": "Intro text of the Support section on the Settings panel."
+  },
+  "helpdeskRibbonLink": {
+    "message": "Show a “Report a problem” link in the Business Central ribbon",
+    "description": "Checkbox on the Settings panel."
+  },
+  "ribbonSupportLink": {
+    "message": "Report a problem",
+    "description": "Link next to the brand name in the Business Central ribbon; opens the support panel."
+  },
+  "spSettings": {
+    "message": "Settings",
+    "description": "Tooltip of the gear in the support panel header."
+  },
+  "spClose": {
+    "message": "Close",
+    "description": "Close button of the support panel."
+  },
+  "spNoAddress": {
+    "message": "No support address set up yet. Ask your administrator, or add it in settings.",
+    "description": "Warning in the support panel when no helpdesk email is configured."
+  },
+  "spOpenSettings": {
+    "message": "Open settings",
+    "description": "Link in that warning."
+  },
+  "spDescLabel": {
+    "message": "What went wrong?",
+    "description": "Label above the description box in the support panel."
+  },
+  "spDescPlaceholder": {
+    "message": "What were you doing, and what happened?",
+    "description": "Placeholder of the description box."
+  },
+  "spDescLabelImp": {
+    "message": "What would you like to improve?",
+    "description": "Label above the description box when the type is Improvement."
+  },
+  "spDescPlaceholderImp": {
+    "message": "What would you like to see, and why would it help?",
+    "description": "Placeholder of the description box when the type is Improvement."
+  },
+  "spDescHint": {
+    "message": "Add a screenshot of each step, or at least one of the error.",
+    "description": "Hint under the description box; stays visible while typing."
+  },
+  "spDescHintImp": {
+    "message": "Add a screenshot of the page it is about, if that helps.",
+    "description": "Hint under the description box when the type is Improvement."
+  },
+  "spTypeBug": {
+    "message": "Bug",
+    "description": "Report type."
+  },
+  "spTypeBugHint": {
+    "message": "Something is wrong: an error, or it does not do what you expect.",
+    "description": "Tooltip explaining the Bug type."
+  },
+  "spTypeImprovement": {
+    "message": "Improvement",
+    "description": "Report type."
+  },
+  "spTypeImprovementHint": {
+    "message": "A suggestion, or a request for something new.",
+    "description": "Tooltip explaining the Improvement type."
+  },
+  "spPriority": {
+    "message": "Priority",
+    "description": "Placeholder of the priority dropdown."
+  },
+  "spPrioNormal": {
+    "message": "Normal",
+    "description": "Priority level."
+  },
+  "spPrioHigh": {
+    "message": "High",
+    "description": "Priority level."
+  },
+  "spPrioCritical": {
+    "message": "Critical",
+    "description": "Priority level."
+  },
+  "spAddShot": {
+    "message": "Add a screenshot",
+    "description": "Button that starts area capture; shown while there are no screenshots yet."
+  },
+  "spAddAnotherShot": {
+    "message": "Add another screenshot",
+    "description": "Same button once at least one screenshot exists."
+  },
+  "spFullPage": {
+    "message": "Capture the whole screen",
+    "description": "Tooltip of the full-page capture button."
+  },
+  "spMaxShots": {
+    "message": "Maximum of $1 screenshots reached.",
+    "description": "Shown instead of the intro when the limit is hit. $1 is the limit."
+  },
+  "spSend": {
+    "message": "Send to support",
+    "description": "Primary button of the support panel."
+  },
+  "spSaveReport": {
+    "message": "Save report",
+    "description": "Button in the done view that saves the report as a file."
+  },
+  "spSaveReportHint": {
+    "message": "Save the report as a file instead of emailing it",
+    "description": "Tooltip of the save icon next to the send button."
+  },
+  "spEdit": {
+    "message": "Draw on this screenshot",
+    "description": "Tooltip of the pencil on a thumbnail."
+  },
+  "spRemove": {
+    "message": "Remove",
+    "description": "Tooltip of the cross on a thumbnail."
+  },
+  "spShotAlt": {
+    "message": "Screenshot $1",
+    "description": "Alt text of a thumbnail. $1 is its number."
+  },
+  "spCaptureFailed": {
+    "message": "Could not take the screenshot. Please try again.",
+    "description": "Error under the buttons."
+  },
+  "spSelectHint": {
+    "message": "Click and drag to select an area · Esc to cancel",
+    "description": "Hint pill shown during area selection."
+  },
+  "spToolArrow": {
+    "message": "Arrow",
+    "description": "Annotation tool tooltip."
+  },
+  "spToolPen": {
+    "message": "Pen",
+    "description": "Annotation tool tooltip."
+  },
+  "spToolColour": {
+    "message": "Colour",
+    "description": "Annotation colour button tooltip."
+  },
+  "spUndo": {
+    "message": "Undo (Ctrl+Z)",
+    "description": "Annotation undo tooltip."
+  },
+  "spEditorSave": {
+    "message": "Save (Enter)",
+    "description": "Tooltip of the save button in the annotation editor."
+  },
+  "spEditorSaveShort": {
+    "message": "Save",
+    "description": "Label on the save button in the annotation editor."
+  },
+  "spEditorCancel": {
+    "message": "Cancel (Esc)",
+    "description": "Tooltip of the cancel button in the annotation editor."
+  },
+  "spDoneTitle": {
+    "message": "One more step in your email app",
+    "description": "Title of the done view after sending."
+  },
+  "spDoneStepPaste": {
+    "message": "Click in the email and press Ctrl+V to paste the report.",
+    "description": "Step in the done view. Keep Ctrl+V as written; it is highlighted."
+  },
+  "spDoneStepSend": {
+    "message": "Click Send.",
+    "description": "Last step in the done view."
+  },
+  "spDoneFallback": {
+    "message": "No email opened? Save the report and attach it to an email yourself.",
+    "description": "Fallback text in the done view."
+  },
+  "spDoneWebmail": {
+    "message": "Using Gmail or Outlook on the web? Pictures often do not paste there: use Save report and attach the file.",
+    "description": "Note in the done view for webmail users."
+  },
+  "spCopyAgain": {
+    "message": "Copy again",
+    "description": "Button in the done view that puts the report on the clipboard again."
+  },
+  "spCopied": {
+    "message": "Copied. Paste it with Ctrl+V.",
+    "description": "Status after Copy again."
+  },
+  "spCopyFailed": {
+    "message": "Copying failed. The report was saved as a file instead: attach it to the email.",
+    "description": "Status when the clipboard is not available."
+  },
+  "spSaved": {
+    "message": "Saved to your Downloads folder.",
+    "description": "Status after saving the report as a file."
+  },
+  "spDiscardConfirm": {
+    "message": "Close and throw away your screenshots?",
+    "description": "Confirmation when closing the panel with unsent screenshots."
+  },
+  "spDiscardYes": {
+    "message": "Throw away",
+    "description": "Button in the close confirmation that discards the report."
+  },
+  "spDiscardNo": {
+    "message": "Keep editing",
+    "description": "Button in the close confirmation that returns to the report."
+  },
+  "spSubject": {
+    "message": "BC Support Request",
+    "description": "Subject of the email; type, priority and environment are added around it."
+  },
+  "spMailBody": {
+    "message": "Please paste the report here (Ctrl+V, or click Paste in the email toolbar).",
+    "description": "Body the email opens with."
+  },
+  "spReportDescription": {
+    "message": "Description",
+    "description": "Label in the HTML report."
+  },
+  "spReportSystem": {
+    "message": "System",
+    "description": "Label in the HTML report for OS, browser and screen size."
   }
 }

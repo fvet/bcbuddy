@@ -21,6 +21,7 @@ behaviour change usually touches both. Check the counterpart in the same commit:
 | How matching works | `docs/matching.md` |
 | Rules and layouts · What a layout can show · Tokens | `docs/layouts.md` |
 | Sharing settings with your team | `docs/sharing.md` |
+| Deploying for your organisation | `docs/deploying.md` |
 | Troubleshooting | `docs/troubleshooting.md` |
 | Installing | `docs/index.md` |
 

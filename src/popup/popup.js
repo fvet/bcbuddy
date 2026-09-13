@@ -15,7 +15,7 @@
 
   function init() {
     BCBuddy.applyI18n();
-    ['brandDot', 'parsed', 'enabled', 'addRule', 'openOptions', 'syncNow', 'status']
+    ['brandDot', 'parsed', 'enabled', 'addRule', 'openOptions', 'syncNow', 'logSupport', 'status']
       .forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
@@ -74,6 +74,24 @@
       chrome.storage.local.set({ pendingRule: draft }).then(function () {
         chrome.runtime.openOptionsPage();
         window.close();
+      });
+    });
+
+    el.logSupport.addEventListener('click', function () {
+      var tabId = current.tab && current.tab.id;
+      if (!tabId) { setStatus(t('logSupportNoTab'), true); return; }
+      chrome.scripting.insertCSS({
+        target: { tabId: tabId },
+        files: ['src/support/support-panel.css']
+      }).then(function () {
+        return chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          files: ['src/support/support-panel.js']
+        });
+      }).then(function () {
+        window.close();
+      }).catch(function (err) {
+        setStatus(t('logSupportFailed'), true);
       });
     });
   }

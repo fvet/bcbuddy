@@ -17,6 +17,12 @@ customer's production environment sees the same green you do.
 An ordinary `github.com/.../blob/...` link is fine; it is converted to the raw
 variant automatically. Plain HTTP is refused.
 
+!!! tip "Rolling it out to a whole organisation"
+
+    Steps 3 and 4 disappear when IT sets the URL by browser policy: the
+    extension installs itself and loads the configuration without anyone
+    typing anything. See [Deploying for your organisation](deploying.md).
+
 !!! danger "Only use a URL you control"
 
     The file can define rules that mark any site. Treat that URL the way you

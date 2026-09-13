@@ -96,3 +96,21 @@
 [data-bcb-ribbon] *:not(svg):not(img):not(input):not(textarea):not(select) {
   background-color: transparent !important;
 }
+
+/* "Report a problem" next to the brand name in the ribbon. Same colour as the
+   ribbon text, lighter weight so the brand still reads as the brand. */
+[data-bcb-support] {
+  display: inline-block;
+  margin-left: 14px;
+  font-weight: 400 !important;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--bcb-text, inherit) !important;
+  opacity: 0.85;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+[data-bcb-support]:hover, [data-bcb-support]:focus-visible { opacity: 1; outline: none; }

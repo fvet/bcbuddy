@@ -22,7 +22,10 @@
       dragIndex: null,
       // Which rules are expanded, by id. Rules start collapsed so a long list
       // stays easy to scan.
-      expanded: {}
+      expanded: {},
+      // What the organisation set by policy: { url, error }. With a URL the
+      // field is read-only; with an error the status says what is wrong.
+      managed: { url: '', error: '' }
     },
     el: {},
     t: t,
@@ -41,6 +44,9 @@
     page.el.globalEnabled.checked = page.state.settings.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
     page.el.hostedUrl.value = page.state.settings.hosted.url;
+    page.el.helpdeskEmail.value = page.state.settings.helpdeskEmail || '';
+    page.el.helpdeskColor.value = BCBuddy.toHex(page.state.settings.helpdeskColor);
+    page.el.helpdeskRibbonLink.checked = page.state.settings.helpdeskRibbonLink;
     page.el.testUrl.value = page.state.testUrl;
 
     page.refreshContext();
@@ -194,19 +200,21 @@
     BCBuddy.applyI18n();
     [
       'status', 'globalEnabled', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
-      'addRule', 'hostedUrl', 'syncNow',
+      'addRule', 'hostedUrl', 'hostedManagedNote', 'syncNow',
       'hostedStatus', 'hostedList', 'importFile', 'importFileBtn', 'importStatus',
       'exportDownload', 'exportStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared',
-      'brandDot', 'maximizeEnabled'
+      'brandDot', 'maximizeEnabled', 'helpdeskEmail', 'helpdeskColor', 'helpdeskRibbonLink'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
       BCBuddy.loadSettings(),
-      chrome.storage.local.get([page.UI_KEY, page.PENDING_KEY])
+      chrome.storage.local.get([page.UI_KEY, page.PENDING_KEY]),
+      BCBuddy.loadManaged()
     ]).then(function (results) {
       state.settings = results[0];
+      state.managed = results[2];
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
       state.testUrl = ui.testUrl || page.SAMPLE_URL;
@@ -228,6 +236,16 @@
     });
 
     chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area === 'managed') {
+        // The organisation changed its policy while this page is open. The
+        // service worker copies the URL into the settings; that write arrives
+        // below. Here only the read-only state has to follow.
+        BCBuddy.loadManaged().then(function (managed) {
+          state.managed = managed;
+          page.renderHosted();
+        });
+        return;
+      }
       if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
       var incoming = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
       // Our own write comes back as an event too. Compare what arrived against
@@ -250,6 +268,24 @@
 
     el.maximizeEnabled.addEventListener('change', function () {
       state.settings.maximize.enabled = el.maximizeEnabled.checked;
+      page.save();
+    });
+
+    el.helpdeskEmail.addEventListener('input', function () {
+      state.settings.helpdeskEmail = el.helpdeskEmail.value.trim();
+      page.save();
+    });
+    el.helpdeskEmail.addEventListener('change', function () {
+      if (page.trimField(el.helpdeskEmail)) el.helpdeskEmail.dispatchEvent(new Event('input'));
+    });
+
+    el.helpdeskColor.addEventListener('input', function () {
+      state.settings.helpdeskColor = el.helpdeskColor.value;
+      page.save();
+    });
+
+    el.helpdeskRibbonLink.addEventListener('change', function () {
+      state.settings.helpdeskRibbonLink = el.helpdeskRibbonLink.checked;
       page.save();
     });
 

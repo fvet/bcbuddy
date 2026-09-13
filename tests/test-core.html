@@ -509,6 +509,39 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   truthy('hash: differs for different content', BCBuddy.hash('a') !== BCBuddy.hash('b'));
   truthy('hash: equal for same content', BCBuddy.hash('abc') === BCBuddy.hash('abc'));
 
+  /* ---- the URL an organisation sets by policy ----------------------------- */
+  // Resolves long before the DOM checks below report, so the results land in
+  // the same list. Each step swaps in a different managed-storage answer.
+  function withPolicy(answer) {
+    chrome.storage.managed = answer === undefined ? undefined : {
+      get: function () {
+        return answer instanceof Error ? Promise.reject(answer) : Promise.resolve(answer);
+      }
+    };
+    return BCBuddy.loadManaged();
+  }
+  withPolicy(undefined).then(function (managed) {
+    check('managed: no managed storage means no policy', managed, { url: '', error: '' });
+    return withPolicy({});
+  }).then(function (managed) {
+    check('managed: empty policy means no policy', managed, { url: '', error: '' });
+    return withPolicy({ hostedUrl: '  https://intranet.example.com/bc-buddy.json  ' });
+  }).then(function (managed) {
+    check('managed: https URL is trimmed and kept',
+      managed, { url: 'https://intranet.example.com/bc-buddy.json', error: '' });
+    return withPolicy({ hostedUrl: 'https://github.com/bedrijf/repo/blob/main/bc-buddy.json' });
+  }).then(function (managed) {
+    check('managed: github blob link becomes raw',
+      managed.url, 'https://raw.githubusercontent.com/bedrijf/repo/main/bc-buddy.json');
+    return withPolicy({ hostedUrl: 'http://intranet.example.com/bc-buddy.json' });
+  }).then(function (managed) {
+    check('managed: http is refused with the reason', managed, { url: '', error: BCBuddy.t('errHttpsOnly') });
+    return withPolicy(new Error('no policy support'));
+  }).then(function (managed) {
+    check('managed: a browser without policy support means no policy', managed, { url: '', error: '' });
+    delete chrome.storage.managed;
+  });
+
   /* ---- DOM effects from the content script ------------------------------- */
   setTimeout(function () {
     var brand = document.querySelector('[data-bcb-brand]');

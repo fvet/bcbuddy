@@ -7,6 +7,7 @@ Working on BC Buddy itself. For what the extension does and how to use it, see
 
 ```
 manifest.json
+schema.json            policy schema for chrome.storage.managed: the shared URL
 _locales/              en (default) and nl; see TRANSLATING.md
 src/
   background.js        service worker: synchronises the shared file
@@ -50,6 +51,15 @@ dropped. Hosted (shared) rules go through the same path.
 There is no migration path from an older shape. The extension had no public
 release before schema 2, so `normalize()` reads the current schema only —
 unknown fields are dropped rather than translated.
+
+The URL of the shared file can also come from browser policy, through
+`chrome.storage.managed`. `schema.json` declares the one key, `hostedUrl`;
+`loadManaged()` reads and validates it the way a typed URL is validated. The
+service worker copies it into `hosted.url` and forces `hosted.active` on
+install, on startup and whenever the policy changes, so the stored settings
+stay the single source everything else reads. The options page reads the policy
+only to make the field read-only and to report an unusable value. The user
+guide for IT is `docs/deploying.md`.
 
 ## ⚙️ How the content script behaves
 

@@ -18,6 +18,12 @@ Shared rules are read-only by design. Use the copy button to get your own
 editable version, which takes precedence. See
 [Sharing with your team](sharing.md).
 
+## The URL of the shared file is greyed out
+
+It was set by your organisation through browser policy, and only IT can change
+it. Your own rules still work on top of the shared ones. See
+[Deploying for your organisation](deploying.md).
+
 ## Something else
 
 Open an issue at

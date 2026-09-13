@@ -161,6 +161,18 @@
 
         var merged = BCBuddy.mergeRules(state.settings.rules, parsed.rules);
         state.settings.rules = merged.rules;
+        if (parsed.helpdeskEmail) {
+          state.settings.helpdeskEmail = parsed.helpdeskEmail;
+          if (page.el.helpdeskEmail) page.el.helpdeskEmail.value = parsed.helpdeskEmail;
+        }
+        if (parsed.helpdeskColor) {
+          state.settings.helpdeskColor = parsed.helpdeskColor;
+          if (page.el.helpdeskColor) page.el.helpdeskColor.value = BCBuddy.toHex(parsed.helpdeskColor);
+        }
+        if (parsed.helpdeskRibbonLink !== null) {
+          state.settings.helpdeskRibbonLink = parsed.helpdeskRibbonLink;
+          if (page.el.helpdeskRibbonLink) page.el.helpdeskRibbonLink.checked = parsed.helpdeskRibbonLink;
+        }
         page.save();
         page.renderRules();
         page.renderLayouts();
@@ -180,10 +192,20 @@
 
       page.renderHostedStatus = function () {
         var h = state.settings.hosted;
+        var managed = state.managed || { url: '', error: '' };
         page.updateSyncEnabled(h.url);
+        // A URL set by policy is not the user's to edit, and clearing the
+        // shared rules would only hold until the next browser start.
+        el.hostedUrl.disabled = !!managed.url;
+        el.hostedManagedNote.hidden = !managed.url;
+        el.clearShared.hidden = !!managed.url;
         // When shared configuration is off, dim the field — like a disabled rule.
         var field = el.hostedUrl.closest('.field');
         if (field) field.classList.toggle('field--inactive', !h.active);
+        if (managed.error) {
+          page.setHostedStatus(t('hostedManagedInvalid', [managed.error]), 'error');
+          return;
+        }
         if (!h.url) {
           page.setHostedStatus(t('statusNoHosted'));
           return;

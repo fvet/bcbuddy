@@ -139,7 +139,8 @@ function report() {
 var FILES = [
   'src/lib/match.js', 'src/lib/settings.js', 'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
-  'src/options/options-hosted.js', 'src/options/options.js', 'src/popup/popup.js'
+  'src/options/options-hosted.js', 'src/options/options.js', 'src/popup/popup.js',
+  'src/support/support-panel.js'
 ];
 
 Promise.all(FILES.map(function (f) {
@@ -831,7 +832,7 @@ function assertOptions() {
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
     return assertNav().then(assertLayouts).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
-      .then(assertExternalWrite);
+      .then(assertExternalWrite).then(assertManaged);
   });
 }
 
@@ -1166,6 +1167,44 @@ function assertExternalWrite() {
       check('external: and carry its name',
         document.querySelector('#hostedList .rule .rule__name').value, 'FROM SERVICE WORKER');
     });
+  });
+}
+
+/* ---- a URL set by the organisation's policy ----------------------------- */
+function assertManaged() {
+  var url = document.getElementById('hostedUrl');
+  var note = document.getElementById('hostedManagedNote');
+  var clear = document.getElementById('clearShared');
+  var status = document.getElementById('hostedStatus');
+
+  check('managed: without a policy the field is editable', url.disabled, false);
+  check('managed: without a policy the note is hidden', note.hidden, true);
+
+  // The policy arrives while the page is open: the browser fires the change
+  // event for the managed area, and the page re-reads it.
+  function setPolicy(value) {
+    chrome.storage.managed = { get: function () { return Promise.resolve(value); } };
+    LISTENERS.forEach(function (fn) { fn({ hostedUrl: { newValue: value.hostedUrl } }, 'managed'); });
+    return wait(200);
+  }
+
+  return setPolicy({ hostedUrl: 'https://intranet.example.com/bc-buddy.json' }).then(function () {
+    check('managed: field is read-only', url.disabled, true);
+    check('managed: note is shown', note.hidden, false);
+    truthy('managed: note says who set it', note.textContent.indexOf('organisation') !== -1);
+    check('managed: clearing the shared rules is not offered', clear.hidden, true);
+    check('managed: sync stays available', document.getElementById('syncNow').disabled, false);
+    return setPolicy({ hostedUrl: 'http://intranet.example.com/bc-buddy.json' });
+  }).then(function () {
+    truthy('managed: an http policy URL is reported',
+      status.textContent.indexOf('HTTPS') !== -1 && status.textContent.indexOf('organisation') !== -1);
+    check('managed: an unusable policy leaves the field editable', url.disabled, false);
+    return setPolicy({});
+  }).then(function () {
+    check('managed: policy removed, field editable again', url.disabled, false);
+    check('managed: policy removed, note hidden again', note.hidden, true);
+    check('managed: policy removed, clearing offered again', clear.hidden, false);
+    delete chrome.storage.managed;
   });
 }
 

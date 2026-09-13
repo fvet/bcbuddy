@@ -1,10 +1,10 @@
 <#
   Builds the ZIP file for the Chrome Web Store / Edge Add-ons.
 
-  Only what the extension needs for the user goes in: manifest, src, _locales
-  and the PNG icons. Tests, samples, the SVG sources and the icon build script
-  stay out — they only make the package larger and give the reviewer files to
-  read that do nothing.
+  Only what the extension needs for the user goes in: manifest, the policy
+  schema, src, _locales and the PNG icons. Tests, samples, the SVG sources and
+  the icon build script stay out — they only make the package larger and give
+  the reviewer files to read that do nothing.
 
   LICENSE is the exception to that rule. The ZIP is a copy of the software, and
   MIT asks for the notice to travel with every copy; at a kilobyte it is not
@@ -27,6 +27,7 @@ if (-not $version) { throw 'No version in manifest.json.' }
 # What goes into the package.
 $include = @(
   'manifest.json',
+  'schema.json',
   'LICENSE',
   'src',
   '_locales',

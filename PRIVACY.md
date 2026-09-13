@@ -1,6 +1,6 @@
 # Privacy policy - BC Buddy
 
-_Last updated: 24 August 2026_
+_Last updated: 13 September 2026_
 
 BC Buddy is a browser extension that colours and labels Business Central
 environments so you can tell them apart. **It does not collect, transmit or
@@ -13,8 +13,9 @@ Everything BC Buddy knows lives in `chrome.storage.local`, on your own machine:
 
 - your rules (name, conditions, colours, favicon letters),
 - your layouts (ribbon, frame, banner, tab title, favicon settings),
-- the URL of a shared configuration file, if you configured one, plus the
-  rules it returned and the timestamp of the last synchronisation.
+- the URL of a shared configuration file, if you configured one or your
+  organisation set one by browser policy, plus the rules, layouts and helpdesk
+  settings it returned and the timestamp of the last synchronisation.
 
 This data never leaves your browser. Uninstalling the extension removes it.
 
@@ -28,10 +29,11 @@ read is stored, logged or sent anywhere.
 ## Network requests
 
 BC Buddy makes exactly one kind of network request: an HTTPS `GET` of the
-shared configuration file, to the URL **you** entered in the options page.
-Plain HTTP is refused. The request is sent without cookies or credentials
-(`credentials: 'omit'`), and only if you configured such a URL. If you leave
-that field empty, the extension makes no network requests at all.
+shared configuration file, to the URL **you** entered in the options page or
+that **your organisation** set by browser policy. Plain HTTP is refused. The
+request is sent without cookies or credentials (`credentials: 'omit'`), and
+only if such a URL is configured. Without one, the extension makes no network
+requests at all.
 
 Treat that URL as trusted: the file can define rules that mark any site. Use
 a location you control (for example your team's repository).

@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "hostedUrl": {
+      "title": "URL of the shared configuration file",
+      "description": "HTTPS URL of a bc-buddy.json file. BC Buddy fetches it on every browser start and once a day, and the user cannot change it. See https://fvet.github.io/bcbuddy/deploying/",
+      "type": "string"
+    }
+  }
+}

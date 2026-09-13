@@ -9,6 +9,9 @@
   var STORAGE_KEY = 'settings';
   var EXPORT_APP = 'bc-buddy';
   var SCHEMA_VERSION = 2;
+  // Accent of the "Report a problem" panel. Neutral on purpose: the panel is
+  // opened by someone who just hit an error, and a red box does not help.
+  var DEFAULT_HELPDESK_COLOR = '#0f6cbd';
 
   var BRAND_NAME = 'Dynamics 365 Business Central';
   var DEFAULT_RIBBON_TEXT = BRAND_NAME + ' - {company} ({environment})';
@@ -281,6 +284,9 @@
       maximize: {
         enabled: bool(maximize.enabled, true)
       },
+      helpdeskEmail: str(s.helpdeskEmail),
+      helpdeskColor: str(s.helpdeskColor) || DEFAULT_HELPDESK_COLOR,
+      helpdeskRibbonLink: bool(s.helpdeskRibbonLink, true),
       rules: rules,
       layouts: withDefaultLayout(layouts, rules),
       hosted: {
@@ -325,11 +331,37 @@
     return chrome.storage.local.set(payload);
   }
 
+  /**
+   * What the organisation set by browser policy (chrome.storage.managed, see
+   * schema.json). Only the URL of the shared file travels this way: the file
+   * itself carries everything else. Resolves to { url: '', error: '' } when no
+   * policy is set, and to { url: '', error: <message> } when the policy holds
+   * something that cannot be fetched (plain HTTP, say), so the options page
+   * can show what is wrong instead of silently ignoring it.
+   */
+  function loadManaged() {
+    var managed = root.chrome && chrome.storage && chrome.storage.managed;
+    if (!managed) return Promise.resolve({ url: '', error: '' });
+    return managed.get('hostedUrl').then(function (obj) {
+      var raw = str(obj && obj.hostedUrl);
+      if (!raw) return { url: '', error: '' };
+      try {
+        return { url: resolveHostedUrl(raw), error: '' };
+      } catch (err) {
+        return { url: '', error: String(err && err.message || err) };
+      }
+    }, function () {
+      // A browser without managed storage answers with an error, not with an
+      // empty object. Same outcome: there is no policy.
+      return { url: '', error: '' };
+    });
+  }
+
   /* ---------- import / export ---------- */
 
   function toExport(settings, name) {
     var s = normalize(settings);
-    return {
+    var result = {
       app: EXPORT_APP,
       version: SCHEMA_VERSION,
       name: str(name),
@@ -337,6 +369,10 @@
       layouts: s.layouts,
       rules: s.rules
     };
+    if (s.helpdeskEmail) result.helpdeskEmail = s.helpdeskEmail;
+    if (s.helpdeskColor) result.helpdeskColor = s.helpdeskColor;
+    result.helpdeskRibbonLink = s.helpdeskRibbonLink;
+    return result;
   }
 
   /**
@@ -375,6 +411,10 @@
     return {
       rules: normalizedRules,
       layouts: normalizedLayouts,
+      helpdeskEmail: str(data && data.helpdeskEmail),
+      helpdeskColor: str(data && data.helpdeskColor),
+      // Absent in older files: null means "leave the importer's choice alone".
+      helpdeskRibbonLink: (data && typeof data.helpdeskRibbonLink === 'boolean') ? data.helpdeskRibbonLink : null,
       name: name
     };
   }
@@ -500,10 +540,12 @@
   BCBuddy.findById = findById;
   BCBuddy.DISPLAY_KEYS = DISPLAY_KEYS;
   BCBuddy.DEFAULT_LAYOUT_ID = DEFAULT_LAYOUT_ID;
+  BCBuddy.DEFAULT_HELPDESK_COLOR = DEFAULT_HELPDESK_COLOR;
   BCBuddy.normalize = normalize;
   BCBuddy.effectiveRules = effectiveRules;
   BCBuddy.loadSettings = load;
   BCBuddy.saveSettings = save;
+  BCBuddy.loadManaged = loadManaged;
   BCBuddy.toExport = toExport;
   BCBuddy.parseImport = parseImport;
   BCBuddy.mergeRules = mergeRules;

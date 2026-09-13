@@ -16,18 +16,56 @@ var FETCH_TIMEOUT_MS = 15000;
 // with a readable message instead of failing later on chrome.storage.local.
 var MAX_HOSTED_SIZE = 1024 * 1024;
 
+/**
+ * Opens the "Report a problem" panel in a tab. Used by the toolbar icon, the
+ * link in the Business Central ribbon, and the re-injection after a navigation
+ * while a report is in progress. Resolves false when the tab cannot be
+ * scripted (a chrome:// page, the Web Store, ...).
+ */
+function openSupportPanel(tabId) {
+  return chrome.scripting.insertCSS({
+    target: { tabId: tabId },
+    files: ['src/support/support-panel.css']
+  }).then(function () {
+    return chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ['src/support/support-panel.js']
+    });
+  }).then(function () { return true; }, function () { return false; });
+}
+
+chrome.action.onClicked.addListener(function (tab) {
+  var url = (tab && tab.url) || '';
+  var tabId = tab && tab.id;
+  var injectable = !!tabId && !!url
+    && url.indexOf('chrome://') !== 0
+    && url.indexOf('chrome-extension://') !== 0
+    && url.indexOf('about:') !== 0;
+
+  if (!injectable) { chrome.runtime.openOptionsPage(); return; }
+  openSupportPanel(tabId).then(function (ok) {
+    if (!ok) chrome.runtime.openOptionsPage();
+  });
+});
+
 chrome.runtime.onInstalled.addListener(function (details) {
-  scheduleSync();
-  if (details.reason === 'install') {
-    chrome.runtime.openOptionsPage();
-  } else {
-    syncHosted({ reason: 'install' });
-  }
+  applyManaged().then(function (managed) {
+    scheduleSync();
+    if (details.reason === 'install') {
+      // Someone whose organisation set the URL by policy has nothing to fill
+      // in, so the options page would only be in the way.
+      if (!managed.url) chrome.runtime.openOptionsPage();
+    } else if (!managed.changed) {
+      syncHosted({ reason: 'install' });
+    }
+  });
 });
 
 chrome.runtime.onStartup.addListener(function () {
-  scheduleSync();
-  syncHosted({ reason: 'startup' });
+  applyManaged().then(function (managed) {
+    scheduleSync();
+    if (!managed.changed) syncHosted({ reason: 'startup' });
+  });
 });
 
 chrome.alarms.onAlarm.addListener(function (alarm) {
@@ -35,6 +73,8 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
 });
 
 chrome.storage.onChanged.addListener(function (changes, area) {
+  // The organisation changed its policy while the browser was running.
+  if (area === 'managed') { applyManaged(); return; }
   if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
   var before = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].oldValue).hosted;
   var after = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue).hosted;
@@ -46,8 +86,65 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   }
 });
 
+// In-progress reports, keyed by tab id. Intentionally not persisted to
+// storage — the data is large (base64 PNGs) and only needs to survive a
+// navigation, which happens within seconds of the last screenshot.
+var supportSessions = {};
+
+// Re-open the panel after the tab finishes navigating, so the user can walk
+// through a scenario across page loads without losing their report.
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
+  if (changeInfo.status !== 'complete' || !supportSessions[tabId]) return;
+  openSupportPanel(tabId).then(function (ok) {
+    // Restricted page — drop the session so we do not retry on every load.
+    if (!ok) delete supportSessions[tabId];
+  });
+});
+
+chrome.tabs.onRemoved.addListener(function (tabId) { delete supportSessions[tabId]; });
+
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
+
+  // Screenshot capture for the Log Support Request panel. Accepted from any
+  // content script in a real tab (sender.tab present), because captureVisibleTab
+  // must be called from the extension context, not from the page.
+  if (message.type === 'bcb:support-screenshot' && sender.tab) {
+    chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' })
+      .then(function (dataUrl) { sendResponse({ ok: true, dataUrl: dataUrl }); })
+      .catch(function (err) { sendResponse({ ok: false, error: String(err && err.message || err) }); });
+    return true; // async response
+  }
+
+  // Report persistence across navigations.
+  if (message.type === 'bcb:support-save-session' && sender.tab) {
+    supportSessions[sender.tab.id] = message.session || null;
+    sendResponse({ ok: true });
+    return;
+  }
+  if (message.type === 'bcb:support-restore-session' && sender.tab) {
+    sendResponse({ ok: true, session: supportSessions[sender.tab.id] || null });
+    return;
+  }
+  if (message.type === 'bcb:support-clear-session' && sender.tab) {
+    delete supportSessions[sender.tab.id];
+    sendResponse({ ok: true });
+    return;
+  }
+
+  // The "Report a problem" link in the ribbon (content script) asks us to
+  // open the panel: only the extension can inject into the tab.
+  if (message.type === 'bcb:open-support' && sender.tab) {
+    openSupportPanel(sender.tab.id).then(function (ok) { sendResponse({ ok: ok }); });
+    return true; // async response
+  }
+
+  if (message.type === 'bcb:open-options' && sender.tab) {
+    chrome.runtime.openOptionsPage();
+    sendResponse({ ok: true });
+    return;
+  }
+
   // Only options/popup (extension pages). Content scripts share our id but
   // their sender.url is the page they run in — refuse those.
   if (!isExtensionPage(sender)) return;
@@ -65,6 +162,36 @@ function isExtensionPage(sender) {
 }
 
 /* ------------------------------------------------------------------ sync */
+
+/**
+ * Copies the URL the organisation set by policy (see schema.json) into the
+ * shared configuration and makes sure it is active. Resolves with the policy
+ * URL ('' when there is none) and whether anything had to change. A changed
+ * URL is fetched by the storage listener above, the way a typed one is; a
+ * mere re-activation — someone clicked the X on the shared rules — is fetched
+ * here, since the URL itself did not move.
+ */
+function applyManaged() {
+  return BCBuddy.loadManaged().then(function (managed) {
+    if (!managed.url) return { url: '', changed: false };
+    return BCBuddy.loadSettings().then(function (settings) {
+      var hosted = settings.hosted;
+      var urlChanged = hosted.url !== managed.url;
+      if (!urlChanged && hosted.active) return { url: managed.url, changed: false };
+      hosted.url = managed.url;
+      hosted.active = true;
+      return BCBuddy.saveSettings(settings).then(function () {
+        if (!urlChanged) return syncHosted({ reason: 'managed', force: true });
+      }).then(function () {
+        return { url: managed.url, changed: true };
+      });
+    });
+  }).catch(function () {
+    // Same story as scheduleSync(): nobody to tell. Without a policy answer
+    // the extension behaves as if none were set, and the next startup retries.
+    return { url: '', changed: false };
+  });
+}
 
 function scheduleSync() {
   return BCBuddy.loadSettings().then(function (settings) {
@@ -105,7 +232,9 @@ function fetchHosted(url) {
       // guard, and errs on the safe side for multi-byte text.
       if (tooLarge(text.length)) throw oversized();
       var parsed = BCBuddy.parseImport(text);
-      return { ok: true, rules: parsed.rules, name: parsed.name, hash: BCBuddy.hash(text), url: target };
+      parsed.hash = BCBuddy.hash(text);
+      parsed.url = target;
+      return parsed;
     })
     .catch(function (err) {
       // AbortSignal.timeout() rejects with a TimeoutError whose own message
@@ -144,7 +273,14 @@ function syncHosted(options) {
       // is updated every day, until you clear it or empty the URL.
       settings.hosted.active = true;
       settings.hosted.rules = result.rules;
+      settings.hosted.layouts = result.layouts;
       settings.hosted.sourceName = result.name;
+      // The helpdesk settings in the file are the team's, so they win over
+      // whatever was typed here — the same way an import treats them. A file
+      // that does not mention them leaves the local choice alone.
+      if (result.helpdeskEmail) settings.helpdeskEmail = result.helpdeskEmail;
+      if (result.helpdeskColor) settings.helpdeskColor = result.helpdeskColor;
+      if (result.helpdeskRibbonLink !== null) settings.helpdeskRibbonLink = result.helpdeskRibbonLink;
       settings.hosted.lastHash = result.hash;
       settings.hosted.lastSync = new Date().toISOString();
       settings.hosted.lastError = null;

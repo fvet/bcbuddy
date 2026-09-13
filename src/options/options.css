@@ -209,7 +209,7 @@ footer code { margin-right: 2px; }
 
 /* ------------------------------------------------------------ controls */
 
-input[type="text"], input[type="url"], input[type="number"], select {
+input[type="text"], input[type="url"], input[type="email"], input[type="number"], select {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
@@ -221,7 +221,7 @@ input[type="text"], input[type="url"], input[type="number"], select {
   width: 100%;
 }
 
-input[type="text"]:focus, input[type="url"]:focus, input[type="number"]:focus, select:focus {
+input[type="text"]:focus, input[type="url"]:focus, input[type="email"]:focus, input[type="number"]:focus, select:focus {
   outline: 2px solid var(--accent);
   outline-offset: -1px;
 }

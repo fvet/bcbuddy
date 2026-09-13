@@ -209,11 +209,12 @@
   function shouldWatch(settings, rule) {
     if (!settings || !settings.enabled) return false;
     var hasMaximize = settings.maximize && settings.maximize.enabled;
-    if (!effectiveRules(settings).length && !hasMaximize) return false;
+    var hasLink = !!settings.helpdeskRibbonLink;
+    if (!effectiveRules(settings).length && !hasMaximize && !hasLink) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
-    if (hasMaximize && isMaximizeTarget(state.href)) return true;
+    if ((hasMaximize || hasLink) && isMaximizeTarget(state.href)) return true;
     return false;
   }
 
@@ -264,6 +265,8 @@
     if (rule) {
       setVariables(rule);
       reassert(rule);
+    } else {
+      applyStandaloneSupportLink();
     }
 
     applyMaximize();
@@ -374,6 +377,7 @@
   function applyRibbon(rule) {
     if (!rule.ribbon.enabled) {
       releaseRibbon();
+      applyStandaloneSupportLink();
       return;
     }
     var brand = getBrandElement();
@@ -393,6 +397,65 @@
     if (!band) return;
     if (!band.hasAttribute('data-bcb-ribbon')) band.setAttribute('data-bcb-ribbon', '');
     clearRibbonPaint(band);
+    applySupportLink(brand);
+  }
+
+  /**
+   * "Report a problem" next to the brand name. This is how a user who never
+   * pinned the toolbar icon finds the panel: it sits in the ribbon they look
+   * at all day. Lives in the top window only — the panel opens there too.
+   */
+  function applySupportLink(brand) {
+    var link = document.querySelector('[data-bcb-support]');
+    var wanted = IS_TOP && state.settings && state.settings.helpdeskRibbonLink;
+    if (!wanted) {
+      removeSupportLink();
+      return;
+    }
+    if (link && link.isConnected && link.previousElementSibling === brand) return;
+    if (link) link.remove();
+
+    link = document.createElement('span');
+    link.setAttribute('data-bcb-support', '');
+    link.setAttribute('role', 'button');
+    link.setAttribute('tabindex', '0');
+    link.textContent = BCBuddy.t('ribbonSupportLink');
+    var open = function (e) {
+      // The brand sits inside BC's own home link; keep that from firing.
+      e.preventDefault();
+      e.stopPropagation();
+      try { chrome.runtime.sendMessage({ type: 'bcb:open-support' }); } catch (err) { /* extension reloaded */ }
+    };
+    link.addEventListener('click', open);
+    link.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    link.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') open(e);
+    });
+    brand.parentNode.insertBefore(link, brand.nextSibling);
+  }
+
+  /**
+   * The link without a rule: on a page the Maximize feature recognises as
+   * Business Central (same URL rules), the brand name is found and the link
+   * put next to it, ribbon uncoloured. So a user with no rules still has a
+   * way in besides the toolbar icon.
+   */
+  function applyStandaloneSupportLink() {
+    var settings = state.settings;
+    var wanted = IS_TOP && settings && settings.enabled && settings.helpdeskRibbonLink &&
+      isMaximizeTarget(state.href);
+    if (!wanted) { removeSupportLink(); return; }
+    var link = document.querySelector('[data-bcb-support]');
+    var prev = link && link.isConnected ? link.previousElementSibling : null;
+    // Already in place next to the brand name: no need to comb the page again.
+    if (prev && isBrandText((prev.textContent || '').trim())) return;
+    var brand = getBrandElement();
+    if (brand) applySupportLink(brand);
+  }
+
+  function removeSupportLink() {
+    var link = document.querySelector('[data-bcb-support]');
+    if (link) link.remove();
   }
 
   /**
@@ -694,6 +757,7 @@
     var banner = document.getElementById(BANNER_ID);
     if (banner) banner.remove();
     releaseRibbon();
+    removeSupportLink();
 
     if (state.titleApplied && document.title === state.titleApplied) {
       document.title = state.titleOriginal;

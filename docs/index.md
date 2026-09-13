@@ -62,6 +62,10 @@ install.
 
 Chrome or Edge 111 or newer is required.
 
+An organisation can install the extension and its shared configuration on every
+managed browser by policy, so colleagues have nothing to set up: see
+[Deploying for your organisation](deploying.md).
+
 ??? note "Installing from source"
 
     1. Download the latest `bcbuddy-*.zip` from the

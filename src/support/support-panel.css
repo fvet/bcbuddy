@@ -1,0 +1,426 @@
+/* BC Buddy - Report a problem floating panel.
+   Injected dynamically; all selectors are scoped to #bcb-sp-panel to avoid
+   leaking into or inheriting from the host page. */
+
+#bcb-sp-panel {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 264px !important;
+  background: #ffffff !important;
+  border: 1px solid #d9dde3 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18) !important;
+  z-index: 2147483647 !important;
+  font-family: "Segoe UI", system-ui, Arial, sans-serif !important;
+  font-size: 13px !important;
+  color: #1b1e23 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  max-height: calc(100vh - 48px) !important;
+  /* Neutral default; the admin can change it under Settings > Support. */
+  --bcb-sp-accent: #0f6cbd;
+}
+
+#bcb-sp-panel *, #bcb-sp-panel *::before, #bcb-sp-panel *::after {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+#bcb-sp-panel [hidden] { display: none !important; }
+
+/* ---------- header ---------- */
+
+#bcb-sp-panel .bcb-sp-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 14px;
+  background: var(--bcb-sp-accent);
+  color: #ffffff;
+  flex: none;
+  cursor: grab;
+  user-select: none;
+}
+
+#bcb-sp-panel .bcb-sp-title { font-weight: 600; font-size: 13px; color: #ffffff; }
+
+#bcb-sp-panel .bcb-sp-hdr-end { display: flex; align-items: center; gap: 4px; }
+
+#bcb-sp-panel .bcb-sp-hdr-btn {
+  background: none; border: none; color: #ffffff; cursor: pointer;
+  padding: 2px; margin: 0; opacity: 0.8;
+  display: flex; align-items: center; justify-content: center;
+}
+#bcb-sp-panel .bcb-sp-hdr-btn:hover { opacity: 1; }
+
+/* ---------- capture view ---------- */
+
+#bcb-sp-panel #bcb-sp-capture {
+  padding: 14px 14px 10px;
+  display: flex; flex-direction: column; gap: 10px;
+  flex: 1; min-height: 0; overflow-y: auto;
+}
+
+#bcb-sp-panel .bcb-sp-intro { margin: 0; font-size: 13px; color: #505c6d; line-height: 1.5; }
+
+#bcb-sp-panel .bcb-sp-warn {
+  margin: 0; padding: 8px 10px;
+  background: #fff4ce; border: 1px solid #f3d98a; border-radius: 7px;
+  color: #5a4600; font-size: 12.5px; line-height: 1.45;
+}
+#bcb-sp-panel .bcb-sp-warn a { color: #5a4600; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* description */
+
+#bcb-sp-panel .bcb-sp-desc-wrap { display: flex; flex-direction: column; gap: 5px; }
+
+#bcb-sp-panel .bcb-sp-desc-label { font-size: 13px; font-weight: 600; color: #1b1e23; }
+
+#bcb-sp-panel .bcb-sp-desc {
+  width: 100%; resize: none; min-height: 68px; padding: 7px 9px;
+  border: 1px solid #c4cad4; border-radius: 7px;
+  font: inherit; font-size: 13px; color: #1b1e23; background: #ffffff;
+  line-height: 1.45; outline: none;
+}
+#bcb-sp-panel .bcb-sp-desc::placeholder { color: #9aa3b0; }
+/* Stays visible while typing, unlike a placeholder. */
+#bcb-sp-panel .bcb-sp-desc-hint { margin: 0; font-size: 12px; color: #667080; line-height: 1.4; }
+#bcb-sp-panel .bcb-sp-desc:focus { border-color: var(--bcb-sp-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--bcb-sp-accent) 20%, transparent); }
+
+/* type / priority dropdowns */
+
+#bcb-sp-panel .bcb-sp-meta { display: flex; gap: 6px; }
+
+#bcb-sp-panel .bcb-sp-dd-wrap { flex: 1; min-width: 0; position: relative; }
+
+#bcb-sp-panel .bcb-sp-dd-btn {
+  width: 100%;
+  display: flex !important; align-items: center !important; gap: 5px;
+  border: 1px solid #c4cad4; border-radius: 7px;
+  background: #f8f9fb; color: #1b1e23;
+  font: inherit; font-size: 12.5px; padding: 6px 6px 6px 9px;
+  cursor: pointer; text-align: left; overflow: hidden;
+}
+#bcb-sp-panel .bcb-sp-dd-btn:focus { border-color: var(--bcb-sp-accent); outline: none; }
+#bcb-sp-panel .bcb-sp-dd-dot { flex: none !important; }
+#bcb-sp-panel .bcb-sp-dd-lbl {
+  flex: 1 !important; min-width: 0 !important;
+  overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;
+}
+#bcb-sp-panel .bcb-sp-caret { flex: none !important; margin-left: auto; opacity: 0.55; }
+
+#bcb-sp-panel .bcb-sp-dd-menu {
+  position: fixed !important;
+  background: #ffffff !important;
+  border: 1px solid #c4cad4 !important;
+  border-radius: 7px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14) !important;
+  z-index: 2147483647 !important;
+  overflow: hidden !important;
+  padding: 3px 0 !important;
+  min-width: 120px !important;
+}
+
+#bcb-sp-panel .bcb-sp-dd-opt {
+  display: flex !important; align-items: center !important; gap: 7px !important;
+  padding: 7px 10px !important; cursor: pointer !important;
+  font-size: 13px !important; color: #1b1e23 !important;
+  box-sizing: border-box !important; width: 100% !important;
+}
+#bcb-sp-panel .bcb-sp-dd-opt:hover { background: #f1f3f6 !important; }
+
+#bcb-sp-panel .bcb-sp-dd-info {
+  margin-left: auto !important; flex: none !important;
+  width: 16px !important; height: 16px !important; border-radius: 50% !important;
+  background: #e3e8f0 !important; color: #505c6d !important;
+  font-size: 10px !important; font-weight: 700 !important; font-style: italic !important;
+  font-family: Georgia, serif !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  cursor: help !important; line-height: 1 !important;
+}
+#bcb-sp-panel .bcb-sp-dd-info:hover { background: #c4cad4 !important; color: #1b1e23 !important; }
+
+#bcb-sp-panel .bcb-sp-type-Bug         { color: #c4314b; }
+#bcb-sp-panel .bcb-sp-type-Improvement { color: #107c10; }
+#bcb-sp-panel .bcb-sp-prio-unset    { color: #9aa3b0; }
+#bcb-sp-panel .bcb-sp-prio-Normal   { color: #1b1e23; }
+#bcb-sp-panel .bcb-sp-prio-High     { color: #ca5010; }
+#bcb-sp-panel .bcb-sp-prio-Critical { color: #c4314b; font-weight: 700; }
+
+/* thumbnails */
+
+/* Three per row. The remove and edit badges hang 7px outside each thumbnail,
+   so the row gap and the padding leave room for them: without that the
+   badges of one row sit on the thumbnails of the next. */
+#bcb-sp-panel .bcb-sp-thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 12px;
+  padding: 7px 7px 7px 0;
+}
+
+#bcb-sp-panel .bcb-sp-thumb { position: relative; min-width: 0; }
+
+#bcb-sp-panel .bcb-sp-thumb-img {
+  width: 100%; height: 48px; object-fit: cover;
+  border: 1px solid #c4cad4; border-radius: 5px; display: block; cursor: pointer;
+  background: #f1f3f6;
+}
+#bcb-sp-panel .bcb-sp-thumb-img:hover { border-color: var(--bcb-sp-accent); }
+
+#bcb-sp-panel .bcb-sp-thumb-edit {
+  position: absolute; right: -7px; bottom: -7px;
+  width: 20px; height: 20px;
+  background: #ffffff; color: var(--bcb-sp-accent);
+  border: 1px solid var(--bcb-sp-accent); border-radius: 50%;
+  cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+#bcb-sp-panel .bcb-sp-thumb-edit:hover { background: var(--bcb-sp-accent); color: #ffffff; }
+
+#bcb-sp-panel .bcb-sp-del {
+  position: absolute; top: -7px; right: -7px;
+  width: 18px; height: 18px;
+  background: #c4314b; color: #ffffff; border: none; border-radius: 50%;
+  font-size: 13px; line-height: 1; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---------- buttons ---------- */
+
+#bcb-sp-panel .bcb-sp-actions { display: flex; flex-direction: column; gap: 7px; }
+
+#bcb-sp-panel .bcb-sp-btn {
+  padding: 8px 12px; border-radius: 7px;
+  font: inherit; font-size: 13px; cursor: pointer;
+  border: 1px solid #c4cad4; background: #ffffff; color: #1b1e23; text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  white-space: nowrap;
+}
+#bcb-sp-panel .bcb-sp-btn:hover:not(:disabled) { background: #f1f3f6; }
+#bcb-sp-panel .bcb-sp-btn:disabled { opacity: 0.45; cursor: default; }
+
+#bcb-sp-panel .bcb-sp-primary {
+  background: var(--bcb-sp-accent); border-color: var(--bcb-sp-accent); color: #ffffff; font-weight: 600;
+}
+#bcb-sp-panel .bcb-sp-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bcb-sp-accent) 82%, #000);
+  border-color: color-mix(in srgb, var(--bcb-sp-accent) 82%, #000);
+}
+
+#bcb-sp-panel .bcb-sp-shot-group, #bcb-sp-panel .bcb-sp-send-row { display: flex; gap: 7px; align-items: stretch; }
+#bcb-sp-panel .bcb-sp-shot-area, #bcb-sp-panel .bcb-sp-send { flex: 1; min-width: 0; }
+#bcb-sp-panel .bcb-sp-icon-btn { flex: none; width: 36px; padding: 0; }
+
+/* status */
+
+#bcb-sp-panel .bcb-sp-status { margin: 0; font-size: 12.5px; color: #667080; min-height: 14px; line-height: 1.4; }
+#bcb-sp-panel .bcb-sp-status-err { color: #c4314b; }
+
+/* ---------- done view ---------- */
+
+#bcb-sp-panel #bcb-sp-done { padding: 18px 16px 14px; }
+
+#bcb-sp-panel .bcb-sp-done-body {
+  display: flex; flex-direction: column; align-items: stretch; gap: 10px;
+}
+
+#bcb-sp-panel .bcb-sp-check {
+  width: 40px; height: 40px; align-self: center;
+  background: #ca5010; color: #ffffff;
+  border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+
+#bcb-sp-panel .bcb-sp-done-title { margin: 0; font-size: 14px; font-weight: 700; color: #1b1e23; text-align: center; }
+
+#bcb-sp-panel .bcb-sp-steps {
+  margin: 0; padding: 0 0 0 20px;
+  font-size: 13px; color: #1b1e23; line-height: 1.5;
+}
+#bcb-sp-panel .bcb-sp-steps li { margin: 0 0 4px; padding-left: 2px; }
+#bcb-sp-panel .bcb-sp-steps strong { font-weight: 700; }
+
+#bcb-sp-panel .bcb-sp-done-fallback {
+  margin: 2px 0 0; padding-top: 8px; border-top: 1px solid #e3e8f0;
+  font-size: 12.5px; color: #505c6d; line-height: 1.45;
+}
+
+#bcb-sp-panel .bcb-sp-done-note { margin: 0; font-size: 12px; color: #667080; line-height: 1.45; }
+
+#bcb-sp-panel .bcb-sp-done-foot { display: flex; gap: 7px; }
+#bcb-sp-panel .bcb-sp-done-foot .bcb-sp-btn { flex: 1; min-width: 0; font-size: 12.5px; padding: 7px 8px; }
+
+/* ---------- confirm view ---------- */
+
+#bcb-sp-panel #bcb-sp-confirm { padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+#bcb-sp-panel .bcb-sp-confirm-text { margin: 0; font-size: 13px; font-weight: 600; color: #1b1e23; line-height: 1.45; text-align: center; }
+#bcb-sp-panel .bcb-sp-danger { border-color: #c4314b; color: #c4314b; }
+#bcb-sp-panel .bcb-sp-danger:hover:not(:disabled) { background: #c4314b; color: #ffffff; }
+
+/* ---------- pulse / shake animations ---------- */
+
+@keyframes bcb-sp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--bcb-sp-accent) 45%, transparent); }
+  60%      { box-shadow: 0 0 0 7px color-mix(in srgb, var(--bcb-sp-accent) 0%, transparent); }
+}
+#bcb-sp-panel .bcb-sp-pulse { animation: bcb-sp-pulse 1.6s ease-in-out infinite; }
+
+@keyframes bcb-sp-shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-5px); }
+  75%       { transform: translateX(5px); }
+}
+
+/* ==========================================================================
+   Tooltip bubble (sits in document.body, above panel and editor)
+   ========================================================================== */
+
+#bcb-sp-tip {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  max-width: 260px !important;
+  padding: 8px 12px !important;
+  background: #1a1f27 !important;
+  color: #ffffff !important;
+  font: 14px/1.4 "Segoe UI", system-ui, Arial, sans-serif !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  pointer-events: none !important;
+  white-space: normal !important;
+}
+#bcb-sp-tip[hidden] { display: none !important; }
+
+/* ==========================================================================
+   Area selection overlay (elements sit directly in document.body)
+   ========================================================================== */
+
+#bcb-sp-sel {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483643 !important;
+  cursor: crosshair !important;
+  user-select: none !important;
+}
+
+.bcb-sp-sel-m, #bcb-sp-sel-ch-h, #bcb-sp-sel-ch-v { pointer-events: none !important; }
+
+#bcb-sp-sel-hint {
+  position: fixed !important;
+  top: 14px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  color: #ffffff !important;
+  font: 13px/1 "Segoe UI", system-ui, Arial, sans-serif !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  pointer-events: none !important;
+  z-index: 2147483645 !important;
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Annotation editor overlay
+   ========================================================================== */
+
+#bcb-sp-ed {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 0, 0, 0.82) !important;
+  padding: 20px !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+}
+
+#bcb-sp-ed-canvas {
+  max-width: 100% !important;
+  max-height: calc(100vh - 116px) !important;
+  display: block !important;
+  cursor: crosshair !important;
+  box-shadow: 0 6px 40px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 3px !important;
+  background: #ffffff !important;
+}
+
+#bcb-sp-ed-bar {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  background: #1a1f27 !important;
+  border-radius: 12px !important;
+  padding: 7px 10px !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55) !important;
+  user-select: none !important;
+  font-family: "Segoe UI", system-ui, Arial, sans-serif !important;
+}
+
+.bcb-sp-eb-tool, .bcb-sp-eb-ok, .bcb-sp-eb-no {
+  height: 32px !important;
+  border: none !important;
+  border-radius: 7px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  transition: background 0.1s, color 0.1s !important;
+}
+
+.bcb-sp-eb-tool { width: 32px !important; background: transparent !important; color: #8a95a3 !important; }
+.bcb-sp-eb-tool:hover { background: rgba(255,255,255,0.1) !important; color: #ffffff !important; }
+.bcb-sp-eb-tool.bcb-sp-eb-on { background: #0f6cbd !important; color: #ffffff !important; }
+
+.bcb-sp-eb-color {
+  width: 22px !important; height: 22px !important;
+  border-radius: 50% !important;
+  border: 2.5px solid rgba(255,255,255,0.25) !important;
+  cursor: pointer !important; padding: 0 !important; flex-shrink: 0 !important;
+  transition: transform 0.1s, border-color 0.1s !important;
+  margin: 0 3px !important;
+}
+.bcb-sp-eb-color:hover { transform: scale(1.15) !important; border-color: rgba(255,255,255,0.7) !important; }
+
+.bcb-sp-eb-sep { width: 1px !important; height: 20px !important; background: rgba(255, 255, 255, 0.12) !important; margin: 0 4px !important; flex-shrink: 0 !important; }
+
+/* Save carries a word: it is the one button a first-time user must find. */
+.bcb-sp-eb-ok {
+  padding: 0 12px 0 10px !important; gap: 6px !important;
+  background: #107c10 !important; color: #ffffff !important;
+  font: 600 13px/1 "Segoe UI", system-ui, Arial, sans-serif !important;
+}
+.bcb-sp-eb-ok:hover { background: #0d6b0d !important; }
+
+.bcb-sp-eb-no { width: 32px !important; background: #2e3440 !important; color: #8a95a3 !important; }
+.bcb-sp-eb-no:hover { background: #c4314b !important; color: #ffffff !important; }
+
+#bcb-sp-col-pick {
+  position: fixed !important;
+  z-index: 2147483649 !important;
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 28px) !important;
+  gap: 7px !important;
+}
+
+.bcb-sp-cp-btn {
+  width: 28px !important; height: 28px !important;
+  border-radius: 50% !important;
+  border: 2.5px solid transparent !important;
+  cursor: pointer !important; padding: 0 !important;
+  transition: transform 0.1s !important;
+}
+.bcb-sp-cp-btn:hover { transform: scale(1.1) !important; }
+.bcb-sp-cp-btn.bcb-sp-cp-on { border-color: #ffffff !important; box-shadow: 0 0 0 2.5px rgba(0, 0, 0, 0.35) !important; }

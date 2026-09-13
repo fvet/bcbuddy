@@ -161,6 +161,16 @@ Importing goes through **Import / export > Choose file** and works as a merge: a
 rule you already have is overwritten in place, new rules are added, and rules
 that are not in the file are left alone.
 
+## 🏢 Deploying for your organisation
+
+IT can roll BC Buddy out so that nobody types the URL: push the extension
+through browser policy and set the extension policy `hostedUrl` to the URL of
+your `bc-buddy.json`. The extension picks the URL up on first install and at
+every browser start, shows it as *Set by your organisation* on the options
+page, and skips opening the options page after installing. Intune, Group
+Policy and the Google Admin console are covered step by step on the site:
+[Deploying for your organisation](https://fvet.github.io/bcbuddy/deploying/).
+
 ## 🌍 Languages
 
 The extension is available in Dutch and English. It follows the language of your
@@ -193,6 +203,10 @@ read. A rule whose conditions never all hold at once never fires.
 
 **A shared rule will not change.** Shared rules are read-only by design. Use the
 copy button to get your own editable version, which takes precedence.
+
+**The URL of the shared file is greyed out.** It was set by your organisation
+through browser policy, and only IT can change it. Your own rules still work
+on top of the shared ones.
 
 ## 📄 Licence
 
