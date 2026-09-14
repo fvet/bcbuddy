@@ -101,7 +101,7 @@
     try { u = new URL(href); } catch (e) { return false; }
     var host = u.hostname.toLowerCase();
     if (MAXIMIZE_SAAS_RE.test(host)) return true;           // *.dynamics.com
-    if (/(?:^|\.)bc(?:\.|$)/.test(host)) return true;       // hostname is/contains 'bc' label
+    if (/(?:^|\.)bc[^.]*(?:\.|$)/.test(host)) return true;   // hostname label starts with 'bc' (bc, bcdev, bcprod, …)
     if (/^\/bc/i.test(u.pathname)) return true;             // path starts with /BC (on-prem)
     return false;
   }
