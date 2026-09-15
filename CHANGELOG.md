@@ -66,8 +66,71 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - A shared configuration now brings its layouts along. Before, only the rules
   arrived, so shared rules were drawn with a default layout instead of the one
   the file chose for them.
+### Fixed
+
+- Ribbon colour is now preserved when the **Dark Reader** browser extension is active.
+
+### Added
+
+- **Report a problem** — a small panel on top of Business Central that lets
+  anyone send a support request to your helpdesk without leaving the page.
+  Open it from the BC Buddy icon in the browser toolbar, or from the *Report a
+  problem* link BC Buddy adds next to the brand name in the Business Central
+  ribbon, on any page it recognises as Business Central.
+  Describe what went wrong, add screenshots if you like, choose a type and
+  priority, and click *Send to support*: your email app opens with the address
+  and subject filled in, and the report (description, environment, company,
+  browser details and screenshots) is on the clipboard ready to paste. A
+  description alone is enough to send. The helpdesk address, the panel colour
+  and the ribbon link live under *Settings > Support* and travel with a shared
+  configuration, so a whole team gets them at once.
+
+- **Screenshots** — *Add a screenshot* lets you drag a rectangle over the part
+  of the page that matters, and then opens the editor so you can point at it
+  with arrows or freehand strokes in six colours before it is saved; *Save*
+  adds it, Esc or the cross discards it. The button next to it captures the
+  whole screen and lands as a thumbnail straight away. Click any thumbnail, or
+  its pencil, to draw on it later. Up to nine screenshots per report, and they
+  survive navigating to another page while you walk through a scenario.
+  Screenshots are scaled down and compressed, so a report with all nine still
+  fits in an email.
+
+- **After sending** — the panel stays open with the two remaining steps in
+  plain words (paste with Ctrl+V, click Send), a *Copy again* button in case
+  something else overwrote the clipboard, and *Save report* to keep the report
+  as a file and attach it yourself when no email opened or when you use webmail,
+  where pasted pictures often go missing. Without a helpdesk
+  address the panel says so, opens the email with an empty To field, and links
+  to the settings.
+
+- Closing the panel with unsent screenshots asks first, and Esc closes it
+  too; the gear opens settings without closing the panel. The panel is
+  available in Dutch.
+
+- **Set up by your organisation** — IT can push the URL of the shared
+  configuration through browser policy (Intune, Group Policy, the Google Admin
+  console). BC Buddy then loads the company configuration by itself, on first
+  install and at every browser start, shows the URL as *Set by your
+  organisation* and no longer opens the options page after installing. The
+  steps for each tool are on the site under *Deploying for your organisation*.
+
+### Changed
+
+- Clicking the BC Buddy toolbar icon opens the *Report a problem* panel instead
+  of the popup. The switch, *Add rule* and *Sync* that lived there are on the
+  options page.
+
+### Fixed
+
+- A shared configuration now brings its layouts along. Before, only the rules
+  arrived, so shared rules were drawn with a default layout instead of the one
+  the file chose for them.
 
 <!-- --8<-- [start:released] -->
+
+## 1.0.8 — 2026-09-14
+
+Maintenance release - nothing that changes what you see.
 
 ## 1.0.7 — 2026-09-12
 
@@ -76,7 +139,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Maximize** — new option (on by default) that automatically expands every
   Business Central page to wide layout and switches tile pages to list view.
   Works on SaaS (`*.dynamics.com`) and on-premises environments, including
-  servers where the URL contains `/BC` in the path or `bc` as the hostname.
+  servers where the URL contains `/BC` in the path or the hostname starts with
+  `bc` (e.g. `bc`, `bcdev`, `bcprod`).
 
 ## 1.0.4 — 2026-08-24
 

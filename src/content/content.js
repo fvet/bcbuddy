@@ -82,7 +82,10 @@
     unpainted: new WeakSet(),
     lastPaintSweep: 0,
     // Maximize: reset on every URL change so a new BC page triggers it again.
-    maximizeApplied: false
+    maximizeApplied: false,
+    // MutationObserver that reapplies ribbon inline styles if Dark Reader
+    // overrides them. Disconnected whenever the ribbon is released.
+    ribbonGuard: null
   };
 
   // Selectors for the BC wide-layout toggle and list-view chooser.
@@ -101,7 +104,7 @@
     try { u = new URL(href); } catch (e) { return false; }
     var host = u.hostname.toLowerCase();
     if (MAXIMIZE_SAAS_RE.test(host)) return true;           // *.dynamics.com
-    if (/(?:^|\.)bc(?:\.|$)/.test(host)) return true;       // hostname is/contains 'bc' label
+    if (/(?:^|\.)bc[^.]*(?:\.|$)/.test(host)) return true;   // hostname label starts with 'bc' (bc, bcdev, bcprod, …)
     if (/^\/bc/i.test(u.pathname)) return true;             // path starts with /BC (on-prem)
     return false;
   }
@@ -398,6 +401,7 @@
     if (!band.hasAttribute('data-bcb-ribbon')) band.setAttribute('data-bcb-ribbon', '');
     clearRibbonPaint(band);
     applySupportLink(brand);
+    guardRibbon(band, rule);
   }
 
   /**
@@ -456,6 +460,34 @@
   function removeSupportLink() {
     var link = document.querySelector('[data-bcb-support]');
     if (link) link.remove();
+  }
+
+  /**
+   * Dark Reader (and similar extensions) can override our CSS rule by injecting
+   * their own !important stylesheet after ours. Setting the color as an inline
+   * style on the element itself bypasses that: inline !important beats any
+   * stylesheet rule. A MutationObserver then reapplies immediately if the style
+   * attribute is modified again.
+   */
+  function guardRibbon(band, rule) {
+    var color = rule.color;
+    var text = rule.textColor === 'auto' ? BCBuddy.idealText(rule.color) : rule.textColor;
+
+    function paint() {
+      band.style.setProperty('background-color', color, 'important');
+      band.style.setProperty('background-image', 'none', 'important');
+      band.style.setProperty('color', text, 'important');
+    }
+
+    paint();
+
+    if (state.ribbonGuard) state.ribbonGuard.disconnect();
+    state.ribbonGuard = new MutationObserver(function () {
+      state.ribbonGuard.disconnect();
+      paint();
+      state.ribbonGuard.observe(band, { attributes: true, attributeFilter: ['style'] });
+    });
+    state.ribbonGuard.observe(band, { attributes: true, attributeFilter: ['style'] });
   }
 
   /**
@@ -589,6 +621,10 @@
   }
 
   function releaseRibbon() {
+    if (state.ribbonGuard) {
+      state.ribbonGuard.disconnect();
+      state.ribbonGuard = null;
+    }
     var brand = document.querySelector('[data-bcb-brand]');
     if (brand) {
       var original = brand.getAttribute('data-bcb-orig');
@@ -597,7 +633,12 @@
       brand.removeAttribute('data-bcb-orig');
     }
     var band = document.querySelector('[data-bcb-ribbon]');
-    if (band) band.removeAttribute('data-bcb-ribbon');
+    if (band) {
+      band.style.removeProperty('background-color');
+      band.style.removeProperty('background-image');
+      band.style.removeProperty('color');
+      band.removeAttribute('data-bcb-ribbon');
+    }
     restorePaint();
   }
 
