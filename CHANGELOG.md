@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Fixed
+
+- Ribbon colour is now preserved when the **Dark Reader** browser extension is active.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.8 — 2026-09-14
