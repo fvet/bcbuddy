@@ -23,7 +23,7 @@ editable version, which takes precedence. See
 Dropdown size works on the list that drops down under a field. A field with a
 **…** button (City, Post Code) opens a full page instead, which BC lets you
 maximize itself. A list with two short columns needs no extra width and keeps
-BC's own; it only grows taller if you raise **Maximum height**.
+BC's own; it only grows taller if you raise **Height**.
 
 If no dropdown grows any more after a Business Central update, BC has changed
 how it builds them. BC Buddy then leaves them at BC's own size rather than break

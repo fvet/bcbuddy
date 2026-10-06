@@ -2,21 +2,28 @@
 
 ## Web client
 
-Two tweaks to the Business Central web client itself are on from the start —
-no setup needed. Both live under **Web client** in the options.
+Three tweaks to the Business Central web client itself are on from the start —
+no setup needed. All three live under **Web client** in the options.
 
 **Maximize pages** expands every page to wide layout and switches tile pages to
-list view. Uncheck the toggle to turn it off. Switching **Extension active** off
+list view. Turn its switch off to stop it. Switching **Extension active** off
 pauses it along with everything else.
 
 **Dropdown size** gives the list that opens under a field — Country/Region Code,
 or the item number on a sales line — more room:
 
-- **Maximum width** — the list gets as wide as its columns need, up to this
+- **Width** — the list gets as wide as its columns need, up to this
   maximum. A list with two short columns keeps BC's own width; one with many
   columns stops scrolling sideways. Starts at the middle step.
-- **Maximum height** — shows more rows at once, up to about ten instead of
+- **Height** — shows more rows at once, up to about ten instead of
   five. Starts at *BC standard*.
+
+**Highlight the current line** shows which line you are on in editable lists —
+the lines of a sales order, a journal. Business Central marks it only with a
+small arrow and the ⋮ button at the far left, which is easy to lose on a wide
+line. With this on, the whole line gets a light tint. Read-only lists such as
+Customers already highlight the current line, and stay as they are. Turn its
+switch off to stop it.
 
 Each slider has five steps; the first is *BC standard*. With both there, the
 feature is off. BC still decides where the list opens, so a bigger list flips
@@ -53,8 +60,8 @@ The options page has a navigation on the left:
 
 | Section | What lives there |
 |---|---|
-| **Web client** | Wide layout, list view and dropdown size — on by default |
-| **Environments** | Your layouts and rules |
+| **Web client** | Wide layout, list view, dropdown size and current line — on by default |
+| **Environments** | Your rules and layouts |
 | **Settings** | Shared configuration, import and export |
 | **About** | Version and links |
 

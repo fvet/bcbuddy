@@ -11,6 +11,33 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Highlight the current line** — in editable lists, such as the lines of a
+  sales order or a journal, the line you are on gets a light tint across its
+  full width. Business Central itself only shows a small arrow at the far
+  left. Read-only lists keep their own highlight. On by default; switch it off
+  under **Web client**.
+
+### Changed
+
+- The options take less reading. **Web client** and **Import / export** are
+  short lists: each setting has its name with its switch or button on the
+  right. Hover a setting to see what it does; a link under Web client leads to
+  the documentation.
+- Under **Environments**, your rules now come first and layouts second.
+- A layout lists its parts — ribbon, frame, banner, tab title and favicon — as
+  rows: its name, its settings and a switch on the right. Hover the name to see
+  what it does; a part that is off shows only its name and switch. The tokens
+  you can use in the texts (`{name}`, `{environment}`, `{company}`, `{title}`)
+  are on one line at the bottom, instead of behind a question mark beside
+  every text field. The banner's **Opacity** is a slider of five steps, like
+  the frame's thickness.
+- A rule's on/off switch no longer has the word *On* beside it, and the
+  popup's **Extension active** is now the same switch as in the options.
+- **Shared configuration** fits on one line: the URL with **Synchronise**
+  beside it.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.9 — 2026-10-06

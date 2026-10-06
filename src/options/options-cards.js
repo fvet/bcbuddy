@@ -58,8 +58,10 @@
         if (kind === 'rule') page.fillLayoutPicker(card, item, readOnly);
 
         BCBuddy.applyI18n(card);
-        card.querySelectorAll('[data-tokens]').forEach(function (bubble) {
-          bubble.innerHTML = page.tokenHelp();
+        card.querySelectorAll('[data-token-line]').forEach(function (line) {
+          line.innerHTML = page.tokenLine();
+          // What happens to a token that stays empty.
+          line.title = t('tokensFooter');
         });
 
         page.updateCard(card, item);
@@ -68,8 +70,8 @@
           card.querySelectorAll('input, select, button').forEach(function (input) {
             input.disabled = true;
           });
-          // Expanding and viewing help is still allowed even though nothing is editable.
-          card.querySelectorAll('[data-action="toggle"], [data-action="hint"]').forEach(function (button) {
+          // Expanding is still allowed even though nothing is editable.
+          card.querySelectorAll('[data-action="toggle"]').forEach(function (button) {
             button.disabled = false;
           });
           // A shared rule cannot be edited, but you can duplicate it into your own
@@ -263,11 +265,6 @@
         return user ? user.color : BCBuddy.PALETTE[8];
       };
 
-      page.closeHints = function () {
-        document.querySelectorAll('.hint.is-open').forEach(function (hint) {
-          hint.classList.remove('is-open');
-        });
-      };
 
       page.setExpanded = function (card, expanded) {
         card.classList.toggle('rule--collapsed', !expanded);
@@ -409,16 +406,6 @@
         var button = event.target.closest('[data-action]');
         var card = event.target.closest('.rule');
         if (!card) return;
-
-        if (button && button.dataset.action === 'hint') {
-          // Inside a <label>: do not pass through to the adjacent field.
-          event.preventDefault();
-          var wasOpen = button.classList.contains('is-open');
-          page.closeHints();
-          if (!wasOpen) button.classList.add('is-open');
-          return;
-        }
-        page.closeHints();
 
         // A click on the header expands or collapses the rule, unless you click a
         // control in that header.

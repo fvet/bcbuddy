@@ -204,6 +204,28 @@ section { display: flex; flex-direction: column; gap: 10px; }
   gap: 12px;
 }
 
+/* A list of settings in one card: the name on the left, the control on the
+   right, a line between the rows. What a setting does is its tooltip. */
+.card--list { padding: 0; gap: 0; }
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 16px;
+}
+label.setting { cursor: pointer; }
+.setting + .setting { border-top: 1px solid var(--border); }
+.setting--wrap { flex-wrap: wrap; }
+/* A status line inside a row (import, export) takes no room while empty. */
+.setting .sync-status { min-height: 0; margin-top: 2px; }
+.setting .sync-status:empty { display: none; }
+.setting__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.setting__name { font-weight: 600; }
+.setting__sliders { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.slider { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.slider input[type="range"] { width: 110px; }
+.slider output { min-width: 7.5em; color: var(--text); }
+
 footer { padding-top: 8px; border-top: 1px solid var(--border); }
 footer code { margin-right: 2px; }
 
@@ -345,7 +367,6 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 
 .grid { display: flex; flex-wrap: wrap; gap: 12px; }
 .grid--two > * { flex: 1 1 320px; }
-.grid--hosted { align-items: end; }
 /* Top-align so Colour (short swatch) shares a baseline with Text colour / Layout. */
 .grid--style { align-items: start; }
 
@@ -483,77 +504,57 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .dot-indicator--on { background: var(--ok); }
 .dot-indicator--off { background: var(--danger); }
 
+/* A part of a layout (ribbon, frame, ...), as one row like the Web client
+   settings: its name, its fields with the caption beside them, and its switch
+   on the right. While it is off only the name and the switch remain. What a
+   part does is the tooltip on its name. */
 .option {
   border-top: 1px solid var(--border);
-  padding-top: 10px;
+  padding: 10px 0;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
 }
-.option__body { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding-left: 22px; }
+.option__name { flex: 0 0 170px; font-weight: 600; cursor: help; }
+.option__body {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+/* Specific enough to beat the general margin: 0 on .toggle. */
+.option > input[type="checkbox"].toggle { margin-left: auto; }
+.option__body .field { flex-direction: row; align-items: center; gap: 8px; }
+.option__body .field > span { white-space: nowrap; }
+.option__body .field--wide { flex: 1 1 240px; }
+.option__body .field--narrow { flex: 0 0 auto; }
+.option__body input[type="text"] { flex: 1 1 auto; }
+/* A part with a single text field (ribbon, tab title) needs no caption: the
+   part's name says what it is, and the field keeps it as its aria-label. */
+.option__body > input[type="text"] { flex: 1 1 240px; }
+.option__body input[type="number"] { width: 64px; }
+.option__body input[type="range"] { width: 110px; }
+.option__body select { width: auto; }
+
+/* The tokens the texts on a layout can use, on one line below its parts. */
+.tokens {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--muted);
+  cursor: help;
+}
+.tokens__item { white-space: nowrap; }
 .option--off .option__body { display: none; }
 .option[hidden] { display: none; }
-
-/* Small question mark beside a field, with help on hover, focus or click. */
-.hint {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  margin-left: 5px;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface-2);
-  color: var(--muted);
-  font: inherit;
-  font-size: 10px;
-  line-height: 1;
-  cursor: help;
-  vertical-align: middle;
-}
-.hint:hover, .hint:focus { color: var(--text); border-color: var(--accent); }
-.hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.hint__bubble {
-  position: absolute;
-  top: calc(100% + 7px);
-  left: -8px;
-  z-index: 20;
-  /* Shown via visibility, not display, so a delay can apply: that way the
-     help does not pop open when you happen to move past it. */
-  visibility: hidden;
-  opacity: 0;
-  transition: visibility 0s linear .45s, opacity .12s linear .45s;
-  width: max-content;
-  max-width: 330px;
-  padding: 9px 11px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
-  color: var(--text);
-  font-size: 12.5px;
-  line-height: 1.7;
-  text-align: left;
-  white-space: normal;
-  cursor: auto;
-}
-.hint:hover .hint__bubble,
-.hint:focus .hint__bubble {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Clicked, it stays open immediately. */
-.hint.is-open .hint__bubble {
-  visibility: visible;
-  opacity: 1;
-  transition-delay: 0s;
-}
-.hint__bubble code { margin-right: 3px; }
 
 .palette { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .palette button {
@@ -674,7 +675,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 
 /* Trust boundary for the shared file: visible without looking like an error. */
 .trust-note {
-  margin: 0 0 12px;
+  margin: 0;
   padding: 10px 12px;
   border-left: 3px solid var(--accent);
   background: var(--surface-2);

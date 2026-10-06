@@ -158,6 +158,8 @@ fetch(ROOT + 'src/popup/popup.html')
     truthy('popup: tenant is not shown',
       document.getElementById('parsed').textContent.indexOf('c1cf0fd8') === -1);
     truthy('popup: toggle is on', document.getElementById('enabled').checked);
+    truthy('popup: a switch like the options page, not a tick box',
+      document.getElementById('enabled').classList.contains('toggle'));
     check('popup: add rule button label',
       document.getElementById('addRule').textContent, chrome.i18n.getMessage('addRule'));
     truthy('popup: no button when a rule already matches',

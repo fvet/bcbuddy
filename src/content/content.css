@@ -109,3 +109,30 @@
   max-width: var(--bcb-dropdown-width) !important;
   max-height: var(--bcb-dropdown-height) !important;
 }
+
+/* Current row. In an editable grid (document lines in edit mode, journals)
+   BC marks the row you are on with only an arrow and the three-dot cell at
+   the far left, and a list part in view mode does the same. That row gets a
+   light tint across its full width. The field you are typing in keeps BC's
+   own border.
+   Read-only list pages already fill the current row; their grid is never
+   inside a card form, so they are left as BC draws them.
+   The tint is a see-through layer over the cell's own background rather than
+   a new background colour: BC's three-dot cell and focus colour stay
+   underneath, and so does a page that Dark Reader has darkened. Dark Reader
+   never sees this stylesheet, so a solid light colour would stay light under
+   its light text. */
+html[data-bcb-row] {
+  --bcb-row: 0 132 137; /* BC's own teal */
+  --bcb-row-tint: rgb(var(--bcb-row) / .06);
+}
+
+html[data-bcb-row][data-darkreader-scheme="dark"] {
+  --bcb-row: 64 196 204;
+  --bcb-row-tint: rgb(var(--bcb-row) / .12);
+}
+
+html[data-bcb-row] table.ms-nav-grid-edit > tbody > tr.real-current > td,
+html[data-bcb-row] form.ms-nav-cardform table.ms-nav-grid-view > tbody > tr.real-current > td {
+  background-image: linear-gradient(var(--bcb-row-tint), var(--bcb-row-tint)) !important;
+}

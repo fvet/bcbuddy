@@ -14,9 +14,9 @@ Dynamics 365 Business Central - CRONUS BE (Sandbox)
 ```
 
 Alongside that it can draw a coloured frame around the window, a banner, a
-marked tab title and a coloured tab icon. It also makes the web client roomier:
-pages open in wide layout, tile pages switch to list view and dropdowns get
-more space.
+marked tab title and a coloured tab icon. It also makes the web client easier to
+work in: pages open in wide layout, tile pages switch to list view, dropdowns
+get more space and the line you are on stands out.
 
 ![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](store/screenshot-1-1280x800.png)
 
@@ -55,11 +55,13 @@ The options page opens on **Environments**. To mark your first environment:
 Order decides priority: the first rule that fits is applied, so put your most
 specific rules at the top.
 
-Under **Web client** two tweaks to BC itself are on from the start:
-**Maximize pages** (wide layout, list view) and **Dropdown size**. The list that
-opens under a field gets as wide as its columns need, up to a maximum you set
-with a slider; a second slider makes it taller. Slide both to *BC standard* to
-turn it off.
+Under **Web client** three tweaks to BC itself are on from the start:
+**Maximize pages** (wide layout, list view), **Dropdown size** and **Highlight
+the current line**. The list that opens under a field gets as wide as its
+columns need, up to a maximum you set with a slider; a second slider makes it
+taller. Slide both to *BC standard* to turn it off. In editable lists, such as
+the lines of a sales order or a journal, the line you are on gets a light tint
+across its full width.
 
 ## 🎯 How matching works
 
@@ -94,8 +96,8 @@ that in the conditions of your rule (for example `url` `contains`
 ## 🗂️ Rules and layouts
 
 The options page has a navigation on the left: **Web client** (wide layout,
-dropdown size),
-**Environments** (layouts and rules), **Settings** (shared configuration,
+dropdown size, current line),
+**Environments** (rules and layouts), **Settings** (shared configuration,
 import/export) and **About**.
 
 The difference between the two lists:

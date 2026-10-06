@@ -75,30 +75,42 @@
       <div class="section-head">
         <h2 data-i18n="webClientHeading">Web client</h2>
       </div>
-      <p class="muted small" data-i18n="webClientIntro">Small improvements to the Business Central web client itself.</p>
-      <div class="card">
-        <label class="switch">
-          <input type="checkbox" id="maximizeEnabled">
-          <span data-i18n="maximizeToggle">Maximize pages</span>
+      <!-- One list: a name per setting, the control on the right. The
+           explanation is the row's tooltip, and the docs link below has the
+           rest. -->
+      <div class="card card--list">
+        <label class="setting" data-i18n-title="maximizeIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="maximizeToggle">Maximize pages</span>
+          </span>
+          <input type="checkbox" class="toggle" id="maximizeEnabled">
         </label>
-        <p class="muted small" data-i18n="maximizeIntro">Automatically expands every Business Central page to wide layout and switches tile pages to list view.</p>
-      </div>
-      <div class="card">
-        <h3 data-i18n="dropdownHeading">Dropdown size</h3>
-        <p class="muted small" data-i18n="dropdownIntro">Gives the list that opens under a field more room. The width follows the columns, up to the maximum set here.</p>
-        <div class="row row--wrap">
-          <label class="field field--narrow">
-            <span data-i18n="dropdownWidth">Maximum width</span>
-            <input type="range" id="dropdownWidth" min="1" max="5" step="1">
-            <output class="small" id="dropdownWidthValue" for="dropdownWidth"></output>
-          </label>
-          <label class="field field--narrow">
-            <span data-i18n="dropdownHeight">Maximum height</span>
-            <input type="range" id="dropdownHeight" min="1" max="5" step="1">
-            <output class="small" id="dropdownHeightValue" for="dropdownHeight"></output>
-          </label>
+        <label class="setting" data-i18n-title="highlightRowIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="highlightRowToggle">Highlight the current line</span>
+          </span>
+          <input type="checkbox" class="toggle" id="highlightRowEnabled">
+        </label>
+        <div class="setting setting--wrap" data-i18n-title="dropdownIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="dropdownHeading">Dropdown size</span>
+          </span>
+          <span class="setting__sliders">
+            <label class="slider">
+              <span data-i18n="dropdownWidth">Width</span>
+              <input type="range" id="dropdownWidth" min="1" max="5" step="1">
+              <output id="dropdownWidthValue" for="dropdownWidth"></output>
+            </label>
+            <label class="slider">
+              <span data-i18n="dropdownHeight">Height</span>
+              <input type="range" id="dropdownHeight" min="1" max="5" step="1">
+              <output id="dropdownHeightValue" for="dropdownHeight"></output>
+            </label>
+          </span>
         </div>
       </div>
+      <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#web-client"
+         target="_blank" rel="noopener noreferrer" data-i18n="webClientMore">More about these settings</a></p>
     </section>
     </div>
 
@@ -115,21 +127,6 @@
         </div>
       </div>
       <dl class="parsed" id="parsed"></dl>
-    </section>
-
-    <section>
-      <div class="section-head">
-        <h2 data-i18n="layoutsHeading">Layouts</h2>
-        <div class="row">
-          <button type="button" class="btn" id="addLayout" data-i18n="addLayout">Add layout</button>
-        </div>
-      </div>
-      <p class="muted small" data-i18n="layoutsIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>
-      <div class="rules">
-        <div id="layoutList" class="rules"></div>
-        <div id="hostedLayoutList" class="rules rules--readonly"></div>
-      </div>
-      <p class="empty" id="emptyLayouts" data-i18n="emptyLayouts" hidden>No layouts yet. Add one to reuse the same appearance across several rules.</p>
     </section>
 
     <section>
@@ -152,6 +149,21 @@
       <p class="empty" id="emptyRules" data-i18n="emptyRules" hidden>No rules yet. Click Add rule or import a configuration.</p>
     </section>
 
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="layoutsHeading">Layouts</h2>
+        <div class="row">
+          <button type="button" class="btn" id="addLayout" data-i18n="addLayout">Add layout</button>
+        </div>
+      </div>
+      <p class="muted small" data-i18n="layoutsIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>
+      <div class="rules">
+        <div id="layoutList" class="rules"></div>
+        <div id="hostedLayoutList" class="rules rules--readonly"></div>
+      </div>
+      <p class="empty" id="emptyLayouts" data-i18n="emptyLayouts" hidden>No layouts yet. Add one to reuse the same appearance across several rules.</p>
+    </section>
+
     </div>
 
     <div class="panel" data-panel="settings" hidden>
@@ -159,21 +171,19 @@
       <div class="section-head">
         <h2 data-i18n="sharedHeading">Shared configuration</h2>
       </div>
-      <p class="muted small" data-i18n="sharedIntro">Host a JSON file on a public HTTPS URL (e.g. a raw GitHub link) so everyone in the company uses the same markers.</p>
-      <p class="trust-note" data-i18n="sharedTrust">Only use a URL you control (for example your team's repository). The file can define rules that mark any site.</p>
+      <p class="muted small" data-i18n="sharedIntro">One file over HTTPS gives the whole team the same rules.</p>
 
       <div class="card">
-        <div class="grid grid--hosted">
-          <label class="field field--wide">
-            <span data-i18n="hostedUrlLabel">URL of the shared file</span>
+        <div class="field">
+          <label for="hostedUrl" data-i18n="hostedUrlLabel">URL of the shared file</label>
+          <div class="row">
             <input type="url" id="hostedUrl" spellcheck="false"
                    placeholder="https://raw.githubusercontent.com/fvet/bcbuddy/main/examples/bc-buddy.json">
-          </label>
-        </div>
-        <div class="row row--wrap">
-          <button type="button" class="btn btn--primary" id="syncNow" data-i18n="syncNow">Synchronise</button>
+            <button type="button" class="btn btn--primary" id="syncNow" data-i18n="syncNow">Synchronise</button>
+          </div>
         </div>
         <p class="sync-status" id="hostedStatus"></p>
+        <p class="trust-note" data-i18n="sharedTrust">Only use a URL you control: the file can define rules that mark any site.</p>
       </div>
     </section>
 
@@ -181,24 +191,23 @@
       <div class="section-head">
         <h2 data-i18n="importExportHeading">Import / export</h2>
       </div>
-      <div class="grid grid--two">
-        <div class="card">
-          <h3 data-i18n="importHeading">Import</h3>
-          <p class="muted small" data-i18n="importIntro">From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. This does not touch the shared configuration.</p>
-          <div class="row row--wrap">
-            <input type="file" id="importFile" accept="application/json,.json" hidden>
-            <button type="button" class="btn btn--primary" id="importFileBtn" data-i18n="chooseFile">Choose file...</button>
-          </div>
-          <p class="sync-status" id="importStatus"></p>
+      <!-- Same list as the Web client panel; the full explanation is the
+           row's tooltip. -->
+      <div class="card card--list">
+        <div class="setting" data-i18n-title="importIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="importHeading">Import</span>
+            <span class="sync-status" id="importStatus"></span>
+          </span>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+          <button type="button" class="btn" id="importFileBtn" data-i18n="chooseFile">Choose file...</button>
         </div>
-
-        <div class="card">
-          <h3 data-i18n="exportHeading">Export</h3>
-          <p class="muted small" data-i18n="exportIntro">Exports your own rules only, in the format this extension also reads.</p>
-          <div class="row row--wrap">
-            <button type="button" class="btn btn--primary" id="exportDownload" data-i18n="exportButton">Export</button>
-          </div>
-          <p class="sync-status" id="exportStatus"></p>
+        <div class="setting" data-i18n-title="exportIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="exportHeading">Export</span>
+            <span class="sync-status" id="exportStatus"></span>
+          </span>
+          <button type="button" class="btn" id="exportDownload" data-i18n="exportButton">Export</button>
         </div>
       </div>
     </section>
@@ -212,7 +221,7 @@
         </div>
         <div class="card">
           <p data-i18n="aboutIntro">BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.</p>
-          <p data-i18n="aboutIntroMaximize">It also makes the web client roomier: pages open in wide layout, tile pages switch to list view and dropdowns get more space.</p>
+          <p data-i18n="aboutIntroMaximize">It also makes the web client easier to work in: pages open in wide layout, tile pages switch to list view, dropdowns get more space and the line you are on stands out.</p>
           <dl class="parsed">
             <div>
               <dt data-i18n="aboutContact">Contact</dt>
@@ -249,7 +258,7 @@
         <span class="match" data-match role="img"></span>
         <div class="rule__tools">
           <label class="switch switch--compact" data-i18n-title="ruleActiveTitle">
-            <input type="checkbox" class="toggle" data-path="enabled"><span data-i18n="ruleOn">On</span>
+            <input type="checkbox" class="toggle" data-path="enabled" data-i18n-label="ruleActiveTitle">
           </label>
           <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
           <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteRule">&#10005;</button>
@@ -299,29 +308,26 @@
   <template id="displayTemplate">
     <div class="display">
           <div class="option" data-option="ribbon">
-            <label class="switch"><input type="checkbox" data-path="ribbon.enabled"><span data-i18n="ribbonToggle">Ribbon</span></label>
+            <span class="option__name" data-i18n="ribbonToggle" data-i18n-title="ribbonHint">Ribbon</span>
             <div class="option__body">
-              <label class="field field--wide">
-                <span><span data-i18n="ribbonText">Ribbon text</span>
-                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
-                </span>
-                <input type="text" data-path="ribbon.text" spellcheck="false">
-              </label>
+              <input type="text" data-path="ribbon.text" spellcheck="false" data-i18n-label="ribbonText">
             </div>
+            <input type="checkbox" class="toggle" data-path="ribbon.enabled" data-i18n-label="ribbonToggle">
           </div>
 
           <div class="option">
-            <label class="switch"><input type="checkbox" data-path="border.enabled"><span data-i18n="borderToggle">Frame around the page</span></label>
+            <span class="option__name" data-i18n="borderToggle" data-i18n-title="borderHint">Frame around the page</span>
             <div class="option__body">
               <label class="field field--narrow">
                 <span data-i18n="borderWidth">Thickness (px)</span>
                 <input type="range" data-path="border.width" min="1" max="5" step="1">
               </label>
             </div>
+            <input type="checkbox" class="toggle" data-path="border.enabled" data-i18n-label="borderToggle">
           </div>
 
           <div class="option">
-            <label class="switch"><input type="checkbox" data-path="banner.enabled"><span data-i18n="bannerToggle">Banner</span></label>
+            <span class="option__name" data-i18n="bannerToggle" data-i18n-title="bannerHint">Banner</span>
             <div class="option__body">
               <label class="field field--narrow">
                 <span data-i18n="bannerPosition">Position</span>
@@ -334,9 +340,7 @@
                 </select>
               </label>
               <label class="field field--wide">
-                <span><span data-i18n="bannerText">Text</span>
-                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
-                </span>
+                <span data-i18n="bannerText">Text</span>
                 <input type="text" data-path="banner.text" spellcheck="false">
               </label>
               <label class="field field--narrow">
@@ -345,26 +349,31 @@
               </label>
               <label class="field field--narrow">
                 <span data-i18n="bannerOpacity">Opacity</span>
-                <input type="range" data-path="banner.opacity" min="0.1" max="1" step="0.05">
+                <!-- Five steps like the frame thickness. What is saved is the
+                     opacity itself, so exports and shared files stay as they are. -->
+                <input type="range" data-path="banner.opacity" min="1" max="5" step="1"
+                       data-steps="0.2 0.35 0.5 0.75 1">
               </label>
             </div>
+            <input type="checkbox" class="toggle" data-path="banner.enabled" data-i18n-label="bannerToggle">
           </div>
 
           <div class="option">
-            <label class="switch"><input type="checkbox" data-path="title.enabled"><span data-i18n="titleToggle">Tab title</span></label>
+            <span class="option__name" data-i18n="titleToggle" data-i18n-title="titleHint">Tab title</span>
             <div class="option__body">
-              <label class="field field--wide">
-                <span><span data-i18n="titleText">Title</span>
-                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
-                </span>
-                <input type="text" data-path="title.text" spellcheck="false">
-              </label>
+              <input type="text" data-path="title.text" spellcheck="false" data-i18n-label="titleText">
             </div>
+            <input type="checkbox" class="toggle" data-path="title.enabled" data-i18n-label="titleToggle">
           </div>
 
-          <div class="option option--plain">
-            <label class="switch"><input type="checkbox" data-path="favicon.enabled"><span data-i18n="faviconToggle">Replace the favicon</span></label>
+          <div class="option">
+            <span class="option__name" data-i18n="faviconToggle" data-i18n-title="faviconHint">Replace the favicon</span>
+            <input type="checkbox" class="toggle" data-path="favicon.enabled" data-i18n-label="faviconToggle">
           </div>
+
+          <!-- Last: one line for the tokens every text above can use, instead
+               of a question mark beside each text field. -->
+          <p class="tokens" data-token-line></p>
     </div>
   </template>
 
@@ -393,8 +402,9 @@
 
         <p class="muted small" data-i18n="layoutPreviewNote">Sample colour; every rule keeps its own.</p>
 
+        <!-- No heading: a layout card has this one section only. A rule card
+             has two, so there Conditions and Appearance keep theirs. -->
         <div class="rule__section">
-          <h4 data-i18n="displayHeading">Appearance</h4>
           <div data-display></div>
         </div>
       </div>

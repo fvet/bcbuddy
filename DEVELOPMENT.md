@@ -16,7 +16,7 @@ src/
   lib/dropdowns.js     dropdown size: sizes BC's lookup dropdowns
   lib/maximize.js      maximize: wide layout and list view on BC's own controls
   content/content.js   draws frame, banner, ribbon, title and favicon;
-                       starts maximize and the dropdown sizer
+                       starts maximize, the dropdown sizer and the row tint
   content/content.css  the accompanying styling
   options/             options.html/css; options.js plus helpers, cards, hosted
   popup/               popup on the extension icon
@@ -45,10 +45,11 @@ Exports carry `"app": "bc-buddy"` and `"version": 2`.
   letters from the rule. Without a layout it falls back to the defaults, so
   drawing never crashes.
 
-Beside rules and layouts sit two personal settings for the **Web client** panel.
-Neither is part of an export or of the shared file:
+Beside rules and layouts sit three personal settings for the **Web client**
+panel. None is part of an export or of the shared file:
 
 - `maximize.enabled` — wide layout and list view, on by default.
+- `highlightRow.enabled` — the current-line tint, on by default.
 - `dropdown.width` and `dropdown.height` — slider steps 1–5, stored as the step
   and never as pixels. Step 1 is BC standard; width defaults to 3, height to 1.
   `normalize()` rounds and clamps them, so a hand-edited or garbled value can
@@ -92,6 +93,29 @@ right — lose it, so no dark blocks are left between the icons. That happens wi
 CSS and, for backgrounds BC sets directly on the element, with an inline style
 from the content script. Input fields and background images are left alone:
 those need their background.
+
+## 🖍️ Current line
+
+In an editable grid BC marks the row you are on only with an arrow and the ⋮
+cell at the far left. The content script sets `data-bcb-row` on `<html>` in
+every frame, once, and `content.css` does the rest:
+
+- The row is `tr.real-current` in `table.ms-nav-grid-edit` (document lines in
+  edit mode, journals) and in `form.ms-nav-cardform table.ms-nav-grid-view`
+  (list parts in view mode). A list page's grid sits in `ms-nav-listform` and
+  already fills the current row, so it is left alone.
+- The tint is a 6% `background-image` gradient over each cell, not a new
+  background colour, so BC's own cell colours stay underneath. Under Dark
+  Reader (`data-darkreader-scheme="dark"`) it is lighter and a little stronger.
+- It costs nothing at runtime: no listener, observer or poll, and it does not
+  wake the content script's watch loop. Moving the current row through a
+  103-column sales line took ~14 ms with and without the tint; that time is
+  BC restyling its own grid.
+
+After a BC update, open a sales order in edit mode and click through its lines:
+the line you are on should carry the faint tint across its full width. If not,
+check that the current row still has `real-current` and the grid
+`ms-nav-grid-edit`.
 
 ## 📐 Dropdown size
 
