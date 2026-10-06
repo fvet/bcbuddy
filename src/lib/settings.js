@@ -72,6 +72,15 @@
     return typeof value === 'boolean' ? value : !!fallback;
   }
 
+  // Dropdown size is a slider position, never pixels: step 1 is BC standard
+  // and every step is a factor of what BC uses (see dropdowns.js), so nobody's
+  // setting needs migrating when BC changes its own size.
+  var DROPDOWN_STEPS = 5;
+
+  function step(value, fallback) {
+    return Math.round(num(value, fallback, 1, DROPDOWN_STEPS));
+  }
+
   /**
    * Every text value goes through here. Leading or trailing spaces are always
    * accidental — in a name, a condition or a URL they only produce rules that
@@ -270,6 +279,7 @@
     var s = settings || {};
     var hosted = s.hosted || {};
     var maximize = s.maximize || {};
+    var dropdown = s.dropdown || {};
     var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
     var layouts = (Array.isArray(s.layouts) ? s.layouts : []).map(normalizeLayout);
     var hostedRules = (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule);
@@ -280,6 +290,11 @@
       enabled: bool(s.enabled, true),
       maximize: {
         enabled: bool(maximize.enabled, true)
+      },
+      // Wider dropdowns by default; height stays BC standard until asked for.
+      dropdown: {
+        width: step(dropdown.width, 3),
+        height: step(dropdown.height, 1)
       },
       rules: rules,
       layouts: withDefaultLayout(layouts, rules),
@@ -486,6 +501,7 @@
   BCBuddy.EXPORT_APP = EXPORT_APP;
   BCBuddy.PALETTE = PALETTE;
   BCBuddy.POSITIONS = POSITIONS;
+  BCBuddy.DROPDOWN_STEPS = DROPDOWN_STEPS;
   BCBuddy.isCorner = isCorner;
   BCBuddy.SYNC_INTERVAL_MINUTES = SYNC_INTERVAL_MINUTES;
   BCBuddy.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;

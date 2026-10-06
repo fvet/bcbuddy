@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "See at a glance which Business Central environment you are in: colour in the top bar, frame, banner, tab icon and auto-wide pages.",
+    "message": "See at a glance which Business Central environment you are in: colour, frame, banner, tab icon, wide pages and bigger dropdowns.",
     "description": "The description in the store listing. Hard limit of 132 characters, per language: a longer one is rejected at upload."
   },
   "optionsTitle": {
@@ -8,7 +8,7 @@
     "description": "Title of the options page. BC Buddy is a product name and stays as it is."
   },
   "tagline": {
-    "message": "Mark your Business Central environments with colour and expand every page to wide layout automatically.",
+    "message": "Mark your Business Central environments with colour, and give the web client more room.",
     "description": "One-line summary under the title on the options page."
   },
   "extensionActive": { "message": "Extension active" },
@@ -426,18 +426,36 @@
     "description": "Placeholder in the name field of a layout. Default is an example of what somebody might call one."
   },
   "addLayout": { "message": "Add layout" },
-  "navMaximize": {
-    "message": "Maximize",
-    "description": "Navigation item leading to the maximize panel."
+  "navWebClient": {
+    "message": "Web client",
+    "description": "Navigation item leading to the panel with tweaks to the Business Central web client itself (maximize, dropdown size). Use the term the Business Central documentation uses for the web client in this language."
   },
-  "maximizeHeading": { "message": "Maximize" },
+  "webClientHeading": { "message": "Web client" },
+  "webClientIntro": {
+    "message": "Small improvements to the Business Central web client itself.",
+    "description": "Shown at the top of the Web client panel."
+  },
   "maximizeIntro": {
     "message": "Automatically expands every Business Central page to wide layout and switches tile pages to list view.",
-    "description": "Explains what the maximize feature does. Shown at the top of the Maximize panel."
+    "description": "Explains what the maximize feature does. Shown under its switch in the Web client panel."
   },
   "maximizeToggle": {
     "message": "Maximize pages",
     "description": "Label on the on/off switch for the maximize feature."
+  },
+  "dropdownHeading": {
+    "message": "Dropdown size",
+    "description": "Heading of the setting that gives the list opening under a lookup field (the dropdown) more room."
+  },
+  "dropdownIntro": {
+    "message": "Gives the list that opens under a field more room. The width follows the columns, up to the maximum set here.",
+    "description": "Explains the dropdown size sliders. BC is short for Business Central and stays as it is."
+  },
+  "dropdownWidth": { "message": "Maximum width" },
+  "dropdownHeight": { "message": "Maximum height" },
+  "dropdownStandard": {
+    "message": "BC standard",
+    "description": "Shown beside a dropdown size slider at its lowest step, where Business Central keeps its own size. BC is short for Business Central and stays as it is."
   },
   "navEnvironments": {
     "message": "Environments",
@@ -459,8 +477,8 @@
     "description": "Business Central, production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
   },
   "aboutIntroMaximize": {
-    "message": "It also automatically expands every page to wide layout and switches tile pages to list view.",
-    "description": "Second paragraph in the About panel, describing the maximize feature."
+    "message": "It also makes the web client roomier: pages open in wide layout, tile pages switch to list view and dropdowns get more space.",
+    "description": "Second paragraph in the About panel, describing the web client tweaks (maximize, dropdown size)."
   },
   "aboutContact": { "message": "Contact" },
   "aboutDocs": { "message": "Documentation" },

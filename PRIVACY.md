@@ -13,6 +13,8 @@ Everything BC Buddy knows lives in `chrome.storage.local`, on your own machine:
 
 - your rules (name, conditions, colours, favicon letters),
 - your layouts (ribbon, frame, banner, tab title, favicon settings),
+- your web client preferences (whether pages are maximized, and the dropdown
+  size steps),
 - the URL of a shared configuration file, if you configured one, plus the
   rules it returned and the timestamp of the last synchronisation.
 
@@ -22,8 +24,9 @@ This data never leaves your browser. Uninstalling the extension removes it.
 
 To decide whether a page should be marked, the content script looks at the
 URL of the page it runs in and at the page's own DOM (to find the Business
-Central ribbon). This happens entirely inside your browser. Nothing that is
-read is stored, logged or sent anywhere.
+Central ribbon, and to size the dropdown lists that Business Central opens).
+This happens entirely inside your browser. Nothing that is read is stored,
+logged or sent anywhere.
 
 ## Network requests
 

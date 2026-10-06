@@ -13,7 +13,9 @@ src/
   lib/i18n.js          fetching translations
   lib/match.js         parsing URLs, matching rules, tokens, colour helpers
   lib/settings.js      storage, defaults, normalisation, import/export
-  content/content.js   draws frame, banner, ribbon, title and favicon
+  lib/dropdowns.js     dropdown size: sizes BC's lookup dropdowns
+  content/content.js   draws frame, banner, ribbon, title and favicon;
+                       maximize, and starts the dropdown sizer
   content/content.css  the accompanying styling
   options/             options.html/css; options.js plus helpers, cards, hosted
   popup/               popup on the extension icon
@@ -41,6 +43,15 @@ Exports carry `"app": "bc-buddy"` and `"version": 2`.
 - `resolveRule()` merges them for drawing: appearance from the chosen layout,
   letters from the rule. Without a layout it falls back to the defaults, so
   drawing never crashes.
+
+Beside rules and layouts sit two personal settings for the **Web client** panel.
+Neither is part of an export or of the shared file:
+
+- `maximize.enabled` — wide layout and list view, on by default.
+- `dropdown.width` and `dropdown.height` — slider steps 1–5, stored as the step
+  and never as pixels. Step 1 is BC standard; width defaults to 3, height to 1.
+  `normalize()` rounds and clamps them, so a hand-edited or garbled value can
+  only ever land on a valid step. The feature is on when either is above 1.
 
 `normalize()` always ensures every rule points at a valid layout: a
 configuration with no layouts gets a Default, and a rule whose `layoutId` names
@@ -80,6 +91,69 @@ right — lose it, so no dark blocks are left between the icons. That happens wi
 CSS and, for backgrounds BC sets directly on the element, with an inline style
 from the content script. Input fields and background images are left alone:
 those need their background.
+
+## 📐 Dropdown size
+
+When a lookup opens, BC adds a `div.spa-view.spa-lookup` as a **direct child**
+of a `div.spa-container`, inside the client frame. Its stylesheet
+(`desktoppreview.css` on the BC CDN) caps that popup and three containers inside
+it at `max-width: 532px; max-height: 238px`. The sizer lifts those caps per
+dropdown; BC keeps positioning the popup itself — below or above the field,
+moved left when it runs out of room — and does so before the first paint.
+
+It runs while people type, so it is built to cost nothing:
+
+- **A narrow observer.** It watches the direct children of each
+  `.spa-container` and of `body` (to notice a new container), never a subtree.
+  Cell edits, validation and row redraws never reach it. When both sliders are
+  at BC standard, or the extension is off, nothing is attached at all.
+- **No layout reads per dropdown.** BC writes each column's width on the header
+  cell as `width: 15ex`. The sizer adds those up and converts once: on the first
+  dropdown in a frame it measures what an `ex` is and what the row selector and
+  the popup's edges add. After that, sizing a dropdown is string parsing —
+  measured at 0–1.5 ms per open on a live client, the first one 3–27 ms.
+- **Relative to BC.** BC's own caps are read from the first dropdown before the
+  sizer marks it, and each step is a factor of them (width ×1 to ×2, height ×1
+  to ×1.5). If BC changes its standard size, the steps follow.
+- **Set once per open.** The width goes on the popup as a CSS variable when it
+  appears and is not touched again, so it does not change while you scroll.
+  `content.css` applies the variables only to popups carrying
+  `data-bcb-dropdown`. Not inline on the form: BC reuses that element between
+  opens, and an inline style would follow it.
+
+Things that were tried and dropped: a pure-CSS fit (letting the grid tables size
+to their content) made the popup change width while scrolling; measuring each
+dropdown's natural width costs 2–10 ms per open, every time.
+
+Only a list to pick from is sized: a popup that holds a grid (`isList()`). A
+field you cannot edit — a page in view mode, a read-only field — opens a record
+card in the same `.spa-lookup` popup instead. BC adds `.spa-preview-lookup` to
+that card only *after* inserting it, so on arrival it is recognised by its
+`.ms-nav-previewlookupform` and by having no grid; `content.css` also drops the
+caps from anything that later carries `.spa-preview-lookup`.
+
+Out of scope on purpose: option fields (a `select`) and fields with a **…**
+button, which open a full page rather than a dropdown.
+
+### After a BC update
+
+All of this leans on BC's internal class names and on `ex` column widths, and it
+fails safe: an unrecognised popup is left alone, and columns without `ex` widths
+get the slider's maximum. The tests run against a trimmed copy of BC's markup in
+`test-core.html`, so they cannot notice BC changing. After a BC release, check
+by hand: open the item **No.** dropdown on a sales line — with the default
+setting it should be clearly wider than BC's 532 px, with no horizontal
+scrollbar.
+
+If it is not, compare the live markup with the copy in the tests. With a lookup
+open, select the client frame in the DevTools console's context menu and run:
+
+```js
+var l = document.querySelector('.spa-view.spa-lookup');
+[getComputedStyle(l).maxWidth, getComputedStyle(l).maxHeight, l.parentElement.className,
+  Array.from(l.querySelectorAll('table.ms-nav-grid-header-table thead tr:last-child th'),
+    function (th) { return th.style.width; })];
+```
 
 ## 🔗 URL parsing
 
@@ -184,7 +258,9 @@ either; you upload it in the dashboard.
 The test pages run the real source in headless Chrome (or Edge): parsing URLs,
 matching rules, the tokens, building the options page and the popup, and what the
 content script actually does to the DOM (rewriting and colouring the ribbon, the
-frame, the corner ribbon, the title, the favicon).
+frame, the corner ribbon, the title, the favicon). The dropdown sizer runs
+against a trimmed copy of BC's lookup markup and its caps; see
+[After a BC update](#after-a-bc-update) for what that copy cannot catch.
 
 ```bash
 powershell -ExecutionPolicy Bypass -File tests/run-tests.ps1

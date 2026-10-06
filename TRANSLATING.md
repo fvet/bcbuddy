@@ -53,6 +53,7 @@ day. Take them from one of these, in order of effort:
 | Sandbox | Sandbox | Sandbox | Business Central UI |
 | Production | production | productie | Business Central UI |
 | Company Information | Company Information | Bedrijfsgegevens | Name of a Business Central page |
+| Web client | Web client | Webclient | Business Central documentation |
 | Business Central | Business Central | Business Central | Product name, never translated |
 | BC Buddy | BC Buddy | BC Buddy | Product name, never translated |
 | URL | Url | Url | Unchanged in most languages |

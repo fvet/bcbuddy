@@ -96,3 +96,16 @@
 [data-bcb-ribbon] *:not(svg):not(img):not(input):not(textarea):not(select) {
   background-color: transparent !important;
 }
+
+/* Dropdown size. BC caps its lookup dropdown, and three containers inside it,
+   with a fixed max-width and max-height. On a dropdown the content script has
+   sized, those caps come from the variables it set on that dropdown. BC keeps
+   positioning the popup itself. A record card (.spa-preview-lookup) never
+   takes them, even if BC were to turn a sized popup into one. */
+[data-bcb-dropdown]:not(.spa-preview-lookup),
+[data-bcb-dropdown]:not(.spa-preview-lookup) > .ms-nav-lookupform,
+[data-bcb-dropdown]:not(.spa-preview-lookup) > .ms-nav-lookupform > .ms-nav-content-box .ms-nav-content,
+[data-bcb-dropdown]:not(.spa-preview-lookup) > .ms-nav-lookupform > .ms-nav-content-box .ms-nav-content .ms-nav-lookupform {
+  max-width: var(--bcb-dropdown-width) !important;
+  max-height: var(--bcb-dropdown-height) !important;
+}

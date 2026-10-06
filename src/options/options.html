@@ -22,7 +22,7 @@
       </svg>
       <div>
         <h1>BC Buddy</h1>
-        <p class="muted" data-i18n="tagline">Tell your Business Central environments apart with colour, a frame and your own ribbon.</p>
+        <p class="muted" data-i18n="tagline">Mark your Business Central environments with colour, and give the web client more room.</p>
       </div>
     </div>
     <div class="topbar__actions">
@@ -32,11 +32,12 @@
 
   <div class="layout">
     <nav class="nav" data-i18n-label="navSections" aria-label="Sections">
-      <button type="button" class="nav__item" data-panel="maximize">
+      <button type="button" class="nav__item" data-panel="webclient">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M2 2h4M2 2v4M14 2h-4M14 2v4M2 14h4M2 14v-4M14 14h-4M14 14v-4"/>
+          <rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/>
+          <path d="M1.5 5.5h13M4 8.5h5M4 11h3"/>
         </svg>
-        <span data-i18n="navMaximize">Maximize</span>
+        <span data-i18n="navWebClient">Web client</span>
       </button>
       <button type="button" class="nav__item" data-panel="environments" aria-current="page">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -69,17 +70,34 @@
     </nav>
 
     <main>
-    <div class="panel" data-panel="maximize" hidden>
+    <div class="panel" data-panel="webclient" hidden>
     <section>
       <div class="section-head">
-        <h2 data-i18n="maximizeHeading">Maximize</h2>
+        <h2 data-i18n="webClientHeading">Web client</h2>
       </div>
-      <p class="muted small" data-i18n="maximizeIntro">Automatically expands every Business Central page to wide layout and switches tile pages to list view.</p>
+      <p class="muted small" data-i18n="webClientIntro">Small improvements to the Business Central web client itself.</p>
       <div class="card">
         <label class="switch">
           <input type="checkbox" id="maximizeEnabled">
           <span data-i18n="maximizeToggle">Maximize pages</span>
         </label>
+        <p class="muted small" data-i18n="maximizeIntro">Automatically expands every Business Central page to wide layout and switches tile pages to list view.</p>
+      </div>
+      <div class="card">
+        <h3 data-i18n="dropdownHeading">Dropdown size</h3>
+        <p class="muted small" data-i18n="dropdownIntro">Gives the list that opens under a field more room. The width follows the columns, up to the maximum set here.</p>
+        <div class="row row--wrap">
+          <label class="field field--narrow">
+            <span data-i18n="dropdownWidth">Maximum width</span>
+            <input type="range" id="dropdownWidth" min="1" max="5" step="1">
+            <output class="small" id="dropdownWidthValue" for="dropdownWidth"></output>
+          </label>
+          <label class="field field--narrow">
+            <span data-i18n="dropdownHeight">Maximum height</span>
+            <input type="range" id="dropdownHeight" min="1" max="5" step="1">
+            <output class="small" id="dropdownHeightValue" for="dropdownHeight"></output>
+          </label>
+        </div>
       </div>
     </section>
     </div>
@@ -194,7 +212,7 @@
         </div>
         <div class="card">
           <p data-i18n="aboutIntro">BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.</p>
-          <p data-i18n="aboutIntroMaximize">It also automatically expands every page to wide layout and switches tile pages to list view.</p>
+          <p data-i18n="aboutIntroMaximize">It also makes the web client roomier: pages open in wide layout, tile pages switch to list view and dropdowns get more space.</p>
           <dl class="parsed">
             <div>
               <dt data-i18n="aboutContact">Contact</dt>
@@ -397,6 +415,7 @@
   <script src="../lib/i18n.js"></script>
   <script src="../lib/match.js"></script>
   <script src="../lib/settings.js"></script>
+  <script src="../lib/dropdowns.js"></script>
   <script src="options-helpers.js"></script>
   <script src="options-cards.js"></script>
   <script src="options-hosted.js"></script>

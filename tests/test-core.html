@@ -86,6 +86,7 @@ window.chrome = {
 <script src="../src/lib/i18n.js"></script>
 <script src="../src/lib/match.js"></script>
 <script src="../src/lib/settings.js"></script>
+<script src="../src/lib/dropdowns.js"></script>
 
 <script>
 /* ---- seed settings for the content script ------------------------------- */
@@ -416,6 +417,48 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('normalization: corner position preserved', BCBuddy.normalizeLayout({ banner: { position: 'bottom-left' } }).banner.position, 'bottom-left');
   check('normalization: empty rule gets a condition', BCBuddy.normalizeRule({}).conditions.length, 1);
 
+  // dropdown size: a slider step per direction, step 1 = BC standard
+  var D = BCBuddy.Dropdowns;
+  check('dropdown: width defaults to step 3, height to BC standard', def.dropdown, { width: 3, height: 1 });
+  check('dropdown: so it is on by default', D.isOn(def.dropdown), true);
+  check('dropdown: both at BC standard is off', D.isOn({ width: 1, height: 1 }), false);
+  check('dropdown: height alone turns it on', D.isOn({ width: 1, height: 2 }), true);
+  check('dropdown: steps above 5 snap back',
+    BCBuddy.normalize({ dropdown: { width: 9, height: 99 } }).dropdown, { width: 5, height: 5 });
+  check('dropdown: steps below 1 snap back',
+    BCBuddy.normalize({ dropdown: { width: 0, height: -3 } }).dropdown, { width: 1, height: 1 });
+  check('dropdown: garbage falls back to the defaults',
+    BCBuddy.normalize({ dropdown: { width: 'wide', height: null } }).dropdown, { width: 3, height: 1 });
+  check('dropdown: a step is a whole number',
+    BCBuddy.normalize({ dropdown: { width: 2.6, height: 1.4 } }).dropdown, { width: 3, height: 1 });
+  check('dropdown: a pixel value snaps to the top step',
+    BCBuddy.normalize({ dropdown: { width: 900 } }).dropdown.width, 5);
+  check('dropdown: one factor per step',
+    [D.WIDTH_FACTORS.length, D.HEIGHT_FACTORS.length], [BCBuddy.DROPDOWN_STEPS, BCBuddy.DROPDOWN_STEPS]);
+  check('dropdown: step 1 is BC standard', [D.factor(D.WIDTH_FACTORS, 1), D.factor(D.HEIGHT_FACTORS, 1)], [1, 1]);
+  check('dropdown: width grows to twice BC standard', D.factor(D.WIDTH_FACTORS, 5), 2);
+  check('dropdown: height to one and a half', D.factor(D.HEIGHT_FACTORS, 5), 1.5);
+  check('dropdown: ex column widths add up', D.columnEx(['', '15ex', '35ex', '0px', ' 18ex ']), 68);
+  check('dropdown: no ex widths adds up to 0', D.columnEx(['120px', '', null]), 0);
+  check('dropdown: fit is never narrower than BC', D.fitWidth(326, 532, 798), 532);
+  check('dropdown: fit follows the columns', D.fitWidth(647, 532, 798), 647);
+  check('dropdown: fit is never wider than the maximum', D.fitWidth(1200, 532, 798), 798);
+  check('dropdown: no natural width takes the maximum', D.fitWidth(0, 532, 798), 798);
+  check('dropdown: a record card is not a list', D.isList((function () {
+    var card = document.createElement('div');
+    card.className = 'spa-view spa-lookup ms-nav-preview-lookup-beak-position';
+    card.innerHTML = '<form class="ms-nav-lookupform ms-nav-previewlookupform"></form>';
+    return card;
+  })()), false);
+  check('dropdown: a popup with a grid is a list', D.isList((function () {
+    var list = document.createElement('div');
+    list.className = 'spa-view spa-lookup';
+    list.innerHTML = '<form class="ms-nav-lookupform"><table class="ms-nav-grid-header-table"></table></form>';
+    return list;
+  })()), true);
+  check('dropdown: a personal setting, not part of an export',
+    Object.prototype.hasOwnProperty.call(BCBuddy.toExport(def), 'dropdown'), false);
+
   var exported = BCBuddy.toExport(settings, 'Bedrijf X');
   var roundtrip = BCBuddy.parseImport(JSON.stringify(exported));
   check('export/import: rule count', roundtrip.rules.length, 1);
@@ -509,6 +552,192 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   truthy('hash: differs for different content', BCBuddy.hash('a') !== BCBuddy.hash('b'));
   truthy('hash: equal for same content', BCBuddy.hash('abc') === BCBuddy.hash('abc'));
 
+  /* ---- dropdown sizer against a copy of BC's lookup DOM ------------------- */
+  /*
+   * The markup below is a trimmed copy of what Business Central adds when a
+   * lookup opens: div.spa-lookup as a direct child of div.spa-container, a
+   * header table whose columns carry their width in ex, and BC's own caps from
+   * desktoppreview.css. Refresh it from a live client when BC changes (see
+   * DEVELOPMENT.md).
+   */
+  var BC_LOOKUP_CSS = [
+    '.spa-view.spa-lookup{position:absolute;width:auto;bottom:auto;height:auto;max-height:238px;max-width:532px;overflow:hidden}',
+    '.spa-view.spa-lookup>.ms-nav-lookupform{max-height:238px;max-width:532px;border:1px solid #666;display:flex;flex-direction:column;box-sizing:border-box}',
+    '.spa-view.spa-lookup>.ms-nav-lookupform>.ms-nav-content-box{display:flex}',
+    '.spa-view.spa-lookup>.ms-nav-lookupform>.ms-nav-content-box .ms-nav-content{max-height:238px;max-width:532px;min-width:0;display:flex;flex:1 1 392px;flex-direction:column}',
+    '.spa-view.spa-lookup>.ms-nav-lookupform>.ms-nav-content-box .ms-nav-content .ms-nav-lookupform{max-height:238px;height:auto;display:flex;flex:1 1 auto;flex-direction:column}',
+    '.spa-lookup table.ms-nav-grid{table-layout:fixed;width:100%;border-collapse:collapse;font:12px Arial,sans-serif}',
+    '.spa-lookup th.selector{width:24px}',
+    '.spa-lookup th,.spa-lookup td{padding:0;overflow:hidden;white-space:nowrap}'
+  ].join('\n');
+
+  function lookupFixture(widths, extraClass) {
+    var head = '<th class="selector"></th>';
+    var row = '<td></td>';
+    widths.forEach(function (w) {
+      head += '<th style="width: ' + w + ';">Column</th>';
+      row += '<td>value</td>';
+    });
+    head += '<th style="width: 0px;"></th>';
+    row += '<td></td>';
+    var lookup = document.createElement('div');
+    lookup.className = 'spa-view spa-lookup no-animations shown ms-nav-position-below' + (extraClass ? ' ' + extraClass : '');
+    lookup.setAttribute('style', 'z-index: 3; left: 10px; top: 120px;');
+    lookup.innerHTML =
+      '<form class="ms-nav-root-form card form-no-factboxes ms-nav-lookupform in-select-mode">' +
+        '<div class="ms-nav-content-box"><div class="ms-nav-content">' +
+          '<div class="ms-nav-lookupform ms-nav-noCommandBar">' +
+            '<div class="ms-nav-grid-horizontal-container ms-nav-grid-container"><div class="ms-nav-grid-vertical-container">' +
+              '<div style="overflow: hidden;"><table class="ms-nav-grid ms-nav-grid-view ms-nav-grid-header-table" style="padding-right: 15px;">' +
+                '<thead><tr>' + head + '</tr></thead></table></div>' +
+              '<div class="ms-nav-scrollable"><table class="ms-nav-grid ms-nav-grid-view ms-nav-grid-data-table">' +
+                '<tbody><tr>' + row + '</tr></tbody></table></div>' +
+            '</div></div>' +
+          '</div>' +
+          '<div class="lookup-command-bar"></div>' +
+        '</div></div>' +
+      '</form>';
+    return lookup;
+  }
+
+  /*
+   * A field you cannot edit (view mode, a read-only field) opens a record card
+   * in the same popup. This is how BC inserts it: without spa-preview-lookup,
+   * which it only adds a moment later, with a preview form and no grid.
+   */
+  function recordCardFixture() {
+    var card = document.createElement('div');
+    card.className = 'spa-view spa-lookup no-animations shown ms-nav-position-below ms-nav-preview-lookup-beak-position';
+    card.setAttribute('style', 'z-index: 3; left: 10px; top: 120px;');
+    card.innerHTML =
+      '<form class="ms-nav-root-form card form-no-factboxes ms-nav-lookupform ms-nav-previewlookupform in-select-mode ms-nav-noCommandBar">' +
+        '<div class="ms-nav-content-box"><div class="ms-nav-content">' +
+          '<div class="ms-nav-lookupform"><a href="#">Adatum Corporation</a><span>Loek Walravens</span></div>' +
+        '</div></div>' +
+      '</form>';
+    return card;
+  }
+
+  // Item No. on a sales line (101ex over five columns) and Location Code (50ex).
+  var WIDE = ['15ex', '35ex', '15ex', '18ex', '18ex'];
+  var NARROW = ['15ex', '35ex'];
+
+  function dropdownDom() {
+    var css = document.createElement('style');
+    css.textContent = BC_LOOKUP_CSS;
+    document.head.appendChild(css);
+    var container = document.createElement('div');
+    container.className = 'spa-container spa-stack-container-1';
+    document.body.appendChild(container);
+
+    function tick() { return new Promise(function (resolve) { setTimeout(resolve, 0); }); }
+    function vars(el) {
+      return [el.style.getPropertyValue('--bcb-dropdown-width'), el.style.getPropertyValue('--bcb-dropdown-height')];
+    }
+    function open(lookup, parent) {
+      (parent || container).appendChild(lookup);
+      return tick().then(function () { return lookup; });
+    }
+    function closeAll() {
+      document.querySelectorAll('.spa-lookup').forEach(function (l) { l.remove(); });
+    }
+
+    var sizer = D.attach(document, { width: 3, height: 5 });
+    var wide;
+    return open(lookupFixture(WIDE)).then(function (lookup) {
+      wide = lookup;
+      truthy('dropdown DOM: a lookup in a container is sized', wide.hasAttribute(D.MARK));
+      check('dropdown DOM: height step 5 is BC height x 1.5', vars(wide)[1], '357px');
+
+      // Independent of the sizer: the header at width 0 is what its columns need.
+      var header = wide.querySelector('table.ms-nav-grid-header-table');
+      header.style.width = '0px';
+      var natural = header.offsetWidth;
+      header.style.width = '';
+      var edges = wide.offsetWidth - header.parentElement.clientWidth;
+      var expected = natural - 15 + edges + 17; // without BC's gutter, with room for a scrollbar
+      var width = parseFloat(vars(wide)[0]);
+      truthy('dropdown DOM: wide lookup fits its columns (' + width + ' vs ' + expected + ')',
+        Math.abs(width - expected) <= 1);
+      truthy('dropdown DOM: and stays within BC standard and the maximum', width >= 532 && width <= 798);
+
+      var parts = [wide, wide.querySelector('form'), wide.querySelector('.ms-nav-content'),
+        wide.querySelector('.ms-nav-content .ms-nav-lookupform')];
+      check('dropdown DOM: all four BC caps take the width',
+        parts.map(function (el) { return getComputedStyle(el).maxWidth; }),
+        [width + 'px', width + 'px', width + 'px', width + 'px']);
+      check('dropdown DOM: all four BC caps take the height',
+        parts.map(function (el) { return getComputedStyle(el).maxHeight; }), ['357px', '357px', '357px', '357px']);
+      return open(lookupFixture(NARROW));
+    }).then(function (narrow) {
+      check('dropdown DOM: narrow lookup keeps BC width', vars(narrow)[0], '532px');
+      return open(lookupFixture(['120px', '200px']));
+    }).then(function (unsized) {
+      check('dropdown DOM: columns without ex widths take the maximum', vars(unsized)[0], '798px');
+      return open(lookupFixture(WIDE, 'spa-preview-lookup'));
+    }).then(function (preview) {
+      check('dropdown DOM: hover preview is left alone', preview.hasAttribute(D.MARK), false);
+      return open(recordCardFixture());
+    }).then(function (card) {
+      check('dropdown DOM: record card is left alone, before BC marks it as a preview',
+        [card.hasAttribute(D.MARK), vars(card)], [false, ['', '']]);
+      card.classList.add('spa-preview-lookup');
+      var noGrid = lookupFixture(WIDE);
+      noGrid.querySelector('.ms-nav-grid-vertical-container').remove();
+      return open(noGrid);
+    }).then(function (noGrid) {
+      check('dropdown DOM: a popup without a list is left alone', noGrid.hasAttribute(D.MARK), false);
+      // Should BC ever turn a sized popup into a card, the caps let go of it.
+      var turned = lookupFixture(WIDE);
+      return open(turned);
+    }).then(function (turned) {
+      truthy('dropdown DOM: (list sized first)', turned.hasAttribute(D.MARK));
+      turned.classList.add('spa-preview-lookup');
+      check('dropdown DOM: a sized popup that becomes a card gets BC caps back',
+        getComputedStyle(turned).maxWidth, '532px');
+      turned.remove();
+      var nested = document.createElement('div');
+      container.appendChild(nested);
+      return open(lookupFixture(WIDE), nested);
+    }).then(function (deep) {
+      check('dropdown DOM: only direct children of a container are watched', deep.hasAttribute(D.MARK), false);
+      var later = document.createElement('div');
+      later.className = 'spa-container spa-stack-container-2';
+      document.body.appendChild(later);
+      return tick().then(function () { return open(lookupFixture(WIDE), later); });
+    }).then(function (inLater) {
+      truthy('dropdown DOM: a container added later is watched too', inLater.hasAttribute(D.MARK));
+
+      sizer.detach();
+      check('dropdown DOM: detach hands the open lookups back to BC',
+        [wide.hasAttribute(D.MARK), vars(wide)], [false, ['', '']]);
+      return open(lookupFixture(WIDE));
+    }).then(function (afterDetach) {
+      check('dropdown DOM: nothing is sized after detach', afterDetach.hasAttribute(D.MARK), false);
+      closeAll();
+      sizer = D.attach(document, { width: 1, height: 3 });
+      return open(lookupFixture(WIDE));
+    }).then(function (heightOnly) {
+      check('dropdown DOM: width at BC standard stays BC width, even when columns want more',
+        vars(heightOnly), ['532px', '298px']);
+      sizer.detach();
+      closeAll();
+      // A BC release with different caps: the steps scale along.
+      css.textContent += '\n.spa-view.spa-lookup{max-width:600px;max-height:300px}';
+      sizer = D.attach(document, { width: 5, height: 5 });
+      return open(lookupFixture(NARROW));
+    }).then(function (rescaled) {
+      check('dropdown DOM: BC standard is read from BC, not assumed', vars(rescaled), ['600px', '450px']);
+      return open(lookupFixture(['500ex']));
+    }).then(function (huge) {
+      check('dropdown DOM: maximum is twice what BC uses', vars(huge)[0], '1200px');
+      sizer.detach();
+      closeAll();
+      document.querySelectorAll('.spa-container').forEach(function (c) { c.remove(); });
+      css.remove();
+    });
+  }
+
   /* ---- DOM effects from the content script ------------------------------- */
   setTimeout(function () {
     var brand = document.querySelector('[data-bcb-brand]');
@@ -581,10 +810,14 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
         check('DOM: button added later also loses its background',
           getComputedStyle(late).backgroundColor, 'rgba(0, 0, 0, 0)');
 
-        var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
-        document.getElementById('results').textContent =
-          results.join('\n') + '\n\nTOTAL: ' + results.length + ' checks, ' + failed.length + ' failed.';
-        document.title = failed.length ? 'FAILED' : 'ALL PASS';
+        dropdownDom().then(null, function (err) {
+          results.push('FAIL  dropdown DOM: ' + err.message);
+        }).then(function () {
+          var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
+          document.getElementById('results').textContent =
+            results.join('\n') + '\n\nTOTAL: ' + results.length + ' checks, ' + failed.length + ' failed.';
+          document.title = failed.length ? 'FAILED' : 'ALL PASS';
+        });
       }, 500);
     }, 500);
   }, 400);

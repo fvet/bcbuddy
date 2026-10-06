@@ -8,7 +8,7 @@ BC Buddy gives every environment its own colour, so you can see at a glance wher
 - The tab title, for example "[TEST] Company Information".
 - A coloured icon on the tab, so you find the right one among ten others.
 
-Every page automatically expands to wide layout and tile pages switch to list view. Turn it off in one click if you prefer it off.
+Business Central itself gets more room too: every page expands to wide layout, tile pages switch to list view, and the list that opens under a field grows as wide as its columns need. Each can be turned off in the options.
 
 You decide when each colour appears: per environment, per company or per customer. Production green, test orange, sandbox red - or whatever suits you.
 

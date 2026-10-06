@@ -18,6 +18,17 @@ Shared rules are read-only by design. Use the copy button to get your own
 editable version, which takes precedence. See
 [Sharing with your team](sharing.md).
 
+## A dropdown keeps its usual size
+
+Dropdown size works on the list that drops down under a field. A field with a
+**…** button (City, Post Code) opens a full page instead, which BC lets you
+maximize itself. A list with two short columns needs no extra width and keeps
+BC's own; it only grows taller if you raise **Maximum height**.
+
+If no dropdown grows any more after a Business Central update, BC has changed
+how it builds them. BC Buddy then leaves them at BC's own size rather than break
+anything — please open an issue so it can catch up.
+
 ## Something else
 
 Open an issue at

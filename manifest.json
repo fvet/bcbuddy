@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/lib/i18n.js", "src/lib/match.js", "src/lib/settings.js", "src/content/content.js"],
+      "js": ["src/lib/i18n.js", "src/lib/match.js", "src/lib/settings.js", "src/lib/dropdowns.js", "src/content/content.js"],
       "css": ["src/content/content.css"],
       "run_at": "document_start",
       "all_frames": true,

@@ -33,9 +33,9 @@ marked tab title and a coloured tab icon.
 
 ## What it does
 
-- **Automatic wide layout.** Every page expands to full width and tile pages
-  switch to list view automatically — no clicking required. Toggle it off in
-  one click under **Maximize**.
+- **A roomier web client.** Every page expands to full width and tile pages
+  switch to list view automatically, and the list under a field gets as wide
+  as its columns need — no clicking required. Both live under **Web client**.
 - **Colour per environment.** You decide when each colour appears: per
   environment, per company or per customer. Production green, test orange,
   sandbox red — or whatever suits you.
