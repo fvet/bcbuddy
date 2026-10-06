@@ -137,7 +137,7 @@ function report() {
 
 /* ---- syntax check of all script files ----------------------------------- */
 var FILES = [
-  'src/lib/match.js', 'src/lib/settings.js', 'src/content/content.js',
+  'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
   'src/options/options-hosted.js', 'src/options/options.js', 'src/popup/popup.js'
 ];
@@ -476,6 +476,7 @@ function runOptions() {
       return loadScript(ROOT + 'src/lib/i18n.js')
         .then(function () { return loadScript(ROOT + 'src/lib/match.js'); })
         .then(function () { return loadScript(ROOT + 'src/lib/settings.js'); })
+        .then(function () { return loadScript(ROOT + 'src/lib/dropdowns.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-helpers.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-cards.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-hosted.js'); })
@@ -829,9 +830,46 @@ function assertOptions() {
     check('options: save reports nothing',
       document.getElementById('status').textContent, '');
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
-    return assertNav().then(assertLayouts).then(importFile)
+    return assertNav().then(assertWebClient).then(assertLayouts).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
       .then(assertExternalWrite);
+  });
+}
+
+/* ---- web client: maximize and dropdown size ---------------------------- */
+function assertWebClient() {
+  var panel = document.querySelector('.panel[data-panel="webclient"]');
+  var width = document.getElementById('dropdownWidth');
+  var height = document.getElementById('dropdownHeight');
+  check('web client: maximize lives in the panel',
+    document.getElementById('maximizeEnabled').closest('.panel'), panel);
+  check('web client: both sliders live in the panel',
+    [width.closest('.panel'), height.closest('.panel')], [panel, panel]);
+  check('web client: sliders have five steps',
+    [width.min, width.max, width.step, height.min, height.max, height.step],
+    ['1', '5', '1', '1', '5', '1']);
+  check('web client: width defaults to step 3', width.value, '3');
+  check('web client: height defaults to BC standard', height.value, '1');
+  check('web client: width shows how much bigger', document.getElementById('dropdownWidthValue').textContent, '150%');
+  check('web client: height at step 1 says BC standard',
+    document.getElementById('dropdownHeightValue').textContent, chrome.i18n.getMessage('dropdownStandard'));
+
+  height.value = '5';
+  height.dispatchEvent(new Event('input', { bubbles: true }));
+  check('web client: label follows the slider', document.getElementById('dropdownHeightValue').textContent, '150%');
+  return wait(400).then(function () {
+    check('web client: the step is saved, not pixels', STORE.settings.dropdown, { width: 3, height: 5 });
+    width.value = '1';
+    width.dispatchEvent(new Event('input', { bubbles: true }));
+    height.value = '1';
+    height.dispatchEvent(new Event('input', { bubbles: true }));
+    return wait(400);
+  }).then(function () {
+    check('web client: both at BC standard is stored as off', STORE.settings.dropdown, { width: 1, height: 1 });
+    check('web client: and reads as off', BCBuddy.Dropdowns.isOn(STORE.settings.dropdown), false);
+    width.value = '3';
+    width.dispatchEvent(new Event('input', { bubbles: true }));
+    return wait(400);
   });
 }
 
@@ -920,7 +958,7 @@ function assertNav() {
     getComputedStyle(document.getElementById('globalEnabled')).width, '34px');
   check('nav: four sections',
     Array.prototype.map.call(items, function (b) { return b.dataset.panel; }),
-    ['maximize', 'environments', 'settings', 'about']);
+    ['webclient', 'environments', 'settings', 'about']);
   check('nav: each section has an icon',
     Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 4);
   check('nav: environments is open',

@@ -83,6 +83,9 @@
     lastPaintSweep: 0,
     // Maximize: reset on every URL change so a new BC page triggers it again.
     maximizeApplied: false,
+    // Dropdown sizer handle, and the settings it was started with ('' = off).
+    dropdowns: null,
+    dropdownKey: '',
     // MutationObserver that reapplies ribbon inline styles if Dark Reader
     // overrides them. Disconnected whenever the ribbon is released.
     ribbonGuard: null
@@ -95,15 +98,16 @@
   var LIST_ACTIVE_SEL = 'i.icon-NotBrickView:not([data-is-focusable="false"])';
   var FOCUSABLE_BTN_SEL = 'button[data-is-focusable="true"]';
 
-  // Match BC SaaS and common on-prem URL shapes. Checked against the top
-  // window's href, even when running inside an iframe.
-  var MAXIMIZE_SAAS_RE = /(\.|^)dynamics\.com$/i;
+  // Where the web client tweaks (maximize, dropdown size) apply: BC SaaS and
+  // common on-prem URL shapes. Checked against the top window's href, even
+  // when running inside an iframe.
+  var WEB_CLIENT_SAAS_RE = /(\.|^)dynamics\.com$/i;
 
-  function isMaximizeTarget(href) {
+  function isWebClientTarget(href) {
     var u;
     try { u = new URL(href); } catch (e) { return false; }
     var host = u.hostname.toLowerCase();
-    if (MAXIMIZE_SAAS_RE.test(host)) return true;           // *.dynamics.com
+    if (WEB_CLIENT_SAAS_RE.test(host)) return true;         // *.dynamics.com
     if (/(?:^|\.)bc[^.]*(?:\.|$)/.test(host)) return true;   // hostname label starts with 'bc' (bc, bcdev, bcprod, …)
     if (/^\/bc/i.test(u.pathname)) return true;             // path starts with /BC (on-prem)
     return false;
@@ -216,7 +220,7 @@
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
-    if (hasMaximize && isMaximizeTarget(state.href)) return true;
+    if (hasMaximize && isWebClientTarget(state.href)) return true;
     return false;
   }
 
@@ -270,6 +274,7 @@
     }
 
     applyMaximize();
+    applyDropdowns();
   }
 
   function sameRule(a, b) {
@@ -699,7 +704,7 @@
     var settings = state.settings;
     if (!settings || !settings.maximize || !settings.maximize.enabled) return;
     if (state.maximizeApplied) return;
-    if (!isMaximizeTarget(state.href)) return;
+    if (!isWebClientTarget(state.href)) return;
 
     var wideBtn = document.querySelector(WIDE_TOGGLE_SEL);
     var chooser = document.querySelector(LIST_CHOOSER_SEL);
@@ -725,6 +730,25 @@
         }, 50);
       }
     }
+  }
+
+  /* ------------------------------------------------------------ dropdowns */
+
+  /**
+   * Starts or stops the dropdown sizer when the settings call for it. It keeps
+   * its own narrow observer, independent of the idle/watch cycle above, so it
+   * is attached once and left alone until the settings change.
+   */
+  function applyDropdowns() {
+    var settings = state.settings;
+    var want = !!settings && settings.enabled && BCBuddy.Dropdowns.isOn(settings.dropdown) &&
+      isWebClientTarget(state.href);
+    var key = want ? settings.dropdown.width + 'x' + settings.dropdown.height : '';
+    if (key === state.dropdownKey) return;
+
+    if (state.dropdowns) state.dropdowns.detach();
+    state.dropdowns = want ? BCBuddy.Dropdowns.attach(document, settings.dropdown) : null;
+    state.dropdownKey = key;
   }
 
   /* ------------------------------------------------------------- cleanup */

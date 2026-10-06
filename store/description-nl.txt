@@ -8,7 +8,7 @@ BC Buddy geeft elke omgeving een eigen kleur, zodat je in een oogopslag ziet waa
 - De tabtitel, bijvoorbeeld "[TEST] Company Information".
 - Een gekleurd icoontje op het tabblad, zodat je de juiste tab meteen terugvindt tussen tien andere.
 
-Elke pagina vergroot automatisch naar een brede lay-out en tegelpagina's schakelen over naar lijstweergave. Zet het met één klik uit als je dat liever hebt.
+Ook Business Central zelf krijgt meer ruimte: elke pagina opent in een brede lay-out, tegelpagina's schakelen over naar lijstweergave en de lijst die onder een veld openklapt, wordt zo breed als de kolommen nodig hebben. Elk ervan zet je uit in de opties.
 
 Je bepaalt zelf wanneer welke kleur verschijnt: per omgeving, per bedrijf of per klant. Productie groen, test oranje, sandbox rood - of hoe je het zelf wil.
 

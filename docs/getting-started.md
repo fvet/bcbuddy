@@ -1,10 +1,25 @@
 # Getting started
 
-## Maximize
+## Web client
 
-BC Buddy automatically expands every Business Central page to wide layout and
-switches tile pages to list view. It is on by default — no setup needed. To
-turn it off, open **Maximize** in the options and uncheck the toggle.
+Two tweaks to the Business Central web client itself are on from the start —
+no setup needed. Both live under **Web client** in the options.
+
+**Maximize pages** expands every page to wide layout and switches tile pages to
+list view. Uncheck the toggle to turn it off.
+
+**Dropdown size** gives the list that opens under a field — Country/Region Code,
+or the item number on a sales line — more room:
+
+- **Maximum width** — the list gets as wide as its columns need, up to this
+  maximum. A list with two short columns keeps BC's own width; one with many
+  columns stops scrolling sideways. Starts at the middle step.
+- **Maximum height** — shows more rows at once, up to about ten instead of
+  five. Starts at *BC standard*.
+
+Each slider has five steps; the first is *BC standard*. With both there, the
+feature is off. BC still decides where the list opens, so a bigger list flips
+above the field or moves left when there is no room.
 
 ## Environments
 
@@ -37,7 +52,7 @@ The options page has a navigation on the left:
 
 | Section | What lives there |
 |---|---|
-| **Maximize** | Auto-wide layout and list view — on by default |
+| **Web client** | Wide layout, list view and dropdown size — on by default |
 | **Environments** | Your layouts and rules |
 | **Settings** | Shared configuration, import and export |
 | **About** | Version and links |

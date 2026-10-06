@@ -14,8 +14,9 @@ Dynamics 365 Business Central - CRONUS BE (Sandbox)
 ```
 
 Alongside that it can draw a coloured frame around the window, a banner, a
-marked tab title and a coloured tab icon. It also automatically expands every
-page to wide layout and switches tile pages to list view.
+marked tab title and a coloured tab icon. It also makes the web client roomier:
+pages open in wide layout, tile pages switch to list view and dropdowns get
+more space.
 
 ![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](store/screenshot-1-1280x800.png)
 
@@ -54,6 +55,12 @@ The options page opens on **Environments**. To mark your first environment:
 Order decides priority: the first rule that fits is applied, so put your most
 specific rules at the top.
 
+Under **Web client** two tweaks to BC itself are on from the start:
+**Maximize pages** (wide layout, list view) and **Dropdown size**. The list that
+opens under a field gets as wide as its columns need, up to a maximum you set
+with a slider; a second slider makes it taller. Slide both to *BC standard* to
+turn it off.
+
 ## 🎯 How matching works
 
 A rule consists of one or more **conditions**; all of them must hold. A URL is
@@ -86,7 +93,8 @@ that in the conditions of your rule (for example `url` `contains`
 
 ## 🗂️ Rules and layouts
 
-The options page has a navigation on the left: **Maximize** (auto-wide layout),
+The options page has a navigation on the left: **Web client** (wide layout,
+dropdown size),
 **Environments** (layouts and rules), **Settings** (shared configuration,
 import/export) and **About**.
 
@@ -193,6 +201,13 @@ read. A rule whose conditions never all hold at once never fires.
 
 **A shared rule will not change.** Shared rules are read-only by design. Use the
 copy button to get your own editable version, which takes precedence.
+
+**A dropdown keeps its usual size.** Dropdown size works on the list that drops
+down under a field. A field with a **…** button (City, Post Code) opens a full
+page instead, which BC lets you maximize itself. A list with two short columns
+needs no extra width and keeps BC's own. If no dropdown grows any more after a
+BC update, BC has changed how it builds them: BC Buddy then leaves them alone
+rather than break anything — please open an issue.
 
 ## 📄 Licence
 

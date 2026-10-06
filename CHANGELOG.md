@@ -11,6 +11,19 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Dropdown size** — the list that opens under a field (Country/Region Code,
+  the item number on a sales line, …) gets more room: as wide as its columns
+  need, up to a maximum you set with a slider, and optionally taller. On by
+  default with wider lists and BC's usual height; slide both to *BC standard*
+  to turn it off.
+
+### Changed
+
+- The **Maximize** section of the options is now called **Web client**. It
+  holds both *Maximize pages* and the new *Dropdown size*.
+
 ### Fixed
 
 - Ribbon colour is now preserved when the **Dark Reader** browser extension is active.

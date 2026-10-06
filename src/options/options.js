@@ -40,11 +40,27 @@
   page.renderAll = function () {
     page.el.globalEnabled.checked = page.state.settings.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
+    page.renderDropdown();
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
 
     page.refreshContext();
     page.renderHosted();
+  };
+
+  page.renderDropdown = function () {
+    var dropdown = page.state.settings.dropdown;
+    var Dropdowns = BCBuddy.Dropdowns;
+    page.el.dropdownWidth.value = dropdown.width;
+    page.el.dropdownHeight.value = dropdown.height;
+    page.el.dropdownWidthValue.textContent = page.dropdownLabel(Dropdowns.WIDTH_FACTORS, dropdown.width);
+    page.el.dropdownHeightValue.textContent = page.dropdownLabel(Dropdowns.HEIGHT_FACTORS, dropdown.height);
+  };
+
+  /** A step says how much bigger than BC standard it is, rather than pixels. */
+  page.dropdownLabel = function (factors, step) {
+    if (step <= 1) return t('dropdownStandard');
+    return Math.round(BCBuddy.Dropdowns.factor(factors, step) * 100) + '%';
   };
 
   page.refreshContext = function () {
@@ -199,7 +215,8 @@
       'exportDownload', 'exportStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared',
-      'brandDot', 'maximizeEnabled'
+      'brandDot', 'maximizeEnabled',
+      'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
@@ -211,6 +228,8 @@
       var ui = stored[page.UI_KEY] || {};
       state.testUrl = ui.testUrl || page.SAMPLE_URL;
       state.panel = ui.panel || 'environments';
+      // The Web client panel used to be called Maximize.
+      if (state.panel === 'maximize') state.panel = 'webclient';
       var pending = stored[page.PENDING_KEY];
       if (pending) {
         var draft = BCBuddy.newRule(pending);
@@ -251,6 +270,14 @@
     el.maximizeEnabled.addEventListener('change', function () {
       state.settings.maximize.enabled = el.maximizeEnabled.checked;
       page.save();
+    });
+
+    [['width', el.dropdownWidth], ['height', el.dropdownHeight]].forEach(function (pair) {
+      pair[1].addEventListener('input', function () {
+        state.settings.dropdown[pair[0]] = Number(pair[1].value);
+        page.renderDropdown();
+        page.save();
+      });
     });
 
     el.testUrl.addEventListener('input', function () {
