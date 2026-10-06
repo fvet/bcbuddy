@@ -81,8 +81,8 @@
     // and it has no business showing up in someone else's DOM.
     unpainted: new WeakSet(),
     lastPaintSweep: 0,
-    // Maximize: reset on every URL change so a new BC page triggers it again.
-    maximizeApplied: false,
+    // Maximize: the BC pages already handled, keyed by their form.
+    maximized: new WeakMap(),
     // Dropdown sizer handle, and the settings it was started with ('' = off).
     dropdowns: null,
     dropdownKey: '',
@@ -90,13 +90,6 @@
     // overrides them. Disconnected whenever the ribbon is released.
     ribbonGuard: null
   };
-
-  // Selectors for the BC wide-layout toggle and list-view chooser.
-  var WIDE_TOGGLE_SEL = 'button.ms-nav-layout-wide-toggle-button';
-  var LIST_CHOOSER_SEL = 'div[data-control-id="ListLayoutChooser"]:not([data-is-focusable="false"])';
-  var LIST_OPTION_SEL = 'div[data-control-id="0"]';
-  var LIST_ACTIVE_SEL = 'i.icon-NotBrickView:not([data-is-focusable="false"])';
-  var FOCUSABLE_BTN_SEL = 'button[data-is-focusable="true"]';
 
   // Where the web client tweaks (maximize, dropdown size) apply: BC SaaS and
   // common on-prem URL shapes. Checked against the top window's href, even
@@ -249,7 +242,6 @@
       // search immediately.
       state.lastBrandSearch = 0;
       state.bcSeen = false;
-      state.maximizeApplied = false;
     }
 
     // Rules apply on every site. From the URL alone you cannot tell that a
@@ -696,39 +688,13 @@
   /* ------------------------------------------------------------- maximize */
 
   /**
-   * Clicks the wide-layout toggle and switches tile pages to list view.
-   * Runs in every frame; only acts when the BC UI controls are present.
-   * Skips silently after the first successful attempt per URL change.
+   * Wide layout and list view for the BC page on screen; see maximize.js.
+   * Runs in every frame; only acts where the BC toolbar is.
    */
   function applyMaximize() {
     if (!BCBuddy.maximizeOn(state.settings)) return;
-    if (state.maximizeApplied) return;
     if (!isWebClientTarget(state.href)) return;
-
-    var wideBtn = document.querySelector(WIDE_TOGGLE_SEL);
-    var chooser = document.querySelector(LIST_CHOOSER_SEL);
-    if (!wideBtn && !chooser) return; // not the frame that hosts the BC toolbar
-
-    state.maximizeApplied = true;
-
-    if (wideBtn && !wideBtn.classList.contains('is-checked') &&
-        wideBtn.getAttribute('aria-pressed') !== 'true') {
-      try { wideBtn.click(); } catch (e) {}
-    }
-
-    if (!document.querySelector(LIST_ACTIVE_SEL) && chooser) {
-      var menuBtn = chooser.querySelector(FOCUSABLE_BTN_SEL);
-      if (menuBtn && menuBtn.getAttribute('aria-expanded') !== 'true') {
-        try { menuBtn.click(); } catch (e) {}
-        setTimeout(function () {
-          var listDiv = document.querySelector(LIST_OPTION_SEL);
-          if (listDiv) {
-            var optBtn = listDiv.querySelector(FOCUSABLE_BTN_SEL);
-            if (optBtn) { try { optBtn.click(); } catch (e) {} }
-          }
-        }, 50);
-      }
-    }
+    BCBuddy.Maximize.apply(document, state.maximized);
   }
 
   /* ------------------------------------------------------------ dropdowns */
@@ -776,7 +742,7 @@
       root.style.removeProperty(v);
     });
 
-    state.maximizeApplied = false;
+    state.maximized = new WeakMap();
   }
 
   /* --------------------------------------------------------------- helpers */

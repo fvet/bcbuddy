@@ -30,6 +30,11 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - Turning BC Buddy off with **Extension active** now stops **Maximize pages**
   too. It no longer switches pages to wide layout and list view while the
   extension is off.
+- **Maximize pages** works again in current Business Central versions. Tile
+  pages switch to list view again, and a page you open from inside BC is
+  widened too, not just the first page you opened. That includes a page that
+  opens as a window over another one, for example from **Search**, and the list
+  behind **Select from full list** on a field, which now opens maximized.
 
 <!-- --8<-- [start:released] -->
 

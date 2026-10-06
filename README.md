@@ -209,6 +209,11 @@ needs no extra width and keeps BC's own. If no dropdown grows any more after a
 BC update, BC has changed how it builds them: BC Buddy then leaves them alone
 rather than break anything — please open an issue.
 
+**A page stays narrow or in tiles.** Maximize pages handles each page once, when
+it opens, and leaves what you change yourself afterwards alone. If it does
+nothing at all after a BC update, BC has changed its wide-layout or layout
+buttons — please open an issue.
+
 ## 📄 Licence
 
 MIT — the full text is in [LICENSE](LICENSE). Use it, change it and pass it on,
