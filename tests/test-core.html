@@ -321,6 +321,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   });
   check('priority: own rule beats shared', BCBuddy.findRule(BCBuddy.effectiveRules(settings), saas).name, 'EIGEN');
 
+  // maximize follows the master switch as well as its own toggle
+  check('maximize: on by default', BCBuddy.maximizeOn(BCBuddy.normalize(null)), true);
+  check('maximize: off with its own toggle',
+    BCBuddy.maximizeOn(BCBuddy.normalize({ maximize: { enabled: false } })), false);
+  check('maximize: off when the extension is off',
+    BCBuddy.maximizeOn(BCBuddy.normalize({ enabled: false, maximize: { enabled: true } })), false);
+
   // templates
   var tpl = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
   check('template: full ribbon text',
