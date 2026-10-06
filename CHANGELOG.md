@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.9 — 2026-10-06
+
 ### Added
 
 - **Dropdown size** — the list that opens under a field (Country/Region Code,
@@ -35,8 +39,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   widened too, not just the first page you opened. That includes a page that
   opens as a window over another one, for example from **Search**, and the list
   behind **Select from full list** on a field, which now opens maximized.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.8 — 2026-09-14
 
