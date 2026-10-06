@@ -87,6 +87,7 @@ window.chrome = {
 <script src="../src/lib/match.js"></script>
 <script src="../src/lib/settings.js"></script>
 <script src="../src/lib/dropdowns.js"></script>
+<script src="../src/lib/maximize.js"></script>
 
 <script>
 /* ---- seed settings for the content script ------------------------------- */
@@ -465,6 +466,85 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   })()), true);
   check('dropdown: a personal setting, not part of an export',
     Object.prototype.hasOwnProperty.call(BCBuddy.toExport(def), 'dropdown'), false);
+
+  // maximize: a BC page stack as the BC28 web client builds it. The page you
+  // came from stays in the DOM, inert, under the page on screen.
+  var M = BCBuddy.Maximize;
+  function bcStack(top, layoutIcon) {
+    var doc = document.implementation.createHTMLDocument('bc');
+    var page = function (id, extra) {
+      return '<div class="spa-view' + extra + '"><form class="ms-nav-root-form">' +
+        '<button class="ms-nav-layout-wide-toggle-button" id="wide-' + id + '"' +
+        (id === 'top' ? top : '') + '></button>' +
+        '<button aria-haspopup="true" aria-expanded="false" id="menu-' + id + '">' +
+        '<i class="' + (id === 'top' ? layoutIcon : 'icon-NotBrickView') + '"></i></button>' +
+        '</form></div>';
+    };
+    doc.body.innerHTML = '<div class="spa-container">' +
+      page('below', ' spa-not-top-most" inert="') + page('top', '') + '</div>';
+    doc.clicks = [];
+    doc.addEventListener('click', function (e) {
+      doc.clicks.push(e.target.id);
+      if (e.target.id === 'menu-top') {
+        // Fluent renders the menu in a portal outside the view, a moment later.
+        setTimeout(function () {
+          var menu = doc.createElement('div');
+          menu.innerHTML =
+            '<div role="menuitemradio" id="pick-list"><i class="icon-NotBrickView"></i></div>' +
+            '<div role="menuitemradio" id="pick-tiles"><i class="icon-TallBrickView"></i></div>';
+          doc.body.appendChild(menu);
+        }, 20);
+      }
+    }, true);
+    return doc;
+  }
+
+  var narrow = bcStack('', 'icon-TallBrickView');
+  var narrowDone = new WeakMap();
+  check('maximize: looks only in the page on screen',
+    M.topView(narrow).querySelector('button').id, 'wide-top');
+  M.apply(narrow, narrowDone);
+  check('maximize: clicks wide and opens the layout menu on that page only',
+    narrow.clicks, ['wide-top', 'menu-top']);
+  M.apply(narrow, narrowDone);
+  check('maximize: a page is handled once', narrow.clicks, ['wide-top', 'menu-top']);
+  setTimeout(function () {
+    check('maximize: picks list view once the menu shows',
+      narrow.clicks, ['wide-top', 'menu-top', 'pick-list']);
+  }, 300);
+
+  var settled = bcStack(' aria-checked="true"', 'icon-NotBrickView');
+  M.apply(settled, new WeakMap());
+  check('maximize: leaves a page alone that is already wide and a list', settled.clicks, []);
+  check('maximize: aria-checked counts as wide',
+    M.isPressed(settled.getElementById('wide-top')), true);
+
+  var later = bcStack('', 'icon-NotBrickView');
+  var laterDone = new WeakMap();
+  M.apply(later, laterDone);
+  var nextPage = later.querySelector('.spa-container').appendChild(later.createElement('div'));
+  later.querySelector('.spa-view:not([inert])').classList.add('spa-not-top-most');
+  nextPage.className = 'spa-view';
+  nextPage.innerHTML = '<form><button class="ms-nav-layout-wide-toggle-button" id="wide-next"></button></form>';
+  M.apply(later, laterDone);
+  check('maximize: a page opened from inside BC gets its turn', later.clicks, ['wide-top', 'wide-next']);
+
+  var old = document.implementation.createHTMLDocument('bc-old');
+  old.body.innerHTML = '<div data-control-id="ListLayoutChooser">' +
+    '<button data-is-focusable="true" id="old-menu"></button></div>';
+  old.clicks = [];
+  old.addEventListener('click', function (e) {
+    old.clicks.push(e.target.id);
+    if (e.target.id === 'old-menu') {
+      old.body.insertAdjacentHTML('beforeend',
+        '<div data-control-id="0"><button data-is-focusable="true" id="old-list"></button></div>');
+    }
+  }, true);
+  M.apply(old, new WeakMap());
+  setTimeout(function () {
+    check('maximize: older clients without a page stack still switch to list',
+      old.clicks, ['old-menu', 'old-list']);
+  }, 300);
 
   var exported = BCBuddy.toExport(settings, 'Bedrijf X');
   var roundtrip = BCBuddy.parseImport(JSON.stringify(exported));

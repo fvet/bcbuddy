@@ -14,8 +14,9 @@ src/
   lib/match.js         parsing URLs, matching rules, tokens, colour helpers
   lib/settings.js      storage, defaults, normalisation, import/export
   lib/dropdowns.js     dropdown size: sizes BC's lookup dropdowns
+  lib/maximize.js      maximize: wide layout and list view on BC's own controls
   content/content.js   draws frame, banner, ribbon, title and favicon;
-                       maximize, and starts the dropdown sizer
+                       starts maximize and the dropdown sizer
   content/content.css  the accompanying styling
   options/             options.html/css; options.js plus helpers, cards, hosted
   popup/               popup on the extension icon

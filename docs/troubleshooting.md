@@ -29,6 +29,13 @@ If no dropdown grows any more after a Business Central update, BC has changed
 how it builds them. BC Buddy then leaves them at BC's own size rather than break
 anything — please open an issue so it can catch up.
 
+## A page stays narrow or in tiles
+
+**Maximize pages** handles each page once, when it opens. If you switch a page
+back to narrow or to tiles yourself, BC Buddy leaves it that way. A page where
+it does nothing at all after a Business Central update means BC has changed its
+wide-layout or layout buttons — please open an issue so it can catch up.
+
 ## Something else
 
 Open an issue at
