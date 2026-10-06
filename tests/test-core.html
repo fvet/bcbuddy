@@ -543,6 +543,27 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   dialog.getElementById('wide-dialog').setAttribute('aria-pressed', 'true');
   check('maximize: aria-pressed counts as wide', M.isPressed(dialog.getElementById('wide-dialog')), true);
 
+  // "Select from full list" opens a list as a task dialog: no wide toggle, but
+  // a maximize button in the title bar, known by its icon name.
+  function taskDialog(formClass, icon) {
+    var doc = bcStack(' aria-checked="true"', 'icon-NotBrickView');
+    var done = new WeakMap();
+    M.apply(doc, done);
+    doc.querySelector('.spa-view:not([inert])').classList.add('spa-not-top-most');
+    doc.querySelector('.spa-container').insertAdjacentHTML('beforeend',
+      '<div class="spa-view spa-task-dialog"><form class="ms-nav-root-form ' + formClass + '">' +
+      '<div class="dialog-system-actions"><button id="dialog-max"><i data-icon-name="' + icon + '"></i></button>' +
+      '<button id="dialog-close"><i data-icon-name="ChromeClose"></i></button></div></form></div>');
+    M.apply(doc, done);
+    return doc.clicks;
+  }
+  check('maximize: a list opened from a field is maximized',
+    taskDialog('ms-nav-listform flexible-dialog', 'FullScreen'), ['dialog-max']);
+  check('maximize: a list dialog that is already maximized is left alone',
+    taskDialog('ms-nav-listform flexible-dialog', 'BackToWindow'), []);
+  check('maximize: a dialog that is not a list keeps its size',
+    taskDialog('ms-nav-cardform flexible-dialog', 'FullScreen'), []);
+
   var old = document.implementation.createHTMLDocument('bc-old');
   old.body.innerHTML = '<div data-control-id="ListLayoutChooser">' +
     '<button data-is-focusable="true" id="old-menu"></button></div>';

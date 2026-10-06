@@ -19,6 +19,12 @@
 
   var TOP_VIEW_SEL = '.spa-view:not(.spa-not-top-most):not([inert])';
   var WIDE_TOGGLE_SEL = 'button.ms-nav-layout-wide-toggle-button';
+  // A list that opens as a dialog over the page ("Select from full list") has
+  // no wide toggle but a maximize button in its title bar. Its label is
+  // translated; the icon name is not, and turns into BackToWindow once
+  // maximized, so a dialog that is already big does not match.
+  var LIST_DIALOG_SEL = 'form.ms-nav-listform.flexible-dialog';
+  var DIALOG_MAXIMIZE_SEL = '.dialog-system-actions button:has(i[data-icon-name="FullScreen"])';
 
   // The layout chooser on a list page. Current clients use a Fluent UI menu
   // button that shows the active layout's icon and opens one radio item per
@@ -75,7 +81,8 @@
    */
   function apply(doc, done) {
     var view = topView(doc);
-    var wide = view.querySelector(WIDE_TOGGLE_SEL);
+    var wide = view.querySelector(WIDE_TOGGLE_SEL) ||
+      (view.querySelector(LIST_DIALOG_SEL) && view.querySelector(DIALOG_MAXIMIZE_SEL));
     var menu = view.querySelector(LAYOUT_MENU_SEL);
     var oldChooser = menu ? null : view.querySelector(OLD_CHOOSER_SEL);
     if (!wide && !menu && !oldChooser) return; // not the frame that hosts the BC toolbar
