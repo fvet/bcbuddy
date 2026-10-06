@@ -328,6 +328,15 @@
     return own.concat(shared);
   }
 
+  /**
+   * Maximize runs only while the extension as a whole is active: switching
+   * BC Buddy off must stop it clicking BC's layout controls too.
+   */
+  function maximizeOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.maximize && settings.maximize.enabled);
+  }
+
   function load() {
     return chrome.storage.local.get(STORAGE_KEY).then(function (obj) {
       return normalize(obj && obj[STORAGE_KEY]);
@@ -518,6 +527,7 @@
   BCBuddy.DEFAULT_LAYOUT_ID = DEFAULT_LAYOUT_ID;
   BCBuddy.normalize = normalize;
   BCBuddy.effectiveRules = effectiveRules;
+  BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.loadSettings = load;
   BCBuddy.saveSettings = save;
   BCBuddy.toExport = toExport;

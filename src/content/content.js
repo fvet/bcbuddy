@@ -215,7 +215,7 @@
    */
   function shouldWatch(settings, rule) {
     if (!settings || !settings.enabled) return false;
-    var hasMaximize = settings.maximize && settings.maximize.enabled;
+    var hasMaximize = BCBuddy.maximizeOn(settings);
     if (!effectiveRules(settings).length && !hasMaximize) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
@@ -701,8 +701,7 @@
    * Skips silently after the first successful attempt per URL change.
    */
   function applyMaximize() {
-    var settings = state.settings;
-    if (!settings || !settings.maximize || !settings.maximize.enabled) return;
+    if (!BCBuddy.maximizeOn(state.settings)) return;
     if (state.maximizeApplied) return;
     if (!isWebClientTarget(state.href)) return;
 

@@ -6,7 +6,8 @@ Two tweaks to the Business Central web client itself are on from the start —
 no setup needed. Both live under **Web client** in the options.
 
 **Maximize pages** expands every page to wide layout and switches tile pages to
-list view. Uncheck the toggle to turn it off.
+list view. Uncheck the toggle to turn it off. Switching **Extension active** off
+pauses it along with everything else.
 
 **Dropdown size** gives the list that opens under a field — Country/Region Code,
 or the item number on a sales line — more room:

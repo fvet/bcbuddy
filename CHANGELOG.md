@@ -27,6 +27,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 ### Fixed
 
 - Ribbon colour is now preserved when the **Dark Reader** browser extension is active.
+- Turning BC Buddy off with **Extension active** now stops **Maximize pages**
+  too. It no longer switches pages to wide layout and list view while the
+  extension is off.
 
 <!-- --8<-- [start:released] -->
 
