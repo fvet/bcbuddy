@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.10 — 2026-10-06
+
 ### Added
 
 - **Highlight the current line** — in editable lists, such as the lines of a
@@ -37,8 +41,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   popup's **Extension active** is now the same switch as in the options.
 - **Shared configuration** fits on one line: the URL with **Synchronise**
   beside it.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.9 — 2026-10-06
 
