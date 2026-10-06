@@ -529,6 +529,20 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   M.apply(later, laterDone);
   check('maximize: a page opened from inside BC gets its turn', later.clicks, ['wide-top', 'wide-next']);
 
+  // A page opened from Search is a dialog over the role center: another view
+  // on top, whose enlarge button is the same toggle but says aria-pressed.
+  var dialog = bcStack(' aria-checked="true"', 'icon-NotBrickView');
+  var dialogDone = new WeakMap();
+  M.apply(dialog, dialogDone);
+  dialog.querySelector('.spa-view:not([inert])').classList.add('spa-not-top-most');
+  dialog.querySelector('.spa-container').insertAdjacentHTML('beforeend',
+    '<div class="spa-view"><form><button class="ms-nav-layout-wide-toggle-button" ' +
+    'aria-pressed="false" id="wide-dialog"></button></form></div>');
+  M.apply(dialog, dialogDone);
+  check('maximize: a page opened from Search is enlarged on first open', dialog.clicks, ['wide-dialog']);
+  dialog.getElementById('wide-dialog').setAttribute('aria-pressed', 'true');
+  check('maximize: aria-pressed counts as wide', M.isPressed(dialog.getElementById('wide-dialog')), true);
+
   var old = document.implementation.createHTMLDocument('bc-old');
   old.body.innerHTML = '<div data-control-id="ListLayoutChooser">' +
     '<button data-is-focusable="true" id="old-menu"></button></div>';

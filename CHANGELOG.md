@@ -32,7 +32,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   extension is off.
 - **Maximize pages** works again in current Business Central versions. Tile
   pages switch to list view again, and a page you open from inside BC is
-  widened too, not just the first page you opened.
+  widened too, not just the first page you opened. That includes a page that
+  opens as a window over another one, for example from **Search**.
 
 <!-- --8<-- [start:released] -->
 
