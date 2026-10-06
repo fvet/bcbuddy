@@ -596,8 +596,26 @@ function assertOptions() {
     !document.getElementById('syncNow').disabled);
   truthy('options: active config is not dimmed',
     !document.getElementById('hostedUrl').closest('.field').classList.contains('field--inactive'));
-  truthy('options: choose file matches other button style',
-    document.getElementById('importFileBtn').classList.contains('btn--primary'));
+  // one primary button in the Settings panel: Synchronise. Import and export
+  // are rows in a single list with an ordinary button each.
+  check('options: Settings has one primary button',
+    Array.prototype.map.call(
+      document.querySelectorAll('.panel[data-panel="settings"] .btn--primary'),
+      function (button) { return button.id; }), ['syncNow']);
+  check('options: import and export share one list',
+    document.getElementById('importFileBtn').closest('.card--list'),
+    document.getElementById('exportDownload').closest('.card--list'));
+  // Rules come before Layouts: that is where everyone starts
+  var envHeads = Array.prototype.map.call(
+    document.querySelectorAll('.panel[data-panel="environments"] .section-head h2'),
+    function (h) { return h.textContent; });
+  check('options: Rules above Layouts', envHeads,
+    [chrome.i18n.getMessage('rulesHeading'), chrome.i18n.getMessage('layoutsHeading')]);
+  // the rule switch shows its state itself; the label is for screen readers
+  var ruleSwitch = first.querySelector('input[data-path="enabled"]');
+  check('options: rule switch has no On text', ruleSwitch.closest('label').textContent.trim(), '');
+  check('options: rule switch is labelled', ruleSwitch.getAttribute('aria-label'),
+    chrome.i18n.getMessage('ruleActiveTitle'));
   truthy('options: active config says daily update',
     document.getElementById('hostedStatus').textContent
       .indexOf(chrome.i18n.getMessage('statusDaily')) !== -1);
@@ -652,6 +670,21 @@ function assertOptions() {
   var borderWidth = layoutOne.querySelector('input[data-path="border.width"]');
   check('options: frame width is a slider', borderWidth.type, 'range');
   check('options: range 1 to 5', [borderWidth.min, borderWidth.max, borderWidth.step], ['1', '5', '1']);
+  var opacity = layoutOne.querySelector('input[data-path="banner.opacity"]');
+  check('options: banner opacity is a slider of five steps too',
+    [opacity.type, opacity.min, opacity.max, opacity.step], ['range', '1', '5', '1']);
+  // the step is shown, the opacity itself is saved
+  var steps = { el: {}, t: BCBuddy.t };
+  BCBuddy.OptionsHelpers.install(steps);
+  var probe = opacity.cloneNode(true);
+  steps.setControlValue(probe, 0.5);
+  check('options: half opacity is the middle step', probe.value, '3');
+  steps.setControlValue(probe, 0.8);
+  check('options: an opacity between steps shows the nearest', probe.value, '4');
+  probe.value = '5';
+  check('options: the top step saves full opacity', steps.controlValue(probe), 1);
+  probe.value = '1';
+  check('options: the bottom step saves 0.2', steps.controlValue(probe), 0.2);
   check('options: toggle label is Ribbon',
     layoutOne.querySelector('[data-i18n="ribbonToggle"]').textContent, 'Ribbon');
   check('options: and Tab title',
@@ -676,18 +709,47 @@ function assertOptions() {
   truthy('options: layout always shows ribbon',
     !layoutOne.querySelector('[data-preview-ribbon]').hidden);
 
-  // help behind the question mark
-  var hint = layoutOne.querySelector('.hint[data-action="hint"]');
-  truthy('options: question mark beside text field', !!hint);
-  truthy('options: help mentions tokens', hint.textContent.indexOf('{environment}') !== -1);
-  truthy('options: help no longer mentions {host}', hint.textContent.indexOf('{host}') === -1);
-  truthy('options: help no longer mentions {tenant}', hint.textContent.indexOf('{tenant}') === -1);
-  truthy('options: help starts closed', !hint.classList.contains('is-open'));
-  hint.click();
-  truthy('options: click opens help', hint.classList.contains('is-open'));
-  hint.click();
-  truthy('options: click again closes it', !hint.classList.contains('is-open'));
-  check('options: three fields with help', layoutOne.querySelectorAll('.hint[data-action="hint"]').length, 3);
+  // one line of tokens on a layout, instead of a question mark per text field
+  var tokenLines = layoutOne.querySelectorAll('[data-token-line]');
+  check('options: one token line per layout', tokenLines.length, 1);
+  var tokens = tokenLines[0].textContent;
+  truthy('options: token line lists the tokens',
+    ['{name}', '{environment}', '{env}', '{company}', '{title}'].every(function (token) {
+      return tokens.indexOf(token) !== -1;
+    }));
+  truthy('options: token line no longer mentions {host}', tokens.indexOf('{host}') === -1);
+  truthy('options: token line no longer mentions {tenant}', tokens.indexOf('{tenant}') === -1);
+  check('options: what happens to an empty token is its tooltip',
+    tokenLines[0].title, chrome.i18n.getMessage('tokensFooter'));
+  check('options: the token line has no label', tokenLines[0].querySelector('.tokens__label'), null);
+  check('options: no question marks left', layoutOne.querySelectorAll('.hint').length, 0);
+  check('options: a layout card has no section heading', layoutOne.querySelectorAll('h4').length, 0);
+
+  // every part of a layout is a row with a switch, folded while off
+  var parts = layoutOne.querySelectorAll('.option');
+  check('options: five parts, each with a switch',
+    Array.prototype.map.call(parts, function (part) {
+      return part.querySelector(':scope > input.toggle').dataset.path;
+    }), ['ribbon.enabled', 'border.enabled', 'banner.enabled', 'title.enabled', 'favicon.enabled']);
+  truthy('options: each switch is labelled with its part',
+    Array.prototype.every.call(parts, function (part) {
+      return part.querySelector(':scope > input.toggle').getAttribute('aria-label') ===
+        part.querySelector('.option__name').textContent;
+    }));
+  truthy('options: every part explains itself in a tooltip on its name',
+    Array.prototype.every.call(parts, function (part) {
+      return part.querySelector('.option__name').title.length > 0;
+    }));
+  check('options: a single text field needs no caption, only a label',
+    ['ribbon.text', 'title.text'].map(function (path) {
+      var input = layoutOne.querySelector('[data-path="' + path + '"]');
+      return [!!input.closest('label'), !!input.getAttribute('aria-label')];
+    }), [[false, true], [false, true]]);
+  truthy('options: name, fields and switch share one row',
+    Array.prototype.every.call(parts, function (part) {
+      var body = part.querySelector('.option__body');
+      return !body || body.parentNode === part;
+    }));
   check('options: token list no longer at page bottom',
     document.querySelector('#app footer'), null);
 
@@ -844,6 +906,9 @@ function assertWebClient() {
   var height = document.getElementById('dropdownHeight');
   check('web client: maximize lives in the panel',
     document.getElementById('maximizeEnabled').closest('.panel'), panel);
+  var row = document.getElementById('highlightRowEnabled');
+  check('web client: current line switch lives in the panel', row.closest('.panel'), panel);
+  check('web client: current line is on by default', row.checked, true);
   check('web client: both sliders live in the panel',
     [width.closest('.panel'), height.closest('.panel')], [panel, panel]);
   check('web client: sliders have five steps',
@@ -870,7 +935,14 @@ function assertWebClient() {
     check('web client: and reads as off', BCBuddy.Dropdowns.isOn(STORE.settings.dropdown), false);
     width.value = '3';
     width.dispatchEvent(new Event('input', { bubbles: true }));
+    row.click();
     return wait(400);
+  }).then(function () {
+    check('web client: current line switch is saved', STORE.settings.highlightRow, { enabled: false });
+    row.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and switches back on', STORE.settings.highlightRow, { enabled: true });
   });
 }
 

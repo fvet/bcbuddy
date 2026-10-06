@@ -81,9 +81,10 @@ up to date, they are the only context a translator gets.
 
 | Key | Reads as | Actually means |
 |---|---|---|
-| `ribbonToggle`, `ribbonText`, `posTopRight` … | The Office / Business Central ribbon toolbar | A diagonal coloured strip across a corner of the page |
+| `ribbonToggle`, `ribbonText` | The Office / Business Central ribbon toolbar | The bar at the very top of the Business Central client, the one with the product name, in the rule's colour |
+| `posTopRight`, `posBottomLeft`, … | The Office / Business Central ribbon toolbar | A diagonal coloured strip across a corner of the page |
 | `layoutsHeading`, `layoutLabel`, … | A Business Central report layout | This extension's own saved set of appearance settings |
-| `tokensHeading`, `tokenName`, … | A security or access token | A placeholder such as `{name}` that the user types into a text |
+| `tokenName`, `tokenCompany`, … | A security or access token | A placeholder such as `{name}` that the user types into a text |
 | `titleToggle`, `titleText` | The title of the Business Central page | The title of the browser tab |
 | `opContains`, `opEquals`, … | Standalone buttons | Words in the middle of a sentence, hence lowercase |
 | `defaultLayoutName` | The setting "default" | A name in a list, the way somebody would name a layout |

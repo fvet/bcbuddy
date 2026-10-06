@@ -280,6 +280,7 @@
     var hosted = s.hosted || {};
     var maximize = s.maximize || {};
     var dropdown = s.dropdown || {};
+    var highlightRow = s.highlightRow || {};
     var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
     var layouts = (Array.isArray(s.layouts) ? s.layouts : []).map(normalizeLayout);
     var hostedRules = (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule);
@@ -295,6 +296,9 @@
       dropdown: {
         width: step(dropdown.width, 3),
         height: step(dropdown.height, 1)
+      },
+      highlightRow: {
+        enabled: bool(highlightRow.enabled, true)
       },
       rules: rules,
       layouts: withDefaultLayout(layouts, rules),
@@ -335,6 +339,12 @@
   function maximizeOn(settings) {
     return !!(settings && settings.enabled &&
       settings.maximize && settings.maximize.enabled);
+  }
+
+  /** The current-row tint follows the master switch as well, like maximize. */
+  function highlightRowOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.highlightRow && settings.highlightRow.enabled);
   }
 
   function load() {
@@ -528,6 +538,7 @@
   BCBuddy.normalize = normalize;
   BCBuddy.effectiveRules = effectiveRules;
   BCBuddy.maximizeOn = maximizeOn;
+  BCBuddy.highlightRowOn = highlightRowOn;
   BCBuddy.loadSettings = load;
   BCBuddy.saveSettings = save;
   BCBuddy.toExport = toExport;

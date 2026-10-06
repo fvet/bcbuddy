@@ -47,11 +47,11 @@
   "emptyRules": { "message": "No rules yet. Click Add rule or import a configuration." },
   "sharedHeading": { "message": "Shared configuration" },
   "sharedIntro": {
-    "message": "Host a JSON file on a public HTTPS URL (e.g. a raw GitHub link) so everyone in the company uses the same markers.",
-    "description": "JSON, HTTPS and GitHub are names and stay as they are."
+    "message": "One file over HTTPS gives the whole team the same rules.",
+    "description": "One line under the Shared configuration heading. HTTPS is a name and stays as it is."
   },
   "sharedTrust": {
-    "message": "Only use a URL you control (for example your team\u0027s repository). The file can define rules that mark any site.",
+    "message": "Only use a URL you control: the file can define rules that mark any site.",
     "description": "Warning about pointing the extension at a file somebody else controls."
   },
   "hostedUrlLabel": { "message": "URL of the shared file" },
@@ -92,7 +92,10 @@
   "unknownDate": { "message": "unknown" },
   "importExportHeading": { "message": "Import / export" },
   "importHeading": { "message": "Import" },
-  "importIntro": { "message": "From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. This does not touch the shared configuration." },
+  "importIntro": {
+    "message": "From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. This does not touch the shared configuration.",
+    "description": "Tooltip on the Import row in the Settings panel."
+  },
   "chooseFile": { "message": "Choose file..." },
   "importFailed": {
     "message": "Failed: $1",
@@ -120,7 +123,10 @@
     "description": "Stands in for the summary in importDone when the file changed nothing."
   },
   "exportHeading": { "message": "Export" },
-  "exportIntro": { "message": "Exports your own rules only, in the format this extension also reads." },
+  "exportIntro": {
+    "message": "Exports your own rules only, in the format this extension also reads.",
+    "description": "Tooltip on the Export row in the Settings panel."
+  },
   "exportButton": { "message": "Export" },
   "exportDone": {
     "message": "Exported $1 rule(s) to bc-buddy.json.",
@@ -129,10 +135,6 @@
   "ruleNamePlaceholder": {
     "message": "Name (e.g. TEST)",
     "description": "Placeholder in the name field of a rule. TEST is an example of what somebody might call an environment."
-  },
-  "ruleOn": {
-    "message": "On",
-    "description": "Label on the on/off switch of a rule. Keep it short: the switch is narrow."
   },
   "ruleActiveTitle": { "message": "Rule active" },
   "toggleDetails": { "message": "Show or hide details" },
@@ -234,11 +236,31 @@
   "textBlack": { "message": "Black" },
   "ribbonToggle": {
     "message": "Ribbon",
-    "description": "Switch for a diagonal coloured strip across a corner of the page. This is NOT the Office or Business Central ribbon toolbar: do not use that term."
+    "description": "Switch for colouring the bar at the very top of the Business Central client (the one with the product name). This is NOT the Office ribbon toolbar: do not use that term."
   },
   "ribbonText": {
     "message": "Ribbon text",
     "description": "The text printed on the diagonal corner strip, see ribbonToggle."
+  },
+  "ribbonHint": {
+    "message": "BC\u0027s top bar in the rule\u0027s colour",
+    "description": "Tooltip on Ribbon on a layout. BC is short for Business Central and stays as it is."
+  },
+  "borderHint": {
+    "message": "A coloured border around the window",
+    "description": "Tooltip on Frame around the page on a layout."
+  },
+  "bannerHint": {
+    "message": "A bar or corner ribbon with text",
+    "description": "Tooltip on Banner on a layout: a bar along the bottom, or a diagonal strip across a corner."
+  },
+  "titleHint": {
+    "message": "Text in the browser tab",
+    "description": "Tooltip on Tab title on a layout."
+  },
+  "faviconHint": {
+    "message": "Coloured tab icon with letters",
+    "description": "Tooltip on Replace the favicon on a layout."
   },
   "borderToggle": {
     "message": "Frame around the page",
@@ -301,37 +323,25 @@
     "message": "Letters",
     "description": "The one or two letters drawn on that tab icon."
   },
-  "tokensAria": {
-    "message": "Which tokens can you use?",
-    "description": "Opens the list of tokens, see tokensHeading."
-  },
-  "tokensHeading": {
-    "message": "Tokens",
-    "description": "A token here is a placeholder the user types into a text, such as {name}, and the extension fills in. Nothing to do with a security token."
-  },
   "tokenName": {
     "message": "name of the rule",
-    "description": "Explains the {name} token, see tokensHeading. Lowercase: it is read after the token itself."
+    "description": "Explains the {name} token. A token here is a placeholder the user types into a text, such as {name}, and the extension fills in; nothing to do with a security token. Lowercase: it is read after the token itself."
   },
   "tokenEnvironment": {
     "message": "environment",
-    "description": "Explains the {environment} token, see tokensHeading. Lowercase: it is read after the token itself."
+    "description": "Explains the {environment} token, see tokenName. Lowercase: it is read after the token itself."
   },
   "tokenCompany": {
     "message": "company",
-    "description": "Explains the {company} token, see tokensHeading. Lowercase: it is read after the token itself."
+    "description": "Explains the {company} token, see tokenName. Lowercase: it is read after the token itself."
   },
   "tokenTitle": {
     "message": "original tab title",
-    "description": "Explains the {title} token, see tokensHeading. Lowercase: it is read after the token itself."
+    "description": "Explains the {title} token, see tokenName. Lowercase: it is read after the token itself."
   },
   "tokensFooter": {
     "message": "A token that stays empty disappears together with the separator next to it.",
     "description": "Closing line under the list of tokens."
-  },
-  "tokenOr": {
-    "message": "or",
-    "description": "Joins two token names that mean the same thing, as in {name} or {rule}."
   },
   "popupOwnRule": {
     "message": "own rule",
@@ -428,16 +438,12 @@
   "addLayout": { "message": "Add layout" },
   "navWebClient": {
     "message": "Web client",
-    "description": "Navigation item leading to the panel with tweaks to the Business Central web client itself (maximize, dropdown size). Use the term the Business Central documentation uses for the web client in this language."
+    "description": "Navigation item leading to the panel with tweaks to the Business Central web client itself (maximize, dropdown size, current line). Use the term the Business Central documentation uses for the web client in this language."
   },
   "webClientHeading": { "message": "Web client" },
-  "webClientIntro": {
-    "message": "Small improvements to the Business Central web client itself.",
-    "description": "Shown at the top of the Web client panel."
-  },
   "maximizeIntro": {
     "message": "Automatically expands every Business Central page to wide layout and switches tile pages to list view.",
-    "description": "Explains what the maximize feature does. Shown under its switch in the Web client panel."
+    "description": "Explains what the maximize feature does. Tooltip on its row in the Web client panel."
   },
   "maximizeToggle": {
     "message": "Maximize pages",
@@ -449,10 +455,28 @@
   },
   "dropdownIntro": {
     "message": "Gives the list that opens under a field more room. The width follows the columns, up to the maximum set here.",
-    "description": "Explains the dropdown size sliders. BC is short for Business Central and stays as it is."
+    "description": "Explains the dropdown size sliders. Tooltip on their row in the Web client panel. BC is short for Business Central and stays as it is."
   },
-  "dropdownWidth": { "message": "Maximum width" },
-  "dropdownHeight": { "message": "Maximum height" },
+  "highlightRowToggle": {
+    "message": "Highlight the current line",
+    "description": "Label on the on/off switch that tints the line you are on in editable lists. Line is the Business Central term for a row on a document or journal (sales line, journal line)."
+  },
+  "highlightRowIntro": {
+    "message": "Gives the line you are on a light tint in editable lists, such as sales lines and journals.",
+    "description": "Explains the current line highlight. Tooltip on its row in the Web client panel. Sales lines and journals are Business Central terms: use the words the Business Central UI uses in this language."
+  },
+  "dropdownWidth": {
+    "message": "Width",
+    "description": "Label beside the slider that sets the maximum width of a dropdown."
+  },
+  "dropdownHeight": {
+    "message": "Height",
+    "description": "Label beside the slider that sets the maximum height of a dropdown."
+  },
+  "webClientMore": {
+    "message": "More about these settings",
+    "description": "Link under the Web client settings to the documentation page that explains them."
+  },
   "dropdownStandard": {
     "message": "BC standard",
     "description": "Shown beside a dropdown size slider at its lowest step, where Business Central keeps its own size. BC is short for Business Central and stays as it is."
@@ -477,8 +501,8 @@
     "description": "Business Central, production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
   },
   "aboutIntroMaximize": {
-    "message": "It also makes the web client roomier: pages open in wide layout, tile pages switch to list view and dropdowns get more space.",
-    "description": "Second paragraph in the About panel, describing the web client tweaks (maximize, dropdown size)."
+    "message": "It also makes the web client easier to work in: pages open in wide layout, tile pages switch to list view, dropdowns get more space and the line you are on stands out.",
+    "description": "Second paragraph in the About panel, describing the web client tweaks (maximize, dropdown size, current line)."
   },
   "aboutContact": { "message": "Contact" },
   "aboutDocs": { "message": "Documentation" },

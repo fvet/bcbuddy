@@ -24,6 +24,7 @@
   var IS_TOP = window.top === window.self;
 
   var FRAME_ID = 'bcb-frame';
+  var ROW_ATTR = 'data-bcb-row';
   var BANNER_ID = 'bcb-banner';
   var FAVICON_REL = 'icon';
 
@@ -91,9 +92,9 @@
     ribbonGuard: null
   };
 
-  // Where the web client tweaks (maximize, dropdown size) apply: BC SaaS and
-  // common on-prem URL shapes. Checked against the top window's href, even
-  // when running inside an iframe.
+  // Where the web client tweaks (maximize, dropdown size, current row) apply:
+  // BC SaaS and common on-prem URL shapes. Checked against the top window's
+  // href, even when running inside an iframe.
   var WEB_CLIENT_SAAS_RE = /(\.|^)dynamics\.com$/i;
 
   function isWebClientTarget(href) {
@@ -208,6 +209,8 @@
    */
   function shouldWatch(settings, rule) {
     if (!settings || !settings.enabled) return false;
+    // The current-row tint is not here on purpose: it is one attribute, set
+    // once, and needs no watching.
     var hasMaximize = BCBuddy.maximizeOn(settings);
     if (!effectiveRules(settings).length && !hasMaximize) return false;
     if (rule) return true;
@@ -267,6 +270,7 @@
 
     applyMaximize();
     applyDropdowns();
+    applyHighlightRow();
   }
 
   function sameRule(a, b) {
@@ -695,6 +699,24 @@
     if (!BCBuddy.maximizeOn(state.settings)) return;
     if (!isWebClientTarget(state.href)) return;
     BCBuddy.Maximize.apply(document, state.maximized);
+  }
+
+  /* ---------------------------------------------------------- current row */
+
+  /**
+   * Tints the row you are on in BC's editable grids; the rules are in
+   * content.css. All this does is set one attribute on <html>, in every frame.
+   * BC leaves the root element of its frame alone, so it is set once - when
+   * the page loads, the URL changes or the settings do - and costs nothing
+   * while you scroll or type.
+   */
+  function applyHighlightRow() {
+    var root = document.documentElement;
+    if (!root) return;
+    var on = BCBuddy.highlightRowOn(state.settings) && isWebClientTarget(state.href);
+    if (on === root.hasAttribute(ROW_ATTR)) return;
+    if (on) root.setAttribute(ROW_ATTR, '');
+    else root.removeAttribute(ROW_ATTR);
   }
 
   /* ------------------------------------------------------------ dropdowns */

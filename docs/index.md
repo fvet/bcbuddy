@@ -33,9 +33,10 @@ marked tab title and a coloured tab icon.
 
 ## What it does
 
-- **A roomier web client.** Every page expands to full width and tile pages
-  switch to list view automatically, and the list under a field gets as wide
-  as its columns need — no clicking required. Both live under **Web client**.
+- **An easier web client.** Every page expands to full width and tile pages
+  switch to list view automatically, the list under a field gets as wide as
+  its columns need, and in editable lists the line you are on stands out — no
+  clicking required. All of it lives under **Web client**.
 - **Colour per environment.** You decide when each colour appears: per
   environment, per company or per customer. Production green, test orange,
   sandbox red — or whatever suits you.

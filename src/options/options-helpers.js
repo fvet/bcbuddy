@@ -11,17 +11,21 @@
       var t = page.t;
       var TRIMMED_TYPES = page.TRIMMED_TYPES;
 
-      /** Help text behind the question mark beside each text field. */
-      page.tokenHelp = function () {
-        function line(token, description) {
-          return '<code>{' + token + '}</code> ' + description + '<br>';
+      /**
+       * The tokens every text on a layout can use, on one line below its
+       * parts. The codes speak for themselves, so the line has no label.
+       */
+      page.tokenLine = function () {
+        // codes: one token, or a token and its short form ({environment}, {env})
+        function token(codes, description) {
+          return '<span class="tokens__item">' + [].concat(codes).map(function (code) {
+            return '<code>' + code + '</code> ';
+          }).join('') + description + '</span>';
         }
-        return '<strong>' + t('tokensHeading') + '</strong><br>' +
-          line('name', t('tokenName')) +
-          '<code>{environment}</code> ' + t('tokenOr') + ' <code>{env}</code> ' + t('tokenEnvironment') + '<br>' +
-          line('company', t('tokenCompany')) +
-          line('title', t('tokenTitle')) +
-          t('tokensFooter');
+        return token('{name}', t('tokenName')) +
+          token(['{environment}', '{env}'], t('tokenEnvironment')) +
+          token('{company}', t('tokenCompany')) +
+          token('{title}', t('tokenTitle'));
       };
 
       /**
@@ -70,17 +74,37 @@
         target[last] = value;
       };
 
+      /**
+       * A slider with data-steps shows a few steps (1, 2, ...) but saves the
+       * value that belongs to the step, listed in the attribute.
+       */
+      function steps(input) {
+        return input.dataset.steps ? input.dataset.steps.split(' ').map(Number) : null;
+      }
+
       page.controlValue = function (input) {
         if (input.type === 'checkbox') return input.checked;
+        var list = steps(input);
+        if (list) return list[Math.round(parseFloat(input.value)) - 1];
         if (input.type === 'number' || input.type === 'range') return parseFloat(input.value);
         return input.value;
       };
 
       page.setControlValue = function (input, value) {
+        var list = steps(input);
         if (input.type === 'checkbox') {
           input.checked = !!value;
         } else if (input.type === 'color') {
           input.value = BCBuddy.toHex(value);
+        } else if (list) {
+          // A saved value between two steps (from before the steps, or from a
+          // shared file) shows on the nearest one, and stays as it is until
+          // somebody moves the slider.
+          var nearest = 0;
+          list.forEach(function (step, i) {
+            if (Math.abs(step - value) < Math.abs(list[nearest] - value)) nearest = i;
+          });
+          input.value = String(nearest + 1);
         } else {
           input.value = value == null ? '' : value;
         }

@@ -329,6 +329,46 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('maximize: off when the extension is off',
     BCBuddy.maximizeOn(BCBuddy.normalize({ enabled: false, maximize: { enabled: true } })), false);
 
+  // the current-row tint likewise
+  check('current row: on by default', BCBuddy.highlightRowOn(BCBuddy.normalize(null)), true);
+  check('current row: off with its own toggle',
+    BCBuddy.highlightRowOn(BCBuddy.normalize({ highlightRow: { enabled: false } })), false);
+  check('current row: off when the extension is off',
+    BCBuddy.highlightRowOn(BCBuddy.normalize({ enabled: false, highlightRow: { enabled: true } })), false);
+
+  // current row: the rules in content.css against the grid markup of a BC28
+  // client - sales lines in edit and in view mode, and a list page. Checked in
+  // one go: on this page the content script would take the switch off again.
+  (function () {
+    function grid(formClass, tableClass) {
+      return '<form class="' + formClass + '"><table class="ms-nav-grid ' + tableClass +
+        ' ms-nav-grid-data-table"><tbody>' +
+        '<tr class="real-current" aria-selected="true"><td></td><td></td></tr>' +
+        '<tr aria-selected="false"><td></td><td></td></tr>' +
+        '</tbody></table></form>';
+    }
+    var host = document.createElement('div');
+    host.innerHTML =
+      grid('ms-nav-root-form ms-nav-layout-slim document ms-nav-cardform in-edit-mode', 'ms-nav-grid-edit') +
+      grid('ms-nav-root-form ms-nav-layout-slim document ms-nav-cardform in-view-mode', 'ms-nav-grid-view') +
+      grid('ms-nav-root-form ms-nav-layout-slim ms-nav-listform in-view-mode', 'ms-nav-grid-view');
+    document.body.appendChild(host);
+    var forms = host.querySelectorAll('form');
+    function tinted(form, row) {
+      return getComputedStyle(form.querySelectorAll('tr')[row].cells[1]).backgroundImage !== 'none';
+    }
+    var root = document.documentElement;
+    root.setAttribute('data-bcb-row', '');
+    var seen = [tinted(forms[0], 0), tinted(forms[0], 1), tinted(forms[1], 0), tinted(forms[2], 0)];
+    root.removeAttribute('data-bcb-row');
+    check('current row: tinted in an editable grid', seen[0], true);
+    check('current row: the other rows are left alone', seen[1], false);
+    check('current row: tinted in a list part in view mode', seen[2], true);
+    check('current row: a list page keeps the fill BC gives it', seen[3], false);
+    check('current row: nothing while the switch is off', tinted(forms[0], 0), false);
+    host.remove();
+  })();
+
   // templates
   var tpl = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
   check('template: full ribbon text',
