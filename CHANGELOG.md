@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Changed
+
+- The settings page navigation now reflects the three features of BC Buddy: **Maximize**, **Environment**, and **Helpdesk**. Helpdesk has its own section with an *Enable Helpdesk* toggle — it is off by default and nothing happens in Business Central until you turn it on. Shared configuration and import/export have moved into the *Environment* section.
+
 ### Added
 
 - **Report a problem** — a small panel on top of Business Central that lets
@@ -23,7 +27,7 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   and subject filled in, and the report (description, environment, company,
   browser details and screenshots) is on the clipboard ready to paste. A
   description alone is enough to send. The helpdesk address, the panel colour
-  and the ribbon link live under *Settings > Support* and travel with a shared
+  and the ribbon link live under *Helpdesk* and travel with a shared
   configuration, so a whole team gets them at once.
 
 - **Screenshots** — *Add a screenshot* lets you drag a rectangle over the part
@@ -82,7 +86,7 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   and subject filled in, and the report (description, environment, company,
   browser details and screenshots) is on the clipboard ready to paste. A
   description alone is enough to send. The helpdesk address, the panel colour
-  and the ribbon link live under *Settings > Support* and travel with a shared
+  and the ribbon link live under *Helpdesk* and travel with a shared
   configuration, so a whole team gets them at once.
 
 - **Screenshots** — *Add a screenshot* lets you drag a rectangle over the part

@@ -212,7 +212,7 @@
   function shouldWatch(settings, rule) {
     if (!settings || !settings.enabled) return false;
     var hasMaximize = settings.maximize && settings.maximize.enabled;
-    var hasLink = !!settings.helpdeskRibbonLink;
+    var hasLink = !!settings.helpdeskEnabled;
     if (!effectiveRules(settings).length && !hasMaximize && !hasLink) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
@@ -411,7 +411,7 @@
    */
   function applySupportLink(brand) {
     var link = document.querySelector('[data-bcb-support]');
-    var wanted = IS_TOP && state.settings && state.settings.helpdeskRibbonLink;
+    var wanted = IS_TOP && state.settings && state.settings.helpdeskEnabled;
     if (!wanted) {
       removeSupportLink();
       return;
@@ -446,7 +446,7 @@
    */
   function applyStandaloneSupportLink() {
     var settings = state.settings;
-    var wanted = IS_TOP && settings && settings.enabled && settings.helpdeskRibbonLink &&
+    var wanted = IS_TOP && settings && settings.enabled && settings.helpdeskEnabled &&
       isMaximizeTarget(state.href);
     if (!wanted) { removeSupportLink(); return; }
     var link = document.querySelector('[data-bcb-support]');

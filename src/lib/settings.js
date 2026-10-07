@@ -284,9 +284,9 @@
       maximize: {
         enabled: bool(maximize.enabled, true)
       },
+      helpdeskEnabled: bool(s.helpdeskEnabled, false),
       helpdeskEmail: str(s.helpdeskEmail),
       helpdeskColor: str(s.helpdeskColor) || DEFAULT_HELPDESK_COLOR,
-      helpdeskRibbonLink: bool(s.helpdeskRibbonLink, true),
       rules: rules,
       layouts: withDefaultLayout(layouts, rules),
       hosted: {
@@ -369,9 +369,9 @@
       layouts: s.layouts,
       rules: s.rules
     };
+    if (s.helpdeskEnabled) result.helpdeskEnabled = s.helpdeskEnabled;
     if (s.helpdeskEmail) result.helpdeskEmail = s.helpdeskEmail;
     if (s.helpdeskColor) result.helpdeskColor = s.helpdeskColor;
-    result.helpdeskRibbonLink = s.helpdeskRibbonLink;
     return result;
   }
 
@@ -411,10 +411,9 @@
     return {
       rules: normalizedRules,
       layouts: normalizedLayouts,
+      helpdeskEnabled: (data && typeof data.helpdeskEnabled === 'boolean') ? data.helpdeskEnabled : null,
       helpdeskEmail: str(data && data.helpdeskEmail),
       helpdeskColor: str(data && data.helpdeskColor),
-      // Absent in older files: null means "leave the importer's choice alone".
-      helpdeskRibbonLink: (data && typeof data.helpdeskRibbonLink === 'boolean') ? data.helpdeskRibbonLink : null,
       name: name
     };
   }

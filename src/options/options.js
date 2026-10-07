@@ -44,11 +44,12 @@
     page.el.globalEnabled.checked = page.state.settings.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
     page.el.hostedUrl.value = page.state.settings.hosted.url;
+    page.el.helpdeskEnabled.checked = page.state.settings.helpdeskEnabled;
     page.el.helpdeskEmail.value = page.state.settings.helpdeskEmail || '';
     page.el.helpdeskColor.value = BCBuddy.toHex(page.state.settings.helpdeskColor);
-    page.el.helpdeskRibbonLink.checked = page.state.settings.helpdeskRibbonLink;
     page.el.testUrl.value = page.state.testUrl;
 
+    page.renderHelpdeskConfig();
     page.refreshContext();
     page.renderHosted();
   };
@@ -131,6 +132,10 @@
       page.state.settings.hosted.rules.length > 0;
   };
 
+  page.renderHelpdeskConfig = function () {
+    page.el.helpdeskConfig.hidden = !page.state.settings.helpdeskEnabled;
+  };
+
   /** Layout a new rule gets: Default, otherwise the first one. */
   page.defaultLayoutId = function () {
     var layouts = page.state.settings.layouts;
@@ -205,7 +210,8 @@
       'exportDownload', 'exportStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared',
-      'brandDot', 'maximizeEnabled', 'helpdeskEmail', 'helpdeskColor', 'helpdeskRibbonLink'
+      'brandDot', 'maximizeEnabled',
+    'helpdeskEnabled', 'helpdeskConfig', 'helpdeskEmail', 'helpdeskColor'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
@@ -271,6 +277,12 @@
       page.save();
     });
 
+    el.helpdeskEnabled.addEventListener('change', function () {
+      state.settings.helpdeskEnabled = el.helpdeskEnabled.checked;
+      page.renderHelpdeskConfig();
+      page.save();
+    });
+
     el.helpdeskEmail.addEventListener('input', function () {
       state.settings.helpdeskEmail = el.helpdeskEmail.value.trim();
       page.save();
@@ -281,11 +293,6 @@
 
     el.helpdeskColor.addEventListener('input', function () {
       state.settings.helpdeskColor = el.helpdeskColor.value;
-      page.save();
-    });
-
-    el.helpdeskRibbonLink.addEventListener('change', function () {
-      state.settings.helpdeskRibbonLink = el.helpdeskRibbonLink.checked;
       page.save();
     });
 

@@ -169,9 +169,10 @@
           state.settings.helpdeskColor = parsed.helpdeskColor;
           if (page.el.helpdeskColor) page.el.helpdeskColor.value = BCBuddy.toHex(parsed.helpdeskColor);
         }
-        if (parsed.helpdeskRibbonLink !== null) {
-          state.settings.helpdeskRibbonLink = parsed.helpdeskRibbonLink;
-          if (page.el.helpdeskRibbonLink) page.el.helpdeskRibbonLink.checked = parsed.helpdeskRibbonLink;
+        if (parsed.helpdeskEnabled !== null) {
+          state.settings.helpdeskEnabled = parsed.helpdeskEnabled;
+          if (page.el.helpdeskEnabled) page.el.helpdeskEnabled.checked = parsed.helpdeskEnabled;
+          page.renderHelpdeskConfig();
         }
         page.save();
         page.renderRules();

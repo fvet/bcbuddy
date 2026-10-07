@@ -448,6 +448,14 @@
     "message": "Environments",
     "description": "Navigation item leading to the rules, one per Business Central environment."
   },
+  "navEnvironment": {
+    "message": "Environment",
+    "description": "Navigation item leading to the environment marking rules and layouts."
+  },
+  "navHelpdesk": {
+    "message": "Helpdesk",
+    "description": "Navigation item leading to the helpdesk / support panel settings."
+  },
   "navAbout": { "message": "About" },
   "navSettings": { "message": "Settings" },
   "navSections": { "message": "Sections" },
@@ -500,10 +508,6 @@
     "message": "Helpdesk email address",
     "description": "Label on the field where the user enters the support team's email address."
   },
-  "helpdeskEmailHint": {
-    "message": "Pre-filled in the To field when a user reports a problem.",
-    "description": "Short hint below the helpdesk email field."
-  },
   "helpdeskColorLabel": {
     "message": "Colour",
     "description": "Label on the colour picker for the helpdesk support panel accent colour."
@@ -512,9 +516,9 @@
     "message": "Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.",
     "description": "Intro text of the Support section on the Settings panel."
   },
-  "helpdeskRibbonLink": {
-    "message": "Show a “Report a problem” link in the Business Central ribbon",
-    "description": "Checkbox on the Settings panel."
+  "helpdeskEnabledToggle": {
+    "message": "Enable Helpdesk",
+    "description": "Master switch for the helpdesk feature on the Helpdesk panel."
   },
   "ribbonSupportLink": {
     "message": "Report a problem",

@@ -43,14 +43,15 @@
           <rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/>
           <path d="M5 13.5h6"/>
         </svg>
-        <span data-i18n="navEnvironments">Environments</span>
+        <span data-i18n="navEnvironment">Environment</span>
       </button>
-      <button type="button" class="nav__item" data-panel="settings">
+      <button type="button" class="nav__item" data-panel="helpdesk">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="8" r="2.4"/>
-          <path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1"/>
+          <circle cx="8" cy="6.5" r="4"/>
+          <path d="M5.5 13.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5"/>
+          <circle cx="8" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
         </svg>
-        <span data-i18n="navSettings">Settings</span>
+        <span data-i18n="navHelpdesk">Helpdesk</span>
       </button>
       <button type="button" class="nav__item" data-panel="about">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -134,37 +135,6 @@
       <p class="empty" id="emptyRules" data-i18n="emptyRules" hidden>No rules yet. Click Add rule or import a configuration.</p>
     </section>
 
-    </div>
-
-    <div class="panel" data-panel="settings" hidden>
-    <section>
-      <div class="section-head">
-        <h2 data-i18n="supportHeading">Support</h2>
-      </div>
-      <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.</p>
-      <div class="card">
-        <div class="grid grid--hosted">
-          <label class="field field--wide">
-            <span data-i18n="helpdeskEmailLabel">Helpdesk email address</span>
-            <input type="email" id="helpdeskEmail" spellcheck="false"
-                   placeholder="helpdesk@example.com">
-            <span class="muted small" data-i18n="helpdeskEmailHint">Pre-filled in the To field when a user reports a problem.</span>
-          </label>
-          <div class="field field--colour">
-            <span data-i18n="helpdeskColorLabel">Colour</span>
-            <div class="palette">
-              <input type="color" id="helpdeskColor" class="palette__custom"
-                     data-i18n-title="customColour">
-            </div>
-          </div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="helpdeskRibbonLink">
-          <span data-i18n="helpdeskRibbonLink">Show a “Report a problem” link in the Business Central ribbon</span>
-        </label>
-      </div>
-    </section>
-
     <section>
       <div class="section-head">
         <h2 data-i18n="sharedHeading">Shared configuration</h2>
@@ -210,6 +180,38 @@
             <button type="button" class="btn btn--primary" id="exportDownload" data-i18n="exportButton">Export</button>
           </div>
           <p class="sync-status" id="exportStatus"></p>
+        </div>
+      </div>
+    </section>
+
+    </div>
+
+    <div class="panel" data-panel="helpdesk" hidden>
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="navHelpdesk">Helpdesk</h2>
+      </div>
+      <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.</p>
+      <div class="card">
+        <label class="switch">
+          <input type="checkbox" id="helpdeskEnabled">
+          <span data-i18n="helpdeskEnabledToggle">Enable Helpdesk</span>
+        </label>
+        <div id="helpdeskConfig" hidden>
+          <div class="grid grid--style">
+            <label class="field field--wide">
+              <span data-i18n="helpdeskEmailLabel">Helpdesk email address</span>
+              <input type="email" id="helpdeskEmail" spellcheck="false"
+                     placeholder="helpdesk@example.com">
+            </label>
+            <div class="field field--colour">
+              <span data-i18n="helpdeskColorLabel">Colour</span>
+              <div class="palette">
+                <input type="color" id="helpdeskColor" class="palette__custom"
+                       data-i18n-title="customColour">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
