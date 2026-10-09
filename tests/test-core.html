@@ -377,6 +377,63 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     host.remove();
   })();
 
+  // animations: the rules in content.css against BC's own motion, copied from
+  // a BC28 client. Page and pane motion is shortened and its delay dropped;
+  // the busy indicator and the spinners keep theirs. Checked in one go, like
+  // the row tint.
+  (function () {
+    var bc = document.createElement('style');
+    bc.textContent =
+      '.animate{transition:opacity .3s}' +
+      '.spa-view.blur-fade-in.animate{animation:bcb-fade .5s ease-in-out .3s forwards}' +
+      '.ms-nav-layout-aside-right{transition:flex-basis .3s}' +
+      '.ms-nav-layout-content{transition:opacity .3s}' +
+      '.busy-indicator.animate{transition:opacity .25s linear .5s}' +
+      '.ios-spinner-vector{animation:bcb-spin 1s steps(12) infinite}' +
+      '.android-spinner--animate>svg{animation:bcb-spin 2s linear infinite}' +
+      '.ghosted .edit-container{animation:bcb-fade 1.1s ease .3s infinite alternate}' +
+      '.pending-cell{animation:bcb-fade .5s ease 1s infinite alternate}';
+    document.head.appendChild(bc);
+    var host = document.createElement('div');
+    host.innerHTML =
+      '<div class="spa-view blur-fade-in animate"></div>' +
+      '<div class="ms-nav-layout-aside-right"><div class="ms-nav-layout-content"></div></div>' +
+      '<div class="busy-indicator animate"></div>' +
+      '<div class="busy-indicator ios-spinner ios-spinner--animate"><div class="ios-spinner-vector"></div></div>' +
+      '<div class="busy-indicator android-spinner android-spinner--animate"><svg></svg></div>' +
+      '<div class="ghosted"><div class="edit-container"></div></div>' +
+      '<div class="pending-cell"></div>';
+    document.body.appendChild(host);
+    function q(sel) { return host.querySelector(sel); }
+    function ms(value) { return Math.round(parseFloat(value) * 1000 * 1000) / 1000; }
+    function motion(el) {
+      var cs = getComputedStyle(el);
+      return [ms(cs.transitionDuration), ms(cs.transitionDelay), ms(cs.animationDuration), ms(cs.animationDelay)];
+    }
+    var els = {
+      page: q('.spa-view'), factbox: q('.ms-nav-layout-aside-right'), region: q('.ms-nav-layout-content'),
+      busy: q('.busy-indicator.animate'), ios: q('.ios-spinner-vector'), android: q('.android-spinner--animate > svg'),
+      ghosted: q('.ghosted .edit-container'), pending: q('.pending-cell')
+    };
+    var root = document.documentElement;
+    var before = motion(els.page);
+    root.setAttribute('data-bcb-calm', '');
+    var on = {};
+    Object.keys(els).forEach(function (k) { on[k] = motion(els[k]); });
+    root.removeAttribute('data-bcb-calm');
+    check('animations CSS: BC timing while the switch is off', before, [300, 0, 500, 300]);
+    check('animations CSS: page fade shortened, delay dropped', on.page, [0.01, 0, 0.01, 0]);
+    check('animations CSS: FactBox pane shortened', on.factbox[0], 0.01);
+    check('animations CSS: layout region shortened', on.region[0], 0.01);
+    check('animations CSS: busy indicator keeps its fade and delay', on.busy, [250, 500, 0, 0]);
+    check('animations CSS: spinners keep turning',
+      [on.ios[2], on.android[2]], [1000, 2000]);
+    check('animations CSS: ghosted and pending cells keep pulsing',
+      [on.ghosted[2], on.pending[2]], [1100, 500]);
+    host.remove();
+    bc.remove();
+  })();
+
   // templates
   var tpl = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
   check('template: full ribbon text',

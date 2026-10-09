@@ -2,8 +2,8 @@
 
 ## Web client
 
-Three tweaks to the Business Central web client itself are on from the start —
-no setup needed. All three live under **Web client** in the options.
+Four tweaks to the Business Central web client itself are on from the start,
+no setup needed. All four live under **Web client** in the options.
 
 **Maximize pages** expands every page to wide layout and switches tile pages to
 list view. Turn its switch off to stop it. Switching **Extension active** off

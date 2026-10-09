@@ -8,7 +8,8 @@ BC Buddy has two halves, and the roadmap keeps both:
 
 - **Environment marking** (colours, ribbon, frame, banner, tab title, favicon).
   No other Business Central browser extension does this.
-- **Web client tweaks** (Maximize pages, Dropdown size). Small fixes to the BC
+- **Web client tweaks** (Maximize pages, Dropdown size, Highlight the current
+  line, Turn off animations). Small fixes to the BC
   client itself, each a switch under **Web client** in the options.
 
 Every new tweak follows the shape of the existing ones: a switch in the Web
@@ -21,47 +22,14 @@ wrong thing does damage.
 
 | # | Feature | Effort | Default |
 |---|---|---|---|
-| 1 | Turn off animations | S | on |
-| 2 | FactBox pane collapsed or open by default | M | BC standard |
-| 3 | Copy a cell value | M | on |
-| 4 | Keep BC tabs awake | S | on |
+| 1 | FactBox pane collapsed or open by default | M | BC standard |
+| 2 | Copy a cell value | M | on |
+| 3 | Keep BC tabs awake | S | on |
 
 S: mostly CSS or one event handler. M: drives BC's own controls or needs a
 page-level listener, like Maximize. The defaults are a proposal and still open.
 
-### 1. Turn off animations
-
-**Why.** "Disable webclient animations" (117 votes, Under Review). Pages
-slide in and FastTabs and panes animate open. Someone entering data all day
-waits for that hundreds of times.
-
-**What.** Pages, dialogs, FastTabs and panes appear at once.
-
-**How.**
-- Check first whether BC already honours `prefers-reduced-motion`. If it does,
-  the switch may only need to force that behaviour, and the docs should mention
-  the Windows setting.
-- Do not use `transition: none`. BC may wait for `transitionend` or
-  `animationend` before it finishes opening something, and with no transition
-  those events never fire. Shorten instead: `transition-duration` and
-  `animation-duration` of `0.01ms !important`, the usual reduced-motion reset.
-  The events still fire.
-- Leave the progress and "working" indicators animated. Without them a busy
-  client looks frozen. Find their classes in the live client and exclude them.
-- Test: open a page from a list, open and close a FastTab, open the FactBox
-  pane, open a dialog and a lookup, open Search. Nothing may hang half-open.
-
-**Settings.** `noAnimations: { enabled }`, on by default. It changes how BC
-feels for everyone, so the switch sits under **Web client** in the options.
-
-**Findings from the live client.** BC has no `prefers-reduced-motion` rules
-of its own. Most motion is CSS on stable classes (`.animate`, the
-`ms-nav-layout-*` regions that Maximize and the FactBox pane move), but
-FastTabs slide with `element.animate()`, which CSS durations cannot reach,
-and BC waits for it before it finishes; `calm.js` (MAIN world) gives those
-calls a duration of 0.
-
-### 2. FactBox pane collapsed or open by default
+### 1. FactBox pane collapsed or open by default
 
 **Why.** "Restore collapsing of factboxes" (177) and "FactBox default
 Collapsed/Expanded" (109), both Under Review. The FactBox pane takes room from
@@ -87,7 +55,7 @@ the page itself on smaller screens. Others want it always open.
 
 **Settings.** `factbox: { mode: 'bc' | 'collapsed' | 'open' }`.
 
-### 3. Copy a cell value
+### 2. Copy a cell value
 
 **Why.** "'Copy Cell Value' on list pages" (177 votes, Under Review). The No.
 column is a link, so you cannot select its text to copy it. Copying one value
@@ -116,7 +84,7 @@ briefly shows a tick.
 
 **Settings.** `copyCell: { enabled }`.
 
-### 4. Keep BC tabs awake
+### 3. Keep BC tabs awake
 
 **Why.** People come back to "We paused while you were away" and lose where
 they were. Fenwick traces much of it to Chrome's Memory Saver and Edge's
@@ -144,6 +112,26 @@ Sleeping Tabs, which discard background tabs.
   Edge with a short sleep timeout before writing the docs.
 
 **Settings.** `keepAwake: { enabled }`.
+
+## Shipped
+
+### Turn off animations
+
+Answers "Disable webclient animations" (117 votes, Under Review). On by
+default under **Web client**, `noAnimations: { enabled }`. Design notes from
+the live client, kept for the next BC update:
+
+- BC has no `prefers-reduced-motion` rules of its own, so forcing that media
+  query would do nothing.
+- Most motion is CSS on stable classes (`.animate`, the `ms-nav-layout-*`
+  regions that Maximize and the FactBox pane move, FastTab captions and
+  fields). `content.css` shortens it to `0.01ms` rather than `none`, so
+  `transitionend` and `animationend` still fire, and zeroes the delays.
+- FastTabs slide with `element.animate()` for 500 ms and BC waits for it
+  before it marks the FastTab open or closed. `calm.js` (MAIN world) gives
+  those calls a duration of 0.
+- The busy indicator, the spinners and the pulsing ghosted and pending cells
+  keep their animation, or a busy client looks frozen.
 
 ## Work every feature brings along
 
