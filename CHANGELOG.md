@@ -11,13 +11,15 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.11 — 2026-10-09
+
 ### Added
 
 - **Turn off animations**: pages, dialogs, FastTabs and panes in Business
   Central appear at once instead of sliding or fading in. Progress indicators
   keep moving. On by default; switch it off under **Web client** in the options.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.10 — 2026-10-06
 
