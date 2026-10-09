@@ -119,6 +119,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 </script>
 
 <script src="../src/content/content.js"></script>
+<script src="../src/content/calm.js"></script>
 
 <script>
 (function () {
@@ -336,6 +337,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('current row: off when the extension is off',
     BCBuddy.highlightRowOn(BCBuddy.normalize({ enabled: false, highlightRow: { enabled: true } })), false);
 
+  // and so does turning animations off
+  check('animations: on by default', BCBuddy.noAnimationsOn(BCBuddy.normalize(null)), true);
+  check('animations: off with its own toggle',
+    BCBuddy.noAnimationsOn(BCBuddy.normalize({ noAnimations: { enabled: false } })), false);
+  check('animations: off when the extension is off',
+    BCBuddy.noAnimationsOn(BCBuddy.normalize({ enabled: false, noAnimations: { enabled: true } })), false);
+
   // current row: the rules in content.css against the grid markup of a BC28
   // client - sales lines in edit and in view mode, and a list page. Checked in
   // one go: on this page the content script would take the switch off again.
@@ -367,6 +375,63 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     check('current row: a list page keeps the fill BC gives it', seen[3], false);
     check('current row: nothing while the switch is off', tinted(forms[0], 0), false);
     host.remove();
+  })();
+
+  // animations: the rules in content.css against BC's own motion, copied from
+  // a BC28 client. Page and pane motion is shortened and its delay dropped;
+  // the busy indicator and the spinners keep theirs. Checked in one go, like
+  // the row tint.
+  (function () {
+    var bc = document.createElement('style');
+    bc.textContent =
+      '.animate{transition:opacity .3s}' +
+      '.spa-view.blur-fade-in.animate{animation:bcb-fade .5s ease-in-out .3s forwards}' +
+      '.ms-nav-layout-aside-right{transition:flex-basis .3s}' +
+      '.ms-nav-layout-content{transition:opacity .3s}' +
+      '.busy-indicator.animate{transition:opacity .25s linear .5s}' +
+      '.ios-spinner-vector{animation:bcb-spin 1s steps(12) infinite}' +
+      '.android-spinner--animate>svg{animation:bcb-spin 2s linear infinite}' +
+      '.ghosted .edit-container{animation:bcb-fade 1.1s ease .3s infinite alternate}' +
+      '.pending-cell{animation:bcb-fade .5s ease 1s infinite alternate}';
+    document.head.appendChild(bc);
+    var host = document.createElement('div');
+    host.innerHTML =
+      '<div class="spa-view blur-fade-in animate"></div>' +
+      '<div class="ms-nav-layout-aside-right"><div class="ms-nav-layout-content"></div></div>' +
+      '<div class="busy-indicator animate"></div>' +
+      '<div class="busy-indicator ios-spinner ios-spinner--animate"><div class="ios-spinner-vector"></div></div>' +
+      '<div class="busy-indicator android-spinner android-spinner--animate"><svg></svg></div>' +
+      '<div class="ghosted"><div class="edit-container"></div></div>' +
+      '<div class="pending-cell"></div>';
+    document.body.appendChild(host);
+    function q(sel) { return host.querySelector(sel); }
+    function ms(value) { return Math.round(parseFloat(value) * 1000 * 1000) / 1000; }
+    function motion(el) {
+      var cs = getComputedStyle(el);
+      return [ms(cs.transitionDuration), ms(cs.transitionDelay), ms(cs.animationDuration), ms(cs.animationDelay)];
+    }
+    var els = {
+      page: q('.spa-view'), factbox: q('.ms-nav-layout-aside-right'), region: q('.ms-nav-layout-content'),
+      busy: q('.busy-indicator.animate'), ios: q('.ios-spinner-vector'), android: q('.android-spinner--animate > svg'),
+      ghosted: q('.ghosted .edit-container'), pending: q('.pending-cell')
+    };
+    var root = document.documentElement;
+    var before = motion(els.page);
+    root.setAttribute('data-bcb-calm', '');
+    var on = {};
+    Object.keys(els).forEach(function (k) { on[k] = motion(els[k]); });
+    root.removeAttribute('data-bcb-calm');
+    check('animations CSS: BC timing while the switch is off', before, [300, 0, 500, 300]);
+    check('animations CSS: page fade shortened, delay dropped', on.page, [0.01, 0, 0.01, 0]);
+    check('animations CSS: FactBox pane shortened', on.factbox[0], 0.01);
+    check('animations CSS: layout region shortened', on.region[0], 0.01);
+    check('animations CSS: busy indicator keeps its fade and delay', on.busy, [250, 500, 0, 0]);
+    check('animations CSS: spinners keep turning',
+      [on.ios[2], on.android[2]], [1000, 2000]);
+    check('animations CSS: ghosted and pending cells keep pulsing',
+      [on.ghosted[2], on.pending[2]], [1100, 500]);
+    host.remove();
+    bc.remove();
   })();
 
   // templates
@@ -780,6 +845,33 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     return card;
   }
 
+  // animations: calm.js gives element.animate() a duration of 0 while
+  // data-bcb-calm is on <html>, and leaves endless animations alone. Checked
+  // straight after the observer's microtask, before the content script's
+  // watch loop takes the attribute off again on this page.
+  function calmDom() {
+    var root = document.documentElement;
+    var el = document.body.appendChild(document.createElement('div'));
+    function timing(options) {
+      var anim = el.animate({ opacity: [0, 1] }, options);
+      var t = anim.effect.getTiming();
+      anim.cancel();
+      return t;
+    }
+    check('animations: untouched before the attribute appears', timing({ duration: 500 }).duration, 500);
+    root.setAttribute('data-bcb-calm', '');
+    return Promise.resolve().then(function () {
+      var t = timing({ duration: 500, delay: 300, fill: 'forwards' });
+      check('animations: duration and delay go to 0', [t.duration, t.delay, t.fill], [0, 0, 'forwards']);
+      check('animations: a bare number becomes 0', timing(500).duration, 0);
+      check('animations: endless ones keep their timing',
+        timing({ duration: 1000, iterations: Infinity }).duration, 1000);
+      root.removeAttribute('data-bcb-calm');
+      check('animations: switching off restores BC timing', timing({ duration: 500 }).duration, 500);
+      el.remove();
+    });
+  }
+
   // Item No. on a sales line (101ex over five columns) and Location Code (50ex).
   var WIDE = ['15ex', '35ex', '15ex', '18ex', '18ex'];
   var NARROW = ['15ex', '35ex'];
@@ -974,6 +1066,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 
         dropdownDom().then(null, function (err) {
           results.push('FAIL  dropdown DOM: ' + err.message);
+        }).then(calmDom).then(null, function (err) {
+          results.push('FAIL  animations DOM: ' + err.message);
         }).then(function () {
           var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
           document.getElementById('results').textContent =

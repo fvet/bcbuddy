@@ -18,6 +18,14 @@
       "run_at": "document_start",
       "all_frames": true,
       "match_about_blank": false
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/calm.js"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": false,
+      "world": "MAIN"
     }
   ],
   "options_ui": {

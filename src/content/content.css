@@ -136,3 +136,45 @@ html[data-bcb-row] table.ms-nav-grid-edit > tbody > tr.real-current > td,
 html[data-bcb-row] form.ms-nav-cardform table.ms-nav-grid-view > tbody > tr.real-current > td {
   background-image: linear-gradient(var(--bcb-row-tint), var(--bcb-row-tint)) !important;
 }
+
+/* No animations. BC does not honour prefers-reduced-motion, so these rules
+   do it instead. Shorten rather than remove: with `transition: none` the
+   transitionend and animationend events never fire, and BC may wait for them
+   before it finishes opening a page or FastTab. 0.01ms keeps them firing.
+   Delays go to zero as well; the page fade-in waits 0.3s before it starts.
+   Classes come from the live client. BC opts an element into motion with
+   `.animate`; the layout regions below are what Maximize and the FactBox
+   pane (I) move. Hashed class names (`animate-flex--…`) change with every BC
+   build, so only stable names are used.
+   Progress indicators stay animated, or a busy client looks frozen:
+   `.busy-indicator` (its fade-in delay stops it flashing on quick actions),
+   the spinners (`.ios-spinner--animate`, `.android-spinner--animate`) and
+   the pulsing `.ghosted` and `.pending-cell` are left out. */
+html[data-bcb-calm] .animate:not(.busy-indicator),
+html[data-bcb-calm] .spa-overlay,
+html[data-bcb-calm] .ms-nav-layout-page,
+html[data-bcb-calm] .ms-nav-layout-content,
+html[data-bcb-calm] .ms-nav-layout-gutter-left,
+html[data-bcb-calm] .ms-nav-layout-gutter-right,
+html[data-bcb-calm] .ms-nav-layout-gutter-left > .ms-Button,
+html[data-bcb-calm] .ms-nav-layout-gutter-right > .ms-Button,
+html[data-bcb-calm] .ms-nav-layout-aside-right,
+html[data-bcb-calm] .ms-nav-edit-control-container,
+html[data-bcb-calm] .importance-promoted-container,
+html[data-bcb-calm] .show-more-fields-button,
+html[data-bcb-calm] .ms-nav-columns-caption::after,
+html[data-bcb-calm] .ms-nav-collapsible-part-caption::after,
+html[data-bcb-calm] .booleancontrol-toggle-switch,
+html[data-bcb-calm] form.ms-nav-root-form.prompt-dialog > .task-dialog,
+html[data-bcb-calm] .ms-nav-appbar .group,
+html[data-bcb-calm] .ms-nav-appbar > .ms-list-itemLink,
+html[data-bcb-calm] .ms-nav-appbar > .systemaction,
+html[data-bcb-calm] .ms-Image {
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+}
+
+/* FastTabs slide with element.animate(), which CSS cannot shorten; calm.js
+   handles those. */

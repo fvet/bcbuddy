@@ -2,8 +2,8 @@
 
 ## Web client
 
-Three tweaks to the Business Central web client itself are on from the start —
-no setup needed. All three live under **Web client** in the options.
+Four tweaks to the Business Central web client itself are on from the start,
+no setup needed. All four live under **Web client** in the options.
 
 **Maximize pages** expands every page to wide layout and switches tile pages to
 list view. Turn its switch off to stop it. Switching **Extension active** off
@@ -24,6 +24,12 @@ small arrow and the ⋮ button at the far left, which is easy to lose on a wide
 line. With this on, the whole line gets a light tint. Read-only lists such as
 Customers already highlight the current line, and stay as they are. Turn its
 switch off to stop it.
+
+**Turn off animations** makes pages, dialogs, FastTabs and the FactBox pane
+appear at once. Business Central normally slides or fades them in, so opening
+a card from a list, maximizing it or showing the FactBox pane takes a moment
+each time. Progress indicators keep moving, so you can still see when Business
+Central is busy. Turn its switch off to get the animations back.
 
 Each slider has five steps; the first is *BC standard*. With both there, the
 feature is off. BC still decides where the list opens, so a bigger list flips
@@ -60,7 +66,7 @@ The options page has a navigation on the left:
 
 | Section | What lives there |
 |---|---|
-| **Web client** | Wide layout, list view, dropdown size and current line — on by default |
+| **Web client** | Wide layout, list view, dropdown size, current line and animations, all on by default |
 | **Environments** | Your rules and layouts |
 | **Settings** | Shared configuration, import and export |
 | **About** | Version and links |
