@@ -25,6 +25,7 @@
 
   var FRAME_ID = 'bcb-frame';
   var ROW_ATTR = 'data-bcb-row';
+  var CALM_ATTR = 'data-bcb-calm';
   var BANNER_ID = 'bcb-banner';
   var FAVICON_REL = 'icon';
 
@@ -271,6 +272,7 @@
     applyMaximize();
     applyDropdowns();
     applyHighlightRow();
+    applyNoAnimations();
   }
 
   function sameRule(a, b) {
@@ -717,6 +719,23 @@
     if (on === root.hasAttribute(ROW_ATTR)) return;
     if (on) root.setAttribute(ROW_ATTR, '');
     else root.removeAttribute(ROW_ATTR);
+  }
+
+  /* ----------------------------------------------------------- animations */
+
+  /**
+   * Shortens BC's animations; the rules are in content.css, and calm.js
+   * (page world) does the same for element.animate(). Like the row tint
+   * this only sets one attribute on <html>, once per page load, URL change or
+   * settings change, so it costs nothing while you scroll or type.
+   */
+  function applyNoAnimations() {
+    var root = document.documentElement;
+    if (!root) return;
+    var on = BCBuddy.noAnimationsOn(state.settings) && isWebClientTarget(state.href);
+    if (on === root.hasAttribute(CALM_ATTR)) return;
+    if (on) root.setAttribute(CALM_ATTR, '');
+    else root.removeAttribute(CALM_ATTR);
   }
 
   /* ------------------------------------------------------------ dropdowns */

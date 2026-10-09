@@ -21,7 +21,7 @@ wrong thing does damage.
 
 | # | Feature | Effort | Default |
 |---|---|---|---|
-| 1 | Turn off animations | S | off |
+| 1 | Turn off animations | S | on |
 | 2 | FactBox pane collapsed or open by default | M | BC standard |
 | 3 | Copy a cell value | M | on |
 | 4 | Keep BC tabs awake | S | on |
@@ -51,8 +51,15 @@ waits for that hundreds of times.
 - Test: open a page from a list, open and close a FastTab, open the FactBox
   pane, open a dialog and a lookup, open Search. Nothing may hang half-open.
 
-**Settings.** `noAnimations: { enabled }`, off by default because it changes
-how BC feels for everyone.
+**Settings.** `noAnimations: { enabled }`, on by default. It changes how BC
+feels for everyone, so the switch sits under **Web client** in the options.
+
+**Findings from the live client.** BC has no `prefers-reduced-motion` rules
+of its own. Most motion is CSS on stable classes (`.animate`, the
+`ms-nav-layout-*` regions that Maximize and the FactBox pane move), but
+FastTabs slide with `element.animate()`, which CSS durations cannot reach,
+and BC waits for it before it finishes; `calm.js` (MAIN world) gives those
+calls a duration of 0.
 
 ### 2. FactBox pane collapsed or open by default
 

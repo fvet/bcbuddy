@@ -909,6 +909,9 @@ function assertWebClient() {
   var row = document.getElementById('highlightRowEnabled');
   check('web client: current line switch lives in the panel', row.closest('.panel'), panel);
   check('web client: current line is on by default', row.checked, true);
+  var calm = document.getElementById('noAnimationsEnabled');
+  check('web client: animations switch lives in the panel', calm.closest('.panel'), panel);
+  check('web client: animations switch is on by default', calm.checked, true);
   check('web client: both sliders live in the panel',
     [width.closest('.panel'), height.closest('.panel')], [panel, panel]);
   check('web client: sliders have five steps',
@@ -943,6 +946,14 @@ function assertWebClient() {
     return wait(400);
   }).then(function () {
     check('web client: and switches back on', STORE.settings.highlightRow, { enabled: true });
+    calm.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: animations switch is saved', STORE.settings.noAnimations, { enabled: false });
+    calm.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the animations switch turns back on', STORE.settings.noAnimations, { enabled: true });
   });
 }
 

@@ -119,6 +119,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 </script>
 
 <script src="../src/content/content.js"></script>
+<script src="../src/content/calm.js"></script>
 
 <script>
 (function () {
@@ -335,6 +336,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.highlightRowOn(BCBuddy.normalize({ highlightRow: { enabled: false } })), false);
   check('current row: off when the extension is off',
     BCBuddy.highlightRowOn(BCBuddy.normalize({ enabled: false, highlightRow: { enabled: true } })), false);
+
+  // and so does turning animations off
+  check('animations: on by default', BCBuddy.noAnimationsOn(BCBuddy.normalize(null)), true);
+  check('animations: off with its own toggle',
+    BCBuddy.noAnimationsOn(BCBuddy.normalize({ noAnimations: { enabled: false } })), false);
+  check('animations: off when the extension is off',
+    BCBuddy.noAnimationsOn(BCBuddy.normalize({ enabled: false, noAnimations: { enabled: true } })), false);
 
   // current row: the rules in content.css against the grid markup of a BC28
   // client - sales lines in edit and in view mode, and a list page. Checked in
@@ -780,6 +788,33 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     return card;
   }
 
+  // animations: calm.js gives element.animate() a duration of 0 while
+  // data-bcb-calm is on <html>, and leaves endless animations alone. Checked
+  // straight after the observer's microtask, before the content script's
+  // watch loop takes the attribute off again on this page.
+  function calmDom() {
+    var root = document.documentElement;
+    var el = document.body.appendChild(document.createElement('div'));
+    function timing(options) {
+      var anim = el.animate({ opacity: [0, 1] }, options);
+      var t = anim.effect.getTiming();
+      anim.cancel();
+      return t;
+    }
+    check('animations: untouched before the attribute appears', timing({ duration: 500 }).duration, 500);
+    root.setAttribute('data-bcb-calm', '');
+    return Promise.resolve().then(function () {
+      var t = timing({ duration: 500, delay: 300, fill: 'forwards' });
+      check('animations: duration and delay go to 0', [t.duration, t.delay, t.fill], [0, 0, 'forwards']);
+      check('animations: a bare number becomes 0', timing(500).duration, 0);
+      check('animations: endless ones keep their timing',
+        timing({ duration: 1000, iterations: Infinity }).duration, 1000);
+      root.removeAttribute('data-bcb-calm');
+      check('animations: switching off restores BC timing', timing({ duration: 500 }).duration, 500);
+      el.remove();
+    });
+  }
+
   // Item No. on a sales line (101ex over five columns) and Location Code (50ex).
   var WIDE = ['15ex', '35ex', '15ex', '18ex', '18ex'];
   var NARROW = ['15ex', '35ex'];
@@ -974,6 +1009,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 
         dropdownDom().then(null, function (err) {
           results.push('FAIL  dropdown DOM: ' + err.message);
+        }).then(calmDom).then(null, function (err) {
+          results.push('FAIL  animations DOM: ' + err.message);
         }).then(function () {
           var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
           document.getElementById('results').textContent =

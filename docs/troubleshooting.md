@@ -36,6 +36,15 @@ back to narrow or to tiles yourself, BC Buddy leaves it that way. A page where
 it does nothing at all after a Business Central update means BC has changed its
 wide-layout or layout buttons — please open an issue so it can catch up.
 
+## Something still slides or fades
+
+**Turn off animations** covers what Business Central animates by name: pages,
+dialogs, FastTabs, the FactBox pane and Maximize. Progress indicators keep
+moving on purpose, so you can still see when Business Central is busy. If
+something else starts animating after a Business Central update, BC has added
+or renamed it. Please open an issue so it can catch up. Turn the switch off if
+anything looks wrong while it is on.
+
 ## Something else
 
 Open an issue at

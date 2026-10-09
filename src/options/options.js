@@ -41,6 +41,7 @@
     page.el.globalEnabled.checked = page.state.settings.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
     page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
+    page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.renderDropdown();
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
@@ -216,7 +217,7 @@
       'exportDownload', 'exportStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared',
-      'brandDot', 'maximizeEnabled', 'highlightRowEnabled',
+      'brandDot', 'maximizeEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
@@ -275,6 +276,11 @@
 
     el.highlightRowEnabled.addEventListener('change', function () {
       state.settings.highlightRow.enabled = el.highlightRowEnabled.checked;
+      page.save();
+    });
+
+    el.noAnimationsEnabled.addEventListener('change', function () {
+      state.settings.noAnimations.enabled = el.noAnimationsEnabled.checked;
       page.save();
     });
 

@@ -465,6 +465,14 @@
     "message": "Gives the line you are on a light tint in editable lists, such as sales lines and journals.",
     "description": "Explains the current line highlight. Tooltip on its row in the Web client panel. Sales lines and journals are Business Central terms: use the words the Business Central UI uses in this language."
   },
+  "noAnimationsToggle": {
+    "message": "Turn off animations",
+    "description": "Label on the on/off switch that makes Business Central pages, FastTabs and panes appear at once instead of sliding or fading in."
+  },
+  "noAnimationsIntro": {
+    "message": "Pages, dialogs, FastTabs and panes appear at once instead of sliding or fading in. Progress indicators keep moving.",
+    "description": "Explains the turn off animations switch. Tooltip on its row in the Web client panel. FastTab is the Business Central term for a collapsible section on a page: use the word the Business Central UI uses in this language."
+  },
   "dropdownWidth": {
     "message": "Width",
     "description": "Label beside the slider that sets the maximum width of a dropdown."

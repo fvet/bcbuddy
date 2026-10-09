@@ -281,6 +281,7 @@
     var maximize = s.maximize || {};
     var dropdown = s.dropdown || {};
     var highlightRow = s.highlightRow || {};
+    var noAnimations = s.noAnimations || {};
     var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
     var layouts = (Array.isArray(s.layouts) ? s.layouts : []).map(normalizeLayout);
     var hostedRules = (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule);
@@ -299,6 +300,9 @@
       },
       highlightRow: {
         enabled: bool(highlightRow.enabled, true)
+      },
+      noAnimations: {
+        enabled: bool(noAnimations.enabled, true)
       },
       rules: rules,
       layouts: withDefaultLayout(layouts, rules),
@@ -345,6 +349,12 @@
   function highlightRowOn(settings) {
     return !!(settings && settings.enabled &&
       settings.highlightRow && settings.highlightRow.enabled);
+  }
+
+  /** Turning animations off follows the master switch as well. */
+  function noAnimationsOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.noAnimations && settings.noAnimations.enabled);
   }
 
   function load() {
@@ -539,6 +549,7 @@
   BCBuddy.effectiveRules = effectiveRules;
   BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.highlightRowOn = highlightRowOn;
+  BCBuddy.noAnimationsOn = noAnimationsOn;
   BCBuddy.loadSettings = load;
   BCBuddy.saveSettings = save;
   BCBuddy.toExport = toExport;

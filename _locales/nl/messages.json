@@ -156,6 +156,8 @@
   "dropdownIntro": { "message": "Geeft de lijst die onder een veld openklapt meer ruimte. De breedte volgt de kolommen, tot het maximum dat je hier instelt." },
   "highlightRowToggle": { "message": "Huidige regel markeren" },
   "highlightRowIntro": { "message": "Kleurt de regel waarop je staat lichtjes in bewerkbare lijsten, zoals verkoopregels en dagboeken." },
+  "noAnimationsToggle": { "message": "Animaties uitschakelen" },
+  "noAnimationsIntro": { "message": "Pagina's, dialoogvensters, sneltabbladen en deelvensters verschijnen meteen in plaats van in te schuiven of in te faden. Voortgangsindicatoren blijven bewegen." },
   "dropdownWidth": { "message": "Breedte" },
   "dropdownHeight": { "message": "Hoogte" },
   "webClientMore": { "message": "Meer uitleg over deze instellingen" },

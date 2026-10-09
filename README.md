@@ -55,13 +55,14 @@ The options page opens on **Environments**. To mark your first environment:
 Order decides priority: the first rule that fits is applied, so put your most
 specific rules at the top.
 
-Under **Web client** three tweaks to BC itself are on from the start:
-**Maximize pages** (wide layout, list view), **Dropdown size** and **Highlight
-the current line**. The list that opens under a field gets as wide as its
+Under **Web client** four tweaks to BC itself are on from the start:
+**Maximize pages** (wide layout, list view), **Dropdown size**, **Highlight
+the current line** and **Turn off animations**. The list that opens under a field gets as wide as its
 columns need, up to a maximum you set with a slider; a second slider makes it
 taller. Slide both to *BC standard* to turn it off. In editable lists, such as
 the lines of a sales order or a journal, the line you are on gets a light tint
-across its full width.
+across its full width. Pages, dialogs, FastTabs and the FactBox pane appear at
+once instead of sliding or fading in; progress indicators keep moving.
 
 ## 🎯 How matching works
 
@@ -96,7 +97,7 @@ that in the conditions of your rule (for example `url` `contains`
 ## 🗂️ Rules and layouts
 
 The options page has a navigation on the left: **Web client** (wide layout,
-dropdown size, current line),
+dropdown size, current line, animations),
 **Environments** (rules and layouts), **Settings** (shared configuration,
 import/export) and **About**.
 
@@ -215,6 +216,11 @@ rather than break anything — please open an issue.
 it opens, and leaves what you change yourself afterwards alone. If it does
 nothing at all after a BC update, BC has changed its wide-layout or layout
 buttons — please open an issue.
+
+**Something still slides or fades.** Turn off animations covers what BC
+animates by name: pages, dialogs, FastTabs, the FactBox pane and Maximize.
+Progress indicators keep moving on purpose. If something else animates after a
+BC update, BC has added or renamed it; please open an issue.
 
 ## 📄 Licence
 
