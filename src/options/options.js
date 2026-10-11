@@ -28,7 +28,6 @@
     t: t,
     TRIMMED_TYPES: ['text', 'url', 'search'],
     UI_KEY: 'ui',
-    PENDING_KEY: 'pendingRule',
     SAMPLE_URL: 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
       'Sandbox?company=CRONUS%20BE&page=1'
   };
@@ -39,15 +38,22 @@
 
   page.renderAll = function () {
     page.el.globalEnabled.checked = page.state.settings.enabled;
-    page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
-    page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
-    page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
-    page.renderDropdown();
+    page.renderWebClient();
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
 
     page.refreshContext();
     page.renderHosted();
+  };
+
+  page.renderWebClient = function () {
+    page.el.copyValuesEnabled.checked = page.state.settings.copyValues.enabled;
+    page.el.weekNumbersEnabled.checked = page.state.settings.weekNumbers.enabled;
+    page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
+    page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
+    page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
+    page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
+    page.renderDropdown();
   };
 
   page.renderDropdown = function () {
@@ -75,11 +81,12 @@
 
   page.renderParsed = function () {
     var ctx = page.state.ctx;
-    // Only what the URL actually reveals; empty fields are noise.
+    // Only what the URL actually reveals; empty fields are noise. Broadest
+    // first, the way a BC URL nests them: tenant, environment, company.
     var pairs = [
+      [t('labelTenant'), ctx.tenant],
       [t('labelEnvironment'), ctx.environment],
-      [t('labelCompany'), ctx.company],
-      [t('labelTenant'), ctx.tenant]
+      [t('labelCompany'), ctx.company]
     ].filter(function (pair) { return pair[1]; });
 
     page.el.parsed.textContent = '';
@@ -218,12 +225,13 @@
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared',
       'brandDot', 'maximizeEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
+      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
       BCBuddy.loadSettings(),
-      chrome.storage.local.get([page.UI_KEY, page.PENDING_KEY])
+      chrome.storage.local.get(page.UI_KEY)
     ]).then(function (results) {
       state.settings = results[0];
       var stored = results[1] || {};
@@ -232,14 +240,6 @@
       state.panel = ui.panel || 'environments';
       // The Web client panel used to be called Maximize.
       if (state.panel === 'maximize') state.panel = 'webclient';
-      var pending = stored[page.PENDING_KEY];
-      if (pending) {
-        var draft = BCBuddy.newRule(pending);
-        state.settings.rules.unshift(draft);
-        state.expanded[page.expandKey('rule', draft, false)] = true;
-        chrome.storage.local.remove(page.PENDING_KEY);
-        page.save();
-      }
       bind();
       page.renderAll();
     }).catch(function (err) {
@@ -269,6 +269,16 @@
       page.save();
     });
 
+    el.copyValuesEnabled.addEventListener('change', function () {
+      state.settings.copyValues.enabled = el.copyValuesEnabled.checked;
+      page.save();
+    });
+
+    el.weekNumbersEnabled.addEventListener('change', function () {
+      state.settings.weekNumbers.enabled = el.weekNumbersEnabled.checked;
+      page.save();
+    });
+
     el.maximizeEnabled.addEventListener('change', function () {
       state.settings.maximize.enabled = el.maximizeEnabled.checked;
       page.save();
@@ -281,6 +291,11 @@
 
     el.noAnimationsEnabled.addEventListener('change', function () {
       state.settings.noAnimations.enabled = el.noAnimationsEnabled.checked;
+      page.save();
+    });
+
+    el.hideNotificationsEnabled.addEventListener('change', function () {
+      state.settings.hideNotifications.enabled = el.hideNotificationsEnabled.checked;
       page.save();
     });
 

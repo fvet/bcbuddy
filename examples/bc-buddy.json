@@ -35,13 +35,13 @@
   "rules": [
     {
       "id": "6b77974b-29ad-4446-8f06-d658062d5d07",
-      "name": "DYNAVISIONTEST",
+      "name": "Test",
       "enabled": true,
       "conditions": [
         {
           "field": "environment",
           "op": "equals",
-          "value": "DynavisionTEST"
+          "value": "Test"
         }
       ],
       "color": "#c4314b",
@@ -105,5 +105,29 @@
         "text": ""
       }
     }
-  ]
+  ],
+  "webClient": {
+    "maximize": {
+      "enabled": true
+    },
+    "dropdown": {
+      "width": 5,
+      "height": 1
+    },
+    "highlightRow": {
+      "enabled": true
+    },
+    "noAnimations": {
+      "enabled": false
+    },
+    "hideNotifications": {
+      "enabled": true
+    },
+    "copyValues": {
+      "enabled": true
+    },
+    "weekNumbers": {
+      "enabled": true
+    }
+  }
 }

@@ -66,11 +66,11 @@
 }
 
 .bcb-ribbon.bcb-production {
-  background: #c62828;
+  background: #2e7d32;
 }
 
 .bcb-ribbon.bcb-sandbox {
-  background: #2e7d32;
+  background: #c62828;
 }
 
 /* Header ------------------------------------------------------------------ */

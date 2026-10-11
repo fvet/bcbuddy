@@ -178,3 +178,79 @@ html[data-bcb-calm] .ms-Image {
 
 /* FastTabs slide with element.animate(), which CSS cannot shorten; calm.js
    handles those. */
+
+/* No notifications bell. BC's top bar keeps the bell in one container with a
+   fixed id, so a single id rule hides it in whichever frame it lives. */
+html[data-bcb-no-bell] #notifications_container {
+  display: none !important;
+}
+
+/* Copy values: the one icon, our own element in body, placed with a
+   transform by copyvalues.js. Nothing here touches BC's cells. Neutral like
+   BC's own icon buttons; a green tick after a copy. `all: initial` keeps BC's
+   button styles off it. Size must match SIZE in copyvalues.js. */
+#bcb-copy {
+  all: initial;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, .16);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #605e5c;
+  cursor: pointer;
+}
+#bcb-copy[hidden] { display: none; }
+#bcb-copy:hover { background: #f3f2f1; color: #201f1e; }
+#bcb-copy > svg { width: 14px; height: 14px; fill: currentColor; pointer-events: none; }
+#bcb-copy > svg.bcb-copy__done { display: none; }
+#bcb-copy.bcb-copy--done { color: #107c10; }
+#bcb-copy.bcb-copy--done > svg.bcb-copy__copy { display: none; }
+#bcb-copy.bcb-copy--done > svg.bcb-copy__done { display: block; }
+
+/* Open in a new tab (beta, undocumented; see newtab.js): while newtab.js lets
+   BC open a link to move it to a new tab, for a second or so, the page BC opens stays out of sight above the
+   page you are on. BC
+   stacks its pages as siblings and keeps the ones below rendered, so the page
+   you were on simply stays in view. The attribute on <html> is only there
+   during that second; the rest of the time this rule matches nothing. */
+html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
+  visibility: hidden !important;
+}
+
+/* Week numbers in the date picker. weeknumbers.js puts the number on the
+   first cell of each week row; this draws it in a margin left of the grid,
+   with a thin line between the numbers and the days, as Fluent's own week
+   numbers have. The rows touch, so the line runs unbroken. BC's picker is
+   Fluent UI's Calendar, a fixed 220px wide: width auto lets it grow by the
+   margin, and its pop-up grows along. Fluent already makes the cells
+   position: relative and puts nothing in their ::before. */
+html[data-bcb-weeks] .ms-Callout-main > .fui-Calendar {
+  width: auto;
+  padding-left: 28px;
+}
+html[data-bcb-weeks] .fui-CalendarDayGrid__weekRow > td[data-bcb-week]::before {
+  content: attr(data-bcb-week);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  box-sizing: border-box;
+  width: 30px;
+  margin-right: 4px;
+  padding-right: 8px;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 11px;
+  color: #616161;
+  pointer-events: none;
+}

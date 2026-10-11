@@ -1,19 +1,28 @@
-If you work across several customers or environments, all your Business Central tabs start to look the same. Posting in production while you thought you were in a sandbox is easily done.
+BC Buddy makes the Business Central web client easier to work in, and gives every environment its own colour so you never post in production by mistake.
 
-BC Buddy gives every environment its own colour, so you can see at a glance where you are:
+An easier web client, straight away. No setup needed:
 
-- The bar at the top of the client takes your colour and your text, for example "PRODUCTION - CRONUS BE".
+- Copy any value with one click, also an amount or a No. you cannot select.
+- Every page in wide layout, and lists instead of tiles.
+- Dropdowns that show all their columns, so you no longer scroll sideways.
+- Week numbers in the calendar of a date field.
+- The line you are on in a journal or order stands out.
+- No notifications bell, and if you like, no animations.
+
+Each one has its own switch in the options.
+
+A colour for every environment. A test environment and the real one look exactly alike. BC Buddy marks them, so you see at a glance where you are:
+
+- The bar at the top of Business Central takes your colour and your text, for example "PRODUCTION - CRONUS BE".
 - A coloured frame around the window.
 - A banner along the bottom, or a ribbon in the corner.
 - The tab title, for example "[TEST] Company Information".
 - A coloured icon on the tab, so you find the right one among ten others.
 
-Business Central itself gets more room too: every page expands to wide layout, tile pages switch to list view, and the list that opens under a field grows as wide as its columns need. Each can be turned off in the options.
+You decide when each colour appears: per environment, per company or per customer. Production green, sandbox red - or whatever suits you.
 
-You decide when each colour appears: per environment, per company or per customer. Production green, test orange, sandbox red - or whatever suits you.
+Working in a team? One person sets up the colours and everyone else gets them automatically, including later changes.
 
-Working in a team? Everyone can use the same markings. Set them up once and your colleagues get them automatically, including later changes.
+Works with Business Central online and on your own server. Available in English, Dutch and French.
 
-Business Central online and on-premises are both recognised. The extension is available in Dutch and English.
-
-Everything stays on your own machine: no server, no analytics, no tracking.
+Everything stays on your own computer: no account, no server, no tracking.

@@ -74,6 +74,13 @@
           card.querySelectorAll('[data-action="toggle"]').forEach(function (button) {
             button.disabled = false;
           });
+          // Shared rules keep the order from the shared file: the triangle and
+          // the swatch only toggle, they are no grip.
+          card.querySelectorAll('[data-grip]').forEach(function (grip) {
+            grip.removeAttribute('data-grip');
+            grip.classList.remove('rule__grip');
+            grip.title = t('toggleDetails');
+          });
           // A shared rule cannot be edited, but you can duplicate it into your own
           // rules and tweak the copy.
           var tools = card.querySelector('.rule__tools');

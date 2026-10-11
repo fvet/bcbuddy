@@ -1,0 +1,28 @@
+BC Buddy rend le client Web Business Central plus agréable à utiliser, et donne à chaque environnement sa propre couleur pour ne plus jamais valider en production par erreur.
+
+Un client Web plus pratique, tout de suite. Aucune configuration nécessaire :
+
+- Copiez n'importe quelle valeur en un clic, même un montant ou un n° impossible à sélectionner.
+- Chaque page en disposition large, et des listes au lieu de mosaïques.
+- Des listes déroulantes qui montrent toutes leurs colonnes : plus besoin de faire défiler sur le côté.
+- Les numéros de semaine dans le calendrier d'un champ date.
+- La ligne sur laquelle vous êtes dans une feuille ou une commande ressort.
+- Plus de cloche des notifications et, si vous le souhaitez, plus d'animations.
+
+Chacun a son propre interrupteur dans les paramètres.
+
+Une couleur pour chaque environnement. Un environnement de test et le vrai se ressemblent comme deux gouttes d'eau. BC Buddy les marque, pour que vous voyiez d'un coup d'œil où vous êtes :
+
+- La barre en haut de Business Central prend votre couleur et votre texte, par exemple « PRODUCTION - CRONUS BE ».
+- Un cadre coloré autour de la fenêtre.
+- Une bannière en bas, ou un bandeau dans un angle.
+- Le titre de l'onglet, par exemple « [TEST] Informations société ».
+- Une icône colorée sur l'onglet, pour trouver le bon parmi dix autres.
+
+Vous décidez quand chaque couleur apparaît : par environnement, par société ou par client. Production en vert, bac à sable en rouge - ou ce qui vous convient.
+
+Vous travaillez en équipe ? Une personne configure les couleurs et tous les autres les reçoivent automatiquement, modifications ultérieures comprises.
+
+Fonctionne avec Business Central online et sur votre propre serveur. Disponible en anglais, néerlandais et français.
+
+Tout reste sur votre ordinateur : pas de compte, pas de serveur, pas de suivi.

@@ -104,6 +104,8 @@
         if (!confirm(t('clearSharedConfirm', [hosted.rules.length]))) return;
         hosted.rules = [];
         hosted.layouts = [];
+        // Starting over means the file's Web client defaults count as new again.
+        hosted.webClient = {};
         hosted.lastHash = '';
         hosted.sourceName = '';
         hosted.lastSync = null;
@@ -161,10 +163,13 @@
 
         var merged = BCBuddy.mergeRules(state.settings.rules, parsed.rules);
         state.settings.rules = merged.rules;
+        // An import by hand is deliberate: the file's Web client settings win.
+        var webClientChanged = BCBuddy.applyWebClient(state.settings, parsed.webClient);
         page.save();
         page.renderRules();
         page.renderLayouts();
         page.renderParsed();
+        page.renderWebClient();
 
         var stats = merged.stats;
         var layoutStats = mergedLayouts.stats;
@@ -175,7 +180,8 @@
 
         page.setImportStatus(
           t('importDone', [parsed.rules.length, page.shorten(source), rules || t('importNone')]) +
-          (layouts ? t('importLayouts', [layouts]) : ''), 'ok');
+          (layouts ? t('importLayouts', [layouts]) : '') +
+          (webClientChanged ? t('importWebClient', [webClientChanged]) : ''), 'ok');
       };
 
       page.renderHostedStatus = function () {
@@ -184,8 +190,9 @@
         // When shared configuration is off, dim the field — like a disabled rule.
         var field = el.hostedUrl.closest('.field');
         if (field) field.classList.toggle('field--inactive', !h.active);
+        // No URL: the empty field says it already, so the line stays hidden.
         if (!h.url) {
-          page.setHostedStatus(t('statusNoHosted'));
+          page.setHostedStatus('');
           return;
         }
         // Legacy http:// URLs stay visible but cannot sync until upgraded.

@@ -138,9 +138,10 @@ function report() {
 /* ---- syntax check of all script files ----------------------------------- */
 var FILES = [
   'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/lib/maximize.js',
+  'src/lib/copyvalues.js', 'src/lib/newtab.js', 'src/lib/weeknumbers.js',
   'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
-  'src/options/options-hosted.js', 'src/options/options.js', 'src/popup/popup.js'
+  'src/options/options-hosted.js', 'src/options/options.js'
 ];
 
 Promise.all(FILES.map(function (f) {
@@ -160,10 +161,10 @@ Promise.all(FILES.map(function (f) {
   report();
 });
 
-/* ---- the brand appears three times --------------------------------------
- * logo.svg supplies the PNGs; the options page and popup have the brand inline,
- * because only that way can the tint follow the browser theme.
- * Those two copies can therefore quietly drift from the source.
+/* ---- the brand appears twice -------------------------------------------
+ * logo.svg supplies the PNGs; the options page has the brand inline, because
+ * only that way can the tint follow the browser theme.
+ * That copy can therefore quietly drift from the source.
  * Hence this check on the geometry — not the colors: the fill differs on purpose
  * (var(--brand-mark) versus a fixed tint), as do the ids, which must be unique per document.
  */
@@ -194,7 +195,7 @@ function markSignature(svg) {
 }
 
 function assertBrandMark() {
-  var sources = ['icons/logo.svg', 'src/options/options.html', 'src/popup/popup.html'];
+  var sources = ['icons/logo.svg', 'src/options/options.html'];
   return Promise.all(sources.map(function (f) {
     return fetch(ROOT + f).then(function (r) { return r.text(); });
   })).then(function (texts) {
@@ -213,8 +214,6 @@ function assertBrandMark() {
 
     check('brand: options page matches logo.svg',
       markSignature(inlineMark(texts[1], 'options.html')), expected);
-    check('brand: popup matches logo.svg',
-      markSignature(inlineMark(texts[2], 'popup.html')), expected);
   });
 }
 
@@ -307,7 +306,7 @@ function messageText(locale, key) {
 }
 
 function assertMessages() {
-  var sources = FILES.concat(['src/options/options.html', 'src/popup/popup.html', 'manifest.json']);
+  var sources = FILES.concat(['src/options/options.html', 'manifest.json']);
   return localeFolders().then(function (codes) {
     return Promise.all([
       fetch(ROOT + 'manifest.json').then(function (r) { return r.json(); }),
@@ -317,6 +316,10 @@ function assertMessages() {
       }))
     ]);
   }).then(function (loaded) {
+    // A popup would swallow the click that background.js turns into the
+    // options page.
+    check('manifest: the toolbar icon has no popup',
+      (loaded[0].action || {}).default_popup, undefined);
     var fallback = loaded[0].default_locale;
     var locales = loaded[1];
     var source = loaded[2].join('\n');
@@ -531,10 +534,14 @@ function assertOptions() {
 
   // rules start collapsed until you click them
   truthy('options: rules start collapsed', first.classList.contains('rule--collapsed'));
-  check('options: no separate collapse arrow on a rule',
-    first.querySelector('.rule__toggle'), null);
-  truthy('options: color swatch is the toggle',
-    first.querySelector('[data-action="toggle"]').classList.contains('rule__swatch'));
+  truthy('options: rule has the same triangle as a layout',
+    first.querySelector('[data-action="toggle"]').classList.contains('rule__toggle'));
+  truthy('options: the triangle is also the grip',
+    first.querySelector('[data-action="toggle"]').hasAttribute('data-grip'));
+  check('options: the colour swatch is a grip too',
+    first.querySelector('[data-swatch]').hasAttribute('data-grip'), true);
+  check('options: color swatch is no button',
+    first.querySelector('[data-swatch]').tagName, 'SPAN');
   check('options: aria-expanded is false',
     first.querySelector('[data-action="toggle"]').getAttribute('aria-expanded'), 'false');
   check('options: rule on/off uses the same toggle',
@@ -549,6 +556,14 @@ function assertOptions() {
   check('options: aria-expanded is true',
     first.querySelector('[data-action="toggle"]').getAttribute('aria-expanded'), 'true');
   truthy('options: details now visible', first.querySelector('[data-body]').offsetParent !== null);
+  check('options: no Appearance heading above the colour row',
+    first.querySelectorAll('[data-body] .rule__section')[1].firstElementChild.tagName, 'DIV');
+  check('options: Colour heading sits on the label row',
+    first.querySelector('.field--colour > h4').getBoundingClientRect().top,
+    first.querySelector('[data-path="textColor"]').closest('.field').getBoundingClientRect().top);
+  check('options: palette lines up with the selects',
+    Math.round(first.querySelector('[data-palette]').getBoundingClientRect().top),
+    Math.round(first.querySelector('[data-path="textColor"]').getBoundingClientRect().top));
 
   first.querySelector('[data-action="toggle"]').click();
   truthy('options: click again collapses', first.classList.contains('rule--collapsed'));
@@ -582,8 +597,10 @@ function assertOptions() {
   truthy('options: shared rule expands', !hostedCard.classList.contains('rule--collapsed'));
   truthy('options: shared rule has no chip anymore',
     hostedCard.textContent.indexOf(chrome.i18n.getMessage('sharedRules')) === -1);
-  truthy('options: shared rule cannot be dragged',
-    hostedCard.querySelector('[data-grip]').disabled);
+  check('options: shared rule cannot be dragged',
+    hostedCard.querySelector('[data-grip]'), null);
+  truthy('options: shared rule keeps its triangle',
+    hostedCard.querySelector('.rule__toggle') !== null);
   truthy('options: sync status shows source',
     document.getElementById('hostedStatus').textContent.indexOf('Bedrijf X') !== -1);
 
@@ -605,12 +622,17 @@ function assertOptions() {
   check('options: import and export share one list',
     document.getElementById('importFileBtn').closest('.card--list'),
     document.getElementById('exportDownload').closest('.card--list'));
-  // Rules come before Layouts: that is where everyone starts
+  // The test URL heads the panel like Shared configuration heads Settings;
+  // then Rules before Layouts, because that is where everyone starts
   var envHeads = Array.prototype.map.call(
     document.querySelectorAll('.panel[data-panel="environments"] .section-head h2'),
     function (h) { return h.textContent; });
-  check('options: Rules above Layouts', envHeads,
-    [chrome.i18n.getMessage('rulesHeading'), chrome.i18n.getMessage('layoutsHeading')]);
+  check('options: Test URL, then Rules above Layouts', envHeads,
+    [chrome.i18n.getMessage('testUrlHeading'), chrome.i18n.getMessage('rulesHeading'),
+      chrome.i18n.getMessage('layoutsHeading')]);
+  check('options: test URL field labelled inside its card',
+    document.querySelector('label[for="testUrl"]').closest('.card'),
+    document.getElementById('testUrl').closest('.card'));
   // the rule switch shows its state itself; the label is for screen readers
   var ruleSwitch = first.querySelector('input[data-path="enabled"]');
   check('options: rule switch has no On text', ruleSwitch.closest('label').textContent.trim(), '');
@@ -622,8 +644,8 @@ function assertOptions() {
   check('options: no interval choice anymore', document.getElementById('hostedInterval'), null);
   check('options: no advanced block anymore', document.getElementById('pollMs'), null);
   check('options: and no reset button', document.getElementById('resetAll'), null);
-  check('options: trust warning present',
-    document.querySelector('.trust-note').textContent, chrome.i18n.getMessage('sharedTrust'));
+  // The "URL you control" warning lives in the docs, not on the page.
+  check('options: no trust note on the page', document.querySelector('.trust-note'), null);
   truthy('options: intro mentions HTTPS',
     document.querySelector('[data-i18n="sharedIntro"]').textContent.indexOf('HTTPS') !== -1);
 
@@ -685,6 +707,21 @@ function assertOptions() {
   check('options: the top step saves full opacity', steps.controlValue(probe), 1);
   probe.value = '1';
   check('options: the bottom step saves 0.2', steps.controlValue(probe), 0.2);
+  var fontSize = layoutOne.querySelector('input[data-path="banner.fontSize"]');
+  check('options: banner size is a slider of five steps',
+    [fontSize.type, fontSize.min, fontSize.max, fontSize.step], ['range', '1', '5', '1']);
+  var sizeProbe = fontSize.cloneNode(true);
+  sizeProbe.value = '1';
+  check('options: the bottom size step saves 0 (automatic)', steps.controlValue(sizeProbe), 0);
+  sizeProbe.value = '5';
+  check('options: the top size step saves 22', steps.controlValue(sizeProbe), 22);
+  steps.setControlValue(sizeProbe, 0);
+  check('options: an automatic size shows the bottom step', sizeProbe.value, '1');
+  steps.setControlValue(sizeProbe, 16);
+  check('options: a saved size between steps shows the nearest', sizeProbe.value, '3');
+  check('options: the banner position has no caption, only an aria-label',
+    [posSelect.closest('label'), posSelect.getAttribute('aria-label')],
+    [null, chrome.i18n.getMessage('bannerPosition')]);
   check('options: toggle label is Ribbon',
     layoutOne.querySelector('[data-i18n="ribbonToggle"]').textContent, 'Ribbon');
   check('options: and Tab title',
@@ -851,6 +888,12 @@ function assertOptions() {
   var transfer = new DataTransfer();
   dragged.querySelector('[data-grip]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
   truthy('options: grip makes card draggable', dragged.draggable);
+  dragged.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  truthy('options: released without dragging, the card is normal again', !dragged.draggable);
+  dragged.querySelector('[data-swatch]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  truthy('options: colour swatch makes card draggable', dragged.draggable);
+  dragged.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  dragged.querySelector('[data-grip]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
   dragged.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: transfer }));
 
   var lastCard = document.querySelectorAll('#ruleList .rule')[namesBefore.length - 1];
@@ -911,15 +954,32 @@ function assertWebClient() {
   check('web client: current line is on by default', row.checked, true);
   var calm = document.getElementById('noAnimationsEnabled');
   check('web client: animations switch lives in the panel', calm.closest('.panel'), panel);
-  check('web client: animations switch is on by default', calm.checked, true);
+  check('web client: animations switch is off by default', calm.checked, false);
+  var copyRow = document.getElementById('copyValuesEnabled');
+  check('web client: copy values switch lives in the panel', copyRow.closest('.panel'), panel);
+  check('web client: copy values switch is on by default', copyRow.checked, true);
+  check('web client: copy values switch is the first row',
+    copyRow.closest('.card').querySelector('.setting').contains(copyRow), true);
+  check('web client: open in a new tab is beta and has no switch',
+    document.getElementById('newTabEnabled'), null);
+  var weeks = document.getElementById('weekNumbersEnabled');
+  check('web client: week numbers switch lives in the panel', weeks.closest('.panel'), panel);
+  check('web client: week numbers switch is on by default', weeks.checked, true);
+  var bell = document.getElementById('hideNotificationsEnabled');
+  check('web client: notifications switch lives in the panel', bell.closest('.panel'), panel);
+  check('web client: notifications switch is on by default', bell.checked, true);
+  var webClientRows = bell.closest('.card').querySelectorAll('.setting');
+  check('web client: animations switch is the last row',
+    webClientRows[webClientRows.length - 1].contains(
+      document.getElementById('noAnimationsEnabled')), true);
   check('web client: both sliders live in the panel',
     [width.closest('.panel'), height.closest('.panel')], [panel, panel]);
   check('web client: sliders have five steps',
     [width.min, width.max, width.step, height.min, height.max, height.step],
     ['1', '5', '1', '1', '5', '1']);
-  check('web client: width defaults to step 3', width.value, '3');
+  check('web client: width defaults to step 5', width.value, '5');
   check('web client: height defaults to BC standard', height.value, '1');
-  check('web client: width shows how much bigger', document.getElementById('dropdownWidthValue').textContent, '150%');
+  check('web client: width shows how much bigger', document.getElementById('dropdownWidthValue').textContent, '200%');
   check('web client: height at step 1 says BC standard',
     document.getElementById('dropdownHeightValue').textContent, chrome.i18n.getMessage('dropdownStandard'));
 
@@ -927,7 +987,7 @@ function assertWebClient() {
   height.dispatchEvent(new Event('input', { bubbles: true }));
   check('web client: label follows the slider', document.getElementById('dropdownHeightValue').textContent, '150%');
   return wait(400).then(function () {
-    check('web client: the step is saved, not pixels', STORE.settings.dropdown, { width: 3, height: 5 });
+    check('web client: the step is saved, not pixels', STORE.settings.dropdown, { width: 5, height: 5 });
     width.value = '1';
     width.dispatchEvent(new Event('input', { bubbles: true }));
     height.value = '1';
@@ -949,11 +1009,35 @@ function assertWebClient() {
     calm.click();
     return wait(400);
   }).then(function () {
-    check('web client: animations switch is saved', STORE.settings.noAnimations, { enabled: false });
+    check('web client: animations switch is saved', STORE.settings.noAnimations, { enabled: true });
     calm.click();
     return wait(400);
   }).then(function () {
-    check('web client: and the animations switch turns back on', STORE.settings.noAnimations, { enabled: true });
+    check('web client: and the animations switch turns back off', STORE.settings.noAnimations, { enabled: false });
+    bell.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: notifications switch is saved', STORE.settings.hideNotifications, { enabled: false });
+    bell.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the notifications switch turns back on', STORE.settings.hideNotifications, { enabled: true });
+    copyRow.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: copy values switch is saved', STORE.settings.copyValues, { enabled: false });
+    copyRow.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the copy values switch turns back on', STORE.settings.copyValues, { enabled: true });
+    weeks.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: week numbers switch is saved', STORE.settings.weekNumbers, { enabled: false });
+    weeks.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the week numbers switch turns back on', STORE.settings.weekNumbers, { enabled: true });
   });
 }
 
@@ -997,7 +1081,7 @@ function assertParsedUrl() {
   setUrl('https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE');
   check('URL: all four fields on full BC URL',
     Array.prototype.map.call(parsed.querySelectorAll('dt'), function (dt) { return dt.textContent; }),
-    [chrome.i18n.getMessage('labelEnvironment') + ':', chrome.i18n.getMessage('labelCompany') + ':', chrome.i18n.getMessage('labelTenant') + ':']);
+    [chrome.i18n.getMessage('labelTenant') + ':', chrome.i18n.getMessage('labelEnvironment') + ':', chrome.i18n.getMessage('labelCompany') + ':']);
 
   return assertTabPicker(input);
 }
@@ -1066,6 +1150,8 @@ function assertNav() {
     items[3].textContent.trim() === chrome.i18n.getMessage('navAbout'));
   truthy('nav: and explains what the extension does',
     about.querySelector('[data-i18n="aboutIntro"]').textContent.length > 60);
+  check('nav: with the web client paragraph first',
+    about.querySelector('.card p').getAttribute('data-i18n'), 'aboutIntroMaximize');
   check('nav: with email address',
     about.querySelector('a[href^="mailto:"]').getAttribute('href'),
     'mailto:frederic.vercaemst@outlook.com');
@@ -1218,6 +1304,9 @@ function assertClearShared() {
     return wait(400).then(function () {
       truthy('clear: empty URL disables shared config too',
         STORE.settings.hosted.active === false && STORE.settings.hosted.url === '');
+      // The empty field says enough; no "nothing configured" line under it.
+      check('clear: no status line without URL',
+        document.getElementById('hostedStatus').textContent, '');
     });
   });
 }

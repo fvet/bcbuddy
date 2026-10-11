@@ -7,7 +7,7 @@ Working on BC Buddy itself. For what the extension does and how to use it, see
 
 ```
 manifest.json
-_locales/              en (default) and nl; see TRANSLATING.md
+_locales/              en (default), nl and fr; see TRANSLATING.md
 src/
   background.js        service worker: synchronises the shared file
   lib/i18n.js          fetching translations
@@ -15,12 +15,14 @@ src/
   lib/settings.js      storage, defaults, normalisation, import/export
   lib/dropdowns.js     dropdown size: sizes BC's lookup dropdowns
   lib/maximize.js      maximize: wide layout and list view on BC's own controls
+  lib/copyvalues.js    copy values: the copy icon on read-only values
+  lib/weeknumbers.js   week numbers in the date picker
   content/content.js   draws frame, banner, ribbon, title and favicon;
-                       starts maximize, the dropdown sizer and the row tint
+                       starts maximize, the dropdown sizer, the copy icon,
+                       week numbers and the row tint
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted
-  popup/               popup on the extension icon
 examples/              example of a shared configuration (schema version 2)
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
@@ -46,15 +48,24 @@ Exports carry `"app": "bc-buddy"` and `"version": 2`.
   letters from the rule. Without a layout it falls back to the defaults, so
   drawing never crashes.
 
-Beside rules and layouts sit three personal settings for the **Web client**
-panel. None is part of an export or of the shared file:
+Beside rules and layouts sit seven settings for the **Web client** panel,
+listed in `WEB_CLIENT_KEYS` and normalised by `normalizeWebClient()`. They
+travel in an export and in the shared file as `webClient`; the master switch
+`enabled` does not:
 
 - `maximize.enabled` — wide layout and list view, on by default.
 - `highlightRow.enabled` — the current-line tint, on by default.
 - `dropdown.width` and `dropdown.height` — slider steps 1–5, stored as the step
-  and never as pixels. Step 1 is BC standard; width defaults to 3, height to 1.
+  and never as pixels. Step 1 is BC standard; width defaults to 5, height to 1.
   `normalize()` rounds and clamps them, so a hand-edited or garbled value can
   only ever land on a valid step. The feature is on when either is above 1.
+- `noAnimations.enabled` — turn off BC's animations, off by default.
+- `hideNotifications.enabled` — hide the notifications bell in the top bar, on
+  by default. One `data-bcb-no-bell` attribute on `<html>` and one id rule in
+  `content.css` (`#notifications_container`, in the top document).
+- `copyValues.enabled` — the copy icon on read-only values, on by default.
+- `weekNumbers.enabled` — week numbers in the date picker, on by default. One
+  `data-bcb-weeks` attribute on `<html>` keys the CSS.
 
 `normalize()` always ensures every rule points at a valid layout: a
 configuration with no layouts gets a Default, and a rule whose `layoutId` names
@@ -181,6 +192,95 @@ var l = document.querySelector('.spa-view.spa-lookup');
     function (th) { return th.style.width; })];
 ```
 
+## 📅 Week numbers in the date picker
+
+`lib/weeknumbers.js`, started and stopped by `applyWeekNumbers()` in
+`content.js`, which also sets `data-bcb-weeks` on `<html>`; the numbers are
+drawn by two rules in `content.css`.
+
+BC's date picker is Fluent UI v9's `Calendar` (live client, 2026-10-11).
+Fluent has a `showWeekNumbers` prop, but BC does not set it and an extension
+cannot reach it. The markup:
+
+- the picker opens as a new `div.ms-Layer` in `div#fluent-default-layer-host`,
+  a direct child of `body`, holding `.ms-Callout#react-date-picker` >
+  `.ms-Callout-main` > `.fui-Calendar` (a fixed 220px wide) > `.fui-CalendarDay`
+  > `table.fui-CalendarDayGrid__table[role=grid]`;
+- the visible rows are `tr.fui-CalendarDayGrid__weekRow`. A hidden
+  `__firstTransitionWeek` and `__lastTransitionWeek` row sit around them for
+  the month animation and get no number;
+- every day is a `button.fui-CalendarDayGrid__dayButton` with an `aria-label`
+  such as `22, december, 2025`, in the UI language (`<html lang>`).
+  `parseLabel()` finds the year, the day and a month name in any order, with
+  the names from `Intl.DateTimeFormat`; a label it cannot read gets no number;
+- changing month makes React replace the `tr`s, so our attributes vanish
+  rather than go stale.
+
+So: one `childList` observer on `body` to find the host, one on the host to
+see layers come and go, neither with `subtree`. A layer that holds a
+`.fui-Calendar` gets its rows labelled and an observer of its own (`childList`
+with `subtree`, on about fifty cells) until it is removed, which puts the
+numbers back after a month change. Each first cell gets `data-bcb-week`; the
+CSS draws it with `::before` in a 28px `padding-left`, with a 1px
+`border-right` as the divider Fluent's own week numbers have (the rows touch,
+so it runs unbroken), and `width: auto` on `.fui-Calendar` lets the picker grow
+by that much.
+
+The number is the ISO 8601 week, as BC's own `Date2DWY(Date, 2)`, which
+[Microsoft documents](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/methods-auto/system/system-date2dwy-method)
+as always ISO whatever the server or device settings: Monday first, and week 1
+holds the first Thursday (4 January). A row gets the week of its Monday, which
+covers a picker that starts its rows on another day.
+
+## 📋 Copy values
+
+`lib/copyvalues.js`, started and stopped by `applyCopyValues()` in
+`content.js` like the dropdown sizer: attached once when the switch turns on,
+detached when it turns off, one comparison per `apply()` otherwise.
+
+It is the one place with a document-wide pointer listener, which the
+performance rules otherwise forbid; a hover icon has to know what is under the
+pointer. It is kept as small as it can be:
+
+- one passive `pointerover` listener per frame, only while the switch is on.
+  It fires when the pointer crosses into another element, not per pixel. The
+  handler does one `closest()` and resets one timer; no style or layout reads;
+- after 300 ms of rest it checks the cell and reads its one
+  `getBoundingClientRect()`, then moves the icon with a `transform`;
+- the icon is one `button#bcb-copy` per frame, our own, in `body`. Nothing is
+  written into BC's cells or onto its elements;
+- `scroll`, `keydown`, `pointerdown` and `pointerout` listeners exist only while
+  the icon shows, and hide it.
+
+Which cells qualify (live client, 2026-10-11): `.edit-container-read` with a
+`.stringcontrol-read.value` inside, not `.empty`, `.ms-nav-hidden` or an
+`.empty-anchor-link`, inside `table.ms-nav-grid-data-table` or
+`.ms-nav-layout-factbox-content-area`, and not in a `.spa-lookup` dropdown.
+That covers `td` grid cells and FactBox `div`s. Card fields use the same markup
+in a FastTab (`.collapsibleTab`); there only a value that is a link
+(`a.stringcontrol-read.value`, e.g. Balance (LCY)) qualifies, since plain text
+can be selected with the mouse. Editable card fields also carry
+`.edit-container-read` but hold an `input` or `select`, never a value element. Editable cells are `.edit-container` without
+`-read`, with an `input`. A `.right` cell (amounts) gets the icon on the left,
+just before the text; every other cell gets it at its right edge. The text is
+measured with a `Range` over the value (one more rect read): in lists and
+FactBoxes the value is an `inline-block` as wide as its text, but on a card it
+is a `block` as wide as the field.
+
+What is copied is `value.textContent.trim()`: the full text even when CSS cuts
+it off, without a layout read. Not `title`: on a link it is an action ("Record
+10000 openen"), on an amount it adds the currency. The clipboard is
+`navigator.clipboard.writeText()` (allowed in BC's client frame, same origin);
+on-prem over plain HTTP it falls back to a hidden `textarea` and
+`execCommand('copy')`.
+
+To look at the markup again on a live page:
+
+```js
+var f = [...document.querySelectorAll('iframe')].map(x => x.contentDocument).find(d => d && d.querySelector('table'));
+[...f.querySelectorAll('.edit-container-read')].slice(0, 5).map(c => [c.tagName, c.className, !!c.querySelector('.stringcontrol-read.value')]);
+```
+
 ## 🔗 URL parsing
 
 Both BC SaaS and on-premises URLs are recognised, following the shape from
@@ -218,10 +318,51 @@ name) overwrites in place, new items are added, items missing from the file are
 left alone. Layouts go first so rules can point at something that already
 exists.
 
+An optional `webClient` object carries the Web client settings, shaped as they
+are stored (`{ "maximize": { "enabled": true }, "dropdown": { "width": 5,
+"height": 1 }, … }`). `readWebClient()` keeps only the settings the file names,
+so a file can share just one; a file without the object reads as `null` and
+changes nothing. An import by hand applies them (`applyWebClient()`). A sync
+treats them as defaults (`applySharedWebClient()`): `hosted.webClient` keeps
+what the file said last time, and only a setting whose value in the file
+changed since then is passed on, so a colleague's own choice survives the
+daily sync. Clearing the shared rules forgets it, so the next sync applies the
+file's settings again.
+
+## 🧩 Adding a web client tweak
+
+Every tweak follows the shape of the existing ones: a switch in the Web client
+panel, off when the extension as a whole is off, limited to
+`isWebClientTarget()` URLs, and CSS first wherever CSS can do it. A CSS rule
+that stops matching after a BC update does nothing; a script that clicks the
+wrong thing does damage. A new one brings along:
+
+- **Settings.** One `{ enabled }` object in `normalizeWebClient()`
+  (`settings.js`), like `maximize` and `highlightRow`, with an `…On(settings)`
+  helper that also checks `settings.enabled`. Add its key to
+  `WEB_CLIENT_KEYS`, so it travels in an export and in the shared file.
+- **Options.** One card in the Web client panel (`options.html`,
+  `options.js`), with strings in `_locales/en`, `_locales/nl` and `_locales/fr`.
+- **Content script.** One `apply…()`, called from `apply()` in `content.js` and
+  undone in `clearAll()` or when its switch goes off. `shouldWatch()` wakes the
+  watch loop only for a tweak that keeps acting on BC, as Maximize does; one
+  that is set once (the row tint) stays out of it. See *Performance* in
+  `CLAUDE.md`.
+- **Tests.** Normalisation defaults in `tests/test-core.html`, and an options
+  check in `tests/test-options.html`.
+- **Docs, in the same commit** (see `CLAUDE.md`): a line under `## Unreleased`
+  in `CHANGELOG.md`, a row in the table under README *Web client* together
+  with a section in `docs/web-client.md` (and a bullet in step 2 of
+  `docs/getting-started.md` if it is on by default), and a troubleshooting
+  entry where a feature can visibly fail.
+- **Live check.** Try it against a current BC online client and one on-prem
+  version before it ships.
+
 ## 🌍 Adding a language
 
-The texts live in [`_locales/en/messages.json`](_locales/en/messages.json) and
-[`_locales/nl/messages.json`](_locales/nl/messages.json); `en` is the default and
+The texts live in [`_locales/en/messages.json`](_locales/en/messages.json),
+[`_locales/nl/messages.json`](_locales/nl/messages.json) and
+[`_locales/fr/messages.json`](_locales/fr/messages.json); `en` is the default and
 the fallback. Adding a language comes down to a new folder with the same keys.
 The folder name has to be one the Web Store accepts — `fr`, `pt_BR`, with an
 underscore rather than a hyphen — because upload rejects anything else.
@@ -282,7 +423,7 @@ either; you upload it in the dashboard.
 ## 🧪 Tests
 
 The test pages run the real source in headless Chrome (or Edge): parsing URLs,
-matching rules, the tokens, building the options page and the popup, and what the
+matching rules, the tokens, building the options page, and what the
 content script actually does to the DOM (rewriting and colouring the ribbon, the
 frame, the corner ribbon, the title, the favicon). The dropdown sizer runs
 against a trimmed copy of BC's lookup markup and its caps; see
@@ -293,7 +434,7 @@ powershell -ExecutionPolicy Bypass -File tests/run-tests.ps1
 ```
 
 You can also just open the pages in a browser; `test-core.html` works anywhere,
-while `test-options.html` and `test-popup.html` fetch the HTML and need the
+while `test-options.html` fetches the HTML and needs the
 `--allow-file-access-from-files` flag for that (the runner already sets it).
 
 The runner passes the folder names under `_locales/` along in the URL, because a

@@ -11,6 +11,35 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Copy values**: rest the mouse on a value in a list or a FactBox, or on a
+  field that is a link on a card (Balance (LCY)), and a small copy icon
+  appears. Click it to copy the value exactly as Business Central shows it —
+  also a No. or an amount that is a link, which you could not select before. Works on values you cannot edit. On by default; it is the
+  first switch under **Web client** in the options.
+- **Week numbers in the date picker**: the calendar that opens from a date
+  field shows the week number in front of each week, counted as Business
+  Central itself does: weeks start on Monday, and week 1 is the week with the
+  first Thursday of the year. On by default; switch it off under **Web
+  client** in the options.
+- **Hide the notifications icon**: the bell at the top right of Business
+  Central, which opens Notifications, is hidden. On by default; switch it off
+  under **Web client** in the options to get the bell back.
+- **Share your Web client settings**: **Export** now also saves the switches
+  and sliders under **Web client**, so a team can hand out a set of defaults.
+  Importing such a file applies them. Through a shared configuration they are
+  defaults: each is applied on the first sync, and after that only when the
+  team changes it in the file, so a colleague who switches something off
+  keeps it off.
+- French support
+
+### Fixed
+
+- Layouts in a shared configuration now reach your colleagues. Until now a
+  shared rule always looked like the plain default layout, whatever layout it
+  had in the file.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.11 — 2026-10-09

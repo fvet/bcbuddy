@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "See at a glance which Business Central environment you are in: colour, frame, banner, tab icon, wide pages and bigger dropdowns.",
+    "message": "Makes the Business Central web client easier to work in, and gives every environment its own colour.",
     "description": "The description in the store listing. Hard limit of 132 characters, per language: a longer one is rejected at upload."
   },
   "optionsTitle": {
@@ -8,7 +8,7 @@
     "description": "Title of the options page. BC Buddy is a product name and stays as it is."
   },
   "tagline": {
-    "message": "Mark your Business Central environments with colour, and give the web client more room.",
+    "message": "Make the Business Central web client easier to work in, and give every environment its own colour.",
     "description": "One-line summary under the title on the options page."
   },
   "extensionActive": { "message": "Extension active" },
@@ -16,8 +16,12 @@
     "message": "Saving failed: $1",
     "description": "Shown when the settings could not be stored. $1 is the error message from the browser."
   },
-  "testUrlLabel": { "message": "Test URL" },
-  "testUrlHint": { "message": "(drives the previews below)" },
+  "testUrlHeading": { "message": "Test URL" },
+  "testUrlIntro": {
+    "message": "Drives the previews of the rules and layouts below.",
+    "description": "One line under the Test URL heading."
+  },
+  "testUrlLabel": { "message": "URL of a Business Central page" },
   "useOpenTab": { "message": "From open tab" },
   "useOpenTabTitle": {
     "message": "Takes the URL from an open tab, preferring a Business Central tab",
@@ -25,10 +29,6 @@
   },
   "noUsableTab": { "message": "No open tab with a usable URL found." },
   "nothingRecognised": { "message": "Nothing recognised in this URL." },
-  "labelRule": {
-    "message": "Rule",
-    "description": "Column heading above the name of a rule."
-  },
   "labelEnvironment": {
     "message": "Environment",
     "description": "Business Central term for the environment a tenant runs (production, sandbox). Use the word the Business Central UI uses in this language, not a literal translation."
@@ -49,10 +49,6 @@
   "sharedIntro": {
     "message": "One file over HTTPS gives the whole team the same rules.",
     "description": "One line under the Shared configuration heading. HTTPS is a name and stays as it is."
-  },
-  "sharedTrust": {
-    "message": "Only use a URL you control: the file can define rules that mark any site.",
-    "description": "Warning about pointing the extension at a file somebody else controls."
   },
   "hostedUrlLabel": { "message": "URL of the shared file" },
   "statusDaily": { "message": "Updated every day." },
@@ -75,7 +71,6 @@
     "message": "Copied $1 rule(s) to your own rules.",
     "description": "$1 is a number of rules copied out of the shared configuration into the user\u0027s own list."
   },
-  "statusNoHosted": { "message": "No shared file configured yet." },
   "statusNotSynced": { "message": "Not synced yet." },
   "statusSyncError": {
     "message": "Last attempt ($1) failed: $2",
@@ -93,7 +88,7 @@
   "importExportHeading": { "message": "Import / export" },
   "importHeading": { "message": "Import" },
   "importIntro": {
-    "message": "From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. This does not touch the shared configuration.",
+    "message": "From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. Web client settings in the file replace yours. This does not touch the shared configuration.",
     "description": "Tooltip on the Import row in the Settings panel."
   },
   "chooseFile": { "message": "Choose file..." },
@@ -124,7 +119,7 @@
   },
   "exportHeading": { "message": "Export" },
   "exportIntro": {
-    "message": "Exports your own rules only, in the format this extension also reads.",
+    "message": "Exports your own rules and layouts, plus your Web client settings, in the format this extension also reads.",
     "description": "Tooltip on the Export row in the Settings panel."
   },
   "exportButton": { "message": "Export" },
@@ -138,7 +133,7 @@
   },
   "ruleActiveTitle": { "message": "Rule active" },
   "toggleDetails": { "message": "Show or hide details" },
-  "dragToReorder": { "message": "Drag to reorder (or arrow up/down)" },
+  "toggleOrDrag": { "message": "Click to show or hide details, drag to reorder (or arrow up/down)" },
   "duplicate": { "message": "Duplicate" },
   "deleteRule": { "message": "Delete" },
   "deleteConfirm": {
@@ -221,10 +216,6 @@
     "message": "does not contain",
     "description": "Operator in a condition, read as one line: environment does not contain TEST. Lowercase on purpose, it sits in the middle of that line."
   },
-  "displayHeading": {
-    "message": "Appearance",
-    "description": "Heading above everything that decides what a marked page looks like."
-  },
   "colour": { "message": "Colour" },
   "customColour": { "message": "Pick a custom colour" },
   "textColour": { "message": "Text colour" },
@@ -248,7 +239,7 @@
   },
   "borderHint": {
     "message": "A coloured border around the window",
-    "description": "Tooltip on Frame around the page on a layout."
+    "description": "Tooltip on Frame on a layout."
   },
   "bannerHint": {
     "message": "A bar or corner ribbon with text",
@@ -263,12 +254,12 @@
     "description": "Tooltip on Replace the favicon on a layout."
   },
   "borderToggle": {
-    "message": "Frame around the page",
+    "message": "Frame",
     "description": "Switch for a coloured border drawn around the whole page."
   },
   "borderWidth": {
-    "message": "Thickness (px)",
-    "description": "Thickness of that border. px is a unit and stays as it is."
+    "message": "Thickness",
+    "description": "Caption of a slider for the thickness of that border."
   },
   "bannerToggle": {
     "message": "Banner",
@@ -303,8 +294,12 @@
     "description": "The text on the banner, see bannerToggle."
   },
   "bannerFontSize": {
-    "message": "Text size (0 = auto)",
-    "description": "Size of the banner text. Zero means the extension works it out itself."
+    "message": "Size",
+    "description": "Caption of a slider for the size of the banner text."
+  },
+  "bannerFontSizeHint": {
+    "message": "Text size. All the way left the text shrinks until it fits; further right it is larger and fixed.",
+    "description": "Tooltip on the banner Size slider."
   },
   "bannerOpacity": { "message": "Opacity" },
   "titleToggle": {
@@ -343,28 +338,6 @@
     "message": "A token that stays empty disappears together with the separator next to it.",
     "description": "Closing line under the list of tokens."
   },
-  "popupOwnRule": {
-    "message": "own rule",
-    "description": "Says where the rule in force came from. A fragment that follows other text, hence lowercase."
-  },
-  "popupShared": {
-    "message": "shared configuration",
-    "description": "Says where the rule in force came from. A fragment that follows other text, hence lowercase."
-  },
-  "popupDisabled": { "message": "Extension is off" },
-  "popupBcNoMatch": { "message": "No matching rule" },
-  "popupNotBc": {
-    "message": "Not Business Central",
-    "description": "Shown in the popup when the tab is not a Business Central page."
-  },
-  "popupEnabledMsg": { "message": "Enabled." },
-  "popupDisabledMsg": { "message": "Disabled." },
-  "openOptions": { "message": "Options" },
-  "syncShort": {
-    "message": "Sync",
-    "description": "Short form of syncNow for the popup, where the button is narrow."
-  },
-  "syncFailedShort": { "message": "Syncing failed." },
   "errNoHostedUrl": { "message": "No shared URL configured." },
   "errNotActive": { "message": "The shared configuration is off." },
   "errNoUrl": { "message": "No URL configured." },
@@ -403,6 +376,10 @@
   "importLayouts": {
     "message": " Layouts: $1.",
     "description": "Appended to importDone, which is why it starts with a space. $1 is a number of layouts, see layoutsHeading."
+  },
+  "importWebClient": {
+    "message": " Web client: $1 setting(s) changed.",
+    "description": "Appended to importDone, which is why it starts with a space. $1 is how many switches or sliders on the Web client panel (see webClientHeading) the file changed."
   },
   "emptyLayouts": { "message": "No layouts yet. Add one to reuse the same appearance across several rules." },
   "layoutsIntro": {
@@ -473,6 +450,38 @@
     "message": "Pages, dialogs, FastTabs and panes appear at once instead of sliding or fading in. Progress indicators keep moving.",
     "description": "Explains the turn off animations switch. Tooltip on its row in the Web client panel. FastTab is the Business Central term for a collapsible section on a page: use the word the Business Central UI uses in this language."
   },
+  "copyValuesToggle": {
+    "message": "Copy values",
+    "description": "Label on the on/off switch that shows a copy icon on read-only values in Business Central lists and FactBoxes, and on read-only links on cards."
+  },
+  "copyValuesIntro": {
+    "message": "Rest the mouse on a value in a list or a FactBox, or on a link on a card, and click the icon to copy it, as shown.",
+    "description": "Explains the copy values switch. Tooltip on its row in the Web client panel. FactBox is the Business Central term for the pane on the right: use the word the Business Central UI uses in this language."
+  },
+  "copyValue": {
+    "message": "Copy value",
+    "description": "Tooltip and accessible name of the copy icon shown on a value in Business Central."
+  },
+  "copiedValue": {
+    "message": "Copied",
+    "description": "Tooltip of the copy icon right after the value was copied."
+  },
+  "weekNumbersToggle": {
+    "message": "Week numbers in the date picker",
+    "description": "Label on the on/off switch that shows the week number in front of each week in the Business Central date picker (the calendar that opens from a date field)."
+  },
+  "weekNumbersIntro": {
+    "message": "The calendar that opens from a date field shows the week number in front of each week, counted as Business Central does: weeks start on Monday, and week 1 holds the first Thursday of the year.",
+    "description": "Explains the week numbers switch. Tooltip on its row in the Web client panel."
+  },
+  "hideNotificationsToggle": {
+    "message": "Hide the notifications icon",
+    "description": "Label on the on/off switch that hides the bell icon in the Business Central top bar. Notifications is what Business Central calls the pane that bell opens: use the word the Business Central UI uses in this language."
+  },
+  "hideNotificationsIntro": {
+    "message": "Hides the bell at the top right of Business Central that opens Notifications.",
+    "description": "Explains the hide notifications switch. Tooltip on its row in the Web client panel. Notifications is the Business Central pane the bell opens: use the word the Business Central UI uses in this language."
+  },
   "dropdownWidth": {
     "message": "Width",
     "description": "Label beside the slider that sets the maximum width of a dropdown."
@@ -484,6 +493,10 @@
   "webClientMore": {
     "message": "More about these settings",
     "description": "Link under the Web client settings to the documentation page that explains them."
+  },
+  "environmentsMore": {
+    "message": "More about rules and layouts",
+    "description": "Link under the Environments panel to the documentation page that explains rules and layouts."
   },
   "dropdownStandard": {
     "message": "BC standard",
@@ -505,12 +518,12 @@
     "description": "Shown when somebody tries to delete the only layout left."
   },
   "aboutIntro": {
-    "message": "BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.",
-    "description": "Business Central, production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
+    "message": "It also gives every environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.",
+    "description": "Second paragraph in the About panel, after the web client one. Production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
   },
   "aboutIntroMaximize": {
-    "message": "It also makes the web client easier to work in: pages open in wide layout, tile pages switch to list view, dropdowns get more space and the line you are on stands out.",
-    "description": "Second paragraph in the About panel, describing the web client tweaks (maximize, dropdown size, current line)."
+    "message": "BC Buddy makes the Business Central web client easier to work in: copy any value with one click, pages open in wide layout, tile pages switch to list view, dropdowns get more space, the date picker shows week numbers and the line you are on stands out.",
+    "description": "First paragraph in the About panel, describing the web client improvements. Dropdown and date picker are Business Central terms: use the words the Business Central UI uses in this language."
   },
   "aboutContact": { "message": "Contact" },
   "aboutDocs": { "message": "Documentation" },
