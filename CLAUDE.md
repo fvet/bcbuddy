@@ -33,10 +33,13 @@ detail (URL fields, RegEx, on-premises, JSON) goes at the bottom of a page or in
 a collapsed block. Getting started stays three short steps. Web client
 improvements come before environment colours, everywhere.
 
-A change people notice also gets a line under `## Unreleased` in `CHANGELOG.md`,
-in the same commit that makes it. That file is for users, so it is written in
-their words and about what they see; build, CI, dependency and refactoring work
-stays out of it. The release workflow dates the `Unreleased` section, uses it as
+New functionality gets a line under `## Unreleased` in `CHANGELOG.md`, in the
+same commit that adds it: a new feature or switch, or a fix people notice. Small
+changes to how existing settings and screens look or behave stay out: a
+different default, a reworded label, a slider in place of a field, a control
+moved or dropped. So do build, CI, dependency and refactoring work. That file is
+for users, so it is written in their words and about what they see. The
+release workflow dates the `Unreleased` section, uses it as
 the GitHub release body and opens an empty one for next time — so an entry that
 was never written is a release note nobody gets.
 
