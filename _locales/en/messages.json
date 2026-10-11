@@ -495,6 +495,10 @@
   },
   "navAbout": { "message": "About" },
   "navSettings": { "message": "Settings" },
+  "gearMenuSettings": {
+    "message": "Settings",
+    "description": "Link under the BC Buddy heading in Business Central's gear menu (Settings pane). Opens the options page."
+  },
   "navSections": { "message": "Sections" },
   "defaultLayoutName": {
     "message": "Default",

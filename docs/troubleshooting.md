@@ -36,6 +36,17 @@ back to narrow or to tiles yourself, BC Buddy leaves it that way. A page where
 it does nothing at all after a Business Central update means BC has changed its
 wide-layout or layout buttons — please open an issue so it can catch up.
 
+## BC Buddy is missing from the gear menu
+
+The **BC Buddy** section is added to the Settings pane of Business Central
+online. On-premises BC has a different gear menu and does not get it.
+
+Right after BC Buddy was installed or updated, reload the Business Central tab
+once: a tab that was already open still runs the previous version. If the
+section stays away after a Business Central update, Microsoft has changed that
+pane — please open an issue. The BC Buddy icon in the toolbar always opens the
+options.
+
 ## Something still slides or fades
 
 **Turn off animations** covers what Business Central animates by name: pages,

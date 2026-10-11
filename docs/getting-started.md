@@ -62,6 +62,11 @@ The options page opens on **Environments**. To mark your first environment:
 
 ## Finding your way around
 
+To open the options, click the BC Buddy icon in the toolbar, or, in Business
+Central online, click the gear icon at the top right and choose **Settings**
+under **BC Buddy**. That link is there whenever BC Buddy is installed, also
+while it is switched off.
+
 The options page has a navigation on the left:
 
 | Section | What lives there |

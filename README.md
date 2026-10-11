@@ -38,7 +38,11 @@ A Chrome/Edge extension (Manifest V3). The full documentation is on the website:
 
 ## 🚀 Getting started
 
-The options page opens on **Environments**. To mark your first environment:
+The options page opens on **Environments**. Later you can get back to it from
+the extension icon, or from Business Central online itself: the gear icon at the
+top right has a **BC Buddy** section with a **Settings** link.
+
+To mark your first environment:
 
 1. Click **Add rule**.
 2. Give it a name — that name is what `{name}` produces in your texts, so
@@ -216,6 +220,12 @@ rather than break anything — please open an issue.
 it opens, and leaves what you change yourself afterwards alone. If it does
 nothing at all after a BC update, BC has changed its wide-layout or layout
 buttons — please open an issue.
+
+**BC Buddy is missing from the gear menu.** The section is added to the
+Settings pane of Business Central online; on-premises BC has a different gear
+menu and does not get it. Right after BC Buddy was installed or updated, reload
+the BC tab once. If it stays away after a BC update, Microsoft has changed that
+pane — please open an issue. The extension icon always opens the options.
 
 **Something still slides or fades.** Turn off animations covers what BC
 animates by name: pages, dialogs, FastTabs, the FactBox pane and Maximize.

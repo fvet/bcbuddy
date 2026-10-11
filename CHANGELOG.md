@@ -11,6 +11,13 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **BC Buddy in the gear menu**: in Business Central online, the gear icon's
+  Settings pane now has a **BC Buddy** section with a **Settings** link that
+  opens the options. It is there whenever BC Buddy is installed, also while it
+  is switched off.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.11 — 2026-10-09

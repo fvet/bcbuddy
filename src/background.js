@@ -48,6 +48,13 @@ chrome.storage.onChanged.addListener(function (changes, area) {
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
+  // The Settings link in BC's gear menu (gearmenu.js) runs in a content
+  // script. All it can ask for is our own options page, so this one message
+  // is the exception to the rule below.
+  if (message.type === 'bcb:open-options') {
+    if (sender && sender.id === chrome.runtime.id) chrome.runtime.openOptionsPage();
+    return;
+  }
   // Only options/popup (extension pages). Content scripts share our id but
   // their sender.url is the page they run in — refuse those.
   if (!isExtensionPage(sender)) return;
