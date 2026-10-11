@@ -88,6 +88,9 @@ window.chrome = {
 <script src="../src/lib/settings.js"></script>
 <script src="../src/lib/dropdowns.js"></script>
 <script src="../src/lib/maximize.js"></script>
+<script src="../src/lib/copyvalues.js"></script>
+<script src="../src/lib/newtab.js"></script>
+<script src="../src/lib/weeknumbers.js"></script>
 <script src="../src/lib/gearmenu.js"></script>
 
 <script>
@@ -339,11 +342,33 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.highlightRowOn(BCBuddy.normalize({ enabled: false, highlightRow: { enabled: true } })), false);
 
   // and so does turning animations off
-  check('animations: on by default', BCBuddy.noAnimationsOn(BCBuddy.normalize(null)), true);
-  check('animations: off with its own toggle',
-    BCBuddy.noAnimationsOn(BCBuddy.normalize({ noAnimations: { enabled: false } })), false);
+  check('animations: left alone by default', BCBuddy.noAnimationsOn(BCBuddy.normalize(null)), false);
+  check('animations: turned off with its own toggle',
+    BCBuddy.noAnimationsOn(BCBuddy.normalize({ noAnimations: { enabled: true } })), true);
   check('animations: off when the extension is off',
     BCBuddy.noAnimationsOn(BCBuddy.normalize({ enabled: false, noAnimations: { enabled: true } })), false);
+
+  // and so does hiding the notifications bell
+  check('notifications: hidden by default', BCBuddy.hideNotificationsOn(BCBuddy.normalize(null)), true);
+  check('notifications: shown with its own toggle',
+    BCBuddy.hideNotificationsOn(BCBuddy.normalize({ hideNotifications: { enabled: false } })), false);
+  check('notifications: shown when the extension is off',
+    BCBuddy.hideNotificationsOn(BCBuddy.normalize({ enabled: false, hideNotifications: { enabled: true } })), false);
+
+  // and so does the copy icon
+  check('copy values: on by default', BCBuddy.copyValuesOn(BCBuddy.normalize(null)), true);
+  check('copy values: off with its own toggle',
+    BCBuddy.copyValuesOn(BCBuddy.normalize({ copyValues: { enabled: false } })), false);
+  check('copy values: off when the extension is off',
+    BCBuddy.copyValuesOn(BCBuddy.normalize({ enabled: false, copyValues: { enabled: true } })), false);
+  // and so do week numbers in the date picker
+  check('week numbers: on by default', BCBuddy.weekNumbersOn(BCBuddy.normalize(null)), true);
+  check('week numbers: off with its own toggle',
+    BCBuddy.weekNumbersOn(BCBuddy.normalize({ weekNumbers: { enabled: false } })), false);
+  check('week numbers: off when the extension is off',
+    BCBuddy.weekNumbersOn(BCBuddy.normalize({ enabled: false, weekNumbers: { enabled: true } })), false);
+  // open in a new tab is beta and has no setting at all (see newtab.js)
+  check('new tab: no setting of its own', 'newTab' in BCBuddy.normalize(null), false);
 
   // current row: the rules in content.css against the grid markup of a BC28
   // client - sales lines in edit and in view mode, and a list page. Checked in
@@ -375,6 +400,25 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     check('current row: tinted in a list part in view mode', seen[2], true);
     check('current row: a list page keeps the fill BC gives it', seen[3], false);
     check('current row: nothing while the switch is off', tinted(forms[0], 0), false);
+    host.remove();
+  })();
+
+  // notifications: the bell's container disappears, and only while the
+  // attribute is on <html>; the button beside it stays.
+  (function () {
+    var host = document.createElement('div');
+    host.innerHTML = '<div id="notifications_container"><button>bell</button></div>' +
+      '<div id="settings_container"><button>gear</button></div>';
+    document.body.appendChild(host);
+    var bell = host.querySelector('#notifications_container');
+    var gear = host.querySelector('#settings_container');
+    var root = document.documentElement;
+    var before = getComputedStyle(bell).display;
+    root.setAttribute('data-bcb-no-bell', '');
+    var on = [getComputedStyle(bell).display, getComputedStyle(gear).display];
+    root.removeAttribute('data-bcb-no-bell');
+    check('notifications CSS: the bell shows while the switch is off', before, 'block');
+    check('notifications CSS: the bell is hidden, the rest of the bar stays', on, ['none', 'block']);
     host.remove();
   })();
 
@@ -533,7 +577,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 
   // dropdown size: a slider step per direction, step 1 = BC standard
   var D = BCBuddy.Dropdowns;
-  check('dropdown: width defaults to step 3, height to BC standard', def.dropdown, { width: 3, height: 1 });
+  check('dropdown: width defaults to step 5, height to BC standard', def.dropdown, { width: 5, height: 1 });
   check('dropdown: so it is on by default', D.isOn(def.dropdown), true);
   check('dropdown: both at BC standard is off', D.isOn({ width: 1, height: 1 }), false);
   check('dropdown: height alone turns it on', D.isOn({ width: 1, height: 2 }), true);
@@ -542,7 +586,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('dropdown: steps below 1 snap back',
     BCBuddy.normalize({ dropdown: { width: 0, height: -3 } }).dropdown, { width: 1, height: 1 });
   check('dropdown: garbage falls back to the defaults',
-    BCBuddy.normalize({ dropdown: { width: 'wide', height: null } }).dropdown, { width: 3, height: 1 });
+    BCBuddy.normalize({ dropdown: { width: 'wide', height: null } }).dropdown, { width: 5, height: 1 });
   check('dropdown: a step is a whole number',
     BCBuddy.normalize({ dropdown: { width: 2.6, height: 1.4 } }).dropdown, { width: 3, height: 1 });
   check('dropdown: a pixel value snaps to the top step',
@@ -570,8 +614,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     list.innerHTML = '<form class="ms-nav-lookupform"><table class="ms-nav-grid-header-table"></table></form>';
     return list;
   })()), true);
-  check('dropdown: a personal setting, not part of an export',
-    Object.prototype.hasOwnProperty.call(BCBuddy.toExport(def), 'dropdown'), false);
+  check('dropdown: travels in an export under webClient',
+    BCBuddy.toExport(def).webClient.dropdown, { width: 5, height: 1 });
 
   // maximize: a BC page stack as the BC28 web client builds it. The page you
   // came from stays in the DOM, inert, under the page on screen.
@@ -746,6 +790,57 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     ])).layouts.length, 0);
   check('import: clean rules-only file derives no layout',
     BCBuddy.parseImport(JSON.stringify([{ name: 'A', color: '#c4314b' }])).layouts.length, 0);
+
+  // Web client settings travel in an export too, without the master switch
+  var tweakedExport = BCBuddy.toExport(BCBuddy.normalize({
+    enabled: false, maximize: { enabled: false }, dropdown: { width: 3, height: 2 }
+  }));
+  check('export: every Web client setting included',
+    Object.keys(tweakedExport.webClient), BCBuddy.WEB_CLIENT_KEYS);
+  check('export: Web client values',
+    [tweakedExport.webClient.maximize.enabled, tweakedExport.webClient.dropdown],
+    [false, { width: 3, height: 2 }]);
+  check('export: the master switch stays out',
+    Object.prototype.hasOwnProperty.call(tweakedExport, 'enabled') ||
+    Object.prototype.hasOwnProperty.call(tweakedExport.webClient, 'enabled'), false);
+  check('import: Web client read back',
+    BCBuddy.parseImport(JSON.stringify(tweakedExport)).webClient.dropdown, { width: 3, height: 2 });
+  check('import: older file has no Web client',
+    BCBuddy.parseImport(JSON.stringify({ rules: [] })).webClient, null);
+  check('import: bare array has no Web client', BCBuddy.parseImport('[]').webClient, null);
+  var partialWebClient = BCBuddy.parseImport(JSON.stringify({ rules: [], webClient: {
+    weekNumbers: { enabled: false }, dropdown: { width: 99 }, enabled: false, junk: { enabled: true }
+  } })).webClient;
+  check('import: only the Web client settings the file names',
+    Object.keys(partialWebClient), ['dropdown', 'weekNumbers']);
+  check('import: Web client values normalised', partialWebClient.dropdown, { width: 5, height: 1 });
+
+  var mine = BCBuddy.normalize({});
+  check('import by hand: Web client settings applied, changes counted',
+    [BCBuddy.applyWebClient(mine, partialWebClient), mine.weekNumbers.enabled, mine.dropdown.width],
+    [1, false, 5]);
+  check('import by hand: nothing to apply', BCBuddy.applyWebClient(mine, null), 0);
+
+  // shared Web client settings are defaults: a colleague's own change sticks
+  // until the file changes that setting
+  var colleague = BCBuddy.normalize({});
+  var sharedWebClient = { noAnimations: { enabled: true }, copyValues: { enabled: false } };
+  check('shared: first sync applies the defaults',
+    [BCBuddy.applySharedWebClient(colleague, sharedWebClient),
+      colleague.noAnimations.enabled, colleague.copyValues.enabled], [2, true, false]);
+  colleague.copyValues.enabled = true;
+  check('shared: an unchanged file leaves own changes alone',
+    [BCBuddy.applySharedWebClient(colleague, sharedWebClient), colleague.copyValues.enabled], [0, true]);
+  check('shared: a setting changed in the file comes through, the rest stays',
+    [BCBuddy.applySharedWebClient(colleague,
+      { noAnimations: { enabled: false }, copyValues: { enabled: false } }),
+      colleague.noAnimations.enabled, colleague.copyValues.enabled], [1, false, true]);
+  check('shared: what the file said is kept across a save',
+    BCBuddy.normalize(colleague).hosted.webClient,
+    { noAnimations: { enabled: false }, copyValues: { enabled: false } });
+  check('shared: a file without Web client settings changes nothing',
+    BCBuddy.applySharedWebClient(colleague, null), 0);
+  check('shared: nothing remembered by default', def.hosted.webClient, {});
 
   var mergedResult = BCBuddy.mergeLayouts(
     [BCBuddy.normalizeLayout({ id: 'lay-1', name: 'Standaard', border: { width: 3 } })],
@@ -1070,6 +1165,444 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     });
   }
 
+  // copy values: the markup is copied from a live BC SaaS client (Customers,
+  // Sales Order lines, Customer Statistics FactBox; 2026-10-11), BC's theme
+  // classes left out.
+  var COPY_FIXTURE =
+    '<table class="ms-nav-grid ms-nav-grid-view ms-nav-grid-data-table" style="table-layout:fixed;width:720px;border-collapse:collapse"><tbody><tr>' +
+    '<td class="ms-list-itemLink-td ms-cellstyle" role="gridcell" data-k="menu" style="width:30px"><a class="ms-list-itemLink" role="button" href="#">&#8942;</a></td>' +
+    '<td class="edit-container edit-container-read" role="gridcell" aria-readonly="true" data-k="link" style="width:90px"><a class="stringcontrol-read value" role="button" href="#" title="Record 10000 openen">10000</a></td>' +
+    '<td class="edit-container edit-container-read" role="gridcell" aria-readonly="true" data-k="text" style="width:120px;overflow:hidden;white-space:nowrap"><span class="stringcontrol-read value" role="textbox" aria-readonly="true" title="x">  Adatum Corporation 2111111111111321 31313  </span></td>' +
+    '<td class="edit-container right edit-container-read" role="gridcell" aria-readonly="true" data-k="amount" style="width:110px;text-align:right"><a class="stringcontrol-read value" role="button" href="#">3.515,66</a></td>' +
+    '<td class="edit-container edit-container-read empty" role="gridcell" aria-readonly="true" data-k="empty" style="width:70px"><span class="stringcontrol-read value" role="textbox"></span></td>' +
+    '<td class="edit-container edit-container-read" role="gridcell" aria-readonly="true" data-k="emptylink" style="width:70px"><a class="stringcontrol-read value ms-nav-previewlookup empty-anchor-link" role="button" href="#"></a></td>' +
+    '<td class="edit-container edit-container-read" role="gridcell" aria-readonly="true" data-k="bool" style="width:70px"><div class="input-wrapper" role="checkbox"><input class="booleancontrol-read" type="checkbox"></div></td>' +
+    '<td class="edit-container edit-container-read ms-nav-hidden" role="gridcell" aria-readonly="true" data-k="hidden" style="width:70px"><span class="stringcontrol-read value">Door</span></td>' +
+    '<td class="edit-container ms-nav-editcontrolandonebuttoncontainer" role="gridcell" data-k="edit" style="width:90px"><input class="stringcontrol-edit" type="text" value="1996-S"></td>' +
+    '</tr></tbody></table>' +
+    '<div class="ms-nav-layout-factbox-content-area" style="width:240px"><div class="ms-nav-cardfactbox">' +
+    '<div class="edit-container right edit-container-read" data-k="factbox" style="text-align:right"><span class="stringcontrol-read value" role="textbox" aria-readonly="true" title="0,00 (valuta weergegeven in EUR)">0,00</span></div>' +
+    '</div></div>' +
+    '<form class="ms-nav-cardform"><div class="collapsibleTab"><div class="multiple-columns-group">' +
+    '<div class="edit-container right edit-container-read" data-k="cardlink" style="width:240px;text-align:right"><a class="stringcontrol-read value" role="button" href="#" title="Details voor Balance (LCY)" style="display:block">0,00</a></div>' +
+    '<div class="edit-container edit-container-read" data-k="card" style="width:240px"><span class="stringcontrol-read value">Open</span></div>' +
+    '<div class="edit-container-read edit-container" data-k="cardedit" style="width:240px"><input class="stringcontrol-edit" type="text" value="Adatum"></div>' +
+    '</div></div></form>' +
+    '<div class="edit-container edit-container-read" data-k="loose" style="width:240px"><a class="stringcontrol-read value" href="#">elsewhere</a></div>' +
+    '<div class="spa-lookup"><table class="ms-nav-grid-data-table" style="width:300px"><tbody><tr>' +
+    '<td class="edit-container edit-container-read" role="gridcell" data-k="lookup" style="width:120px"><span class="stringcontrol-read value">BE</span></td>' +
+    '</tr></tbody></table></div>';
+
+  function copyDom() {
+    var C = BCBuddy.CopyValues;
+    var host = document.createElement('div');
+    host.style.cssText = 'position:absolute;left:0;top:0;background:#fff';
+    host.innerHTML = COPY_FIXTURE;
+    document.body.appendChild(host);
+    function cell(k) { return host.querySelector('[data-k="' + k + '"]'); }
+    function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+    function over(el, type) {
+      el.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: type || 'mouse' }));
+    }
+
+    check('copy values: which cells get the icon',
+      ['menu', 'link', 'text', 'amount', 'empty', 'emptylink', 'bool', 'hidden', 'edit', 'factbox',
+        'cardlink', 'card', 'cardedit', 'loose', 'lookup']
+        .map(function (k) { return k + ':' + !!C.valueOf(cell(k)); }),
+      ['menu:false', 'link:true', 'text:true', 'amount:true', 'empty:false', 'emptylink:false', 'bool:false',
+        'hidden:false', 'edit:false', 'factbox:true',
+        'cardlink:true', 'card:false', 'cardedit:false', 'loose:false', 'lookup:false']);
+    check('copy values: a link copies its text, not its title', C.textOf(C.valueOf(cell('link'))), '10000');
+    check('copy values: a cut-off value is copied whole, trimmed',
+      C.textOf(C.valueOf(cell('text'))), 'Adatum Corporation 2111111111111321 31313');
+    check('copy values: an amount is copied as shown', C.textOf(C.valueOf(cell('amount'))), '3.515,66');
+    check('copy values: text gets the icon on the right, amounts on the left',
+      [C.sideOf(cell('text')), C.sideOf(cell('amount')), C.sideOf(cell('factbox'))], ['right', 'left', 'left']);
+    var box = { left: 100, right: 300, top: 10, height: 30 };
+    check('copy values: placed inside the cell, vertically centred',
+      [C.place(box, 'right'), C.place(box, 'left')], [{ x: 278, y: 15 }, { x: 102, y: 15 }]);
+    check('copy values: on the left, just before a short value',
+      C.place(box, 'left', { left: 250 }), { x: 226, y: 15 });
+    check('copy values: but never outside the cell',
+      C.place(box, 'left', { left: 110 }), { x: 102, y: 15 });
+
+    var copied = [];
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: function (text) { copied.push(text); return Promise.resolve(); } }
+    });
+    var handle = C.attach(document, { copy: 'Copy value', copied: 'Copied' });
+    var icon = handle.icon;
+    function showing() { return icon.isConnected && !icon.hidden; }
+    function at() {
+      var r = icon.getBoundingClientRect();
+      return [Math.round(r.left), Math.round(r.top)];
+    }
+    function expected(k, side) {
+      var text = side === 'left' ? C.textRect(C.valueOf(cell(k))) : null;
+      var p = C.place(cell(k).getBoundingClientRect(), side, text);
+      return [p.x, p.y];
+    }
+
+    over(cell('text').firstChild);
+    check('copy values: nothing before the pointer rests', showing(), false);
+    return wait(C.REST_MS + 50).then(function () {
+      check('copy values: the icon shows after a rest', showing(), true);
+      check('copy values: at the right edge of a text cell', at(), expected('text', 'right'));
+      check('copy values: the icon is our own element in body', icon.parentNode, document.body);
+      check('copy values: labelled', [icon.title, icon.getAttribute('aria-label')], ['Copy value', 'Copy value']);
+      over(cell('text'));
+      check('copy values: moving inside the cell keeps it', showing(), true);
+      over(icon);
+      check('copy values: moving onto the icon keeps it', showing(), true);
+      icon.click();
+      return wait(0);
+    }).then(function () {
+      check('copy values: the click copies the whole value', copied, ['Adatum Corporation 2111111111111321 31313']);
+      check('copy values: then a tick', [icon.classList.contains('bcb-copy--done'), icon.title], [true, 'Copied']);
+      over(cell('amount'));
+      check('copy values: another cell hides it at once', showing(), false);
+      return wait(C.REST_MS + 50);
+    }).then(function () {
+      check('copy values: amounts get it on the left, before the value', at(), expected('amount', 'left'));
+      check('copy values: the tick is gone on a new cell', icon.classList.contains('bcb-copy--done'), false);
+      document.dispatchEvent(new Event('scroll'));
+      check('copy values: scrolling hides it', showing(), false);
+      over(cell('factbox'));
+      return wait(C.REST_MS + 50);
+    }).then(function () {
+      check('copy values: a FactBox value gets it too', showing(), true);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+      check('copy values: typing hides it', showing(), false);
+      over(cell('link'));
+      return wait(100);
+    }).then(function () {
+      over(cell('edit'));
+      return wait(C.REST_MS + 50);
+    }).then(function () {
+      check('copy values: sweeping on to an editable cell shows nothing', showing(), false);
+      over(cell('bool'));
+      return wait(C.REST_MS + 50);
+    }).then(function () {
+      check('copy values: nothing on a check box', showing(), false);
+      over(cell('card'));
+      return wait(C.REST_MS + 50);
+    }).then(function () {
+      check('copy values: nothing on plain text on a card', showing(), false);
+      over(cell('cardlink'));
+      return wait(C.REST_MS + 50);
+    }).then(function () {
+      check('copy values: a link on a card gets it, before the amount', at(), expected('cardlink', 'left'));
+      // On a card the link is a block as wide as the field: the icon still
+      // goes next to the text, not to the far left of the field.
+      var field = cell('cardlink').getBoundingClientRect();
+      truthy('copy values: on a card, next to the text and not at the field edge',
+        at()[0] > field.left + field.width / 2);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+      over(cell('link'), 'touch');
+      return wait(C.REST_MS + 50);
+    }).then(function () {
+      check('copy values: nothing on touch', showing(), false);
+      handle.detach();
+      check('copy values: detach removes the icon', document.getElementById(C.ICON_ID), null);
+      over(cell('link'));
+      return wait(C.REST_MS + 50);
+    }).then(function () {
+      check('copy values: and stops listening', document.getElementById(C.ICON_ID), null);
+    }).then(function () {
+      delete navigator.clipboard;
+      host.remove();
+    }, function (err) {
+      delete navigator.clipboard;
+      host.remove();
+      throw err;
+    });
+  }
+
+  // week numbers: the date picker's markup, trimmed from a live BC SaaS client
+  // (2026-10-11): a Fluent layer with Fluent's Calendar inside.
+  function calendarLayer(rows) {
+    var layer = document.createElement('div');
+    layer.className = 'ms-Layer ms-Layer--fixed';
+    layer.innerHTML =
+      '<div class="ms-Fabric ms-Layer-content"><div class="ms-Callout" id="react-date-picker">' +
+      '<div class="ms-Callout-main" role="dialog" style="display:inline-block">' +
+      // Fluent sizes the calendar with a class, not an inline style.
+      '<style>.bcb-test-calendar { width: 220px; box-sizing: border-box; }</style>' +
+      '<div class="fui-Calendar bcb-test-calendar"><div class="fui-CalendarDay" style="padding:12px">' +
+      '<table class="fui-CalendarDayGrid__table" role="grid" style="table-layout:fixed;width:196px"><tbody></tbody></table>' +
+      '</div></div></div></div></div>';
+    fillCalendar(layer, rows);
+    return layer;
+  }
+
+  /** rows: the date of each row's first day, as [y, m (1-12), d]; hidden: the transition rows. */
+  function fillCalendar(layer, rows) {
+    var tbody = layer.querySelector('tbody');
+    tbody.textContent = '';
+    var head = document.createElement('tr');
+    head.innerHTML = '<td class="fui-CalendarDayGrid__dayCell fui-CalendarDayGrid__weekDayLabelCell">Maa</td>';
+    tbody.appendChild(head);
+    rows.forEach(function (row, i) {
+      var tr = document.createElement('tr');
+      var hidden = i === 0 || i === rows.length - 1;
+      tr.className = hidden
+        ? (i === 0 ? 'fui-CalendarDayGrid__firstTransitionWeek' : 'fui-CalendarDayGrid__lastTransitionWeek')
+        : 'fui-CalendarDayGrid__weekRow';
+      if (hidden) tr.style.display = 'none';
+      var start = new Date(row[0], row[1] - 1, row[2]);
+      for (var d = 0; d < 7; d++) {
+        var day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + d);
+        var td = document.createElement('td');
+        td.className = 'fui-CalendarDayGrid__dayCell';
+        td.setAttribute('role', 'gridcell');
+        td.style.position = 'relative';
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'fui-CalendarDayGrid__dayButton';
+        button.setAttribute('aria-label', day.getDate() + ', ' +
+          new Intl.DateTimeFormat('nl-NL', { month: 'long' }).format(day) + ', ' + day.getFullYear());
+        button.textContent = String(day.getDate());
+        td.appendChild(button);
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    });
+  }
+
+  function weekNumbersDom() {
+    var W = BCBuddy.WeekNumbers;
+    function iso(y, m, d) { return W.isoWeek(new Date(y, m - 1, d)); }
+    // Microsoft Learn's Date2DWY example: 1 January 2014 is in week 1, and the
+    // Sunday before it, 29 December 2013, is in the last week of 2013.
+    check('week numbers: as Date2DWY, the Microsoft Learn example',
+      [iso(2014, 1, 1), iso(2013, 12, 29), iso(2013, 12, 30)], [1, 52, 1]);
+    check('week numbers: a week that starts in the old year belongs to the year of its Thursday',
+      [iso(2025, 12, 29), iso(2026, 1, 4), iso(2026, 1, 5)], [1, 1, 2]);
+    check('week numbers: years with a week 53',
+      [iso(2020, 12, 31), iso(2021, 1, 3), iso(2021, 1, 4), iso(2027, 1, 1), iso(2026, 12, 31)], [53, 53, 1, 53, 53]);
+
+    function date(label, lang) {
+      var d = W.parseLabel(label, W.monthNames(lang));
+      return d && [d.getFullYear(), d.getMonth() + 1, d.getDate()];
+    }
+    check('week numbers: BC\'s day label, in Dutch', date('22, december, 2025', 'nl-NL'), [2025, 12, 22]);
+    check('week numbers: in other orders and languages',
+      [date('December 22, 2025', 'en-US'), date('22. Dezember 2025', 'de-DE'),
+        date('22 décembre 2025', 'fr-BE'), date('22 grudnia 2025', 'pl-PL'), date('22 dec. 2025', 'nl-BE')],
+      [[2025, 12, 22], [2025, 12, 22], [2025, 12, 22], [2025, 12, 22], [2025, 12, 22]]);
+    check('week numbers: a label it cannot read gives no date',
+      [date('2025年12月22日', 'ja-JP'), date('31, februari, 2026', 'nl-NL'), date('', 'nl-NL')], [null, null, null]);
+    function monday(y, m, d) {
+      var r = W.mondayOf(new Date(y, m - 1, d));
+      return [r.getMonth() + 1, r.getDate()];
+    }
+    check('week numbers: a row counts from its Monday, also when it starts on Sunday',
+      [monday(2026, 1, 5), monday(2026, 1, 4), monday(2026, 1, 3)], [[1, 5], [1, 5], [1, 5]]);
+
+    // The live picker: the layer host comes with the first Fluent layer.
+    var host = document.createElement('div');
+    host.id = 'fluent-default-layer-host';
+    var JANUARY = [[2025, 12, 22], [2025, 12, 29], [2026, 1, 5], [2026, 1, 12], [2026, 1, 19], [2026, 1, 26], [2026, 2, 2]];
+    var FEBRUARY = [[2026, 1, 19], [2026, 1, 26], [2026, 2, 2], [2026, 2, 9], [2026, 2, 16], [2026, 2, 23], [2026, 3, 2]];
+    function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+    function weeks(layer) {
+      return Array.prototype.map.call(layer.querySelectorAll('tbody tr'), function (tr) {
+        return tr.cells[0].getAttribute(W.MARK);
+      });
+    }
+    var root = document.documentElement;
+    // BC sets the UI language on <html>; the day labels are in it.
+    var lang = root.lang;
+    root.lang = 'nl-NL';
+    root.setAttribute('data-bcb-weeks', '');
+    var handle = W.attach(document);
+    var layer = calendarLayer(JANUARY);
+    document.body.appendChild(host);
+    return wait(0).then(function () {
+      host.appendChild(layer);
+      return wait(0);
+    }).then(function () {
+      check('week numbers: a picker that opens gets a number on each week, not on the hidden rows',
+        weeks(layer), [null, null, '1', '2', '3', '4', '5', null]);
+      var cell = layer.querySelector('tr.fui-CalendarDayGrid__weekRow td');
+      check('week numbers: drawn by the CSS, left of the grid',
+        getComputedStyle(cell, '::before').content, '"1"');
+      var calendar = layer.querySelector('.fui-Calendar');
+      check('week numbers: the picker grows by the margin',
+        [getComputedStyle(calendar).paddingLeft, Math.round(calendar.getBoundingClientRect().width)], ['28px', 248]);
+      check('week numbers: with a thin line between the numbers and the days',
+        getComputedStyle(cell, '::before').borderRightWidth, '1px');
+      fillCalendar(layer, FEBRUARY);
+      return wait(0);
+    }).then(function () {
+      check('week numbers: after a month change they are back, for the new weeks',
+        weeks(layer), [null, null, '5', '6', '7', '8', '9', null]);
+      layer.remove();
+      var late = calendarLayer([[2026, 9, 21], [2026, 9, 28], [2026, 10, 5], [2026, 10, 12], [2026, 10, 19], [2026, 10, 26], [2026, 11, 2]]);
+      var main = late.querySelector('.ms-Callout-main');
+      var calendar = main.querySelector('.fui-Calendar');
+      calendar.remove();
+      host.appendChild(late);
+      // Its calendar arrives a moment after the layer.
+      setTimeout(function () { main.appendChild(calendar); }, 10);
+      return wait(150).then(function () { return late; });
+    }).then(function (late) {
+      check('week numbers: a layer whose calendar arrives a moment later gets them too',
+        weeks(late), [null, null, '40', '41', '42', '43', '44', null]);
+      handle.detach();
+      check('week numbers: detach takes them off', document.querySelectorAll('[' + W.MARK + ']').length, 0);
+      fillCalendar(late, JANUARY);
+      return wait(0).then(function () { return late; });
+    }).then(function (late) {
+      check('week numbers: and stops watching', document.querySelectorAll('[' + W.MARK + ']').length, 0);
+      root.removeAttribute('data-bcb-weeks');
+      root.lang = lang;
+      host.remove();
+    }, function (err) {
+      handle.detach();
+      root.removeAttribute('data-bcb-weeks');
+      root.lang = lang;
+      host.remove();
+      throw err;
+    });
+  }
+
+  // open in a new tab, the flow: a stack of BC pages as the live client has
+  // it (BC SaaS, 2026-10-11), and a stand-in for BC that opens a page on a
+  // click, puts its address in the address bar a moment later and closes it
+  // again on Back.
+  function newTabFlowDom() {
+    var N = BCBuddy.NewTab;
+    // Which values count as a link: the copy values markup, from BC.
+    var host = document.createElement('div');
+    host.innerHTML = COPY_FIXTURE;
+    document.body.appendChild(host);
+    check('new tab: which cells are links',
+      ['link', 'text', 'amount', 'emptylink', 'edit', 'factbox', 'cardlink', 'card', 'loose', 'lookup']
+        .map(function (k) { return k + ':' + !!N.linkOf(host.querySelector('[data-k="' + k + '"]')); }),
+      ['link:true', 'text:false', 'amount:true', 'emptylink:false', 'edit:false', 'factbox:false',
+        'cardlink:true', 'card:false', 'loose:false', 'lookup:false']);
+    host.remove();
+
+    var stack = document.createElement('div');
+    stack.className = 'spa-container';
+    stack.style.cssText = 'position:absolute;left:0;top:0;width:400px;height:200px';
+    stack.innerHTML =
+      '<div class="spa-view" data-v="order" style="position:absolute;inset:0;background:#fff">' +
+      '<div class="ms-nav-layout-factbox-content-area" style="width:240px"><div class="edit-container edit-container-read" data-k="fb">' +
+      '<a class="stringcontrol-read value" role="button" href="javascript:;">10000</a></div></div>' +
+      '<table class="ms-nav-grid-data-table"><tbody><tr><td class="edit-container edit-container-read" data-k="grid">' +
+      '<a class="stringcontrol-read value" role="button" href="javascript:;">101001</a></td></tr></tbody></table>' +
+      '</div>';
+    document.body.appendChild(stack);
+    var origin = stack.querySelector('[data-v="order"]');
+    var fb = stack.querySelector('[data-k="fb"] a');
+    var grid = stack.querySelector('[data-k="grid"] a');
+    var ORDER = 'https://bc.example/?page=42';
+    var href = ORDER;
+    var mode = 'card';
+    var bc = { clicks: 0, ctrl: 0 };
+
+    var reached = null; // the last event BC saw
+    stack.addEventListener('auxclick', function (e) { reached = e; });
+    stack.addEventListener('click', function (e) {
+      reached = e;
+      if (!e.target.closest('a.stringcontrol-read')) return;
+      e.preventDefault(); // javascript:; does nothing anyway
+      if (e.ctrlKey) { bc.ctrl++; return; } // BC selects the row
+      bc.clicks++;
+      if (mode === 'none') return;
+      var kind = mode;
+      setTimeout(function () {
+        origin.classList.add('spa-not-top-most');
+        origin.setAttribute('inert', '');
+        var view = document.createElement('div');
+        view.className = 'spa-view';
+        view.setAttribute('data-v', kind);
+        view.style.cssText = 'position:absolute;inset:0;background:#fff';
+        view.innerHTML = '<button type="button"><i data-icon-name="Back"></i></button>';
+        view.querySelector('button').addEventListener('click', function () {
+          setTimeout(function () {
+            view.remove();
+            origin.classList.remove('spa-not-top-most');
+            origin.removeAttribute('inert');
+            href = ORDER;
+          }, 30);
+        });
+        stack.appendChild(view);
+        if (kind === 'card') setTimeout(function () { href = 'https://bc.example/?page=21&bookmark=X'; }, 20);
+      }, 30);
+    });
+
+    var opened = [];
+    var handle = N.attach(document, function (url, active) { opened.push([url, active]); },
+      { hrefOf: function () { return href; }, dialogMs: 200 });
+    function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+    function top() { return BCBuddy.Maximize.topView(document).getAttribute('data-v'); }
+    function busy() {
+      return [document.documentElement.hasAttribute(N.BUSY_ATTR), origin.hasAttribute(N.ORIGIN_ATTR)];
+    }
+    // Whether BC Buddy took the click: then BC never sees it.
+    function press(el, type, init) {
+      var event = new MouseEvent(type, Object.assign({ bubbles: true, cancelable: true }, init));
+      reached = null;
+      el.dispatchEvent(event);
+      return reached !== event;
+    }
+
+    var running = handle.open(fb, false);
+    var second = handle.open(grid, false);
+    return wait(100).then(function () {
+      var card = stack.querySelector('[data-v="card"]');
+      check('new tab flow: BC opens the page as on a click', [bc.clicks, !!card], [1, true]);
+      check('new tab flow: meanwhile it is out of sight',
+        [busy(), card && getComputedStyle(card).visibility, getComputedStyle(origin).visibility],
+        [[true, true], 'hidden', 'visible']);
+      return Promise.all([running, second]);
+    }).then(function (result) {
+      check('new tab flow: one at a time', [result, bc.clicks], [['tab', 'kept'], 1]);
+      check('new tab flow: the address BC showed goes to a new tab, in the background',
+        opened, [['https://bc.example/?page=21&bookmark=X', false]]);
+      check('new tab flow: and you are back where you were', [top(), href, busy()], ['order', ORDER, [false, false]]);
+      mode = 'none';
+      check('new tab flow: a plain click is BC\'s', [press(fb, 'click', { button: 0 }), bc.clicks], [false, 2]);
+      mode = 'card';
+      check('new tab flow: Ctrl+click on a FactBox link is ours', press(fb, 'click', { button: 0, ctrlKey: true }), true);
+      return wait(500);
+    }).then(function () {
+      check('new tab flow: and opens it in a new tab', [opened.length, bc.ctrl, top()], [2, 0, 'order']);
+      check('new tab flow: Ctrl+click in a list stays BC\'s (it selects rows)',
+        [press(grid, 'click', { button: 0, ctrlKey: true }), bc.ctrl], [false, 1]);
+      check('new tab flow: a middle-click in a list is ours', press(grid, 'auxclick', { button: 1 }), true);
+      return wait(500);
+    }).then(function () {
+      check('new tab flow: a middle-click opens it in a new tab', [opened.length, top()], [3, 'order']);
+      check('new tab flow: Ctrl+Shift+click is ours too',
+        press(fb, 'click', { button: 0, ctrlKey: true, shiftKey: true }), true);
+      return wait(500);
+    }).then(function () {
+      check('new tab flow: and opens the tab in front', opened[3] && opened[3][1], true);
+      mode = 'dialog';
+      return handle.open(fb, false);
+    }).then(function (result) {
+      check('new tab flow: a page with no address of its own (a dialog) is left to BC',
+        [result, opened.length, top(), busy()], ['kept', 4, 'dialog', [false, false]]);
+      stack.querySelector('[data-v="dialog"] button').click();
+      return wait(100);
+    }).then(function () {
+      mode = 'none';
+      handle.detach();
+      check('new tab flow: after detach Ctrl+click is BC\'s again',
+        [press(fb, 'click', { button: 0, ctrlKey: true }), bc.ctrl], [false, 2]);
+      stack.remove();
+    }, function (err) {
+      handle.detach();
+      stack.remove();
+      throw err;
+    });
+  }
+
   /* ---- DOM effects from the content script ------------------------------- */
   setTimeout(function () {
     var brand = document.querySelector('[data-bcb-brand]');
@@ -1146,6 +1679,12 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
           results.push('FAIL  dropdown DOM: ' + err.message);
         }).then(calmDom).then(null, function (err) {
           results.push('FAIL  animations DOM: ' + err.message);
+        }).then(copyDom).then(null, function (err) {
+          results.push('FAIL  copy values DOM: ' + err.message);
+        }).then(newTabFlowDom).then(null, function (err) {
+          results.push('FAIL  new tab flow DOM: ' + err.message);
+        }).then(weekNumbersDom).then(null, function (err) {
+          results.push('FAIL  week numbers DOM: ' + err.message);
         }).then(gearDom).then(null, function (err) {
           results.push('FAIL  gear menu DOM: ' + err.message);
         }).then(function () {

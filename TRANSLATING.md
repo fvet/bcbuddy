@@ -45,28 +45,40 @@ day. Take them from one of these, in order of effort:
 3. **The translated base application `.xlf` files** that ship with the Business
    Central artifacts, if you would rather grep than click.
 
-| Term | `en` | `nl` | Where it comes from |
-|---|---|---|---|
-| Environment | Environment | Omgeving | Business Central UI |
-| Company | Company | Bedrijf | Business Central UI |
-| Tenant | Tenant | Tenant | Business Central UI |
-| Sandbox | Sandbox | Sandbox | Business Central UI |
-| Production | production | productie | Business Central UI |
-| Company Information | Company Information | Bedrijfsgegevens | Name of a Business Central page |
-| Web client | Web client | Webclient | Business Central documentation |
-| Business Central | Business Central | Business Central | Product name, never translated |
-| BC Buddy | BC Buddy | BC Buddy | Product name, never translated |
-| URL | Url | Url | Unchanged in most languages |
-| RegEx | RegEx | RegEx | Unchanged in most languages |
-| JSON, HTTPS, HTTP | as written | as written | Format and protocol names |
-| CRONUS BE | CRONUS BE | CRONUS BE | Microsoft's demo company |
-| bc-buddy.json | as written | as written | File name |
+| Term | `en` | `nl` | `fr` | Where it comes from |
+|---|---|---|---|---|
+| Environment | Environment | Omgeving | Environnement | Business Central UI |
+| Company | Company | Bedrijf | Société | Business Central UI |
+| Tenant | Tenant | Tenant | Locataire | Business Central UI |
+| Sandbox | Sandbox | Sandbox | Bac à sable | Business Central UI (an environment *name* such as `Sandbox` stays as it is) |
+| Production | production | productie | production | Business Central UI |
+| Company Information | Company Information | Bedrijfsgegevens | Informations société | Name of a Business Central page |
+| Web client | Web client | Webclient | Client Web | Business Central documentation |
+| Card | card | kaart | fiche | Business Central UI |
+| FactBox | FactBox | feitenblok | récapitulatif | Business Central UI |
+| FastTab | FastTab | sneltabblad | raccourci | Business Central UI |
+| Sales lines | sales lines | verkoopregels | lignes vente | Business Central UI |
+| Journal | journal | dagboek | feuille | Business Central UI |
+| Notifications | Notifications | Berichten | Notifications | Business Central UI |
+| Layout (this extension's) | Layout | Layout | Style | Not a Business Central term; French avoids *présentation*, which is a report layout there |
+| Business Central | Business Central | Business Central | Business Central | Product name, never translated |
+| BC Buddy | BC Buddy | BC Buddy | BC Buddy | Product name, never translated |
+| URL | Url | Url | URL | Unchanged in most languages |
+| RegEx | RegEx | RegEx | RegEx | Unchanged in most languages |
+| JSON, HTTPS, HTTP | as written | as written | as written | Format and protocol names |
+| CRONUS BE | CRONUS BE | CRONUS BE | CRONUS BE | Microsoft's demo company |
+| bc-buddy.json | as written | as written | as written | File name |
 
 > **Note on Company Information.** `previewTitle` is the name of a real
 > Business Central page, drawn on the mock page in the preview. It has to read
 > as that page reads in the target language — not as a translation of the words.
 > This is exactly the sort of string that stays English by accident: it did in
 > Dutch until the check below started printing it.
+
+> **Note on French typography.** `fr` follows the Microsoft French style: a
+> non-breaking space (`\u00a0` in the file) before `:`, `;` and `?`, and
+> « » quotes with the same space inside. Keep the escapes, so the spaces stay
+> visible in a review.
 
 Add a column when you add a language, and fill it from the sources above rather
 than from the translation. A reviewer then checks the table instead of

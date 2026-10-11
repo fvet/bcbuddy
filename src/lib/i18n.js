@@ -1,7 +1,7 @@
 /*
  * BC Buddy - translations.
- * Language follows the browser: Chrome picks between _locales/en and
- * _locales/nl itself, with en as fallback. So there is no switch and no flash.
+ * Language follows the browser: Chrome picks between the folders under
+ * _locales itself (en, nl, fr), with en as fallback. So there is no switch and no flash.
  */
 (function (root) {
   'use strict';

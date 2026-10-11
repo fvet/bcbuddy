@@ -5,7 +5,7 @@
 # `mkdocs serve` after `pip install -r tools/requirements-docs.txt`.
 
 site_name: BC Buddy
-site_description: Give every Business Central environment its own colour, so you never post in production by mistake.
+site_description: Makes the Business Central web client easier to work in, and gives every environment its own colour so you never post in production by mistake.
 site_url: https://fvet.github.io/bcbuddy/
 site_author: Frédéric Vercaemst
 copyright: BC Buddy is open source under the MIT licence and stores nothing outside your own browser.
@@ -80,8 +80,10 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting started: getting-started.md
-  - Rules and matching: matching.md
-  - Layouts: layouts.md
+  - Web client: web-client.md
+  - Environment colours:
+      - Rules: matching.md
+      - Layouts: layouts.md
   - Sharing with your team: sharing.md
   - Troubleshooting: troubleshooting.md
   - What's new: whats-new.md

@@ -1,55 +1,65 @@
 # Sharing with your team
 
-Everyone in the team can work from the same markings, so a colleague opening a
-customer's production environment sees the same green you do.
+One person sets up the colours, and everyone else in the team gets them
+automatically. When that person changes something, it reaches everyone the
+next day.
 
-## Publishing a configuration
+## Using your team's file
 
-1. Set up your layouts and rules and click **Export**. That produces
-   `bc-buddy.json`, layouts included.
-2. Put that file somewhere everyone can reach it over HTTPS — a repository, for
-   instance.
-3. Everyone fills in the URL on the options page under **Shared configuration**.
-4. A click on **Synchronise** fetches the file and thereby switches the shared
-   configuration on right away. From then on it is updated every day. There is
-   no separate toggle — synchronising *is* the toggle.
+Someone in your team gives you a web address that ends in `.json`. Then:
 
-An ordinary `github.com/.../blob/...` link is fine; it is converted to the raw
-variant automatically. Plain HTTP is refused.
+1. Open the BC Buddy settings page and go to **Settings**.
+2. Paste the address under **Shared configuration**.
+3. Click **Synchronise**.
 
-!!! danger "Only use a URL you control"
+That is all. The team's rules appear at the bottom of your list, and BC Buddy
+checks for changes every day.
 
-    The file can define rules that mark any site. Treat that URL the way you
-    would treat any other code you run: point it at your own repository, not at
-    somewhere anyone can write.
+You cannot change a shared rule. To adjust one, click its copy button: you get
+your own version, which takes the place of the shared one.
 
-## An example to start from
+To stop using the team's file, click the **X** next to *Shared rules*.
 
-There is a worked example you can point at directly:
+## Publishing a file for your team
+
+1. Set up your rules and layouts and click **Export** under **Settings**. That
+   saves `bc-buddy.json`, with your rules, your layouts and your **Web client**
+   settings.
+2. Put that file somewhere everyone can open it with an address starting with
+   `https://`, such as a GitHub repository. An ordinary GitHub page link works;
+   BC Buddy turns it into the right download link by itself.
+3. Give your team that address.
+
+!!! danger "Only use an address you control"
+
+    The file decides what BC Buddy colours. Keep it somewhere only you or your
+    team can change, not on a public place anyone can edit.
+
+To see how it works before you publish your own, try this example file:
 
 ```
 https://fvet.github.io/bcbuddy/examples/bc-buddy.json
 ```
 
-It is the same file as
-[`examples/bc-buddy.json`](https://github.com/fvet/bcbuddy/blob/main/examples/bc-buddy.json)
-in the repository. Use it to see how sharing behaves, then swap in a URL of your
-own — the example is here to be read, not to be relied on.
+### Web client settings in the file
 
-## Living with shared rules
+The **Web client** switches and sliders in the file are a starting point, not
+an order:
 
-Shared rules sit at the bottom of the list and cannot be edited. To adjust one,
-use the copy button on that rule: you get your own version, with its layout
-alongside, and that takes precedence over the shared one.
+- On the first sync, each one is applied.
+- After that, a setting only changes when the team changes it in the file. A
+  colleague who switches something off keeps it off.
+- To share only some of them, delete the others from the `webClient` part of
+  the file. Without that part, everyone keeps their own.
 
-The **X** next to *Shared rules* clears what came in and switches them off
-again — otherwise they are simply back the next day. The URL stays, so one click
-on synchronise is enough to start over.
+The **Extension active** switch is never shared.
 
-## Importing a file by hand
+## Importing a file once
 
-**Import / export → Choose file** works as a merge:
+To load a file once, without daily updates, use **Import / export** →
+**Choose file** under **Settings**:
 
-- a rule you already have is overwritten in place,
+- rules you already have are overwritten,
 - new rules are added,
-- rules that are not in the file are left alone.
+- rules that are not in the file stay as they are,
+- the **Web client** settings in the file replace yours.

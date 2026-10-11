@@ -1,62 +1,89 @@
 # Troubleshooting
 
-## The ribbon keeps its original colour
+## Nothing changed after installing
 
-The ribbon is found by its text ("Dynamics 365 Business Central"), so a BC
-client that renders it differently can escape detection. The frame, banner, tab
-title and tab icon are unaffected and still mark the environment.
+Reload the Business Central tab (press F5). Tabs that were open before you
+installed BC Buddy do not see it until they reload.
 
-## Nothing is marked at all
+Still nothing? Open the BC Buddy settings page and check that **Extension
+active**, at the top, is on.
 
-Check the rule's conditions against a real URL using the **Test URL** field on
-the options page — it shows what it managed to read. A rule whose conditions
-never all hold at once never fires.
+## No BC Buddy in the gear menu
 
-## A shared rule will not change
+In Business Central, the gear icon at the top right has a **BC Buddy** section
+with **Settings**. Not there? Reload the Business Central tab (press F5): a tab
+that was open before you installed or updated BC Buddy does not see it yet.
 
-Shared rules are read-only by design. Use the copy button to get your own
-editable version, which takes precedence. See
-[Sharing with your team](sharing.md).
+Business Central on your own server (on-premises) has a different gear menu,
+without BC Buddy. The BC Buddy icon in the toolbar always opens the settings
+page.
 
-## A dropdown keeps its usual size
+## Web client
 
-Dropdown size works on the list that drops down under a field. A field with a
-**…** button (City, Post Code) opens a full page instead, which BC lets you
-maximize itself. A list with two short columns needs no extra width and keeps
-BC's own; it only grows taller if you raise **Height**.
+### No copy icon on a value
 
-If no dropdown grows any more after a Business Central update, BC has changed
-how it builds them. BC Buddy then leaves them at BC's own size rather than break
-anything — please open an issue so it can catch up.
+Rest the mouse on the value for a moment: the icon does not appear while the
+mouse moves across the list.
 
-## A page stays narrow or in tiles
+Fields you can type in get no icon on purpose: select the text and press
+Ctrl+C. The same goes for plain text on a card, check boxes, empty cells and
+very narrow columns.
 
-**Maximize pages** handles each page once, when it opens. If you switch a page
-back to narrow or to tiles yourself, BC Buddy leaves it that way. A page where
-it does nothing at all after a Business Central update means BC has changed its
-wide-layout or layout buttons — please open an issue so it can catch up.
+### A page stays narrow or in tiles
 
-## BC Buddy is missing from the gear menu
+**Maximize pages** works once, when a page opens. If you switched a page back
+to narrow or to tiles yourself, BC Buddy leaves it that way.
 
-The **BC Buddy** section is added to the Settings pane of Business Central
-online. On-premises BC has a different gear menu and does not get it.
+### A dropdown keeps its usual size
 
-Right after BC Buddy was installed or updated, reload the Business Central tab
-once: a tab that was already open still runs the previous version. If the
-section stays away after a Business Central update, Microsoft has changed that
-pane — please open an issue. The BC Buddy icon in the toolbar always opens the
-options.
+A field with a **…** button, such as City or Post Code, opens a whole page
+instead of a dropdown, and that page keeps its size. A list with only two short
+columns needs no extra width; it only grows taller if you raise **Height**.
 
-## Something still slides or fades
+### No week numbers in the date picker
 
-**Turn off animations** covers what Business Central animates by name: pages,
-dialogs, FastTabs, the FactBox pane and Maximize. Progress indicators keep
+They do not appear when Business Central is set to a language that writes dates
+without spaces, such as Japanese or Chinese. The calendar itself works as usual.
+
+### Something still slides or fades
+
+**Turn off animations** is off until you switch it on. Progress indicators keep
 moving on purpose, so you can still see when Business Central is busy. If
-something else starts animating after a Business Central update, BC has added
-or renamed it. Please open an issue so it can catch up. Turn the switch off if
-anything looks wrong while it is on.
+anything looks wrong while it is on, switch it off.
+
+## Environment colours
+
+### Nothing is coloured
+
+Open **Environments** and click **From open tab** at the top. BC Buddy shows
+what it reads from your Business Central tab, and a green tick on each rule
+that fits. No tick anywhere means none of your rules fits that tab: compare
+the environment and company it shows with the conditions of your rule.
+
+### The wrong colour shows
+
+The first rule that fits wins. Drag the rule you want above the other one. See
+[Rules](matching.md#the-first-rule-that-fits-wins).
+
+### The bar at the top keeps its usual colour
+
+BC Buddy finds that bar by its text, *Dynamics 365 Business Central*. On a
+Business Central that shows a different text there, the bar is not coloured.
+The frame, banner, tab title and tab icon still work.
+
+### A shared rule will not change
+
+Rules from your team's file cannot be changed. Click the copy button on the
+rule to get your own version. See [Sharing with your team](sharing.md).
+
+## After a Business Central update
+
+Microsoft changes Business Central regularly. If a web client improvement
+suddenly stops working after an update, BC Buddy leaves that part of Business
+Central alone rather than break it. Please
+[report it](https://github.com/fvet/bcbuddy/issues) so it can catch up.
 
 ## Something else
 
-Open an issue at
+Report it at
 [github.com/fvet/bcbuddy/issues](https://github.com/fvet/bcbuddy/issues).

@@ -369,11 +369,14 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .grid--two > * { flex: 1 1 320px; }
 /* Top-align so Colour (short swatch) shares a baseline with Text colour / Layout. */
 .grid--style { align-items: start; }
+/* The Colour heading stands in for that field's label: same height, so the
+   palette lines up with the selects beside it. */
+.grid--style .field > span,
+.grid--style .field > h4 { margin: 0; line-height: 18px; }
 
 /* -------------------------------------------------------------- tester */
 
 .tester { gap: 10px; }
-.tester__row { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--muted); }
 
 .parsed {
   display: flex;
@@ -440,23 +443,14 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   width: 20px; height: 20px; border-radius: 6px; flex: none;
   background: var(--rule-color, #ccc);
   border: 1px solid rgba(0,0,0,.15);
-  padding: 0;
-  cursor: pointer;
 }
-.rule__swatch:hover { box-shadow: 0 0 0 2px var(--surface-2); }
 .rule__name { flex: 1 1 180px; font-weight: 600; }
 .rule__tools { display: flex; align-items: center; gap: 2px; margin-left: auto; }
 
-/* The grip you drag a rule to another place with. Shared rules are fixed but
-   keep the grip's slot, so the list stays neatly aligned. */
-.rule__grip {
-  flex: none;
-  cursor: grab;
-  font-size: 15px;
-  padding: 5px 3px;
-}
+/* An own rule's triangle is also the grip you drag it to another place with.
+   Shared rules keep the order from the shared file, so theirs only toggles. */
+.rule__grip { cursor: grab; }
 .rule__grip:active { cursor: grabbing; }
-.rule[data-readonly="1"] .rule__grip { visibility: hidden; }
 
 .rule--dragging { opacity: .5; }
 /* Where the rule lands if you release now. */
@@ -529,14 +523,16 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .option > input[type="checkbox"].toggle { margin-left: auto; }
 .option__body .field { flex-direction: row; align-items: center; gap: 8px; }
 .option__body .field > span { white-space: nowrap; }
-.option__body .field--wide { flex: 1 1 240px; }
+/* Small enough that the banner (position, text, size, opacity) fits on one
+   line; the text field takes whatever room is left. */
+.option__body .field--wide { flex: 1 1 120px; }
 .option__body .field--narrow { flex: 0 0 auto; }
 .option__body input[type="text"] { flex: 1 1 auto; }
 /* A part with a single text field (ribbon, tab title) needs no caption: the
    part's name says what it is, and the field keeps it as its aria-label. */
 .option__body > input[type="text"] { flex: 1 1 240px; }
 .option__body input[type="number"] { width: 64px; }
-.option__body input[type="range"] { width: 110px; }
+.option__body input[type="range"] { width: 90px; }
 .option__body select { width: auto; }
 
 /* The tokens the texts on a layout can use, on one line below its parts. */
@@ -672,15 +668,4 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .sync-status { font-size: 12.5px; color: var(--muted); margin: 0; min-height: 18px; }
 .sync-status--ok { color: var(--ok); }
 .sync-status--error { color: var(--danger); }
-
-/* Trust boundary for the shared file: visible without looking like an error. */
-.trust-note {
-  margin: 0;
-  padding: 10px 12px;
-  border-left: 3px solid var(--accent);
-  background: var(--surface-2);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  font-size: 12.5px;
-  color: var(--muted);
-  line-height: 1.45;
-}
+.card > .sync-status:empty { display: none; }

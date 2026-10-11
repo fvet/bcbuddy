@@ -26,6 +26,8 @@
   var FRAME_ID = 'bcb-frame';
   var ROW_ATTR = 'data-bcb-row';
   var CALM_ATTR = 'data-bcb-calm';
+  var NO_BELL_ATTR = 'data-bcb-no-bell';
+  var WEEKS_ATTR = 'data-bcb-weeks';
   var BANNER_ID = 'bcb-banner';
   var FAVICON_REL = 'icon';
 
@@ -88,6 +90,12 @@
     // Dropdown sizer handle, and the settings it was started with ('' = off).
     dropdowns: null,
     dropdownKey: '',
+    // Copy icon handle while the switch is on.
+    copyValues: null,
+    // Ctrl+click and middle-click handler (newtab.js, beta).
+    newTab: null,
+    // Week numbers in the date picker: its handle while the switch is on.
+    weekNumbers: null,
     // Handle of the BC Buddy section in BC's gear menu, while it is attached.
     gearMenu: null,
     // MutationObserver that reapplies ribbon inline styles if Dark Reader
@@ -275,6 +283,10 @@
     applyDropdowns();
     applyHighlightRow();
     applyNoAnimations();
+    applyHideNotifications();
+    applyCopyValues();
+    applyNewTab();
+    applyWeekNumbers();
     applyGearMenu();
   }
 
@@ -739,6 +751,89 @@
     if (on === root.hasAttribute(CALM_ATTR)) return;
     if (on) root.setAttribute(CALM_ATTR, '');
     else root.removeAttribute(CALM_ATTR);
+  }
+
+  /* -------------------------------------------------------- notifications */
+
+  /**
+   * Hides the notifications bell in BC's top bar; the rule is in content.css.
+   * Like the row tint this only sets one attribute on <html>, once per page
+   * load, URL change or settings change.
+   */
+  function applyHideNotifications() {
+    var root = document.documentElement;
+    if (!root) return;
+    var on = BCBuddy.hideNotificationsOn(state.settings) && isWebClientTarget(state.href);
+    if (on === root.hasAttribute(NO_BELL_ATTR)) return;
+    if (on) root.setAttribute(NO_BELL_ATTR, '');
+    else root.removeAttribute(NO_BELL_ATTR);
+  }
+
+  /* ---------------------------------------------------------- copy values */
+
+  /**
+   * Starts or stops the copy icon when the settings call for it. Like the
+   * dropdown sizer it keeps its own listener, attached once and left alone
+   * until the switch changes, so this costs one comparison per apply().
+   */
+  function applyCopyValues() {
+    var want = BCBuddy.copyValuesOn(state.settings) && isWebClientTarget(state.href);
+    if (want === !!state.copyValues) return;
+    if (state.copyValues) state.copyValues.detach();
+    state.copyValues = want ? BCBuddy.CopyValues.attach(document, {
+      copy: BCBuddy.t('copyValue'),
+      copied: BCBuddy.t('copiedValue')
+    }) : null;
+  }
+
+  /* --------------------------------------------------------- week numbers */
+
+  /**
+   * Starts or stops week numbers in the date picker; see weeknumbers.js. The
+   * numbers are drawn by content.css, keyed on one attribute on <html>. Like
+   * the dropdown sizer its observers are attached once and left alone until
+   * the switch changes, so this costs one comparison per apply().
+   */
+  function applyWeekNumbers() {
+    var root = document.documentElement;
+    if (!root) return;
+    var want = BCBuddy.weekNumbersOn(state.settings) && isWebClientTarget(state.href);
+    if (want === !!state.weekNumbers) return;
+    if (state.weekNumbers) {
+      state.weekNumbers.detach();
+      state.weekNumbers = null;
+      root.removeAttribute(WEEKS_ATTR);
+    }
+    if (want) {
+      root.setAttribute(WEEKS_ATTR, '');
+      state.weekNumbers = BCBuddy.WeekNumbers.attach(document);
+    }
+  }
+
+  /* ---------------------------------------------------- open in a new tab */
+
+  /**
+   * Starts or stops Ctrl+click / middle-click to open a link in a new tab.
+   * Beta and undocumented on purpose, with no switch of its own: see the top
+   * of newtab.js. It follows the master switch only. Its click listeners are
+   * attached once and left alone until that changes, so this costs one
+   * comparison per apply().
+   */
+  function applyNewTab() {
+    var want = !!(state.settings && state.settings.enabled) && isWebClientTarget(state.href);
+    if (want === !!state.newTab) return;
+    if (state.newTab) state.newTab.detach();
+    state.newTab = want ? BCBuddy.NewTab.attach(document, openTab) : null;
+  }
+
+  /**
+   * Hands an address to the service worker, which opens it in a new tab next
+   * to this one: in the background, like Ctrl+click on a link, or in front.
+   */
+  function openTab(url, active) {
+    try {
+      chrome.runtime.sendMessage({ type: 'bcb:open-tab', url: url, active: !!active });
+    } catch (e) { /* extension reloaded; nothing to open it with */ }
   }
 
   /* ------------------------------------------------------------ dropdowns */
