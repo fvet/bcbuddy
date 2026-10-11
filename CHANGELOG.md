@@ -33,6 +33,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   defaults: each is applied on the first sync, and after that only when the
   team changes it in the file, so a colleague who switches something off
   keeps it off.
+- **BC Buddy in the gear menu**: in Business Central online, the gear icon's
+  Settings pane now has a **BC Buddy** section with a **Settings** link that
+  opens the options. It is there whenever BC Buddy is installed, also while it
+  is switched off.
 - French support
 - **Pin the action bar**: a page opens with the row of actions under its tabs
   pinned, instead of the way Business Central picks. Unpin it on a page and

@@ -165,6 +165,7 @@
   "navEnvironments": { "message": "Omgevingen" },
   "navAbout": { "message": "Over" },
   "navSettings": { "message": "Instellingen" },
+  "gearMenuSettings": { "message": "Instellingen" },
   "navSections": { "message": "Secties" },
   "defaultLayoutName": { "message": "Default" },
   "lastLayout": { "message": "De laatste layout kan niet weg: er moet er altijd een zijn." },

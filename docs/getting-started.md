@@ -15,6 +15,9 @@ The BC Buddy settings page opens by itself. You can leave it open for step 3.
     Click the puzzle piece in the browser toolbar and pin BC Buddy. From then
     on, one click on its icon opens the settings page.
 
+    Business Central has a way in too: click the gear icon at the top right
+    and choose **Settings** under **BC Buddy**.
+
 ## 2. Open Business Central { #web-client }
 
 Open Business Central, or reload a tab where it was already open. Without any

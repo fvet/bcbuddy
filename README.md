@@ -24,7 +24,8 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
 ## 🚀 Getting started
 
 1. **Install BC Buddy.** Its settings page opens by itself. Later, click the
-   BC Buddy icon in the toolbar to open it again.
+   BC Buddy icon in the toolbar to open it again, or in Business Central click
+   the gear icon at the top right and choose **Settings** under **BC Buddy**.
 2. **Open Business Central**, or reload a tab where it was already open. The
    web client improvements below are already working.
 3. **Give your environments a colour.** On the settings page, go to

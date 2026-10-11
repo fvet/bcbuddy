@@ -165,6 +165,7 @@
   "navEnvironments": { "message": "Environnements" },
   "navAbout": { "message": "À propos" },
   "navSettings": { "message": "Paramètres" },
+  "gearMenuSettings": { "message": "Paramètres" },
   "navSections": { "message": "Rubriques" },
   "defaultLayoutName": { "message": "Standard" },
   "lastLayout": { "message": "Le dernier style ne peut pas être supprimé\u00a0: il en faut toujours un." },

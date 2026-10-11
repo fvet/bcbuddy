@@ -97,6 +97,8 @@
     newTab: null,
     // Week numbers in the date picker: its storage listener while the switch is on.
     weekNumbers: null,
+    // Handle of the BC Buddy section in BC's gear menu, while it is attached.
+    gearMenu: null,
     // MutationObserver that reapplies ribbon inline styles if Dark Reader
     // overrides them. Disconnected whenever the ribbon is released.
     ribbonGuard: null
@@ -287,6 +289,7 @@
     applyCopyValues();
     applyNewTab();
     applyWeekNumbers();
+    applyGearMenu();
   }
 
   function sameRule(a, b) {
@@ -867,6 +870,32 @@
     if (state.dropdowns) state.dropdowns.detach();
     state.dropdowns = want ? BCBuddy.Dropdowns.attach(document, settings.dropdown) : null;
     state.dropdownKey = key;
+  }
+
+  /* ------------------------------------------------------------ gear menu */
+
+  /**
+   * Adds a BC Buddy section with a Settings link to BC's gear menu; see
+   * gearmenu.js. Like the dropdown sizer it keeps its own narrow observer and
+   * is attached once. It does not follow the on/off switch: when BC Buddy is
+   * off, this link is the quickest way back to turning it on.
+   */
+  function applyGearMenu() {
+    var want = IS_TOP && isWebClientTarget(state.href);
+    if (want === !!state.gearMenu) return;
+    if (state.gearMenu) state.gearMenu.detach();
+    state.gearMenu = want
+      ? BCBuddy.GearMenu.attach(document, { label: BCBuddy.t('gearMenuSettings'), onOpen: openOptions })
+      : null;
+  }
+
+  function openOptions() {
+    // A content script cannot open the options page itself; the service
+    // worker does it. After an extension update this page still runs the old
+    // script, whose messages go nowhere until the tab is reloaded.
+    try {
+      chrome.runtime.sendMessage({ type: 'bcb:open-options' }).catch(function () {});
+    } catch (e) { /* extension reloaded */ }
   }
 
   /* ------------------------------------------------------------- cleanup */

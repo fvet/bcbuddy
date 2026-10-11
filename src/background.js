@@ -68,9 +68,15 @@ chrome.storage.onChanged.addListener(function (changes, area) {
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
-  // The one message a content script may send: Open in a new tab.
+  // The two messages a content script may send: Open in a new tab, and the
+  // Settings link in BC's gear menu (gearmenu.js), which can only ask for our
+  // own options page.
   if (message.type === 'bcb:open-tab') {
     openTab(message, sender);
+    return;
+  }
+  if (message.type === 'bcb:open-options') {
+    if (sender && sender.id === chrome.runtime.id) openOptions('webclient');
     return;
   }
   // Only the options page (an extension page). Content scripts share our id but

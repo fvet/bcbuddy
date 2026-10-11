@@ -8,6 +8,16 @@ installed BC Buddy do not see it until they reload.
 Still nothing? Open the BC Buddy settings page and check that **Extension
 active**, at the top, is on.
 
+## No BC Buddy in the gear menu
+
+In Business Central, the gear icon at the top right has a **BC Buddy** section
+with **Settings**. Not there? Reload the Business Central tab (press F5): a tab
+that was open before you installed or updated BC Buddy does not see it yet.
+
+Business Central on your own server (on-premises) has a different gear menu,
+without BC Buddy. The BC Buddy icon in the toolbar always opens the settings
+page.
+
 ## Web client
 
 ### No copy icon on a value
