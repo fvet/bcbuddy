@@ -12,7 +12,7 @@
     state: {
       settings: null,
       testUrl: '',
-      panel: 'environments',
+      panel: 'webclient',
       ctx: null,
       // Hash of the settings we last wrote ourselves, to tell our own change
       // event apart from someone else's.
@@ -50,6 +50,7 @@
     page.el.copyValuesEnabled.checked = page.state.settings.copyValues.enabled;
     page.el.weekNumbersEnabled.checked = page.state.settings.weekNumbers.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
+    page.el.pinActionBarEnabled.checked = page.state.settings.pinActionBar.enabled;
     page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
     page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
@@ -224,20 +225,21 @@
       'exportDownload', 'exportStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared',
-      'brandDot', 'maximizeEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
+      'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
       BCBuddy.loadSettings(),
-      chrome.storage.local.get(page.UI_KEY)
+      chrome.storage.local.get(page.UI_KEY),
+      takeOpenPanel()
     ]).then(function (results) {
       state.settings = results[0];
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
       state.testUrl = ui.testUrl || page.SAMPLE_URL;
-      state.panel = ui.panel || 'environments';
+      state.panel = results[2] || ui.panel || 'webclient';
       // The Web client panel used to be called Maximize.
       if (state.panel === 'maximize') state.panel = 'webclient';
       bind();
@@ -249,6 +251,14 @@
     });
 
     chrome.storage.onChanged.addListener(function (changes, area) {
+      // The toolbar icon was clicked while this page was open.
+      if (area === 'session' && changes[BCBuddy.OPEN_PANEL_KEY] &&
+        changes[BCBuddy.OPEN_PANEL_KEY].newValue) {
+        takeOpenPanel().then(function (panel) {
+          if (panel && state.settings) goToPanel(panel);
+        });
+        return;
+      }
       if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
       var incoming = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
       // Our own write comes back as an event too. Compare what arrived against
@@ -281,6 +291,11 @@
 
     el.maximizeEnabled.addEventListener('change', function () {
       state.settings.maximize.enabled = el.maximizeEnabled.checked;
+      page.save();
+    });
+
+    el.pinActionBarEnabled.addEventListener('change', function () {
+      state.settings.pinActionBar.enabled = el.pinActionBarEnabled.checked;
       page.save();
     });
 
@@ -486,12 +501,30 @@
   function bindNav() {
     document.querySelectorAll('.nav__item').forEach(function (button) {
       button.addEventListener('click', function () {
-        showPanel(button.dataset.panel);
-        state.panel = button.dataset.panel;
-        page.saveUi();
+        goToPanel(button.dataset.panel);
       });
     });
     showPanel(state.panel);
+  }
+
+  function goToPanel(name) {
+    showPanel(name);
+    state.panel = name;
+    page.saveUi();
+  }
+
+  /**
+   * The panel the service worker asked for (toolbar icon), or null. It is
+   * cleared as it is read, so a later reload shows the last panel again.
+   */
+  function takeOpenPanel() {
+    var session = chrome.storage.session;
+    if (!session) return Promise.resolve(null);
+    return session.get(BCBuddy.OPEN_PANEL_KEY).then(function (got) {
+      var panel = got && got[BCBuddy.OPEN_PANEL_KEY];
+      if (!panel) return null;
+      return session.remove(BCBuddy.OPEN_PANEL_KEY).then(function () { return panel; });
+    }).catch(function () { return null; });
   }
 
   function showPanel(name) {
@@ -500,7 +533,7 @@
     panels.forEach(function (panel) {
       if (panel.dataset.panel === name) known = true;
     });
-    if (!known) name = 'environments';
+    if (!known) name = 'webclient';
 
     panels.forEach(function (panel) {
       panel.hidden = panel.dataset.panel !== name;

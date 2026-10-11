@@ -419,12 +419,20 @@
   },
   "webClientHeading": { "message": "Web client" },
   "maximizeIntro": {
-    "message": "Automatically expands every Business Central page to wide layout and switches tile pages to list view.",
+    "message": "Automatically expands every Business Central page to wide layout and switches tile pages to list view. A page you set back yourself stays that way.",
     "description": "Explains what the maximize feature does. Tooltip on its row in the Web client panel."
   },
   "maximizeToggle": {
     "message": "Maximize pages",
     "description": "Label on the on/off switch for the maximize feature."
+  },
+  "pinActionBarIntro": {
+    "message": "Pins the action bar under a page's tabs the first time the page opens. Unpin it on a page and that page stays unpinned.",
+    "description": "Explains the pin action bar feature. Tooltip on its row in the Web client panel. 'Action bar' and 'pin' are the terms Business Central itself uses for the row of actions and its pin button."
+  },
+  "pinActionBarToggle": {
+    "message": "Pin the action bar",
+    "description": "Label on the on/off switch for the pin action bar feature. Use Business Central's own wording for its 'Pin action bar' button in this language."
   },
   "dropdownHeading": {
     "message": "Dropdown size",
@@ -471,7 +479,7 @@
     "description": "Label on the on/off switch that shows the week number in front of each week in the Business Central date picker (the calendar that opens from a date field)."
   },
   "weekNumbersIntro": {
-    "message": "The calendar that opens from a date field shows the week number in front of each week, counted as Business Central does: weeks start on Monday, and week 1 holds the first Thursday of the year.",
+    "message": "Turns on Business Central's own week numbers in the calendar of a date field. Press Shift+Home in the calendar to turn them off or on again; Business Central remembers it.",
     "description": "Explains the week numbers switch. Tooltip on its row in the Web client panel."
   },
   "hideNotificationsToggle": {
@@ -522,7 +530,7 @@
     "description": "Second paragraph in the About panel, after the web client one. Production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
   },
   "aboutIntroMaximize": {
-    "message": "BC Buddy makes the Business Central web client easier to work in: copy any value with one click, pages open in wide layout, tile pages switch to list view, dropdowns get more space, the date picker shows week numbers and the line you are on stands out.",
+    "message": "BC Buddy makes the Business Central web client easier to work in: copy any value with one click, pages open in wide layout with the action bar pinned, tile pages switch to list view, dropdowns get more space, the date picker shows week numbers and the line you are on stands out.",
     "description": "First paragraph in the About panel, describing the web client improvements. Dropdown and date picker are Business Central terms: use the words the Business Central UI uses in this language."
   },
   "aboutContact": { "message": "Contact" },

@@ -3,7 +3,7 @@ BC Buddy rend le client Web Business Central plus agréable à utiliser, et donn
 Un client Web plus pratique, tout de suite. Aucune configuration nécessaire :
 
 - Copiez n'importe quelle valeur en un clic, même un montant ou un n° impossible à sélectionner.
-- Chaque page en disposition large, et des listes au lieu de mosaïques.
+- Chaque page en disposition large avec la barre d'actions épinglée, et des listes au lieu de mosaïques.
 - Des listes déroulantes qui montrent toutes leurs colonnes : plus besoin de faire défiler sur le côté.
 - Les numéros de semaine dans le calendrier d'un champ date.
 - La ligne sur laquelle vous êtes dans une feuille ou une commande ressort.

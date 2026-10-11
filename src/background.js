@@ -25,11 +25,25 @@ chrome.runtime.onInstalled.addListener(function (details) {
   }
 });
 
-// The toolbar icon has no popup: a click opens the options page, or brings
-// an open one to the front.
+// The toolbar icon has no popup: a click opens the options page on the Web
+// client panel, or brings an open one to the front and switches it there.
 chrome.action.onClicked.addListener(function () {
-  chrome.runtime.openOptionsPage();
+  openOptions('webclient');
 });
+
+/**
+ * Opens the options page on `panel`. openOptionsPage() takes no address, so
+ * the panel goes through session storage: a page that loads reads it, and a
+ * page that is already open hears it change. Opened any other way, the page
+ * shows the panel it was last left on.
+ */
+function openOptions(panel) {
+  var request = {};
+  request[BCBuddy.OPEN_PANEL_KEY] = panel;
+  chrome.storage.session.set(request).catch(function () {}).then(function () {
+    chrome.runtime.openOptionsPage();
+  });
+}
 
 chrome.runtime.onStartup.addListener(function () {
   scheduleSync();

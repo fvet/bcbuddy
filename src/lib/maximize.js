@@ -12,6 +12,12 @@
  * Each page is handled once, keyed by its form rather than by the URL: BC
  * changes the URL a moment before or after it swaps the view, and a page you
  * return to keeps whatever you changed on it yourself.
+ *
+ * Only BC's default is changed, never a choice. BC stores wide layout and the
+ * list layout per page once someone sets them (see bcstate.js); a page with a
+ * stored value opens the way it was left, even when that is narrow or tiles.
+ * BC Buddy's own click is stored the same way, so from the second time on BC
+ * opens the page wide by itself.
  */
 (function (root) {
   'use strict';
@@ -25,6 +31,9 @@
   // maximized, so a dialog that is already big does not match.
   var LIST_DIALOG_SEL = 'form.ms-nav-listform.flexible-dialog';
   var DIALOG_MAXIMIZE_SEL = '.dialog-system-actions button:has(i[data-icon-name="FullScreen"])';
+  // The view of a task dialog: a page opened over another, such as Select
+  // from full list.
+  var TASK_DIALOG_CLASS = 'spa-task-dialog';
 
   // The layout chooser on a list page. Current clients use a Fluent UI menu
   // button that shows the active layout's icon and opens one radio item per
@@ -77,9 +86,10 @@
 
   /**
    * Handles the page on screen in doc. `done` is a WeakMap the caller keeps for
-   * as long as the same pages should not be handled again.
+   * as long as the same pages should not be handled again; `storage` is the
+   * client frame's localStorage, where BC keeps the choices made per page.
    */
-  function apply(doc, done) {
+  function apply(doc, done, storage) {
     var view = topView(doc);
     var wide = view.querySelector(WIDE_TOGGLE_SEL) ||
       (view.querySelector(LIST_DIALOG_SEL) && view.querySelector(DIALOG_MAXIMIZE_SEL));
@@ -93,15 +103,19 @@
       page = { wide: false, list: false };
       done.set(key, page);
     }
+    var State = BCBuddy.BCState;
+    var id = State.pageId(view);
 
     if (wide && !page.wide) {
       page.wide = true;
-      if (!isPressed(wide)) click(wide);
+      // A task dialog stores its size apart from the same page opened in full.
+      var kind = view.classList && view.classList.contains(TASK_DIALOG_CLASS) ? 'dialog' : 'wide';
+      if (!isPressed(wide) && !State.chosen(storage, kind, id)) click(wide);
     }
 
     if ((menu || oldChooser) && !page.list) {
       page.list = true;
-      if (view.querySelector(LIST_ACTIVE_SEL)) return;
+      if (view.querySelector(LIST_ACTIVE_SEL) || State.chosen(storage, 'list', id)) return;
       if (menu) {
         pickFromMenu(menu, function () { return doc.querySelector(LIST_ITEM_SEL); });
       } else {

@@ -7,6 +7,9 @@
   var BCBuddy = root.BCBuddy || (root.BCBuddy = {});
 
   var STORAGE_KEY = 'settings';
+  // In chrome.storage.session: the options panel to show next, set by the
+  // service worker when the toolbar icon is clicked and cleared by the page.
+  var OPEN_PANEL_KEY = 'openPanel';
   var EXPORT_APP = 'bc-buddy';
   var SCHEMA_VERSION = 2;
 
@@ -109,6 +112,16 @@
   // Fixed id, so normalize() always yields the same result.
   var DEFAULT_LAYOUT_ID = 'default';
 
+  /**
+   * 0 = automatic. The old number field let people save 1 to 8 px, which
+   * draws the banner text as an unreadable dash while the size slider shows
+   * those values as automatic; treat them as automatic too.
+   */
+  function bannerFontSize(value) {
+    var size = num(value, 0, 0, 72);
+    return size < 9 ? 0 : size;
+  }
+
   function normalizeDisplay(source) {
     var s = source || {};
     var border = s.border || {};
@@ -126,7 +139,7 @@
         enabled: bool(banner.enabled, false),
         position: POSITIONS.indexOf(banner.position) !== -1 ? banner.position : 'bottom',
         text: str(banner.text, '{name}'),
-        fontSize: num(banner.fontSize, 0, 0, 72), // 0 = automatic
+        fontSize: bannerFontSize(banner.fontSize),
         opacity: num(banner.opacity, 0.5, 0.05, 1)
       },
       ribbon: {
@@ -278,11 +291,12 @@
   // The settings of the Web client panel. They travel in an export as
   // `webClient`, shaped exactly as they are stored. The master switch does not:
   // it belongs to whoever runs the extension.
-  var WEB_CLIENT_KEYS = ['maximize', 'dropdown', 'highlightRow', 'noAnimations',
-    'hideNotifications', 'copyValues', 'weekNumbers'];
+  var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'highlightRow',
+    'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
+    var pinActionBar = s.pinActionBar || {};
     var dropdown = s.dropdown || {};
     var highlightRow = s.highlightRow || {};
     var noAnimations = s.noAnimations || {};
@@ -293,6 +307,9 @@
     return {
       maximize: {
         enabled: bool(maximize.enabled, true)
+      },
+      pinActionBar: {
+        enabled: bool(pinActionBar.enabled, true)
       },
       // Dropdowns twice as wide by default; height stays BC standard until
       // asked for.
@@ -392,6 +409,12 @@
   function maximizeOn(settings) {
     return !!(settings && settings.enabled &&
       settings.maximize && settings.maximize.enabled);
+  }
+
+  /** Pinning the action bar clicks BC's controls too, so it follows the master switch. */
+  function pinActionBarOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.pinActionBar && settings.pinActionBar.enabled);
   }
 
   /** The current-row tint follows the master switch as well, like maximize. */
@@ -630,6 +653,7 @@
   }
 
   BCBuddy.STORAGE_KEY = STORAGE_KEY;
+  BCBuddy.OPEN_PANEL_KEY = OPEN_PANEL_KEY;
   BCBuddy.SCHEMA_VERSION = SCHEMA_VERSION;
   BCBuddy.EXPORT_APP = EXPORT_APP;
   BCBuddy.PALETTE = PALETTE;
@@ -653,6 +677,7 @@
   BCBuddy.normalize = normalize;
   BCBuddy.effectiveRules = effectiveRules;
   BCBuddy.maximizeOn = maximizeOn;
+  BCBuddy.pinActionBarOn = pinActionBarOn;
   BCBuddy.highlightRowOn = highlightRowOn;
   BCBuddy.noAnimationsOn = noAnimationsOn;
   BCBuddy.hideNotificationsOn = hideNotificationsOn;

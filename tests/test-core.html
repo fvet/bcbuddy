@@ -87,7 +87,9 @@ window.chrome = {
 <script src="../src/lib/match.js"></script>
 <script src="../src/lib/settings.js"></script>
 <script src="../src/lib/dropdowns.js"></script>
+<script src="../src/lib/bcstate.js"></script>
 <script src="../src/lib/maximize.js"></script>
+<script src="../src/lib/actionbar.js"></script>
 <script src="../src/lib/copyvalues.js"></script>
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
@@ -333,6 +335,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('maximize: off when the extension is off',
     BCBuddy.maximizeOn(BCBuddy.normalize({ enabled: false, maximize: { enabled: true } })), false);
 
+  // pinning the action bar likewise
+  check('pin action bar: on by default', BCBuddy.pinActionBarOn(BCBuddy.normalize(null)), true);
+  check('pin action bar: off with its own toggle',
+    BCBuddy.pinActionBarOn(BCBuddy.normalize({ pinActionBar: { enabled: false } })), false);
+  check('pin action bar: off when the extension is off',
+    BCBuddy.pinActionBarOn(BCBuddy.normalize({ enabled: false, pinActionBar: { enabled: true } })), false);
+
   // the current-row tint likewise
   check('current row: on by default', BCBuddy.highlightRowOn(BCBuddy.normalize(null)), true);
   check('current row: off with its own toggle',
@@ -366,6 +375,61 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.weekNumbersOn(BCBuddy.normalize({ weekNumbers: { enabled: false } })), false);
   check('week numbers: off when the extension is off',
     BCBuddy.weekNumbersOn(BCBuddy.normalize({ enabled: false, weekNumbers: { enabled: true } })), false);
+
+  // week numbers are BC's own: BC Buddy writes BC's DatePicker setting for
+  // every user and environment that has none (live BC28 keys, user shortened)
+  function writableStorage(entries) {
+    var data = {};
+    Object.keys(entries).forEach(function (k) { data[k] = entries[k]; });
+    return {
+      data: data,
+      get length() { return Object.keys(data).length; },
+      key: function (i) { return Object.keys(data)[i]; },
+      getItem: function (k) { return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function (k, v) { data[k] = String(v); }
+    };
+  }
+  var W = BCBuddy.WeekNumbers;
+  var picks = writableStorage({
+    'JOHN:production:NavBar': '{"Pinned":false,"ApproximateCharWidth":7.9}',
+    'JOHN:sandbox:NavBar': '{"Pinned":false,"ApproximateCharWidth":7.9}',
+    'JOHN:sandbox:DatePicker': '{"showWeekNumbers":false}',
+    'JOHN:production:TCB0000001a-0000-0001-0c00-0000836bd2d2': '{"Pinned":false}',
+    'JOHN:AnalysisMode:AnalysisMode:00000016-ab95-0000-0c61-2a00836bd2d2': '{"isActive":false}'
+  });
+  check('week numbers: every user and environment BC ran in',
+    BCBuddy.BCState.prefixes(picks), ['JOHN:production:', 'JOHN:sandbox:']);
+  check('week numbers: turned on where nobody chose', W.turnOn(picks), 1);
+  check('week numbers: written as BC writes them',
+    picks.data['JOHN:production:DatePicker'], '{"showWeekNumbers":true}');
+  check('week numbers: Shift+Home off is left off', picks.data['JOHN:sandbox:DatePicker'], '{"showWeekNumbers":false}');
+  check('week numbers: once set, nothing more to do', W.turnOn(picks), 0);
+  check('week numbers: only BC\'s own keys are touched',
+    Object.keys(picks.data).filter(function (k) { return /DatePicker$/.test(k); }).length, 2);
+  check('week numbers: no BC in this browser yet, nothing written',
+    [W.turnOn(writableStorage({ other: 'x', 'a:NavBarX': '1' })), BCBuddy.BCState.isStartKey(':NavBar')], [0, false]);
+
+  // a new environment's first start reaches the page around BC's frame as a
+  // storage event
+  var heard = null;
+  var fakeWin = {
+    localStorage: writableStorage({}),
+    addEventListener: function (type, fn) { if (type === 'storage') heard = fn; },
+    removeEventListener: function (type, fn) { if (heard === fn) heard = null; }
+  };
+  var weeks = W.attach(fakeWin);
+  fakeWin.localStorage.setItem('JOHN:test:NavBar', '{"Pinned":false}');
+  heard({ key: 'JOHN:test:Layout:0000001a-0000-0001-0c00-0000836bd2d2', newValue: '{}' });
+  check('week numbers: other storage events are ignored',
+    fakeWin.localStorage.getItem('JOHN:test:DatePicker'), null);
+  heard({ key: 'JOHN:test:NavBar', newValue: '{"Pinned":false}' });
+  check('week numbers: a new environment gets them at its first start',
+    fakeWin.localStorage.getItem('JOHN:test:DatePicker'), '{"showWeekNumbers":true}');
+  weeks.detach();
+  check('week numbers: detach stops listening', heard, null);
+  check('week numbers: blocked storage is no error', typeof W.attach({
+    get localStorage() { throw new Error('blocked'); }
+  }).detach, 'function');
   // open in a new tab is beta and has no setting at all (see newtab.js)
   check('new tab: no setting of its own', 'newTab' in BCBuddy.normalize(null), false);
 
@@ -561,6 +625,12 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.normalizeLayout({}).banner.opacity, 0.5);
   check('normalization: saved opacity is kept',
     BCBuddy.normalizeLayout({ banner: { opacity: 0.8 } }).banner.opacity, 0.8);
+  check('normalization: banner size defaults to automatic',
+    BCBuddy.normalizeLayout({}).banner.fontSize, 0);
+  check('normalization: unreadable banner size becomes automatic',
+    BCBuddy.normalizeLayout({ banner: { fontSize: 1 } }).banner.fontSize, 0);
+  check('normalization: readable banner size is kept',
+    BCBuddy.normalizeLayout({ banner: { fontSize: 9 } }).banner.fontSize, 9);
   check('normalization: favicon letters capped at two',
     BCBuddy.normalizeRule({ favicon: { text: 'ABCD' } }).favicon.text, 'AB');
   check('normalization: rule has no border field',
@@ -712,6 +782,115 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     taskDialog('ms-nav-listform flexible-dialog', 'BackToWindow'), []);
   check('maximize: a dialog that is not a list keeps its size',
     taskDialog('ms-nav-cardform flexible-dialog', 'FullScreen'), []);
+
+  // BC's own choices per page, as the client frame's localStorage holds them
+  // (live BC28 keys, user name shortened).
+  var S = BCBuddy.BCState;
+  function fakeStorage(entries) {
+    var keys = Object.keys(entries);
+    return {
+      length: keys.length,
+      key: function (i) { return keys[i]; },
+      getItem: function (k) { return Object.prototype.hasOwnProperty.call(entries, k) ? entries[k] : null; }
+    };
+  }
+  var ID = '-0000-0001-0c00-0000836bd2d2';
+  var bcEntries = {};
+  bcEntries['JOHN:production:NavBar'] = '{"Pinned":false,"ApproximateCharWidth":7.9}';
+  bcEntries['JOHN:production:TCB0000001a' + ID] = '{"Pinned":false}';
+  bcEntries['JOHN:production:Layout:00000015' + ID] = '{"AsideAreaRightExpanded":true,"PageLayoutExpanded":false}';
+  bcEntries['JOHN:production:TaskDialog:Layout:00000022' + ID] = '{"PageLayoutExpanded":true}';
+  bcEntries['JOHN:production:0000001f-9191-0000-0c62-cc00836bd2d2'] = '{"Layout":"Tile","LastUserColumnVisible":false}';
+  bcEntries['JOHN:AnalysisMode:AnalysisMode:00000016-ab95-0000-0c61-2a00836bd2d2'] = '{"isActive":false}';
+  bcEntries['JOHN:production:NavNode:0000002a-38cb-0000-0c20-4e00836bd2d2'] = '{"LastUsedView":"x"}';
+  bcEntries['JOHN:production:TCB00000032' + ID] = 'not json';
+  bcEntries['JOHN:sandbox:TCB00000032' + ID] = '{"Pinned":true}';
+  var bcKeys = fakeStorage(bcEntries);
+  check('bc state: page number in hex as BC keys it', [S.hex(26), S.hex(50000)], ['0000001a', '0000c350']);
+  check('bc state: page number from the root form', S.pageId((function () {
+    var view = document.createElement('div');
+    view.innerHTML = '<form class="ms-nav-root-form" data-page-id="26"></form>';
+    return view;
+  })()), 26);
+  check('bc state: no page number without a root form', S.pageId(document.createElement('div')), null);
+  check('bc state: an unpinned page is a choice', S.chosen(bcKeys, 'pin', 26), true);
+  check('bc state: a page nobody pinned has none', S.chosen(bcKeys, 'pin', 27), false);
+  check('bc state: the navigation menu pin is no page', S.chosen(bcKeys, 'pin', 0), false);
+  check('bc state: narrow is a choice too', S.chosen(bcKeys, 'wide', 21), true);
+  check('bc state: a dialog size is not the page size',
+    [S.chosen(bcKeys, 'wide', 34), S.chosen(bcKeys, 'dialog', 34), S.chosen(bcKeys, 'dialog', 21)],
+    [false, true, false]);
+  check('bc state: the list layout of a page',
+    [S.chosen(bcKeys, 'list', 31), S.chosen(bcKeys, 'list', 21), S.chosen(bcKeys, 'list', 22), S.chosen(bcKeys, 'list', 42)],
+    [true, false, false, false]);
+  check('bc state: a value that is not JSON is skipped, not fatal', S.chosen(bcKeys, 'pin', 50), true);
+  check('bc state: nothing to go on is no choice',
+    [S.chosen(null, 'pin', 26), S.chosen(bcKeys, 'pin', null), S.chosen(bcKeys, 'nonsense', 26)],
+    [false, false, false]);
+
+  // maximize leaves a page alone that someone set before
+  function storedStack(top, layoutIcon, id) {
+    var doc = bcStack(top, layoutIcon);
+    doc.querySelector('.spa-view:not([inert]) form').setAttribute('data-page-id', id);
+    return doc;
+  }
+  var setNarrow = storedStack('', 'icon-TallBrickView', '21');
+  M.apply(setNarrow, new WeakMap(), bcKeys);
+  check('maximize: a page set back to narrow stays narrow, tiles still go', setNarrow.clicks, ['menu-top']);
+  var setTiles = storedStack('', 'icon-TallBrickView', '31');
+  M.apply(setTiles, new WeakMap(), bcKeys);
+  check('maximize: a list set to tiles stays in tiles', setTiles.clicks, ['wide-top']);
+  var fresh = storedStack('', 'icon-TallBrickView', '27');
+  M.apply(fresh, new WeakMap(), bcKeys);
+  check('maximize: a page nobody set gets both', fresh.clicks, ['wide-top', 'menu-top']);
+  function storedDialog(id) {
+    var doc = bcStack(' aria-checked="true"', 'icon-NotBrickView');
+    var done = new WeakMap();
+    M.apply(doc, done, bcKeys);
+    doc.querySelector('.spa-view:not([inert])').classList.add('spa-not-top-most');
+    doc.querySelector('.spa-container').insertAdjacentHTML('beforeend',
+      '<div class="spa-view spa-task-dialog"><form class="ms-nav-root-form ms-nav-listform flexible-dialog" ' +
+      'data-page-id="' + id + '"><div class="dialog-system-actions">' +
+      '<button id="dialog-max"><i data-icon-name="FullScreen"></i></button></div></form></div>');
+    M.apply(doc, done, bcKeys);
+    return doc.clicks;
+  }
+  check('maximize: a list dialog set back to its size keeps it', storedDialog('34'), []);
+  check('maximize: the page size does not count for its dialog', storedDialog('21'), ['dialog-max']);
+
+  // pin the action bar: the page's own pin sits in its menu bar; a part such
+  // as the lines of an order has one in its own header.
+  var A = BCBuddy.ActionBar;
+  function pinPage(id, icon) {
+    var doc = document.implementation.createHTMLDocument('bc');
+    doc.body.innerHTML = '<div class="spa-container"><div class="spa-view">' +
+      '<form class="ms-nav-root-form" data-page-id="' + id + '">' +
+      '<div class="ms-nav-layout-menubar"><button id="pin-page"><span><i data-icon-name="' + icon + '"></i></span></button></div>' +
+      '<div class="ms-nav-band-header"><button id="pin-part"><span><i data-icon-name="Pin"></i></span></button></div>' +
+      '</form></div></div>';
+    doc.clicks = [];
+    doc.addEventListener('click', function (e) { doc.clicks.push(e.target.id); }, true);
+    return doc;
+  }
+  var floating = pinPage('27', 'Pin');
+  var pinDone = new WeakSet();
+  A.apply(floating, pinDone, bcKeys);
+  A.apply(floating, pinDone, bcKeys);
+  check('pin action bar: pins the page once, not the part', floating.clicks, ['pin-page']);
+  var unpinned = pinPage('26', 'Pin');
+  A.apply(unpinned, new WeakSet(), bcKeys);
+  check('pin action bar: a page someone unpinned stays unpinned', unpinned.clicks, []);
+  var settling = pinPage('27', 'Unpin');
+  var settleDone = new WeakSet();
+  A.apply(settling, settleDone, bcKeys);
+  check('pin action bar: a pinned bar is left alone', settling.clicks, []);
+  settling.querySelector('#pin-page i').setAttribute('data-icon-name', 'Pin');
+  A.apply(settling, settleDone, bcKeys);
+  check('pin action bar: and gets its turn if BC lets it float after all', settling.clicks, ['pin-page']);
+  var noId = pinPage('27', 'Pin');
+  noId.querySelector('form').removeAttribute('data-page-id');
+  A.apply(noId, new WeakSet(), bcKeys);
+  check('pin action bar: without a page number nothing is clicked', noId.clicks, []);
 
   var old = document.implementation.createHTMLDocument('bc-old');
   old.body.innerHTML = '<div data-control-id="ListLayoutChooser">' +
@@ -1241,155 +1420,6 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     });
   }
 
-  // week numbers: the date picker's markup, trimmed from a live BC SaaS client
-  // (2026-10-11): a Fluent layer with Fluent's Calendar inside.
-  function calendarLayer(rows) {
-    var layer = document.createElement('div');
-    layer.className = 'ms-Layer ms-Layer--fixed';
-    layer.innerHTML =
-      '<div class="ms-Fabric ms-Layer-content"><div class="ms-Callout" id="react-date-picker">' +
-      '<div class="ms-Callout-main" role="dialog" style="display:inline-block">' +
-      // Fluent sizes the calendar with a class, not an inline style.
-      '<style>.bcb-test-calendar { width: 220px; box-sizing: border-box; }</style>' +
-      '<div class="fui-Calendar bcb-test-calendar"><div class="fui-CalendarDay" style="padding:12px">' +
-      '<table class="fui-CalendarDayGrid__table" role="grid" style="table-layout:fixed;width:196px"><tbody></tbody></table>' +
-      '</div></div></div></div></div>';
-    fillCalendar(layer, rows);
-    return layer;
-  }
-
-  /** rows: the date of each row's first day, as [y, m (1-12), d]; hidden: the transition rows. */
-  function fillCalendar(layer, rows) {
-    var tbody = layer.querySelector('tbody');
-    tbody.textContent = '';
-    var head = document.createElement('tr');
-    head.innerHTML = '<td class="fui-CalendarDayGrid__dayCell fui-CalendarDayGrid__weekDayLabelCell">Maa</td>';
-    tbody.appendChild(head);
-    rows.forEach(function (row, i) {
-      var tr = document.createElement('tr');
-      var hidden = i === 0 || i === rows.length - 1;
-      tr.className = hidden
-        ? (i === 0 ? 'fui-CalendarDayGrid__firstTransitionWeek' : 'fui-CalendarDayGrid__lastTransitionWeek')
-        : 'fui-CalendarDayGrid__weekRow';
-      if (hidden) tr.style.display = 'none';
-      var start = new Date(row[0], row[1] - 1, row[2]);
-      for (var d = 0; d < 7; d++) {
-        var day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + d);
-        var td = document.createElement('td');
-        td.className = 'fui-CalendarDayGrid__dayCell';
-        td.setAttribute('role', 'gridcell');
-        td.style.position = 'relative';
-        var button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'fui-CalendarDayGrid__dayButton';
-        button.setAttribute('aria-label', day.getDate() + ', ' +
-          new Intl.DateTimeFormat('nl-NL', { month: 'long' }).format(day) + ', ' + day.getFullYear());
-        button.textContent = String(day.getDate());
-        td.appendChild(button);
-        tr.appendChild(td);
-      }
-      tbody.appendChild(tr);
-    });
-  }
-
-  function weekNumbersDom() {
-    var W = BCBuddy.WeekNumbers;
-    function iso(y, m, d) { return W.isoWeek(new Date(y, m - 1, d)); }
-    // Microsoft Learn's Date2DWY example: 1 January 2014 is in week 1, and the
-    // Sunday before it, 29 December 2013, is in the last week of 2013.
-    check('week numbers: as Date2DWY, the Microsoft Learn example',
-      [iso(2014, 1, 1), iso(2013, 12, 29), iso(2013, 12, 30)], [1, 52, 1]);
-    check('week numbers: a week that starts in the old year belongs to the year of its Thursday',
-      [iso(2025, 12, 29), iso(2026, 1, 4), iso(2026, 1, 5)], [1, 1, 2]);
-    check('week numbers: years with a week 53',
-      [iso(2020, 12, 31), iso(2021, 1, 3), iso(2021, 1, 4), iso(2027, 1, 1), iso(2026, 12, 31)], [53, 53, 1, 53, 53]);
-
-    function date(label, lang) {
-      var d = W.parseLabel(label, W.monthNames(lang));
-      return d && [d.getFullYear(), d.getMonth() + 1, d.getDate()];
-    }
-    check('week numbers: BC\'s day label, in Dutch', date('22, december, 2025', 'nl-NL'), [2025, 12, 22]);
-    check('week numbers: in other orders and languages',
-      [date('December 22, 2025', 'en-US'), date('22. Dezember 2025', 'de-DE'),
-        date('22 décembre 2025', 'fr-BE'), date('22 grudnia 2025', 'pl-PL'), date('22 dec. 2025', 'nl-BE')],
-      [[2025, 12, 22], [2025, 12, 22], [2025, 12, 22], [2025, 12, 22], [2025, 12, 22]]);
-    check('week numbers: a label it cannot read gives no date',
-      [date('2025年12月22日', 'ja-JP'), date('31, februari, 2026', 'nl-NL'), date('', 'nl-NL')], [null, null, null]);
-    function monday(y, m, d) {
-      var r = W.mondayOf(new Date(y, m - 1, d));
-      return [r.getMonth() + 1, r.getDate()];
-    }
-    check('week numbers: a row counts from its Monday, also when it starts on Sunday',
-      [monday(2026, 1, 5), monday(2026, 1, 4), monday(2026, 1, 3)], [[1, 5], [1, 5], [1, 5]]);
-
-    // The live picker: the layer host comes with the first Fluent layer.
-    var host = document.createElement('div');
-    host.id = 'fluent-default-layer-host';
-    var JANUARY = [[2025, 12, 22], [2025, 12, 29], [2026, 1, 5], [2026, 1, 12], [2026, 1, 19], [2026, 1, 26], [2026, 2, 2]];
-    var FEBRUARY = [[2026, 1, 19], [2026, 1, 26], [2026, 2, 2], [2026, 2, 9], [2026, 2, 16], [2026, 2, 23], [2026, 3, 2]];
-    function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
-    function weeks(layer) {
-      return Array.prototype.map.call(layer.querySelectorAll('tbody tr'), function (tr) {
-        return tr.cells[0].getAttribute(W.MARK);
-      });
-    }
-    var root = document.documentElement;
-    // BC sets the UI language on <html>; the day labels are in it.
-    var lang = root.lang;
-    root.lang = 'nl-NL';
-    root.setAttribute('data-bcb-weeks', '');
-    var handle = W.attach(document);
-    var layer = calendarLayer(JANUARY);
-    document.body.appendChild(host);
-    return wait(0).then(function () {
-      host.appendChild(layer);
-      return wait(0);
-    }).then(function () {
-      check('week numbers: a picker that opens gets a number on each week, not on the hidden rows',
-        weeks(layer), [null, null, '1', '2', '3', '4', '5', null]);
-      var cell = layer.querySelector('tr.fui-CalendarDayGrid__weekRow td');
-      check('week numbers: drawn by the CSS, left of the grid',
-        getComputedStyle(cell, '::before').content, '"1"');
-      var calendar = layer.querySelector('.fui-Calendar');
-      check('week numbers: the picker grows by the margin',
-        [getComputedStyle(calendar).paddingLeft, Math.round(calendar.getBoundingClientRect().width)], ['28px', 248]);
-      check('week numbers: with a thin line between the numbers and the days',
-        getComputedStyle(cell, '::before').borderRightWidth, '1px');
-      fillCalendar(layer, FEBRUARY);
-      return wait(0);
-    }).then(function () {
-      check('week numbers: after a month change they are back, for the new weeks',
-        weeks(layer), [null, null, '5', '6', '7', '8', '9', null]);
-      layer.remove();
-      var late = calendarLayer([[2026, 9, 21], [2026, 9, 28], [2026, 10, 5], [2026, 10, 12], [2026, 10, 19], [2026, 10, 26], [2026, 11, 2]]);
-      var main = late.querySelector('.ms-Callout-main');
-      var calendar = main.querySelector('.fui-Calendar');
-      calendar.remove();
-      host.appendChild(late);
-      // Its calendar arrives a moment after the layer.
-      setTimeout(function () { main.appendChild(calendar); }, 10);
-      return wait(150).then(function () { return late; });
-    }).then(function (late) {
-      check('week numbers: a layer whose calendar arrives a moment later gets them too',
-        weeks(late), [null, null, '40', '41', '42', '43', '44', null]);
-      handle.detach();
-      check('week numbers: detach takes them off', document.querySelectorAll('[' + W.MARK + ']').length, 0);
-      fillCalendar(late, JANUARY);
-      return wait(0).then(function () { return late; });
-    }).then(function (late) {
-      check('week numbers: and stops watching', document.querySelectorAll('[' + W.MARK + ']').length, 0);
-      root.removeAttribute('data-bcb-weeks');
-      root.lang = lang;
-      host.remove();
-    }, function (err) {
-      handle.detach();
-      root.removeAttribute('data-bcb-weeks');
-      root.lang = lang;
-      host.remove();
-      throw err;
-    });
-  }
-
   // open in a new tab, the flow: a stack of BC pages as the live client has
   // it (BC SaaS, 2026-10-11), and a stand-in for BC that opens a page on a
   // click, puts its address in the address bar a moment later and closes it
@@ -1605,8 +1635,6 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
           results.push('FAIL  copy values DOM: ' + err.message);
         }).then(newTabFlowDom).then(null, function (err) {
           results.push('FAIL  new tab flow DOM: ' + err.message);
-        }).then(weekNumbersDom).then(null, function (err) {
-          results.push('FAIL  week numbers DOM: ' + err.message);
         }).then(function () {
           var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
           document.getElementById('results').textContent =

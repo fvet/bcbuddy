@@ -9,8 +9,9 @@ page, so you can turn off whatever you do not like.
 |---|---|---|
 | [Copy values](#copy-values) | A copy icon on any value in a list or FactBox | On |
 | [Maximize pages](#maximize-pages) | Every page uses the full width of your screen | On |
+| [Pin the action bar](#pin-the-action-bar) | The row of actions under a page's tabs is pinned | On |
 | [Dropdown size](#dropdown-size) | The list under a field shows all its columns | On |
-| [Week numbers in the date picker](#week-numbers-in-the-date-picker) | Week numbers in the calendar of a date field | On |
+| [Week numbers in the date picker](#week-numbers-in-the-date-picker) | Business Central's own week numbers in the calendar of a date field | On |
 | [Highlight the current line](#highlight-the-current-line) | The line you are on in a journal or order stands out | On |
 | [Hide the notifications icon](#hide-the-notifications-icon) | No bell at the top right | On |
 | [Turn off animations](#turn-off-animations) | Pages and dialogs appear at once | Off |
@@ -33,8 +34,23 @@ A field you can type in gets no icon: select its text and press Ctrl+C as usual.
 Every page opens in wide layout, so you see more fields and columns without
 scrolling. Pages that show tiles switch to a list.
 
-If you switch a page back to narrow or to tiles yourself, BC Buddy leaves it
-that way.
+BC Buddy only changes a page the first time it opens. Business Central
+remembers per page how you left it, in your browser, so a page you switch back
+to narrow or to tiles yourself stays that way, also the next time you open it.
+
+## Pin the action bar
+
+The row of actions under a page's tabs, such as **Start** or **Prepare**, has a
+pin at its right end. Business Central remembers per page whether you pinned
+it, but a page you never pinned opens the way Business Central picks. With this
+on, such a page opens with the action bar pinned.
+
+Unpin it on a page and that page stays unpinned: BC Buddy only pins a page
+nobody set yet.
+
+Switching **Maximize pages** or **Pin the action bar** off does not undo what
+they already did: Business Central remembers those pages. Set a page back by
+hand if you want it different.
 
 ## Dropdown size
 
@@ -52,9 +68,16 @@ Central's own size.
 ## Week numbers in the date picker
 
 The calendar that opens from a date field shows the week number in front of
-each week. They are counted the same way Business Central counts weeks
-everywhere else: weeks start on Monday, and week 1 is the week with the first
-Thursday of the year.
+each week. These are Business Central's own week numbers: Business Central has
+them, but leaves them off until you press **Shift+Home** in the calendar. BC
+Buddy turns them on for you, once.
+
+To turn them off, or back on, press **Shift+Home** while the calendar is open.
+Business Central remembers that, and BC Buddy leaves it.
+
+Business Central counts the weeks as the **Region** in **My Settings** says.
+With Dutch, for example, weeks start on Monday and week 1 is the week with the
+first Thursday of the year.
 
 ## Highlight the current line
 

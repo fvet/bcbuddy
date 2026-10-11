@@ -22,8 +22,8 @@ setup, it is now easier to work in:
 
 - **Copy values.** Rest the mouse on an amount or a No. in a list and click the
   small copy icon.
-- **Wide pages.** Every page uses the full width of your screen, and tile pages
-  show as a list.
+- **Wide pages.** Every page uses the full width of your screen, with its
+  action bar pinned, and tile pages show as a list.
 - **Bigger dropdowns.** The list under a field shows all its columns.
 - **Week numbers** in the calendar of a date field.
 - **The line you are on** in a journal or order stands out.
