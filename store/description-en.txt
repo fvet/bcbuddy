@@ -23,6 +23,6 @@ You decide when each colour appears: per environment, per company or per custome
 
 Working in a team? One person sets up the colours and everyone else gets them automatically, including later changes.
 
-Works with Business Central online and on your own server. Available in English and Dutch.
+Works with Business Central online and on your own server. Available in English, Dutch and French.
 
 Everything stays on your own computer: no account, no server, no tracking.

@@ -7,7 +7,7 @@ Working on BC Buddy itself. For what the extension does and how to use it, see
 
 ```
 manifest.json
-_locales/              en (default) and nl; see TRANSLATING.md
+_locales/              en (default), nl and fr; see TRANSLATING.md
 src/
   background.js        service worker: synchronises the shared file
   lib/i18n.js          fetching translations
@@ -342,7 +342,7 @@ wrong thing does damage. A new one brings along:
   helper that also checks `settings.enabled`. Add its key to
   `WEB_CLIENT_KEYS`, so it travels in an export and in the shared file.
 - **Options.** One card in the Web client panel (`options.html`,
-  `options.js`), with strings in `_locales/en` and `_locales/nl`.
+  `options.js`), with strings in `_locales/en`, `_locales/nl` and `_locales/fr`.
 - **Content script.** One `apply…()`, called from `apply()` in `content.js` and
   undone in `clearAll()` or when its switch goes off. `shouldWatch()` wakes the
   watch loop only for a tweak that keeps acting on BC, as Maximize does; one
@@ -360,8 +360,9 @@ wrong thing does damage. A new one brings along:
 
 ## 🌍 Adding a language
 
-The texts live in [`_locales/en/messages.json`](_locales/en/messages.json) and
-[`_locales/nl/messages.json`](_locales/nl/messages.json); `en` is the default and
+The texts live in [`_locales/en/messages.json`](_locales/en/messages.json),
+[`_locales/nl/messages.json`](_locales/nl/messages.json) and
+[`_locales/fr/messages.json`](_locales/fr/messages.json); `en` is the default and
 the fallback. Adding a language comes down to a new folder with the same keys.
 The folder name has to be one the Web Store accepts — `fr`, `pt_BR`, with an
 underscore rather than a hyphen — because upload rejects anything else.

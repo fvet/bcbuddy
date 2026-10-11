@@ -57,7 +57,7 @@ Setting up your first two colours takes a minute:
   [Privacy](privacy.md).
 - **Chrome and Edge**, version 111 or newer, with Business Central online or
   on your own server.
-- **In English and Dutch**, following the language of your browser.
+- **In English, Dutch and French**, following the language of your browser.
 - **Free and open source** under the
   [MIT licence](https://github.com/fvet/bcbuddy/blob/main/LICENSE), also for
   use at work.

@@ -32,6 +32,7 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   defaults: each is applied on the first sync, and after that only when the
   team changes it in the file, so a colleague who switches something off
   keeps it off.
+- French support
 
 ### Fixed
 

@@ -23,6 +23,6 @@ Je bepaalt zelf wanneer welke kleur verschijnt: per omgeving, per bedrijf of per
 
 Werk je in een team? Een persoon stelt de kleuren in, de rest krijgt ze automatisch mee, ook als er later iets verandert.
 
-Werkt met Business Central online en op je eigen server. Beschikbaar in het Nederlands en het Engels.
+Werkt met Business Central online en op je eigen server. Beschikbaar in het Nederlands, het Engels en het Frans.
 
 Alles blijft op je eigen computer: geen account, geen server, geen tracking.

@@ -198,7 +198,7 @@ More on the website: [Troubleshooting](https://fvet.github.io/bcbuddy/troublesho
 
 ## 🌍 Languages
 
-BC Buddy is in English and Dutch, and follows the language of your browser.
+BC Buddy is in English, Dutch and French, and follows the language of your browser.
 The texts you type yourself in a rule or layout appear exactly as you type
 them. Would you like it in your own language? See
 [TRANSLATING.md](TRANSLATING.md).
