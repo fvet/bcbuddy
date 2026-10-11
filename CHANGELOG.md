@@ -19,10 +19,11 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   also a No. or an amount that is a link, which you could not select before. Works on values you cannot edit. On by default; it is the
   first switch under **Web client** in the options.
 - **Week numbers in the date picker**: the calendar that opens from a date
-  field shows the week number in front of each week, counted as Business
-  Central itself does: weeks start on Monday, and week 1 is the week with the
-  first Thursday of the year. On by default; switch it off under **Web
-  client** in the options.
+  field shows the week number in front of each week. They are Business
+  Central's own week numbers, which it keeps hidden until you press
+  Shift+Home in the calendar; BC Buddy turns them on for you. Press Shift+Home
+  to turn them off again, and Business Central remembers it. On by default;
+  switch it off under **Web client** in the options.
 - **Hide the notifications icon**: the bell at the top right of Business
   Central, which opens Notifications, is hidden. On by default; switch it off
   under **Web client** in the options to get the bell back.
@@ -32,13 +33,27 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   defaults: each is applied on the first sync, and after that only when the
   team changes it in the file, so a colleague who switches something off
   keeps it off.
+- **BC Buddy in the gear menu**: in Business Central online, the gear icon's
+  Settings pane now has a **BC Buddy** section with a **Settings** link that
+  opens the options. It is there whenever BC Buddy is installed, also while it
+  is switched off.
 - French support
+- **Pin the action bar**: a page opens with the row of actions under its tabs
+  pinned, instead of the way Business Central picks. Unpin it on a page and
+  that page stays unpinned. On by default; switch it off under **Web client**
+  in the options.
 
 ### Fixed
 
+- **Maximize pages** no longer overrules you. A page you switched back to
+  narrow or to tiles now stays that way the next time you open it, instead of
+  being widened again.
 - Layouts in a shared configuration now reach your colleagues. Until now a
   shared rule always looked like the plain default layout, whatever layout it
   had in the file.
+
+- The text in a banner or corner ribbon could show up as a tiny dash while
+  **Size** was on automatic. It now fits itself to the banner again.
 
 <!-- --8<-- [start:released] -->
 

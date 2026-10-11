@@ -8,6 +8,16 @@ installed BC Buddy do not see it until they reload.
 Still nothing? Open the BC Buddy settings page and check that **Extension
 active**, at the top, is on.
 
+## No BC Buddy in the gear menu
+
+In Business Central, the gear icon at the top right has a **BC Buddy** section
+with **Settings**. Not there? Reload the Business Central tab (press F5): a tab
+that was open before you installed or updated BC Buddy does not see it yet.
+
+Business Central on your own server (on-premises) has a different gear menu,
+without BC Buddy. The BC Buddy icon in the toolbar always opens the settings
+page.
+
 ## Web client
 
 ### No copy icon on a value
@@ -21,8 +31,16 @@ very narrow columns.
 
 ### A page stays narrow or in tiles
 
-**Maximize pages** works once, when a page opens. If you switched a page back
-to narrow or to tiles yourself, BC Buddy leaves it that way.
+**Maximize pages** only changes a page nobody set yet. Once a page was switched
+back to narrow or to tiles in this browser, Business Central remembers that and
+BC Buddy leaves it. Click the wide toggle at the top right, or pick list view,
+once: Business Central remembers that instead.
+
+### The action bar floats on a page
+
+**Pin the action bar** likewise only pins a page nobody set yet. Click the pin
+at the right end of the action bar once, and Business Central keeps the page
+pinned from then on.
 
 ### A dropdown keeps its usual size
 
@@ -32,8 +50,12 @@ columns needs no extra width; it only grows taller if you raise **Height**.
 
 ### No week numbers in the date picker
 
-They do not appear when Business Central is set to a language that writes dates
-without spaces, such as Japanese or Chinese. The calendar itself works as usual.
+Press **Shift+Home** while the calendar is open. That turns Business Central's
+week numbers on or off, and someone may have turned them off that way:
+Business Central remembers it, and BC Buddy leaves it.
+
+The weeks are counted as the **Region** in **My Settings** says. If they are
+counted differently than you expect, check that setting.
 
 ### Something still slides or fades
 

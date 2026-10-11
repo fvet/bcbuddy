@@ -1,7 +1,8 @@
 # Development
 
 Working on BC Buddy itself. For what the extension does and how to use it, see
-[README.md](README.md).
+[README.md](README.md). Ideas not built yet, with what is known about them, are
+in [IDEAS.md](IDEAS.md).
 
 ## 📁 Structure
 
@@ -14,12 +15,15 @@ src/
   lib/match.js         parsing URLs, matching rules, tokens, colour helpers
   lib/settings.js      storage, defaults, normalisation, import/export
   lib/dropdowns.js     dropdown size: sizes BC's lookup dropdowns
+  lib/bcstate.js       reading the choices BC stores per page (localStorage)
   lib/maximize.js      maximize: wide layout and list view on BC's own controls
+  lib/actionbar.js     pin the action bar on BC's own pin button
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
+  lib/gearmenu.js      the BC Buddy section in BC's gear menu (Settings pane)
   content/content.js   draws frame, banner, ribbon, title and favicon;
                        starts maximize, the dropdown sizer, the copy icon,
-                       week numbers and the row tint
+                       week numbers, the row tint and the gear menu section
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted
@@ -54,6 +58,8 @@ travel in an export and in the shared file as `webClient`; the master switch
 `enabled` does not:
 
 - `maximize.enabled` — wide layout and list view, on by default.
+- `pinActionBar.enabled` — pin the action bar of a page that opens with it
+  floating, on by default.
 - `highlightRow.enabled` — the current-line tint, on by default.
 - `dropdown.width` and `dropdown.height` — slider steps 1–5, stored as the step
   and never as pixels. Step 1 is BC standard; width defaults to 5, height to 1.
@@ -64,8 +70,8 @@ travel in an export and in the shared file as `webClient`; the master switch
   by default. One `data-bcb-no-bell` attribute on `<html>` and one id rule in
   `content.css` (`#notifications_container`, in the top document).
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
-- `weekNumbers.enabled` — week numbers in the date picker, on by default. One
-  `data-bcb-weeks` attribute on `<html>` keys the CSS.
+- `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
+  where nobody set them, on by default.
 
 `normalize()` always ensures every rule points at a valid layout: a
 configuration with no layouts gets a Default, and a rule whose `layoutId` names
@@ -128,6 +134,42 @@ After a BC update, open a sales order in edit mode and click through its lines:
 the line you are on should carry the faint tint across its full width. If not,
 check that the current row still has `real-current` and the grid
 `ms-nav-grid-edit`.
+
+## 📌 BC's own page settings
+
+Maximize and Pin the action bar click BC's own controls, and change only BC's
+default: never a page someone already set. BC stores those choices per page in
+the client frame's `localStorage`, written only when someone (or BC Buddy's
+click) changes them, so no key means the page shows BC's default.
+`lib/bcstate.js` reads them:
+
+| Setting | Key ends in | Field |
+|---|---|---|
+| Wide layout | `:Layout:<id>` | `PageLayoutExpanded` |
+| Size of a task dialog | `:TaskDialog:Layout:<id>` | `PageLayoutExpanded` |
+| List, tiles | `:<list id>` (no prefix) | `Layout` |
+| Pinned action bar | `:TCB<id>` | `Pinned` |
+
+The key starts with `<BC user name>:<environment>:`, which the content script
+cannot rebuild (the URL often leaves the environment out), so a key matches on
+its end. Both ids start with the page number as eight hex digits
+(`0000001a-0000-0001-0c00-…` is page 26); the page number comes from
+`form.ms-nav-root-form[data-page-id]`. A choice in another environment of the
+same tenant therefore counts too, and BC Buddy errs on leaving the page alone.
+
+The page's own pin is the button with `i[data-icon-name="Pin"]` (floating) or
+`"Unpin"` (pinned) in `.ms-nav-layout-menubar`; a part such as order lines has
+its own in `.ms-nav-band-header`, which is left alone. BC's default differs per
+page, and a bar that shows pinned is checked again on later passes in case BC
+lets it float after all.
+
+Runtime cost: one query in the page on screen per pass, and one walk over the
+`localStorage` keys the first time a page is seen.
+
+After a BC update, open a card nobody pinned: it should open pinned, and a
+`…:TCB<id>` key with `{"Pinned":true}` should appear. Unpin it, reopen it, and
+it should stay unpinned. Do the same with the wide toggle and a `…:Layout:<id>`
+key.
 
 ## 📐 Dropdown size
 
@@ -194,43 +236,38 @@ var l = document.querySelector('.spa-view.spa-lookup');
 
 ## 📅 Week numbers in the date picker
 
-`lib/weeknumbers.js`, started and stopped by `applyWeekNumbers()` in
-`content.js`, which also sets `data-bcb-weeks` on `<html>`; the numbers are
-drawn by two rules in `content.css`.
+BC's date picker is Fluent UI v9's `Calendar`, and BC does wire up Fluent's
+`showWeekNumbers`: **Shift+Home** in an open picker toggles it (live client,
+2026-10-11). BC stores the choice per user and environment, not per page, as
+`<user>:<environment>:DatePicker` = `{"showWeekNumbers":true|false}`, and reads
+it each time a picker opens; without the key the numbers are off.
 
-BC's date picker is Fluent UI v9's `Calendar` (live client, 2026-10-11).
-Fluent has a `showWeekNumbers` prop, but BC does not set it and an extension
-cannot reach it. The markup:
+`lib/weeknumbers.js` writes `{"showWeekNumbers":true}` under that key for every
+user and environment that has none yet, and never touches a stored value, so
+Shift+Home stays the user's switch. It is started and stopped by
+`applyWeekNumbers()` in `content.js`.
 
-- the picker opens as a new `div.ms-Layer` in `div#fluent-default-layer-host`,
-  a direct child of `body`, holding `.ms-Callout#react-date-picker` >
-  `.ms-Callout-main` > `.fui-Calendar` (a fixed 220px wide) > `.fui-CalendarDay`
-  > `table.fui-CalendarDayGrid__table[role=grid]`;
-- the visible rows are `tr.fui-CalendarDayGrid__weekRow`. A hidden
-  `__firstTransitionWeek` and `__lastTransitionWeek` row sit around them for
-  the month animation and get no number;
-- every day is a `button.fui-CalendarDayGrid__dayButton` with an `aria-label`
-  such as `22, december, 2025`, in the UI language (`<html lang>`).
-  `parseLabel()` finds the year, the day and a month name in any order, with
-  the names from `Intl.DateTimeFormat`; a label it cannot read gets no number;
-- changing month makes React replace the `tr`s, so our attributes vanish
-  rather than go stale.
+The prefix comes from `BCState.prefixes()`: BC writes
+`<user>:<environment>:NavBar` (the navigation bar's measured width) each time
+it starts, so every such key names a user and environment that ran BC here.
+An environment that starts for the first time while the tab is open is caught
+by the `storage` event: BC writes from the client frame, and the content
+script in the top frame hears it.
 
-So: one `childList` observer on `body` to find the host, one on the host to
-see layers come and go, neither with `subtree`. A layer that holds a
-`.fui-Calendar` gets its rows labelled and an observer of its own (`childList`
-with `subtree`, on about fifty cells) until it is removed, which puts the
-numbers back after a month change. Each first cell gets `data-bcb-week`; the
-CSS draws it with `::before` in a 28px `padding-left`, with a 1px
-`border-right` as the divider Fluent's own week numbers have (the rows touch,
-so it runs unbroken), and `width: auto` on `.fui-Calendar` lets the picker grow
-by that much.
+The numbers are BC's: `firstWeekOfYear` and `firstDayOfWeek` come from the
+user's Region (`calendarWeekRule` in BC's formatting info). A Dutch region
+gives ISO 8601 weeks, as `Date2DWY`; a US region need not. BC draws them as
+`th.fui-CalendarDayGrid__weekNumberCell`, the first cell of each row, and
+widens the picker from 220 to 250px. Its label for that cell reads
+"Weeknummer undefined", a gap in BC's own strings.
 
-The number is the ISO 8601 week, as BC's own `Date2DWY(Date, 2)`, which
-[Microsoft documents](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/methods-auto/system/system-date2dwy-method)
-as always ISO whatever the server or device settings: Monday first, and week 1
-holds the first Thursday (4 January). A row gets the week of its Monday, which
-covers a picker that starts its rows on another day.
+Runtime: one walk over the `localStorage` keys when the switch turns on or a
+page loads, and a suffix check on each `storage` event, which BC raises a few
+times per session. Nothing runs in the picker itself.
+
+After a BC update, remove the `…:DatePicker` key, reload, and open a date
+picker: the week numbers should be there, and Shift+Home should still turn
+them off and write `{"showWeekNumbers":false}`.
 
 ## 📋 Copy values
 
@@ -513,6 +550,43 @@ Runtime cost: one attribute per frame, class-keyed CSS, and one
 `hasAttribute` per `animate()` call (on a card, only FastTab toggles call it).
 After a BC update, open a card, toggle a FastTab, Maximize and the FactBox
 pane (I), and log `transitionrun` and `getAnimations()` for anything slow.
+
+## ⚙️ Gear menu
+
+In BC online the gear icon opens the Settings pane of the Microsoft 365 shell.
+That pane is in the **top window**, not in BC's client iframe, and it is built
+from scratch on every open: `div#FlexPane_Overflow_Container` is added as a
+direct child of `body` and removed again on close. Inside it,
+`div#O365_Settings_navbardatalinks` holds the *Dynamics 365 Business Central*
+section; `gearmenu.js` inserts `#bcb-gear-section` right after it, above
+*Microsoft 365*.
+
+- **No hard-coded classes.** The shell's class names are hashed and change with
+  its releases. The section copies, element by element, the classes of BC's own
+  section (heading, list, link) and the divider of the Microsoft 365 section, so
+  it looks native on whatever release is live. Ids are not copied.
+- **Cost.** One `childList` observer on `body` (no subtree), top window only, on
+  `isWebClientTarget()` hosts. Only while the pane is open, a second observer
+  watches the pane's own subtree — a few dozen elements — because the shell can
+  switch between Settings, Help and Notifications without closing it.
+- **Always on.** It does not follow the extension's on/off switch and has no
+  switch of its own: when BC Buddy is off, this link is the quickest way back.
+- **Opening the options.** A content script cannot call
+  `chrome.runtime.openOptionsPage()`, so the link sends `bcb:open-options` to
+  the service worker, which accepts it from a content script; messages that
+  change something, such as `bcb:sync`, must come from an extension page. The link ignores clicks and
+  keys with `isTrusted` false, so the BC page itself cannot open the options.
+
+On-prem has no Microsoft 365 shell; there the `body` observer never finds a
+pane. After a shell update, open the gear menu and check that **BC Buddy** sits
+between the two sections with the same heading and link style. If it is gone,
+compare the live markup with `gearPane()` in `test-core.html`:
+
+```js
+var a = document.getElementById('O365_Settings_navbardatalinks');
+[!!document.getElementById('FlexPane_Overflow_Container'), !!a,
+  a && a.outerHTML.slice(0, 600), a && a.nextElementSibling.outerHTML.slice(0, 300)];
+```
 
 ## 🔑 Permissions
 

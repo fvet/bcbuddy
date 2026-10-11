@@ -27,7 +27,6 @@
   var ROW_ATTR = 'data-bcb-row';
   var CALM_ATTR = 'data-bcb-calm';
   var NO_BELL_ATTR = 'data-bcb-no-bell';
-  var WEEKS_ATTR = 'data-bcb-weeks';
   var BANNER_ID = 'bcb-banner';
   var FAVICON_REL = 'icon';
 
@@ -87,6 +86,8 @@
     lastPaintSweep: 0,
     // Maximize: the BC pages already handled, keyed by their form.
     maximized: new WeakMap(),
+    // Pin the action bar: the forms of the BC pages already decided.
+    pinned: new WeakSet(),
     // Dropdown sizer handle, and the settings it was started with ('' = off).
     dropdowns: null,
     dropdownKey: '',
@@ -94,8 +95,10 @@
     copyValues: null,
     // Ctrl+click and middle-click handler (newtab.js, beta).
     newTab: null,
-    // Week numbers in the date picker: its handle while the switch is on.
+    // Week numbers in the date picker: its storage listener while the switch is on.
     weekNumbers: null,
+    // Handle of the BC Buddy section in BC's gear menu, while it is attached.
+    gearMenu: null,
     // MutationObserver that reapplies ribbon inline styles if Dark Reader
     // overrides them. Disconnected whenever the ribbon is released.
     ribbonGuard: null
@@ -220,12 +223,12 @@
     if (!settings || !settings.enabled) return false;
     // The current-row tint is not here on purpose: it is one attribute, set
     // once, and needs no watching.
-    var hasMaximize = BCBuddy.maximizeOn(settings);
-    if (!effectiveRules(settings).length && !hasMaximize) return false;
+    var clicksBC = BCBuddy.maximizeOn(settings) || BCBuddy.pinActionBarOn(settings);
+    if (!effectiveRules(settings).length && !clicksBC) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
-    if (hasMaximize && isWebClientTarget(state.href)) return true;
+    if (clicksBC && isWebClientTarget(state.href)) return true;
     return false;
   }
 
@@ -278,6 +281,7 @@
     }
 
     applyMaximize();
+    applyPinActionBar();
     applyDropdowns();
     applyHighlightRow();
     applyNoAnimations();
@@ -285,6 +289,7 @@
     applyCopyValues();
     applyNewTab();
     applyWeekNumbers();
+    applyGearMenu();
   }
 
   function sameRule(a, b) {
@@ -712,7 +717,30 @@
   function applyMaximize() {
     if (!BCBuddy.maximizeOn(state.settings)) return;
     if (!isWebClientTarget(state.href)) return;
-    BCBuddy.Maximize.apply(document, state.maximized);
+    BCBuddy.Maximize.apply(document, state.maximized, bcStorage());
+  }
+
+  /* ------------------------------------------------------ pin action bar */
+
+  /**
+   * Pins the action bar of a BC page that opens with it floating, unless
+   * someone set it on that page before; see actionbar.js. Like maximize it
+   * runs in every frame and only acts where the page is: one query in the page
+   * on screen per pass, and a look in BC's storage once per page.
+   */
+  function applyPinActionBar() {
+    if (!BCBuddy.pinActionBarOn(state.settings)) return;
+    if (!isWebClientTarget(state.href)) return;
+    BCBuddy.ActionBar.apply(document, state.pinned, bcStorage());
+  }
+
+  /**
+   * The localStorage of this frame, where BC keeps the choices made on each
+   * page. Null where the browser blocks it; BC cannot store anything there
+   * either.
+   */
+  function bcStorage() {
+    try { return window.localStorage; } catch (e) { return null; }
   }
 
   /* ---------------------------------------------------------- current row */
@@ -786,25 +814,17 @@
   /* --------------------------------------------------------- week numbers */
 
   /**
-   * Starts or stops week numbers in the date picker; see weeknumbers.js. The
-   * numbers are drawn by content.css, keyed on one attribute on <html>. Like
-   * the dropdown sizer its observers are attached once and left alone until
-   * the switch changes, so this costs one comparison per apply().
+   * Turns on Business Central's own week numbers in the date picker where
+   * nobody chose yet; see weeknumbers.js. It looks once when the switch turns
+   * on and then only listens for storage events, so this costs one comparison
+   * per apply(). Switching it off stops that; numbers already on stay, as BC
+   * keeps them.
    */
   function applyWeekNumbers() {
-    var root = document.documentElement;
-    if (!root) return;
     var want = BCBuddy.weekNumbersOn(state.settings) && isWebClientTarget(state.href);
     if (want === !!state.weekNumbers) return;
-    if (state.weekNumbers) {
-      state.weekNumbers.detach();
-      state.weekNumbers = null;
-      root.removeAttribute(WEEKS_ATTR);
-    }
-    if (want) {
-      root.setAttribute(WEEKS_ATTR, '');
-      state.weekNumbers = BCBuddy.WeekNumbers.attach(document);
-    }
+    if (state.weekNumbers) state.weekNumbers.detach();
+    state.weekNumbers = want ? BCBuddy.WeekNumbers.attach(window) : null;
   }
 
   /* ---------------------------------------------------- open in a new tab */
@@ -852,6 +872,32 @@
     state.dropdownKey = key;
   }
 
+  /* ------------------------------------------------------------ gear menu */
+
+  /**
+   * Adds a BC Buddy section with a Settings link to BC's gear menu; see
+   * gearmenu.js. Like the dropdown sizer it keeps its own narrow observer and
+   * is attached once. It does not follow the on/off switch: when BC Buddy is
+   * off, this link is the quickest way back to turning it on.
+   */
+  function applyGearMenu() {
+    var want = IS_TOP && isWebClientTarget(state.href);
+    if (want === !!state.gearMenu) return;
+    if (state.gearMenu) state.gearMenu.detach();
+    state.gearMenu = want
+      ? BCBuddy.GearMenu.attach(document, { label: BCBuddy.t('gearMenuSettings'), onOpen: openOptions })
+      : null;
+  }
+
+  function openOptions() {
+    // A content script cannot open the options page itself; the service
+    // worker does it. After an extension update this page still runs the old
+    // script, whose messages go nowhere until the tab is reloaded.
+    try {
+      chrome.runtime.sendMessage({ type: 'bcb:open-options' }).catch(function () {});
+    } catch (e) { /* extension reloaded */ }
+  }
+
   /* ------------------------------------------------------------- cleanup */
 
   function clearAll() {
@@ -879,6 +925,7 @@
     });
 
     state.maximized = new WeakMap();
+    state.pinned = new WeakSet();
   }
 
   /* --------------------------------------------------------------- helpers */

@@ -25,6 +25,11 @@ This data never leaves your browser. Uninstalling the extension removes it.
 To decide whether a page should be marked, the content script looks at the
 URL of the page it runs in and at the page's own DOM (to find the Business
 Central ribbon, and to size the dropdown lists that Business Central opens).
+In Business Central it also reads the settings Business Central keeps in your
+browser for each page, such as whether a page is wide or its action bar is
+pinned, so it leaves a page alone that you already set. It writes one of
+those settings itself: it turns on Business Central's week numbers in the date
+picker where they were never set.
 This happens entirely inside your browser. Nothing that is read is stored,
 logged or sent anywhere.
 

@@ -24,7 +24,8 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
 ## 🚀 Getting started
 
 1. **Install BC Buddy.** Its settings page opens by itself. Later, click the
-   BC Buddy icon in the toolbar to open it again.
+   BC Buddy icon in the toolbar to open it again, or in Business Central click
+   the gear icon at the top right and choose **Settings** under **BC Buddy**.
 2. **Open Business Central**, or reload a tab where it was already open. The
    web client improvements below are already working.
 3. **Give your environments a colour.** On the settings page, go to
@@ -45,8 +46,9 @@ the settings page.
 |---|---|---|
 | **Copy values** | A copy icon on any value in a list or FactBox, and on links on a card | On |
 | **Maximize pages** | Every page in wide layout, tile pages as a list | On |
+| **Pin the action bar** | Every page opens with the row of actions under its tabs pinned | On |
 | **Dropdown size** | The list under a field as wide as its columns need, and taller if you like | On |
-| **Week numbers in the date picker** | The week number in front of each week in the calendar of a date field | On |
+| **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
 | **Highlight the current line** | The line you are on in a journal or order stands out | On |
 | **Hide the notifications icon** | No bell in the top bar | On |
 | **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
@@ -174,8 +176,19 @@ check that **Extension active** is on at the top of the settings page.
 **No copy icon on a value.** Rest the mouse on it for a moment. Fields you can
 type in get no icon on purpose: select the text and press Ctrl+C.
 
-**A page stays narrow or in tiles.** Maximize pages works once, when a page
-opens; if you switched it back yourself, BC Buddy leaves it that way.
+**A page stays narrow or in tiles.** Maximize pages only changes a page nobody
+set yet. Once a page was set back to narrow or to tiles in this browser,
+Business Central remembers that and BC Buddy leaves it. Click the wide toggle
+or pick list view once, and Business Central remembers that instead.
+
+**The action bar floats on a page.** Pin the action bar likewise only pins a
+page nobody set yet. Click the pin at the right end of the action bar once, and
+Business Central keeps it pinned from then on.
+
+**No week numbers in the date picker.** Press Shift+Home while the calendar is
+open: that turns Business Central's week numbers on or off, and someone may
+have turned them off that way. Business Central remembers it, and BC Buddy
+leaves it.
 
 **A dropdown keeps its usual size.** A field with a **…** button (City, Post
 Code) opens a whole page, not a dropdown. A list with two short columns needs

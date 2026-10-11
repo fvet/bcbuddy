@@ -3,7 +3,7 @@ BC Buddy makes the Business Central web client easier to work in, and gives ever
 An easier web client, straight away. No setup needed:
 
 - Copy any value with one click, also an amount or a No. you cannot select.
-- Every page in wide layout, and lists instead of tiles.
+- Every page in wide layout with its action bar pinned, and lists instead of tiles.
 - Dropdowns that show all their columns, so you no longer scroll sideways.
 - Week numbers in the calendar of a date field.
 - The line you are on in a journal or order stands out.

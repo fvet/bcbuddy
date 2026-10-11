@@ -12,6 +12,7 @@
 <script>
 var ROOT = '../';
 var STORE = {};
+var SESSION = {};
 var LISTENERS = [];
 var SENT = [];
 
@@ -71,6 +72,29 @@ window.chrome = {
         return Promise.resolve();
       },
       remove: function (k) { delete STORE[k]; return Promise.resolve(); }
+    },
+    session: {
+      get: function (k) {
+        var out = {};
+        if (SESSION[k] !== undefined) out[k] = SESSION[k];
+        return Promise.resolve(out);
+      },
+      set: function (obj) {
+        var changes = {};
+        Object.keys(obj).forEach(function (k) {
+          changes[k] = { oldValue: SESSION[k], newValue: obj[k] };
+          SESSION[k] = obj[k];
+        });
+        LISTENERS.forEach(function (fn) { fn(changes, 'session'); });
+        return Promise.resolve();
+      },
+      remove: function (k) {
+        var changes = {};
+        changes[k] = { oldValue: SESSION[k] };
+        delete SESSION[k];
+        LISTENERS.forEach(function (fn) { fn(changes, 'session'); });
+        return Promise.resolve();
+      }
     },
     onChanged: { addListener: function (fn) { LISTENERS.push(fn); } }
   },
@@ -137,8 +161,9 @@ function report() {
 
 /* ---- syntax check of all script files ----------------------------------- */
 var FILES = [
-  'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/lib/maximize.js',
-  'src/lib/copyvalues.js', 'src/lib/newtab.js', 'src/lib/weeknumbers.js',
+  'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/lib/bcstate.js',
+  'src/lib/maximize.js', 'src/lib/actionbar.js', 'src/lib/copyvalues.js', 'src/lib/newtab.js',
+  'src/lib/weeknumbers.js', 'src/lib/gearmenu.js',
   'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
   'src/options/options-hosted.js', 'src/options/options.js'
@@ -493,6 +518,15 @@ function runOptions() {
 }
 
 function assertOptions() {
+  // A first visit, with no panel remembered, opens on the Web client panel.
+  check('nav: a first visit opens on the Web client panel',
+    [!document.querySelector('.panel[data-panel="webclient"]').hidden,
+      document.querySelector('.panel[data-panel="environments"]').hidden,
+      document.querySelector('.nav__item[data-panel="webclient"]').getAttribute('aria-current')],
+    [true, true, 'page']);
+  // The checks below work with the rules, so open their panel.
+  document.querySelector('.nav__item[data-panel="environments"]').click();
+
   var cards = document.querySelectorAll('#ruleList .rule');
   check('options: own rules rendered', cards.length, 2);
   check('options: document lang follows UI language',
@@ -936,7 +970,7 @@ function assertOptions() {
     check('options: save reports nothing',
       document.getElementById('status').textContent, '');
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
-    return assertNav().then(assertWebClient).then(assertLayouts).then(importFile)
+    return assertNav().then(assertToolbarOpen).then(assertWebClient).then(assertLayouts).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
       .then(assertExternalWrite);
   });
@@ -949,6 +983,9 @@ function assertWebClient() {
   var height = document.getElementById('dropdownHeight');
   check('web client: maximize lives in the panel',
     document.getElementById('maximizeEnabled').closest('.panel'), panel);
+  var pin = document.getElementById('pinActionBarEnabled');
+  check('web client: pin action bar switch lives in the panel', pin.closest('.panel'), panel);
+  check('web client: pin action bar switch is on by default', pin.checked, true);
   var row = document.getElementById('highlightRowEnabled');
   check('web client: current line switch lives in the panel', row.closest('.panel'), panel);
   check('web client: current line is on by default', row.checked, true);
@@ -1038,6 +1075,14 @@ function assertWebClient() {
     return wait(400);
   }).then(function () {
     check('web client: and the week numbers switch turns back on', STORE.settings.weekNumbers, { enabled: true });
+    pin.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: pin action bar switch is saved', STORE.settings.pinActionBar, { enabled: false });
+    pin.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the pin action bar switch turns back on', STORE.settings.pinActionBar, { enabled: true });
   });
 }
 
@@ -1115,6 +1160,22 @@ function assertTabPicker(input) {
 }
 
 /* ---- navigation --------------------------------------------------------- */
+/* ---- toolbar icon: the open page switches to the Web client panel ------- */
+function assertToolbarOpen() {
+  var before = STORE.ui && STORE.ui.panel;
+  // What the service worker does on a click of the toolbar icon.
+  return chrome.storage.session.set({ openPanel: 'webclient' }).then(function () {
+    return wait(100);
+  }).then(function () {
+    check('toolbar: an open page switches to the Web client panel',
+      [before !== 'webclient', !document.querySelector('.panel[data-panel="webclient"]').hidden,
+        document.querySelector('.nav__item[data-panel="webclient"]').getAttribute('aria-current')],
+      [true, true, 'page']);
+    check('toolbar: the request is cleared once shown', SESSION.openPanel, undefined);
+    check('toolbar: and remembered like a click in the nav', STORE.ui.panel, 'webclient');
+  });
+}
+
 function assertNav() {
   var items = document.querySelectorAll('.nav__item');
   check('nav: master toggle at bottom of nav',

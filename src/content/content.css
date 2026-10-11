@@ -224,33 +224,3 @@ html[data-bcb-no-bell] #notifications_container {
 html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
   visibility: hidden !important;
 }
-
-/* Week numbers in the date picker. weeknumbers.js puts the number on the
-   first cell of each week row; this draws it in a margin left of the grid,
-   with a thin line between the numbers and the days, as Fluent's own week
-   numbers have. The rows touch, so the line runs unbroken. BC's picker is
-   Fluent UI's Calendar, a fixed 220px wide: width auto lets it grow by the
-   margin, and its pop-up grows along. Fluent already makes the cells
-   position: relative and puts nothing in their ::before. */
-html[data-bcb-weeks] .ms-Callout-main > .fui-Calendar {
-  width: auto;
-  padding-left: 28px;
-}
-html[data-bcb-weeks] .fui-CalendarDayGrid__weekRow > td[data-bcb-week]::before {
-  content: attr(data-bcb-week);
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 100%;
-  box-sizing: border-box;
-  width: 30px;
-  margin-right: 4px;
-  padding-right: 8px;
-  border-right: 1px solid #e0e0e0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  font-size: 11px;
-  color: #616161;
-  pointer-events: none;
-}

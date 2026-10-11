@@ -1,0 +1,90 @@
+<!doctype html>
+<!-- Template for present.html. Edit this file, not present.html, and run
+     build-present.ps1 to rebuild. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+{{FONTS}}
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0B0F14; }
+  #stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1920px; height: 1080px;
+    transform: translate(-50%, -50%) scale(var(--scale, 1));
+  }
+  /* The slide format: a fixed 1920x1080 canvas, padding inside the box,
+     no default margins, and these tag defaults. */
+  #stage *, #stage *::before, #stage *::after { box-sizing: border-box; }
+  #stage > section {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  #stage > section.current { opacity: 1; pointer-events: auto; }
+  #stage h1, #stage h2, #stage h3, #stage p, #stage ul, #stage ol { margin: 0; }
+  #stage h1 { font-size: 96px; font-weight: 600; line-height: 1.1; }
+  #stage h2 { font-size: 64px; font-weight: 600; line-height: 1.15; }
+  #stage h3 { font-size: 44px; font-weight: 600; line-height: 1.2; }
+  #stage p { font-size: 32px; line-height: 1.4; }
+  #stage img, #stage svg { display: block; }
+  #stage aside { display: none; }
+  body.idle { cursor: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+{{SLIDES}}
+</div>
+<script>
+  // Keys: Right, Down, Page Down, Space or a click = next; Left, Up, Page Up =
+  // back; Home / End = first / last; F = full screen. The slide number is
+  // kept in the address (#3), so a reload stays on the same slide.
+  var slides = Array.prototype.slice.call(document.querySelectorAll('#stage > section'));
+  var current = 0;
+
+  function show(n) {
+    current = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, i) { s.classList.toggle('current', i === current); });
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  function fit() {
+    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    document.getElementById('stage').style.setProperty('--scale', scale);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === ' ') show(current + 1);
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') show(current - 1);
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    } else return;
+    e.preventDefault();
+  });
+  document.addEventListener('click', function () { show(current + 1); });
+
+  // Hide the pointer after two seconds without moving it.
+  var idleTimer;
+  document.addEventListener('mousemove', function () {
+    document.body.classList.remove('idle');
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () { document.body.classList.add('idle'); }, 2000);
+  });
+
+  function fromHash() { return (parseInt(location.hash.slice(1), 10) || 1) - 1; }
+  window.addEventListener('hashchange', function () { if (fromHash() !== current) show(fromHash()); });
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.documentElement);
+  fit();
+  show(fromHash());
+</script>
+</body>
+</html>

@@ -15,6 +15,9 @@ The BC Buddy settings page opens by itself. You can leave it open for step 3.
     Click the puzzle piece in the browser toolbar and pin BC Buddy. From then
     on, one click on its icon opens the settings page.
 
+    Business Central has a way in too: click the gear icon at the top right
+    and choose **Settings** under **BC Buddy**.
+
 ## 2. Open Business Central { #web-client }
 
 Open Business Central, or reload a tab where it was already open. Without any
@@ -22,8 +25,8 @@ setup, it is now easier to work in:
 
 - **Copy values.** Rest the mouse on an amount or a No. in a list and click the
   small copy icon.
-- **Wide pages.** Every page uses the full width of your screen, and tile pages
-  show as a list.
+- **Wide pages.** Every page uses the full width of your screen, with its
+  action bar pinned, and tile pages show as a list.
 - **Bigger dropdowns.** The list under a field shows all its columns.
 - **Week numbers** in the calendar of a date field.
 - **The line you are on** in a journal or order stands out.

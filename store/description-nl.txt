@@ -3,7 +3,7 @@ BC Buddy maakt de Business Central-webclient makkelijker in gebruik en geeft elk
 Een makkelijkere webclient, meteen. Niets in te stellen:
 
 - Kopieer elke waarde met een klik, ook een bedrag of een Nr. dat je niet kunt selecteren.
-- Elke pagina in een brede lay-out, en lijsten in plaats van tegels.
+- Elke pagina in een brede lay-out met de actiebalk vastgezet, en lijsten in plaats van tegels.
 - Keuzelijsten die al hun kolommen tonen, zodat je niet meer opzij scrolt.
 - Weeknummers in de kalender van een datumveld.
 - De regel waarop je staat in een dagboek of order valt op.

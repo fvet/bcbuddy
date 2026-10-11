@@ -21,7 +21,7 @@ Install it and Business Central is easier to work in straight away. No setup
 needed:
 
 - **Copy any value with one click**, also an amount or a No. you cannot select.
-- **Wide pages**, and lists instead of tiles.
+- **Wide pages** with the action bar pinned, and lists instead of tiles.
 - **Bigger dropdowns** that show all their columns.
 - **Week numbers** in the date picker.
 - **The line you are on** stands out in journals and orders.
