@@ -31,7 +31,10 @@ Write both for back-office users and data clerks with little IT or BC
 background. Plain words, short steps, the UI's own labels in bold; technical
 detail (URL fields, RegEx, on-premises, JSON) goes at the bottom of a page or in
 a collapsed block. Getting started stays three short steps. Web client
-improvements come before environment colours, everywhere.
+improvements come before environment colours, everywhere: README, `docs/`,
+`store/` and UI strings. Installing goes through the Chrome Web Store only;
+loading from source belongs under *For developers* in the README, nowhere on
+the site.
 
 New functionality gets a line under `## Unreleased` in `CHANGELOG.md`, in the
 same commit that adds it: a new feature or switch, or a fix people notice. Small
