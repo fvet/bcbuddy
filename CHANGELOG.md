@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.12 — 2026-10-11
+
 ### Added
 
 - **Copy values**: rest the mouse on a value in a list or a FactBox, or on a
@@ -54,8 +58,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 - The text in a banner or corner ribbon could show up as a tiny dash while
   **Size** was on automatic. It now fits itself to the banner again.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.11 — 2026-10-09
 
