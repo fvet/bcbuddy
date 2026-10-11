@@ -49,7 +49,7 @@ $locales = (Get-ChildItem (Join-Path $root '_locales') -Directory |
     Select-Object -ExpandProperty Name | Sort-Object) -join ','
 if (-not $locales) { throw 'No language folders under _locales.' }
 
-$suites = @('test-core.html', 'test-options.html', 'test-popup.html')
+$suites = @('test-core.html', 'test-options.html')
 $totalFailed = 0
 
 foreach ($suite in $suites) {

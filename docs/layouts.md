@@ -1,52 +1,59 @@
 # Layouts
 
-A layout says how a marking looks. Several rules can share one, so you set it up
-once and every environment that uses it follows.
+A **layout** decides what a marking looks like: the coloured bar at the top, a
+frame, a banner. The colour itself comes from the rule.
+
+Several rules can share one layout, so you set it up once. Every new rule gets
+the layout called *Default*, which colours the bar at the top and draws a frame
+around the window. That is enough for most people; change it only if you want
+more.
 
 <figure markdown>
 ![The Default layout in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](assets/screenshot-2-1280x800.png)
-<figcaption>The preview at the top updates as you change the layout, so you see the marking before you meet it in the client.</figcaption>
+<figcaption>The preview at the top shows the result while you change the layout.</figcaption>
 </figure>
 
 ## What a layout can show
 
+Tick the ones you want:
+
 **Ribbon**
-: The bar at the top of the BC client takes the colour of the rule and a text of
-  your own.
+: The bar at the top of Business Central, in the colour of the rule, with a
+  text of your own.
 
 **Frame**
-: A coloured border around the whole window, 1 to 5 px wide (3 by default).
+: A coloured border around the whole window, 1 to 5 pixels wide.
 
 **Banner**
-: A bar along the bottom, or a diagonal ribbon in one of the four corners.
+: A bar along the bottom, or a diagonal ribbon in one of the corners, with a
+  text such as `SANDBOX`. At **Size** all the way left, the text shrinks to
+  fit; further right it is larger.
 
 **Tab title**
-: For example `[TEST] Company Information`.
+: The name of the browser tab with a marking added, for example
+  `[TEST] Company Information`.
 
 **Favicon**
-: A coloured tab icon with the first letters, so you spot the right tab straight
-  away in a row of tabs.
+: A coloured icon on the browser tab with one or two letters, so you spot the
+  right tab in a row of tabs. You type the letters on the rule.
 
-## Colours
+The text colour is *Automatic*: white or black, whichever is easiest to read on
+the colour of the rule.
 
-Text colour is *automatic* by default: white or black, whichever is readable on
-the colour you picked. Set it by hand if you would rather decide yourself.
+## Your own text
 
-## Tokens
+In the ribbon, banner and tab title you can type plain text, and add these
+placeholders, which BC Buddy fills in for you:
 
-You can use tokens in every text:
-
-| Token | Becomes |
+| Type | Becomes |
 |---|---|
-| `{name}` | The name of the rule that matched |
-| `{environment}` or `{env}` | The environment from the URL |
-| `{company}` | The company from the URL |
-| `{title}` | The original tab title |
-
-Empty tokens are cleaned up: if there is no company in the URL, no stray dashes
-or empty brackets are left behind.
+| `{name}` | The name of the rule, such as `PRODUCTION` |
+| `{environment}` or `{env}` | The environment, such as `Sandbox` |
+| `{company}` | The company, such as `CRONUS BE` |
+| `{title}` | The original name of the browser tab |
 
 !!! example
 
-    A ribbon text of `{name} - {company}` gives `PRODUCTION - CRONUS BE` on a
-    URL that carries a company, and simply `PRODUCTION` on one that does not.
+    A ribbon text of `{name} - {company}` shows `PRODUCTION - CRONUS BE`. On a
+    page without a company it simply shows `PRODUCTION`: a placeholder that
+    stays empty takes the dash next to it along.

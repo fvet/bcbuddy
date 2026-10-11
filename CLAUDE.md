@@ -18,11 +18,18 @@ behaviour change usually touches both. Check the counterpart in the same commit:
 | README section | Site page |
 |---|---|
 | Getting started | `docs/getting-started.md` |
-| How matching works | `docs/matching.md` |
-| Rules and layouts · What a layout can show · Tokens | `docs/layouts.md` |
+| Web client | `docs/web-client.md` |
+| Environment colours · Rules | `docs/matching.md` |
+| Environment colours · Layouts | `docs/layouts.md` |
 | Sharing settings with your team | `docs/sharing.md` |
 | Troubleshooting | `docs/troubleshooting.md` |
 | Installing | `docs/index.md` |
+
+Write both for back-office users and data clerks with little IT or BC
+background. Plain words, short steps, the UI's own labels in bold; technical
+detail (URL fields, RegEx, on-premises, JSON) goes at the bottom of a page or in
+a collapsed block. Getting started stays three short steps. Web client
+improvements come before environment colours, everywhere.
 
 A change people notice also gets a line under `## Unreleased` in `CHANGELOG.md`,
 in the same commit that makes it. That file is for users, so it is written in
@@ -30,6 +37,13 @@ their words and about what they see; build, CI, dependency and refactoring work
 stays out of it. The release workflow dates the `Unreleased` section, uses it as
 the GitHub release body and opens an empty one for next time — so an entry that
 was never written is a release note nobody gets.
+
+Beta features stay out of every document. Ctrl+click / middle-click to open a
+link in a new tab (`src/lib/newtab.js`) is beta and undocumented on purpose:
+never mention it in `README.md`, `docs/`, `CHANGELOG.md`, `DEVELOPMENT.md`,
+`store/`, release notes or UI strings, and give it no switch in the options,
+until the maintainer says it leaves beta. Its notes live in the code comments
+at the top of `newtab.js`.
 
 `DEVELOPMENT.md` is contributor-facing and overlaps neither; it drifts against
 code rather than against prose, so re-read it when `.github/workflows/`,

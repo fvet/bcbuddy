@@ -1,19 +1,28 @@
-Werk je bij verschillende klanten of in meerdere omgevingen, dan lijken al je Business Central-tabbladen op elkaar. Een boeking in productie terwijl je dacht in een sandbox te zitten, is zo gebeurd.
+BC Buddy maakt de Business Central-webclient makkelijker in gebruik en geeft elke omgeving een eigen kleur, zodat je nooit per ongeluk in productie boekt.
 
-BC Buddy geeft elke omgeving een eigen kleur, zodat je in een oogopslag ziet waar je zit:
+Een makkelijkere webclient, meteen. Niets in te stellen:
 
-- De balk bovenaan de client krijgt jouw kleur en jouw tekst, bijvoorbeeld "PRODUCTIE - CRONUS BE".
+- Kopieer elke waarde met een klik, ook een bedrag of een Nr. dat je niet kunt selecteren.
+- Elke pagina in een brede lay-out, en lijsten in plaats van tegels.
+- Keuzelijsten die al hun kolommen tonen, zodat je niet meer opzij scrolt.
+- Weeknummers in de kalender van een datumveld.
+- De regel waarop je staat in een dagboek of order valt op.
+- Geen meldingenbelletje, en als je wil, geen animaties.
+
+Elk ervan heeft een eigen schakelaar in de opties.
+
+Een kleur voor elke omgeving. Een testomgeving en de echte zien er precies hetzelfde uit. BC Buddy markeert ze, zodat je in een oogopslag ziet waar je zit:
+
+- De balk bovenaan Business Central krijgt jouw kleur en jouw tekst, bijvoorbeeld "PRODUCTIE - CRONUS BE".
 - Een gekleurd kader rond het venster.
 - Een banner onderaan, of een lint in de hoek.
 - De tabtitel, bijvoorbeeld "[TEST] Company Information".
 - Een gekleurd icoontje op het tabblad, zodat je de juiste tab meteen terugvindt tussen tien andere.
 
-Ook Business Central zelf krijgt meer ruimte: elke pagina opent in een brede lay-out, tegelpagina's schakelen over naar lijstweergave en de lijst die onder een veld openklapt, wordt zo breed als de kolommen nodig hebben. Elk ervan zet je uit in de opties.
+Je bepaalt zelf wanneer welke kleur verschijnt: per omgeving, per bedrijf of per klant. Productie groen, sandbox rood - of hoe je het zelf wil.
 
-Je bepaalt zelf wanneer welke kleur verschijnt: per omgeving, per bedrijf of per klant. Productie groen, test oranje, sandbox rood - of hoe je het zelf wil.
+Werk je in een team? Een persoon stelt de kleuren in, de rest krijgt ze automatisch mee, ook als er later iets verandert.
 
-Werk je in een team, dan kan iedereen met dezelfde markeringen werken. Een keer instellen volstaat: je collega's krijgen ze automatisch mee en blijven mee als er iets verandert.
+Werkt met Business Central online en op je eigen server. Beschikbaar in het Nederlands en het Engels.
 
-Business Central online en on-premises worden allebei herkend. De extensie is beschikbaar in het Nederlands en het Engels.
-
-Alles blijft op je eigen machine: geen server, geen analytics, geen tracking.
+Alles blijft op je eigen computer: geen account, geen server, geen tracking.

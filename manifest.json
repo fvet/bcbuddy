@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/lib/i18n.js", "src/lib/match.js", "src/lib/settings.js", "src/lib/dropdowns.js", "src/lib/maximize.js", "src/content/content.js"],
+      "js": ["src/lib/i18n.js", "src/lib/match.js", "src/lib/settings.js", "src/lib/dropdowns.js", "src/lib/maximize.js", "src/lib/copyvalues.js", "src/lib/newtab.js", "src/lib/weeknumbers.js", "src/content/content.js"],
       "css": ["src/content/content.css"],
       "run_at": "document_start",
       "all_frames": true,
@@ -33,7 +33,6 @@
     "open_in_tab": true
   },
   "action": {
-    "default_popup": "src/popup/popup.html",
     "default_title": "BC Buddy",
     "default_icon": {
       "16": "icons/icon16.png",

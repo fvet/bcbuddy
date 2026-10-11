@@ -7,8 +7,8 @@ importScripts('/src/lib/i18n.js', '/src/lib/match.js', '/src/lib/settings.js');
 var BCBuddy = self.BCBuddy;
 var ALARM_SYNC = 'bcb-sync';
 
-// A shared file that never answers must not leave the options page or the
-// popup on "Synchronising..." with no way out.
+// A shared file that never answers must not leave the options page on
+// "Synchronising..." with no way out.
 var FETCH_TIMEOUT_MS = 15000;
 
 // Far more than any realistic set of rules needs, and well under the storage
@@ -23,6 +23,12 @@ chrome.runtime.onInstalled.addListener(function (details) {
   } else {
     syncHosted({ reason: 'install' });
   }
+});
+
+// The toolbar icon has no popup: a click opens the options page, or brings
+// an open one to the front.
+chrome.action.onClicked.addListener(function () {
+  chrome.runtime.openOptionsPage();
 });
 
 chrome.runtime.onStartup.addListener(function () {
@@ -48,7 +54,12 @@ chrome.storage.onChanged.addListener(function (changes, area) {
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
-  // Only options/popup (extension pages). Content scripts share our id but
+  // The one message a content script may send: Open in a new tab.
+  if (message.type === 'bcb:open-tab') {
+    openTab(message, sender);
+    return;
+  }
+  // Only the options page (an extension page). Content scripts share our id but
   // their sender.url is the page they run in — refuse those.
   if (!isExtensionPage(sender)) return;
   if (message.type === 'bcb:sync') {
@@ -56,6 +67,31 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     return true; // async response
   }
 });
+
+/**
+ * Open in a new tab (beta, undocumented; see lib/newtab.js): a content script
+ * hands over the address Business Central showed for a link. It opens next to the tab that asked, and only when it is
+ * on the same site as that tab, so a page cannot use this to open anything
+ * else. Opening a tab needs no permission; reading the tab's address is what
+ * the host permission already allows.
+ */
+function openTab(message, sender) {
+  var tab = sender && sender.tab;
+  if (!tab || sender.id !== chrome.runtime.id) return;
+  var url, from;
+  try {
+    url = new URL(String(message.url));
+    from = new URL(tab.url || sender.url);
+  } catch (e) { return; }
+  if (!/^https?:$/.test(url.protocol) || url.origin !== from.origin) return;
+  chrome.tabs.create({
+    url: url.href,
+    windowId: tab.windowId,
+    index: tab.index + 1,
+    openerTabId: tab.id,
+    active: !!message.active
+  }).catch(function () { /* the window closed meanwhile */ });
+}
 
 /** True when the message came from one of our own extension pages. */
 function isExtensionPage(sender) {
@@ -105,7 +141,15 @@ function fetchHosted(url) {
       // guard, and errs on the safe side for multi-byte text.
       if (tooLarge(text.length)) throw oversized();
       var parsed = BCBuddy.parseImport(text);
-      return { ok: true, rules: parsed.rules, name: parsed.name, hash: BCBuddy.hash(text), url: target };
+      return {
+        ok: true,
+        rules: parsed.rules,
+        layouts: parsed.layouts,
+        webClient: parsed.webClient,
+        name: parsed.name,
+        hash: BCBuddy.hash(text),
+        url: target
+      };
     })
     .catch(function (err) {
       // AbortSignal.timeout() rejects with a TimeoutError whose own message
@@ -127,8 +171,10 @@ function oversized() {
 }
 
 /**
- * Fetches the shared configuration and stores it as 'hosted.rules'.
- * Own rules are left alone; they take priority when matching.
+ * Fetches the shared configuration and stores its rules and layouts under
+ * 'hosted'. Own rules are left alone; they take priority when matching. The
+ * file's Web client settings are defaults: only the ones that changed in the
+ * file since the last sync are passed on (see applySharedWebClient()).
  */
 function syncHosted(options) {
   options = options || {};
@@ -144,6 +190,8 @@ function syncHosted(options) {
       // is updated every day, until you clear it or empty the URL.
       settings.hosted.active = true;
       settings.hosted.rules = result.rules;
+      settings.hosted.layouts = result.layouts;
+      BCBuddy.applySharedWebClient(settings, result.webClient);
       settings.hosted.sourceName = result.name;
       settings.hosted.lastHash = result.hash;
       settings.hosted.lastSync = new Date().toISOString();

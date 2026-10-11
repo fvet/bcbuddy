@@ -1,87 +1,72 @@
 # Getting started
 
-## Web client
+Three steps, about five minutes. You need Google Chrome or Microsoft Edge.
 
-Four tweaks to the Business Central web client itself are on from the start,
-no setup needed. All four live under **Web client** in the options.
+## 1. Install BC Buddy
 
-**Maximize pages** expands every page to wide layout and switches tile pages to
-list view. Turn its switch off to stop it. Switching **Extension active** off
-pauses it along with everything else.
+Open [BC Buddy in the Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl)
+and click **Add to Chrome**. Edge first asks whether to allow extensions from
+other stores; say yes.
 
-**Dropdown size** gives the list that opens under a field — Country/Region Code,
-or the item number on a sales line — more room:
+The BC Buddy settings page opens by itself. You can leave it open for step 3.
 
-- **Width** — the list gets as wide as its columns need, up to this
-  maximum. A list with two short columns keeps BC's own width; one with many
-  columns stops scrolling sideways. Starts at the middle step.
-- **Height** — shows more rows at once, up to about ten instead of
-  five. Starts at *BC standard*.
+!!! tip "Finding BC Buddy later"
 
-**Highlight the current line** shows which line you are on in editable lists —
-the lines of a sales order, a journal. Business Central marks it only with a
-small arrow and the ⋮ button at the far left, which is easy to lose on a wide
-line. With this on, the whole line gets a light tint. Read-only lists such as
-Customers already highlight the current line, and stay as they are. Turn its
-switch off to stop it.
+    Click the puzzle piece in the browser toolbar and pin BC Buddy. From then
+    on, one click on its icon opens the settings page.
 
-**Turn off animations** makes pages, dialogs, FastTabs and the FactBox pane
-appear at once. Business Central normally slides or fades them in, so opening
-a card from a list, maximizing it or showing the FactBox pane takes a moment
-each time. Progress indicators keep moving, so you can still see when Business
-Central is busy. Turn its switch off to get the animations back.
+## 2. Open Business Central { #web-client }
 
-Each slider has five steps; the first is *BC standard*. With both there, the
-feature is off. BC still decides where the list opens, so a bigger list flips
-above the field or moves left when there is no room.
+Open Business Central, or reload a tab where it was already open. Without any
+setup, it is now easier to work in:
 
-## Environments
+- **Copy values.** Rest the mouse on an amount or a No. in a list and click the
+  small copy icon.
+- **Wide pages.** Every page uses the full width of your screen, and tile pages
+  show as a list.
+- **Bigger dropdowns.** The list under a field shows all its columns.
+- **Week numbers** in the calendar of a date field.
+- **The line you are on** in a journal or order stands out.
+- **No notifications bell** at the top right.
 
-The options page opens on **Environments**. To mark your first environment:
+Do not like one of them? Switch it off under **Web client** on the settings
+page. [More about each improvement](web-client.md).
 
-1. Click **Add rule**.
-2. Give it a name — that name is what `{name}` produces in your texts, so
-   something like `PRODUCTION` or the customer's name works well.
-3. Set a condition. The simplest is *environment* *equals* `Production`. If you
-   are unsure what to match on, paste a real BC URL into the **Test URL** field
-   at the top; the page shows you which environment, company and tenant it read
-   out of it, and previews the result live.
-4. Pick a colour — green for production.
-5. Add a second rule for your sandbox in red.
+## 3. Give your environments a colour { #environments }
+
+Most companies have a *Production* environment, where postings are real, and
+one or more test environments, often called *Sandbox*. They look exactly alike.
+BC Buddy gives each its own colour, so you always know where you are.
+
+On the settings page, go to **Environments**:
+
+1. Click **Add rule** and type a name, such as `PRODUCTION`.
+2. Under **Conditions**, choose **Environment** and **equals**, and type
+   `Production`.
+3. Pick a colour: green, for example.
+4. Click **Add rule** again for your test environment: name `SANDBOX`,
+   **Environment** **equals** `Sandbox`, in red.
 
 <figure markdown>
 ![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](assets/screenshot-3-1280x800.png)
-<figcaption>The rules list, with one rule expanded.</figcaption>
+<figcaption>The rules list, with one rule opened.</figcaption>
 </figure>
 
-!!! tip "Order decides priority"
+Now switch to your Business Central tab: the bar at the top shows your colour
+and a coloured frame runs around the window.
 
-    The first rule that fits is applied, so put your most specific rules at the
-    top. A rule for one customer's production environment belongs above the
-    general "anything called Production" rule.
+!!! tip "Not sure what your environment is called?"
 
-## Finding your way around
+    At the top of **Environments**, click **From open tab**. BC Buddy reads your
+    open Business Central tab and shows the name of the environment and the
+    company. A green tick on a rule means it fits that tab.
 
-The options page has a navigation on the left:
+Does your team already use BC Buddy? Ask whether there is a shared file: then
+you get everyone's colours in one go. See
+[Sharing with your team](sharing.md).
 
-| Section | What lives there |
-|---|---|
-| **Web client** | Wide layout, list view, dropdown size, current line and animations, all on by default |
-| **Environments** | Your rules and layouts |
-| **Settings** | Shared configuration, import and export |
-| **About** | Version and links |
+## Want more?
 
-## Rules and layouts
-
-Two lists, with a clear division of labour:
-
-- A **rule** says *which* environment you recognise and *which colour* it gets:
-  name, conditions, colour, text colour and the letters on the tab icon.
-- A **layout** says *how* a marking looks: ribbon, frame, banner, tab title and
-  whether there is a tab icon. Several rules can use the same layout, so you
-  maintain those settings in one place.
-
-There is always at least one layout, and new rules get *Default*. Delete a
-layout and the rules that hung on it fall back to the first one in the list.
-
-Next: [how matching works](matching.md), or [what a layout can show](layouts.md).
+- [Web client](web-client.md): what each improvement does, and how to set it.
+- [Rules](matching.md): a colour per customer or per company.
+- [Layouts](layouts.md): a banner, your own text, a marked browser tab.

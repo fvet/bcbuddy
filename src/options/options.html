@@ -22,7 +22,7 @@
       </svg>
       <div>
         <h1>BC Buddy</h1>
-        <p class="muted" data-i18n="tagline">Mark your Business Central environments with colour, and give the web client more room.</p>
+        <p class="muted" data-i18n="tagline">Make the Business Central web client easier to work in, and give every environment its own colour.</p>
       </div>
     </div>
     <div class="topbar__actions">
@@ -79,6 +79,12 @@
            explanation is the row's tooltip, and the docs link below has the
            rest. -->
       <div class="card card--list">
+        <label class="setting" data-i18n-title="copyValuesIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="copyValuesToggle">Copy values</span>
+          </span>
+          <input type="checkbox" class="toggle" id="copyValuesEnabled">
+        </label>
         <label class="setting" data-i18n-title="maximizeIntro">
           <span class="setting__text">
             <span class="setting__name" data-i18n="maximizeToggle">Maximize pages</span>
@@ -90,12 +96,6 @@
             <span class="setting__name" data-i18n="highlightRowToggle">Highlight the current line</span>
           </span>
           <input type="checkbox" class="toggle" id="highlightRowEnabled">
-        </label>
-        <label class="setting" data-i18n-title="noAnimationsIntro">
-          <span class="setting__text">
-            <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>
-          </span>
-          <input type="checkbox" class="toggle" id="noAnimationsEnabled">
         </label>
         <div class="setting setting--wrap" data-i18n-title="dropdownIntro">
           <span class="setting__text">
@@ -114,25 +114,49 @@
             </label>
           </span>
         </div>
+        <label class="setting" data-i18n-title="weekNumbersIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="weekNumbersToggle">Week numbers in the date picker</span>
+          </span>
+          <input type="checkbox" class="toggle" id="weekNumbersEnabled">
+        </label>
+        <label class="setting" data-i18n-title="hideNotificationsIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="hideNotificationsToggle">Hide the notifications icon</span>
+          </span>
+          <input type="checkbox" class="toggle" id="hideNotificationsEnabled">
+        </label>
+        <label class="setting" data-i18n-title="noAnimationsIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>
+          </span>
+          <input type="checkbox" class="toggle" id="noAnimationsEnabled">
+        </label>
       </div>
-      <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#web-client"
+      <p class="muted small"><a href="https://fvet.github.io/bcbuddy/web-client/"
          target="_blank" rel="noopener noreferrer" data-i18n="webClientMore">More about these settings</a></p>
     </section>
     </div>
 
     <div class="panel" data-panel="environments">
-    <section class="card tester">
-      <div class="tester__row">
-        <label for="testUrl"><span data-i18n="testUrlLabel">Test URL</span>
-          <span class="muted" data-i18n="testUrlHint">(drives the previews below)</span></label>
-        <div class="row">
-          <input type="text" id="testUrl" spellcheck="false"
-                 placeholder="https://businesscentral.dynamics.com/{tenant}/Sandbox?company=CRONUS%20BE&amp;page=1">
-          <button type="button" class="btn" id="useCurrentTab"
-                  data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
-        </div>
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="testUrlHeading">Test URL</h2>
       </div>
-      <dl class="parsed" id="parsed"></dl>
+      <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and layouts below.</p>
+
+      <div class="card tester">
+        <div class="field">
+          <label for="testUrl" data-i18n="testUrlLabel">URL of a Business Central page</label>
+          <div class="row">
+            <input type="text" id="testUrl" spellcheck="false"
+                   placeholder="https://businesscentral.dynamics.com/{tenant}/Sandbox?company=CRONUS%20BE&amp;page=1">
+            <button type="button" class="btn" id="useCurrentTab"
+                    data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
+          </div>
+        </div>
+        <dl class="parsed" id="parsed"></dl>
+      </div>
     </section>
 
     <section>
@@ -168,6 +192,8 @@
         <div id="hostedLayoutList" class="rules rules--readonly"></div>
       </div>
       <p class="empty" id="emptyLayouts" data-i18n="emptyLayouts" hidden>No layouts yet. Add one to reuse the same appearance across several rules.</p>
+      <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#environments"
+         target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and layouts</a></p>
     </section>
 
     </div>
@@ -189,7 +215,6 @@
           </div>
         </div>
         <p class="sync-status" id="hostedStatus"></p>
-        <p class="trust-note" data-i18n="sharedTrust">Only use a URL you control: the file can define rules that mark any site.</p>
       </div>
     </section>
 
@@ -226,8 +251,8 @@
           <h2 data-i18n="navAbout">About</h2>
         </div>
         <div class="card">
-          <p data-i18n="aboutIntro">BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.</p>
-          <p data-i18n="aboutIntroMaximize">It also makes the web client easier to work in: pages open in wide layout, tile pages switch to list view, dropdowns get more space and the line you are on stands out.</p>
+          <p data-i18n="aboutIntroMaximize">BC Buddy makes the Business Central web client easier to work in: copy any value with one click, pages open in wide layout, tile pages switch to list view, dropdowns get more space, the date picker shows week numbers and the line you are on stands out.</p>
+          <p data-i18n="aboutIntro">It also gives every environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.</p>
           <dl class="parsed">
             <div>
               <dt data-i18n="aboutContact">Contact</dt>
@@ -253,11 +278,12 @@
   <template id="ruleTemplate">
     <article class="rule">
       <div class="rule__head">
-        <button type="button" class="icon-btn rule__grip" data-action="grip" data-grip
-                data-i18n-title="dragToReorder">&#10303;</button>
-        <!-- The colour swatch is also the button that expands and collapses the rule. -->
-        <button type="button" class="rule__swatch" data-swatch data-action="toggle"
-                aria-expanded="false" data-i18n-title="toggleDetails"></button>
+        <!-- The same triangle as on a layout: a click expands or collapses the
+             rule, a drag moves it. The colour swatch beside it does the same. -->
+        <button type="button" class="icon-btn rule__toggle rule__grip" data-action="toggle" data-grip
+                aria-expanded="false" data-i18n-title="toggleOrDrag">&#9654;</button>
+        <span class="rule__swatch rule__grip" data-swatch data-grip aria-hidden="true"
+              data-i18n-title="toggleOrDrag"></span>
         <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="ruleNamePlaceholder">
         <!-- The glyph is decorative; role+aria-label carry the state instead,
              so it is not a tick that only sighted users can read. -->
@@ -279,11 +305,12 @@
                   data-i18n="addCondition">Add condition</button>
         </div>
 
+        <!-- No section heading: Colour is the heading, on the same line as the
+             labels beside it, so the section takes one row less. -->
         <div class="rule__section">
-          <h4 data-i18n="displayHeading">Appearance</h4>
           <div class="grid grid--style">
             <div class="field field--colour">
-              <span data-i18n="colour">Colour</span>
+              <h4 data-i18n="colour">Colour</h4>
               <div class="palette" data-palette>
                 <input type="color" class="palette__custom" data-custom-color
                        data-path="color" data-i18n-title="customColour"></div>
@@ -322,10 +349,10 @@
           </div>
 
           <div class="option">
-            <span class="option__name" data-i18n="borderToggle" data-i18n-title="borderHint">Frame around the page</span>
+            <span class="option__name" data-i18n="borderToggle" data-i18n-title="borderHint">Frame</span>
             <div class="option__body">
               <label class="field field--narrow">
-                <span data-i18n="borderWidth">Thickness (px)</span>
+                <span data-i18n="borderWidth">Thickness</span>
                 <input type="range" data-path="border.width" min="1" max="5" step="1">
               </label>
             </div>
@@ -335,23 +362,24 @@
           <div class="option">
             <span class="option__name" data-i18n="bannerToggle" data-i18n-title="bannerHint">Banner</span>
             <div class="option__body">
-              <label class="field field--narrow">
-                <span data-i18n="bannerPosition">Position</span>
-                <select data-path="banner.position">
-                  <option value="bottom" data-i18n="posBottom">Bar at the bottom</option>
-                  <option value="top-right" data-i18n="posTopRight">Ribbon top right</option>
-                  <option value="top-left" data-i18n="posTopLeft">Ribbon top left</option>
-                  <option value="bottom-right" data-i18n="posBottomRight">Ribbon bottom right</option>
-                  <option value="bottom-left" data-i18n="posBottomLeft">Ribbon bottom left</option>
-                </select>
-              </label>
+              <!-- No caption: each choice says where the banner goes. -->
+              <select data-path="banner.position" data-i18n-label="bannerPosition">
+                <option value="bottom" data-i18n="posBottom">Bar at the bottom</option>
+                <option value="top-right" data-i18n="posTopRight">Ribbon top right</option>
+                <option value="top-left" data-i18n="posTopLeft">Ribbon top left</option>
+                <option value="bottom-right" data-i18n="posBottomRight">Ribbon bottom right</option>
+                <option value="bottom-left" data-i18n="posBottomLeft">Ribbon bottom left</option>
+              </select>
               <label class="field field--wide">
                 <span data-i18n="bannerText">Text</span>
                 <input type="text" data-path="banner.text" spellcheck="false">
               </label>
-              <label class="field field--narrow">
-                <span data-i18n="bannerFontSize">Text size (0 = auto)</span>
-                <input type="number" data-path="banner.fontSize" min="0" max="72" step="1">
+              <label class="field field--narrow" data-i18n-title="bannerFontSizeHint">
+                <span data-i18n="bannerFontSize">Size</span>
+                <!-- The first step is 0, automatic: the text shrinks until it
+                     fits. The others are fixed sizes in px. -->
+                <input type="range" data-path="banner.fontSize" min="1" max="5" step="1"
+                       data-steps="0 11 14 18 22">
               </label>
               <label class="field field--narrow">
                 <span data-i18n="bannerOpacity">Opacity</span>
@@ -409,7 +437,7 @@
         <p class="muted small" data-i18n="layoutPreviewNote">Sample colour; every rule keeps its own.</p>
 
         <!-- No heading: a layout card has this one section only. A rule card
-             has two, so there Conditions and Appearance keep theirs. -->
+             has two, so there Conditions and Colour keep theirs. -->
         <div class="rule__section">
           <div data-display></div>
         </div>

@@ -1,53 +1,87 @@
-# Rules and matching
+# Rules
 
-A rule consists of one or more **conditions**; all of them must hold before the
-rule applies. A URL is broken down into fields you can match on.
+A **rule** tells BC Buddy which environment to colour, and in which colour. You
+find your rules on the settings page under **Environments**.
 
-Take this URL:
+Each rule has:
 
-```
-https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE&page=1
-```
+- a **name**, such as `PRODUCTION` or the name of a customer;
+- one or more **conditions**, which say when the rule applies;
+- a **colour**;
+- a **layout**, which decides what the marking looks like: the coloured bar,
+  a frame, a banner. See [Layouts](layouts.md).
 
-BC Buddy reads it as:
+## Conditions
 
-| Field | Value |
+A condition looks at the web address of the Business Central page you are on.
+The simplest ones:
+
+| To colour… | Condition |
 |---|---|
-| `url` | the full, decoded URL |
-| `environment` | `Sandbox` |
-| `company` | `CRONUS BE` |
-| `tenant` | `c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811` |
+| The Production environment | **Environment** **equals** `Production` |
+| Every sandbox | **Environment** **contains** `Sandbox` |
+| One company | **Company** **equals** `CRONUS BE` |
 
-So you can match on a value that simply occurs *somewhere in the URL* (`url`
-plus `contains`), or more precisely on environment or company.
+A rule with more than one condition applies only when all of them fit. To give
+one company in production its own colour, use **Environment** **equals**
+`Production` and **Company** **equals** `CRONUS BE` in the same rule.
 
-## Operators
+!!! tip "Check a rule before you rely on it"
 
-`contains` · `equals` · `starts with` · `ends with` · `RegEx` ·
-`does not contain`
+    At the top of **Environments**, click **From open tab**, or paste the
+    address of a Business Central page into **Test URL**. BC Buddy shows the
+    environment and company it reads, and a green tick on each rule that fits.
 
-!!! tip "Test before you trust it"
+## The first rule that fits wins
 
-    The **Test URL** field at the top of the options page shows you exactly
-    which environment, company and tenant BC Buddy reads out of a URL, and
-    previews the marking live. A rule whose conditions never all hold at once
-    never fires, and this is the quickest way to see that coming.
+BC Buddy goes through your rules from top to bottom and uses the first one that
+fits. Drag a rule up or down to change the order.
 
-## On-premises
+So put specific rules above general ones: a rule for one customer's production
+environment belongs above a rule for "anything called Production".
 
-Both Business Central online and on-premises are recognised. On-prem the server
-instance sits where the environment would be, and the tenant comes from the
-query string:
+## For advanced use
 
-```
-https://bc.example.local/BC240/?company=CRONUS%20BE&tenant=default
-```
+??? note "What BC Buddy reads from a web address"
 
-## Why rules apply everywhere
+    Take this address:
 
-Rules apply on every site, not only on `businesscentral.dynamics.com`. That is
-not a luxury: an on-premises installation runs on your own host, so the URL
-alone does not reveal that it is Business Central.
+    ```
+    https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE&page=1
+    ```
 
-If you want only BC marked, put that in the conditions of your rule — for
-example `url` `contains` `businesscentral.dynamics.com`.
+    BC Buddy reads it as:
+
+    | Field | Value |
+    |---|---|
+    | **Url** | the full address |
+    | **Environment** | `Sandbox` |
+    | **Company** | `CRONUS BE` |
+    | **Tenant** | `c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811` |
+
+    **Url** with **contains** matches a piece of text anywhere in the address.
+    The tenant identifies your organisation's Business Central subscription,
+    which helps when you work for several customers.
+
+??? note "All ways to compare"
+
+    **contains** · **equals** · **starts with** · **ends with** ·
+    **does not contain** · **RegEx** (a regular expression, for complex
+    patterns)
+
+??? note "Business Central on your own server (on-premises)"
+
+    BC Buddy recognises it too. There the server instance sits where the
+    environment would be, and the tenant comes from the end of the address:
+
+    ```
+    https://bc.example.local/BC240/?company=CRONUS%20BE&tenant=default
+    ```
+
+??? note "Why rules also apply outside Business Central"
+
+    Rules apply on every website, because a Business Central on your own
+    server has an address BC Buddy cannot recognise by itself. If a rule ever
+    colours a website that is not Business Central, add the condition **Url**
+    **contains** `businesscentral.dynamics.com`, or the name of your own
+    Business Central server.

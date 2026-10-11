@@ -275,50 +275,99 @@
     return layouts;
   }
 
-  function normalize(settings) {
-    var s = settings || {};
-    var hosted = s.hosted || {};
+  // The settings of the Web client panel. They travel in an export as
+  // `webClient`, shaped exactly as they are stored. The master switch does not:
+  // it belongs to whoever runs the extension.
+  var WEB_CLIENT_KEYS = ['maximize', 'dropdown', 'highlightRow', 'noAnimations',
+    'hideNotifications', 'copyValues', 'weekNumbers'];
+
+  function normalizeWebClient(s) {
     var maximize = s.maximize || {};
     var dropdown = s.dropdown || {};
     var highlightRow = s.highlightRow || {};
     var noAnimations = s.noAnimations || {};
-    var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
-    var layouts = (Array.isArray(s.layouts) ? s.layouts : []).map(normalizeLayout);
-    var hostedRules = (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule);
-    var hostedLayouts = (Array.isArray(hosted.layouts) ? hosted.layouts : []).map(normalizeLayout);
+    var hideNotifications = s.hideNotifications || {};
+    var copyValues = s.copyValues || {};
+    var weekNumbers = s.weekNumbers || {};
 
     return {
-      version: SCHEMA_VERSION,
-      enabled: bool(s.enabled, true),
       maximize: {
         enabled: bool(maximize.enabled, true)
       },
-      // Wider dropdowns by default; height stays BC standard until asked for.
+      // Dropdowns twice as wide by default; height stays BC standard until
+      // asked for.
       dropdown: {
-        width: step(dropdown.width, 3),
+        width: step(dropdown.width, 5),
         height: step(dropdown.height, 1)
       },
       highlightRow: {
         enabled: bool(highlightRow.enabled, true)
       },
+      // Off until asked for: it changes how BC feels, not just how it looks.
       noAnimations: {
-        enabled: bool(noAnimations.enabled, true)
+        enabled: bool(noAnimations.enabled, false)
       },
-      rules: rules,
-      layouts: withDefaultLayout(layouts, rules),
-      hosted: {
-        url: str(hosted.url),
-        active: normalizeActive(hosted),
-        rules: hostedRules,
-        layouts: (hostedRules.length || hostedLayouts.length)
-          ? withDefaultLayout(hostedLayouts, hostedRules)
-          : hostedLayouts,
-        sourceName: str(hosted.sourceName),
-        lastSync: hosted.lastSync || null,
-        lastError: hosted.lastError || null,
-        lastHash: str(hosted.lastHash)
+      hideNotifications: {
+        enabled: bool(hideNotifications.enabled, true)
+      },
+      copyValues: {
+        enabled: bool(copyValues.enabled, true)
+      },
+      weekNumbers: {
+        enabled: bool(weekNumbers.enabled, true)
       }
     };
+  }
+
+  /**
+   * The Web client settings a file names, normalised; the ones it leaves out
+   * stay out, so a file can share just the dropdown size. Null when it names
+   * none, as every file from before they were exported.
+   */
+  function readWebClient(source) {
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return null;
+    var full = normalizeWebClient(source);
+    var picked = null;
+    WEB_CLIENT_KEYS.forEach(function (key) {
+      if (!source[key] || typeof source[key] !== 'object') return;
+      picked = picked || {};
+      picked[key] = full[key];
+    });
+    return picked;
+  }
+
+  function normalize(settings) {
+    var s = settings || {};
+    var hosted = s.hosted || {};
+    var webClient = normalizeWebClient(s);
+    var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
+    var layouts = (Array.isArray(s.layouts) ? s.layouts : []).map(normalizeLayout);
+    var hostedRules = (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule);
+    var hostedLayouts = (Array.isArray(hosted.layouts) ? hosted.layouts : []).map(normalizeLayout);
+
+    var result = {
+      version: SCHEMA_VERSION,
+      enabled: bool(s.enabled, true)
+    };
+    WEB_CLIENT_KEYS.forEach(function (key) { result[key] = webClient[key]; });
+    result.rules = rules;
+    result.layouts = withDefaultLayout(layouts, rules);
+    result.hosted = {
+      url: str(hosted.url),
+      active: normalizeActive(hosted),
+      rules: hostedRules,
+      layouts: (hostedRules.length || hostedLayouts.length)
+        ? withDefaultLayout(hostedLayouts, hostedRules)
+        : hostedLayouts,
+      // What the shared file said about the Web client last time, so a sync
+      // only passes on what changed; see applySharedWebClient().
+      webClient: readWebClient(hosted.webClient) || {},
+      sourceName: str(hosted.sourceName),
+      lastSync: hosted.lastSync || null,
+      lastError: hosted.lastError || null,
+      lastHash: str(hosted.lastHash)
+    };
+    return result;
   }
 
   /**
@@ -357,6 +406,24 @@
       settings.noAnimations && settings.noAnimations.enabled);
   }
 
+  /** Hiding the notifications bell follows the master switch as well. */
+  function hideNotificationsOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.hideNotifications && settings.hideNotifications.enabled);
+  }
+
+  /** The copy icon follows the master switch as well. */
+  function copyValuesOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.copyValues && settings.copyValues.enabled);
+  }
+
+  /** Week numbers in the date picker follow the master switch as well. */
+  function weekNumbersOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.weekNumbers && settings.weekNumbers.enabled);
+  }
+
   function load() {
     return chrome.storage.local.get(STORAGE_KEY).then(function (obj) {
       return normalize(obj && obj[STORAGE_KEY]);
@@ -373,13 +440,16 @@
 
   function toExport(settings, name) {
     var s = normalize(settings);
+    var webClient = {};
+    WEB_CLIENT_KEYS.forEach(function (key) { webClient[key] = s[key]; });
     return {
       app: EXPORT_APP,
       version: SCHEMA_VERSION,
       name: str(name),
       exportedAt: new Date().toISOString(),
       layouts: s.layouts,
-      rules: s.rules
+      rules: s.rules,
+      webClient: webClient
     };
   }
 
@@ -397,12 +467,14 @@
     var rules = null;
     var layouts = [];
     var name = '';
+    var webClient = null;
     if (Array.isArray(data)) {
       rules = data;
     } else if (data && Array.isArray(data.rules)) {
       rules = data.rules;
       layouts = Array.isArray(data.layouts) ? data.layouts : [];
       name = str(data.name);
+      webClient = readWebClient(data.webClient);
     }
     if (!rules) throw new Error(BCBuddy.t('errNoRules'));
     if (data && data.app && data.app !== EXPORT_APP) {
@@ -419,8 +491,40 @@
     return {
       rules: normalizedRules,
       layouts: normalizedLayouts,
+      webClient: webClient,
       name: name
     };
+  }
+
+  /**
+   * Takes over every Web client setting in `incoming` (from readWebClient()),
+   * as an import by hand does. Returns how many actually changed.
+   */
+  function applyWebClient(settings, incoming) {
+    var changed = 0;
+    WEB_CLIENT_KEYS.forEach(function (key) {
+      if (!incoming || !incoming[key]) return;
+      if (JSON.stringify(settings[key]) !== JSON.stringify(incoming[key])) changed++;
+      settings[key] = JSON.parse(JSON.stringify(incoming[key]));
+    });
+    return changed;
+  }
+
+  /**
+   * The shared file's Web client settings are defaults, not orders: each one is
+   * taken over on the first sync, and after that only when its value in the
+   * file changes. A colleague who switches something off keeps it off until
+   * the team changes that setting. Returns how many settings changed.
+   */
+  function applySharedWebClient(settings, incoming) {
+    var previous = settings.hosted.webClient || {};
+    var news = {};
+    WEB_CLIENT_KEYS.forEach(function (key) {
+      if (!incoming || !incoming[key]) return;
+      if (JSON.stringify(previous[key]) !== JSON.stringify(incoming[key])) news[key] = incoming[key];
+    });
+    settings.hosted.webClient = incoming || {};
+    return applyWebClient(settings, news);
   }
 
   /**
@@ -531,6 +635,7 @@
   BCBuddy.PALETTE = PALETTE;
   BCBuddy.POSITIONS = POSITIONS;
   BCBuddy.DROPDOWN_STEPS = DROPDOWN_STEPS;
+  BCBuddy.WEB_CLIENT_KEYS = WEB_CLIENT_KEYS;
   BCBuddy.isCorner = isCorner;
   BCBuddy.SYNC_INTERVAL_MINUTES = SYNC_INTERVAL_MINUTES;
   BCBuddy.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;
@@ -550,12 +655,17 @@
   BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.highlightRowOn = highlightRowOn;
   BCBuddy.noAnimationsOn = noAnimationsOn;
+  BCBuddy.hideNotificationsOn = hideNotificationsOn;
+  BCBuddy.copyValuesOn = copyValuesOn;
+  BCBuddy.weekNumbersOn = weekNumbersOn;
   BCBuddy.loadSettings = load;
   BCBuddy.saveSettings = save;
   BCBuddy.toExport = toExport;
   BCBuddy.parseImport = parseImport;
   BCBuddy.mergeRules = mergeRules;
   BCBuddy.mergeLayouts = mergeLayouts;
+  BCBuddy.applyWebClient = applyWebClient;
+  BCBuddy.applySharedWebClient = applySharedWebClient;
   BCBuddy.hash = hash;
   BCBuddy.toRawUrl = toRawUrl;
   BCBuddy.resolveHostedUrl = resolveHostedUrl;
