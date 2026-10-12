@@ -124,7 +124,7 @@
    its light text. */
 html[data-bcb-row] {
   --bcb-row: 0 132 137; /* BC's own teal */
-  --bcb-row-tint: rgb(var(--bcb-row) / .06);
+  --bcb-row-tint: rgb(var(--bcb-row) / .12);
 }
 
 html[data-bcb-row][data-darkreader-scheme="dark"] {
