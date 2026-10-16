@@ -647,7 +647,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 
   // dropdown size: a slider step per direction, step 1 = BC standard
   var D = BCBuddy.Dropdowns;
-  check('dropdown: width defaults to step 5, height to BC standard', def.dropdown, { width: 5, height: 1 });
+  check('dropdown: width and height default to step 5', def.dropdown, { width: 5, height: 5 });
   check('dropdown: so it is on by default', D.isOn(def.dropdown), true);
   check('dropdown: both at BC standard is off', D.isOn({ width: 1, height: 1 }), false);
   check('dropdown: height alone turns it on', D.isOn({ width: 1, height: 2 }), true);
@@ -656,7 +656,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('dropdown: steps below 1 snap back',
     BCBuddy.normalize({ dropdown: { width: 0, height: -3 } }).dropdown, { width: 1, height: 1 });
   check('dropdown: garbage falls back to the defaults',
-    BCBuddy.normalize({ dropdown: { width: 'wide', height: null } }).dropdown, { width: 5, height: 1 });
+    BCBuddy.normalize({ dropdown: { width: 'wide', height: null } }).dropdown, { width: 5, height: 5 });
   check('dropdown: a step is a whole number',
     BCBuddy.normalize({ dropdown: { width: 2.6, height: 1.4 } }).dropdown, { width: 3, height: 1 });
   check('dropdown: a pixel value snaps to the top step',
@@ -685,7 +685,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     return list;
   })()), true);
   check('dropdown: travels in an export under webClient',
-    BCBuddy.toExport(def).webClient.dropdown, { width: 5, height: 1 });
+    BCBuddy.toExport(def).webClient.dropdown, { width: 5, height: 5 });
 
   // maximize: a BC page stack as the BC28 web client builds it. The page you
   // came from stays in the DOM, inert, under the page on screen.
@@ -992,7 +992,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   } })).webClient;
   check('import: only the Web client settings the file names',
     Object.keys(partialWebClient), ['dropdown', 'weekNumbers']);
-  check('import: Web client values normalised', partialWebClient.dropdown, { width: 5, height: 1 });
+  check('import: Web client values normalised', partialWebClient.dropdown, { width: 5, height: 5 });
 
   var mine = BCBuddy.normalize({});
   check('import by hand: Web client settings applied, changes counted',

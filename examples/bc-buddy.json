@@ -112,7 +112,7 @@
     },
     "dropdown": {
       "width": 5,
-      "height": 1
+      "height": 5
     },
     "highlightRow": {
       "enabled": true
