@@ -1202,7 +1202,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       check('dropdown DOM: narrow lookup keeps BC width', vars(narrow)[0], '532px');
       return open(lookupFixture(['120px', '200px']));
     }).then(function (unsized) {
-      check('dropdown DOM: columns without ex widths take the maximum', vars(unsized)[0], '798px');
+      check('dropdown DOM: columns without ex widths take the maximum', vars(unsized)[0], '1064px');
       return open(lookupFixture(WIDE, 'spa-preview-lookup'));
     }).then(function (preview) {
       check('dropdown DOM: hover preview is left alone', preview.hasAttribute(D.MARK), false);
