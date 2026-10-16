@@ -13,6 +13,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 <!-- --8<-- [start:released] -->
 
+## 1.0.13 — 2026-10-16
+
+Maintenance release - nothing that changes what you see.
+
 ## 1.0.12 — 2026-10-11
 
 ### Added
