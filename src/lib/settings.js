@@ -311,11 +311,10 @@
       pinActionBar: {
         enabled: bool(pinActionBar.enabled, true)
       },
-      // Dropdowns twice as wide by default; height stays BC standard until
-      // asked for.
+      // Dropdowns start at the widest and tallest step.
       dropdown: {
         width: step(dropdown.width, 5),
-        height: step(dropdown.height, 1)
+        height: step(dropdown.height, 5)
       },
       highlightRow: {
         enabled: bool(highlightRow.enabled, true)

@@ -60,7 +60,7 @@ number on a sales line, gets more room. There are two sliders:
 - **Width**: the list gets as wide as its columns need, up to this maximum, so
   you no longer scroll sideways. It starts at the widest step.
 - **Height**: shows more rows at once, up to about ten instead of five. It
-  starts at *BC standard*.
+  starts at the tallest step.
 
 With both sliders all the way left, at *BC standard*, the list keeps Business
 Central's own size.
