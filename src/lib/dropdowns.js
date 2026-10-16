@@ -21,7 +21,7 @@
   // Slider step 1-5 as a factor of BC's own size. Step 1 is BC standard.
   // Width matters more than height: a list wants its columns, and ten rows are
   // plenty to pick from.
-  var WIDTH_FACTORS = [1, 1.25, 1.5, 1.75, 2];
+  var WIDTH_FACTORS = [1, 1.5, 2, 2.5, 3];
   var HEIGHT_FACTORS = [1, 1.125, 1.25, 1.375, 1.5];
 
   // BC's own caps today. Only used when its stylesheet cannot be read; normally

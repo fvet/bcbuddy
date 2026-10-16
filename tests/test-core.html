@@ -664,7 +664,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('dropdown: one factor per step',
     [D.WIDTH_FACTORS.length, D.HEIGHT_FACTORS.length], [BCBuddy.DROPDOWN_STEPS, BCBuddy.DROPDOWN_STEPS]);
   check('dropdown: step 1 is BC standard', [D.factor(D.WIDTH_FACTORS, 1), D.factor(D.HEIGHT_FACTORS, 1)], [1, 1]);
-  check('dropdown: width grows to twice BC standard', D.factor(D.WIDTH_FACTORS, 5), 2);
+  check('dropdown: width grows to three times BC standard', D.factor(D.WIDTH_FACTORS, 5), 3);
   check('dropdown: height to one and a half', D.factor(D.HEIGHT_FACTORS, 5), 1.5);
   check('dropdown: ex column widths add up', D.columnEx(['', '15ex', '35ex', '0px', ' 18ex ']), 68);
   check('dropdown: no ex widths adds up to 0', D.columnEx(['120px', '', null]), 0);
@@ -1259,7 +1259,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       check('dropdown DOM: BC standard is read from BC, not assumed', vars(rescaled), ['600px', '450px']);
       return open(lookupFixture(['500ex']));
     }).then(function (huge) {
-      check('dropdown DOM: maximum is twice what BC uses', vars(huge)[0], '1200px');
+      check('dropdown DOM: maximum is three times what BC uses', vars(huge)[0], '1800px');
       sizer.detach();
       closeAll();
       document.querySelectorAll('.spa-container').forEach(function (c) { c.remove(); });
