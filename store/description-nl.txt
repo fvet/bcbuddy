@@ -1,30 +1,41 @@
-BC Buddy maakt de Business Central-webclient makkelijker in gebruik en geeft elke omgeving een eigen kleur, zodat je nooit per ongeluk in productie boekt.
+Business Central, makkelijker in gebruik.
 
-Een makkelijkere webclient, meteen. Niets in te stellen:
+Kopieer elke waarde met een klik, zie elke pagina over de volle breedte en weet altijd in welke omgeving je zit. BC Buddy haalt de kleine dagelijkse ergernissen uit de Business Central-webclient.
 
-- Kopieer elke waarde met een klik, ook een bedrag of een Nr. dat je niet kunt selecteren.
-- Elke pagina in een brede lay-out met de actiebalk vastgezet, en lijsten in plaats van tegels.
-- Keuzelijsten die al hun kolommen tonen, zodat je niet meer opzij scrolt.
-- Weeknummers in de kalender van een datumveld.
-- Een toetsenbordicoon dat de sneltoetsen toont voor de pagina en het veld waar je bent.
-- De regel waarop je staat in een dagboek of order valt op.
-- Als je wil, gestreepte rijen, zodat je in een brede lijst op de juiste regel blijft.
-- Geen meldingenbelletje, en als je wil, geen animaties.
+Gratis. Werkt meteen na installatie.
 
-Elk ervan heeft een eigen schakelaar in de opties.
+⚡ Sneller door je werk
 
-Een kleur voor elke omgeving. Een testomgeving en de echte zien er precies hetzelfde uit. BC Buddy markeert ze, zodat je in een oogopslag ziet waar je zit:
+• Kopiëren met een klik: elk bedrag, Nr. of link, ook die je nooit kon selecteren
+• Elke pagina over de volle breedte, met de actiebalk vastgezet
+• Lijsten in plaats van tegels
+• Keuzelijsten die al hun kolommen tonen: niet meer opzij scrollen
+• Weeknummers in de kalender van een datumveld
+• De regel waarop je staat valt op in dagboeken en orders
+• Geen meldingenbelletje in de weg
 
-- De balk bovenaan Business Central krijgt jouw kleur en jouw tekst, bijvoorbeeld "PRODUCTIE - CRONUS BE".
-- Een gekleurd kader rond het venster.
-- Een banner onderaan, of een lint in de hoek.
-- De tabtitel, bijvoorbeeld "[TEST] Company Information".
-- Een gekleurd icoontje op het tabblad, zodat je de juiste tab meteen terugvindt tussen tien andere.
+Wil je meer? Zet gestreepte rijen aan, een paneel met de sneltoetsen voor de pagina waar je bent, of zet de animaties uit. Elke verbetering heeft een eigen schakelaar.
 
-Je bepaalt zelf wanneer welke kleur verschijnt: per omgeving, per bedrijf of per klant. Productie groen, sandbox rood - of hoe je het zelf wil.
+🎨 Nooit meer boeken in de verkeerde omgeving
 
-Werk je in een team? Een persoon stelt de kleuren in, de rest krijgt ze automatisch mee, ook als er later iets verandert.
+Productie en sandbox zien er precies hetzelfde uit. Met BC Buddy niet meer.
 
-Werkt met Business Central online en op je eigen server. Beschikbaar in het Nederlands, het Engels en het Frans.
+• De balk bovenaan in jouw kleur, met jouw tekst: "PRODUCTIE - CRONUS BE"
+• Een gekleurd kader rond het venster
+• Een banner, of een lint in de hoek
+• Een gemarkeerde tabtitel en een gekleurd icoontje, zodat je de juiste tab vindt tussen tien andere
 
-Alles blijft op je eigen computer: geen account, geen server, geen tracking.
+Kies een kleur per omgeving, per bedrijf of per klant. Je eerste twee stel je in een minuut in.
+
+👥 Een keer instellen voor het hele team
+
+Een persoon kiest de kleuren, de rest krijgt ze automatisch, ook als er later iets verandert. IT kan BC Buddy op elke computer uitrollen, bijvoorbeeld met Intune.
+
+🔒 Niets verlaat je computer
+
+Geen account. Geen server. Geen tracking.
+
+✓ Business Central online en op je eigen server
+✓ Chrome en Edge
+✓ Nederlands, Engels en Frans
+✓ Gratis en open source

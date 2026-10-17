@@ -939,8 +939,9 @@ needs: manifest, `managed_schema.json`, `src`, `_locales` and the PNG icons. Tes
 sources and these tools stay behind. The script checks that `manifest.json` ends
 up in the root of the ZIP, which is the usual silent upload rejection.
 
-The listing copy sits in [`store/description-nl.txt`](store/description-nl.txt)
-and [`store/description-en.txt`](store/description-en.txt), and the screenshots
+The listing copy sits in [`store/description-en.txt`](store/description-en.txt),
+[`store/description-nl.txt`](store/description-nl.txt) and
+[`store/description-fr.txt`](store/description-fr.txt), and the screenshots
 in `store/`. For the privacy practices tab at submission — single purpose and a
 justification per permission — and for the privacy policy URL the store points
 at, use [`PRIVACY.md`](PRIVACY.md) — the store field takes a URL, so point it
