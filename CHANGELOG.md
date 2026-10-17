@@ -19,6 +19,11 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Compact lists**: lower rows and narrower columns, so more of a list fits
   on your screen. Each has its own switch under **Web client** in the
   options; both are off by default. Lists you type in keep their size.
+- **Keyboard shortcuts**: a keyboard icon in the top bar of Business Central
+  shows the shortcuts that work where you are: the page's own actions, such
+  as Post (F9), what works in the lines, the list, the card or the date field
+  you are in, and a few that work anywhere, with links to Microsoft's full
+  list. On by default; switch it off under **Web client** in the options.
 - **Set up by your IT department**: IT can install BC Buddy on every computer
   and fill in your team's shared file for you, for example with Intune. The
   address then says *Set by your organisation* and cannot be changed.

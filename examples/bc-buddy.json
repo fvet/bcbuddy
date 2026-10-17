@@ -135,6 +135,9 @@
     },
     "weekNumbers": {
       "enabled": true
+    },
+    "shortcuts": {
+      "enabled": true
     }
   }
 }

@@ -22,9 +22,11 @@ src/
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
   lib/gearmenu.js      the BC Buddy section in BC's gear menu (Settings pane)
+  lib/shortcuts.js     keyboard shortcuts: the top bar icon and its panel
   content/content.js   draws frame, banner, ribbon, title and favicon;
                        starts maximize, the dropdown sizer, the copy icon,
-                       week numbers, the row tint and the gear menu section
+                       week numbers, the row tint, the gear menu section
+                       and the keyboard shortcuts icon
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted
@@ -83,6 +85,8 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
 - `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
   where nobody set them, on by default.
+- `shortcuts.enabled` — the keyboard icon in BC's top bar and its panel, on
+  by default.
 
 `normalize()` always ensures every rule points at a valid layout: a
 configuration with no layouts gets a Default, and a rule whose `layoutId` names
@@ -700,6 +704,39 @@ var a = document.getElementById('O365_Settings_navbardatalinks');
 [!!document.getElementById('FlexPane_Overflow_Container'), !!a,
   a && a.outerHTML.slice(0, 600), a && a.nextElementSibling.outerHTML.slice(0, 300)];
 ```
+
+## ⌨️ Keyboard shortcuts
+
+`shortcuts.js` adds a keyboard button to BC's top bar and opens a panel with
+the shortcuts for where the cursor is.
+
+- **Where.** BC online shows the client in `iframe.designer-client-frame`,
+  same origin, under the Microsoft 365 top bar. Icon and panel live in the top
+  window; the panel reads the client's document directly. The icon goes just
+  before `#O365_MainLink_Help_container` and copies its classes and those of
+  the Help button, element by element, like the gear menu section does.
+- **What it lists.** *On this page* is read when the panel opens: BC ends an
+  action's tooltip with its shortcut, `"... (F9)"`, and `tooltipKey()` takes
+  that. It is right for the BC version, the language and any extension, but
+  only sees rendered actions; a closed submenu is not in the DOM. The rest
+  comes from `SETS`: short, hand-picked lists from Microsoft's
+  *Keyboard Shortcuts* article, only shortcuts BC has had for years. Keep
+  them short; the panel links to Microsoft's article for everything else.
+- **Where the cursor is.** `context()` looks at the client's
+  `activeElement`: an editable grid, a view grid, a card, a date field (an
+  input with BC's `.icon-Date` button beside it). The button cancels its own
+  `mousedown`, because BC drops the field focus as soon as its frame loses
+  focus; the panel then takes the focus and gives it back on close.
+- **Cost.** One observer on the top window's `body` (subtree) while the
+  switch is on: BC's grids live in the iframe's document, so the top window
+  changes rarely, and each change costs one `getElementById`. Panel, page
+  scan and key badges exist only while the panel is open, and so do its
+  `pointerdown` listeners. No key listener in the page.
+- **Browser shortcut.** The manifest declares a `show-shortcuts` command
+  without a default key, so it never takes one from BC. Someone who sets a
+  key gets `chrome.commands.onCommand` in the service worker, which sends
+  `bcb:toggle-shortcuts` to the tab's top frame. On-prem, without the
+  Microsoft 365 top bar, that key is the only way in.
 
 ## 🔑 Permissions
 

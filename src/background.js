@@ -96,6 +96,15 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   }
 });
 
+// The browser shortcut someone set for the keyboard shortcuts panel (Chrome:
+// chrome://extensions/shortcuts). It has no key of its own, so it never
+// takes one from Business Central. Only the tab's top frame listens.
+chrome.commands.onCommand.addListener(function (command, tab) {
+  if (command !== 'show-shortcuts' || !tab || tab.id === undefined) return;
+  chrome.tabs.sendMessage(tab.id, { type: 'bcb:toggle-shortcuts' }, { frameId: 0 })
+    .catch(function () { /* no BC Buddy in that tab */ });
+});
+
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
   // The two messages a content script may send: Open in a new tab, and the

@@ -94,6 +94,7 @@ window.chrome = {
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
 <script src="../src/lib/gearmenu.js"></script>
+<script src="../src/lib/shortcuts.js"></script>
 
 <script>
 /* ---- seed settings for the content script ------------------------------- */
@@ -407,6 +408,12 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     [false, false]);
   check('compact: garbled values read as off', BCBuddy.normalize({ compact: { rows: 'yes', columns: 1 } }).compact,
     { rows: false, columns: false });
+  // and so does the keyboard shortcuts icon, which starts on
+  check('shortcuts: on by default', BCBuddy.shortcutsOn(BCBuddy.normalize(null)), true);
+  check('shortcuts: off with its own toggle',
+    BCBuddy.shortcutsOn(BCBuddy.normalize({ shortcuts: { enabled: false } })), false);
+  check('shortcuts: off when the extension is off',
+    BCBuddy.shortcutsOn(BCBuddy.normalize({ enabled: false, shortcuts: { enabled: true } })), false);
 
   // and so does turning animations off
   check('animations: left alone by default', BCBuddy.noAnimationsOn(BCBuddy.normalize(null)), false);
@@ -584,6 +591,135 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     check('compact columns CSS: caption keeps its size, values a size down', [caption, value], ['12px', '12.5px']);
     check('compact columns CSS: lists you type in keep their font', editValue !== '12.5px', true);
     host.remove();
+  })();
+
+  // keyboard shortcuts: what a BC tooltip ends with, and how keys are drawn
+  (function () {
+    var S = BCBuddy.Shortcuts;
+    check('shortcuts: F-key at the end of a tooltip',
+      S.tooltipKey('Finalize the document or journal by posting the amounts. (F9)'), 'F9');
+    check('shortcuts: combination at the end of a tooltip',
+      [S.tooltipKey('View the balances on bank accounts. (Ctrl+F11)'),
+        S.tooltipKey('Review the different types of entries. (Ctrl+Alt+F9) ')], ['Ctrl+F11', 'Ctrl+Alt+F9']);
+    check('shortcuts: a translated modifier counts', S.tooltipKey('Boeken (Strg+F9)'), 'Strg+F9');
+    check('shortcuts: brackets without a key do not',
+      [S.tooltipKey('Balance (LCY)'), S.tooltipKey('Amount (incl. VAT)'), S.tooltipKey('Post'),
+        S.tooltipKey(''), S.tooltipKey(null), S.tooltipKey('(F9) Post')], ['', '', '', '', '', '']);
+    check('shortcuts: alternatives and sequences',
+      S.keyParts('Ctrl+A, Ctrl+C / F3'), [[['Ctrl', 'A'], ['Ctrl', 'C']], [['F3']]]);
+    check('shortcuts: every built-in key can be drawn',
+      Object.keys(S.SETS).every(function (k) {
+        return S.SETS[k][1].every(function (row) {
+          return S.keyParts(row[0]).every(function (alt) {
+            return alt.every(function (combo) { return combo.every(function (key) { return key.length > 0; }); });
+          });
+        });
+      }), true);
+    check('shortcuts: docs links open Learn, two of them in the reader\'s language',
+      S.DOCS.map(function (d) { return d[1].indexOf('https://learn.microsoft.com/') === 0 && !/\/en-us\//.test(d[1]); }),
+      [true, true, false]);
+  })();
+
+  // keyboard shortcuts: the page's own actions, and where the cursor is
+  (function () {
+    var S = BCBuddy.Shortcuts;
+    var host = document.createElement('div');
+    host.innerHTML =
+      '<div class="actions">' +
+      '<button title="Finalize the document. (F9)" aria-label="Post">Post</button>' +
+      '<button title="Post and print. (Shift+F9)"><span>Post and Print</span></button>' +
+      '<button title="A copy that is not shown. (F7)" style="display:none">Statistics</button>' +
+      '<button title="Same key again. (F9)">Post again</button>' +
+      '<span title="Balance (LCY)">Balance</span>' +
+      '</div>' +
+      '<form class="ms-nav-root-form ms-nav-cardform">' +
+      '<table class="ms-nav-grid ms-nav-grid-edit ms-nav-grid-data-table"><tbody><tr><td>' +
+      '<div class="edit-container"><a class="icon-Date"></a><input id="sc-date"></div>' +
+      '<div class="edit-container"><input id="sc-text"></div>' +
+      '</td></tr></tbody></table>' +
+      '<table class="ms-nav-grid ms-nav-grid-view ms-nav-grid-data-table"><tbody><tr><td>' +
+      '<input id="sc-view"></td></tr></tbody></table>' +
+      '<input id="sc-card">' +
+      '</form>';
+    document.body.appendChild(host);
+    var actions = S.pageActions(host);
+    check('shortcuts: actions read from their tooltips, shown ones, each key once',
+      actions.map(function (a) { return [a.keys, a.name]; }), [['F9', 'Post'], ['Shift+F9', 'Post and Print']]);
+
+    function at(id) {
+      document.getElementById(id).focus();
+      return S.context(document);
+    }
+    check('shortcuts: a date field in editable lines', at('sc-date'), { area: 'lines', date: true });
+    check('shortcuts: another field in editable lines', at('sc-text'), { area: 'lines', date: false });
+    check('shortcuts: a list part', at('sc-view'), { area: 'list', date: false });
+    check('shortcuts: a field on a card', at('sc-card'), { area: 'card', date: false });
+    document.activeElement.blur();
+
+    var t = function (k) { return '[' + k + ']'; };
+    var withPage = S.sections(actions, { area: 'lines', date: true }, t);
+    check('shortcuts: sections in order, page first',
+      withPage.map(function (s) { return s.title; }), ['[scPage]', '[scDate]', '[scLines]', '[scAnywhere]']);
+    check('shortcuts: the page section lists the actions by their own name',
+      withPage[0].rows, [['F9', 'Post'], ['Shift+F9', 'Post and Print']]);
+    check('shortcuts: no page section without actions',
+      S.sections([], { area: 'list', date: false }, t).map(function (s) { return s.title; }),
+      ['[scList]', '[scAnywhere]']);
+    host.remove();
+  })();
+
+  // keyboard shortcuts: the icon goes in before Help, shaped like it, and
+  // opens the panel; Escape closes it again, detach takes the icon away.
+  (function () {
+    var S = BCBuddy.Shortcuts;
+    var bar = document.createElement('div');
+    bar.id = 'headerButtonRegion';
+    bar.innerHTML =
+      '<div id="O365_MainLink_Settings_container" class="hc1"><div class="hc2">' +
+      '<button class="hb o365sx-button" id="O365_MainLink_Settings"><div class="o365cs-base"><span></span></div></button></div></div>' +
+      '<div id="O365_MainLink_Help_container" class="hc1"><div class="hc2">' +
+      '<button class="hb o365sx-button" id="O365_MainLink_Help"><div class="o365cs-base"><span></span></div></button></div></div>';
+    document.body.appendChild(bar);
+    var actions = document.createElement('div');
+    actions.innerHTML = '<button title="Finalize the document. (F9)">Post</button>';
+    document.body.appendChild(actions);
+    var handle = S.attach(document, { t: function (k) { return '[' + k + ']'; }, icon: true });
+    var icon = document.getElementById(S.ICON_ID);
+    check('shortcuts icon: before Help', !!icon && icon.nextElementSibling.id, 'O365_MainLink_Help_container');
+    var button = icon && icon.querySelector('button');
+    check('shortcuts icon: shaped like Help, without its ids',
+      [icon.className, icon.firstElementChild.className, button.className, !!button.querySelector('.o365cs-base > svg'),
+        icon.querySelectorAll('[id]').length],
+      ['hc1', 'hc2', 'hb o365sx-button', true, 0]);
+    check('shortcuts icon: named for screen readers', [button.getAttribute('aria-label'), button.title],
+      ['[scIconLabel]', '[scIconLabel]']);
+    button.click();
+    check('shortcuts icon: a made-up click opens nothing', handle.isOpen(), false);
+
+    handle.toggle();
+    var panel = document.getElementById(S.PANEL_ID);
+    check('shortcuts panel: open as a dialog', [handle.isOpen(), panel && panel.getAttribute('role')], [true, 'dialog']);
+    check('shortcuts panel: page actions on top',
+      panel.querySelector('h3').textContent + ' ' + panel.querySelector('dd').textContent, '[scPage] Post');
+    check('shortcuts panel: keys drawn as keys', panel.querySelector('dt kbd').textContent, 'F9');
+    check('shortcuts panel: links to Microsoft open in a new tab',
+      [].map.call(panel.querySelectorAll('a'), function (a) { return [a.href, a.target, a.rel]; }),
+      S.DOCS.map(function (d) { return [d[1], '_blank', 'noopener noreferrer']; }));
+    check('shortcuts panel: a badge over the action', document.querySelectorAll('.bcb-keycap').length, 1);
+    check('shortcuts icon: says it is open', button.getAttribute('aria-expanded'), 'true');
+    panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    check('shortcuts panel: Escape closes it and its badges',
+      [handle.isOpen(), !!document.getElementById(S.PANEL_ID), document.querySelectorAll('.bcb-keycap').length,
+        button.getAttribute('aria-expanded')], [false, false, 0, 'false']);
+
+    handle.toggle();
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    check('shortcuts panel: a press outside closes it', handle.isOpen(), false);
+
+    handle.detach();
+    check('shortcuts icon: gone after detach', document.getElementById(S.ICON_ID), null);
+    bar.remove();
+    actions.remove();
   })();
 
   // notifications: the bell's container disappears, and only while the

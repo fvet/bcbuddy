@@ -12,6 +12,7 @@ page, so you can turn off whatever you do not like.
 | [Pin the action bar](#pin-the-action-bar) | The row of actions under a page's tabs is pinned | On |
 | [Dropdown size](#dropdown-size) | The list under a field shows all its columns | On |
 | [Week numbers in the date picker](#week-numbers-in-the-date-picker) | Business Central's own week numbers in the calendar of a date field | On |
+| [Keyboard shortcuts](#keyboard-shortcuts) | A keyboard icon in the top bar that shows the shortcuts for where you are | On |
 | [Highlight the current line](#highlight-the-current-line) | The line you are on in a journal or order stands out | On |
 | [Striped rows](#striped-rows) | Every other row in a list a light grey | Off |
 | [Compact lists](#compact-lists) | More rows and columns of a list on the screen | Off |
@@ -80,6 +81,36 @@ Business Central remembers that, and BC Buddy leaves it.
 Business Central counts the weeks as the **Region** in **My Settings** says.
 With Dutch, for example, weeks start on Monday and week 1 is the week with the
 first Thursday of the year.
+
+## Keyboard shortcuts
+
+BC Buddy adds a keyboard icon to the top bar of Business Central, next to the
+question mark. Click it to see the shortcuts that work where you are:
+
+- **On this page**: the page's own actions that have a shortcut, such as
+  **Post** (F9). Each one also gets a small label on the action itself.
+- What works in the lines of a journal or order, in a list, on a card or in a
+  date field, depending on where your cursor is.
+- A few that work anywhere, such as Alt+Q to find a page.
+
+Press **Esc** or click anywhere else to close it; your cursor goes back to
+where it was. Links at the bottom open Microsoft's full list of shortcuts.
+
+Actions in a menu you have not opened yet are not listed: Business Central only
+builds those when you open the menu.
+
+<details>
+<summary>Opening it with a key, or on Business Central on your own server</summary>
+
+You can give the panel a key of your own. In Chrome, go to
+`chrome://extensions/shortcuts`; in Edge, `edge://extensions/shortcuts`. Next to
+**BC Buddy**, set a key for *Show the keyboard shortcuts for this Business
+Central page*. Pick one Business Central does not use itself.
+
+Business Central on your own server (on-premises) has a different top bar,
+without the icon. There this key is the way to open the panel.
+
+</details>
 
 ## Highlight the current line
 
