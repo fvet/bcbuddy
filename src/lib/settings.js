@@ -592,6 +592,31 @@
   }
 
   /**
+   * What Reset to defaults goes back to: the app's own defaults, with what the
+   * shared file says on top while the shared configuration is on. A file that
+   * names only some settings leaves the rest at the app's defaults. Uses what
+   * the last sync stored, so it works offline. Returns every Web client key.
+   */
+  function webClientDefaults(settings) {
+    var defaults = normalizeWebClient({});
+    var hosted = settings && settings.hosted;
+    var shared = hosted && hosted.active ? readWebClient(hosted.webClient) : null;
+    WEB_CLIENT_KEYS.forEach(function (key) {
+      if (shared && shared[key]) defaults[key] = shared[key];
+    });
+    return defaults;
+  }
+
+  /** The current Web client settings, as a copy (e.g. to undo a reset). */
+  function webClientOf(settings) {
+    var copy = {};
+    WEB_CLIENT_KEYS.forEach(function (key) {
+      copy[key] = JSON.parse(JSON.stringify(settings[key]));
+    });
+    return copy;
+  }
+
+  /**
    * Merges imported rules with the existing ones.
    *   - if the rule already exists (same id, otherwise same name): overwrite in
    *     place, so order and therefore priority are preserved
@@ -644,6 +669,52 @@
   function mergeLayouts(current, incoming) {
     var merged = mergeItems(current, incoming, normalizeLayout);
     return { layouts: merged.items, stats: merged.stats };
+  }
+
+  /** The item in `items` with the same id, otherwise the same name, or null. */
+  function findSame(items, item) {
+    var name = item.name.trim().toLowerCase();
+    return items.filter(function (other) { return other.id === item.id; })[0] ||
+      (name && items.filter(function (other) {
+        return other.name.trim().toLowerCase() === name;
+      })[0]) || null;
+  }
+
+  /**
+   * Adds the sample rules (parsed with parseImport) to `settings` as own
+   * rules. Unlike an import nothing is overwritten: a sample whose id or name
+   * you already use is skipped, and a sample layout you already have by name
+   * is not added again; the sample rules then point at yours. Returns how
+   * many rules were added and skipped.
+   */
+  function addSamples(settings, samples) {
+    var rules = settings.rules.slice();
+    var layouts = settings.layouts.slice();
+    var layoutIds = {};
+    var stats = { added: 0, skipped: 0 };
+
+    samples.layouts.forEach(function (layout) {
+      var mine = findSame(layouts, layout);
+      layoutIds[layout.id] = mine ? mine.id : layout.id;
+      if (!mine) layouts.push(layout);
+    });
+    samples.rules.forEach(function (sample) {
+      if (findSame(rules, sample)) {
+        stats.skipped++;
+        return;
+      }
+      var rule = normalizeRule(sample);
+      if (layoutIds[rule.layoutId]) rule.layoutId = layoutIds[rule.layoutId];
+      rules.push(rule);
+      stats.added++;
+    });
+
+    // Only bring the layouts along when a rule came with them.
+    if (stats.added) {
+      settings.rules = rules;
+      settings.layouts = withDefaultLayout(layouts, rules);
+    }
+    return stats;
   }
 
   /** Stable, short hash to tell whether a shared file has changed. */
@@ -789,8 +860,14 @@
   BCBuddy.parseImport = parseImport;
   BCBuddy.mergeRules = mergeRules;
   BCBuddy.mergeLayouts = mergeLayouts;
+  BCBuddy.addSamples = addSamples;
+  // Packaged with the extension and the same file as the shared example on
+  // the site, so there is one copy of the samples.
+  BCBuddy.SAMPLES_PATH = 'examples/bc-buddy.json';
   BCBuddy.applyWebClient = applyWebClient;
   BCBuddy.applySharedWebClient = applySharedWebClient;
+  BCBuddy.webClientDefaults = webClientDefaults;
+  BCBuddy.webClientOf = webClientOf;
   BCBuddy.hash = hash;
   BCBuddy.toRawUrl = toRawUrl;
   BCBuddy.resolveHostedUrl = resolveHostedUrl;

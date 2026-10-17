@@ -41,7 +41,12 @@ Most companies have a *Production* environment, where postings are real, and
 one or more test environments, often called *Sandbox*. They look exactly alike.
 BC Buddy gives each its own colour, so you always know where you are.
 
-On the settings page, go to **Environments**:
+On the settings page, go to **Environments** and click **Load samples**. You
+get four rules: **Production** in green, **UAT** in red for anything called
+test, QA or sandbox, **Development** in blue, and **Master Data** in purple.
+Change or delete them like any other rule. [More about the samples](matching.md#samples).
+
+Rather make your own? Then:
 
 1. Click **Add rule** and type a name, such as `PRODUCTION`.
 2. Under **Conditions**, choose **Environment** and **equals**, and type

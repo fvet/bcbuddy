@@ -1,8 +1,8 @@
 {
   "app": "bc-buddy",
   "version": 2,
-  "name": "",
-  "exportedAt": "2026-08-24T11:46:33.267Z",
+  "name": "BC Buddy samples",
+  "exportedAt": "2026-10-17T00:00:00.000Z",
   "layouts": [
     {
       "id": "default",
@@ -34,14 +34,32 @@
   ],
   "rules": [
     {
-      "id": "6b77974b-29ad-4446-8f06-d658062d5d07",
-      "name": "Test",
+      "id": "sample-production",
+      "name": "Production",
       "enabled": true,
       "conditions": [
         {
           "field": "environment",
-          "op": "equals",
-          "value": "Test"
+          "op": "contains",
+          "value": "production"
+        }
+      ],
+      "color": "#107c10",
+      "textColor": "auto",
+      "layoutId": "default",
+      "favicon": {
+        "text": ""
+      }
+    },
+    {
+      "id": "sample-uat",
+      "name": "UAT",
+      "enabled": true,
+      "conditions": [
+        {
+          "field": "environment",
+          "op": "contains",
+          "value": "uat, test, qa, sandbox"
         }
       ],
       "color": "#c4314b",
@@ -52,54 +70,36 @@
       }
     },
     {
-      "id": "93630a20-5865-4255-bc41-d0d478dc8c33",
-      "name": "Production",
+      "id": "sample-development",
+      "name": "Development",
       "enabled": true,
       "conditions": [
         {
           "field": "environment",
-          "op": "equals",
-          "value": "Production"
+          "op": "contains",
+          "value": "dev"
         }
       ],
-      "color": "#107c10",
-      "textColor": "#ffffff",
+      "color": "#0f6cbd",
+      "textColor": "auto",
       "layoutId": "default",
       "favicon": {
         "text": ""
       }
     },
     {
-      "id": "ede14334-dc8d-4f90-b65f-0ffec7ba2f86",
-      "name": "Sandbox",
+      "id": "sample-master-data",
+      "name": "Master Data",
       "enabled": true,
       "conditions": [
         {
-          "field": "environment",
-          "op": "equals",
-          "value": "Sandbox"
+          "field": "company",
+          "op": "contains",
+          "value": "masterdata, master data, template"
         }
       ],
-      "color": "#d83b01",
-      "textColor": "#ffffff",
-      "layoutId": "default",
-      "favicon": {
-        "text": ""
-      }
-    },
-    {
-      "id": "109ac190-edf9-4bcd-bd09-ba51ce5295c2",
-      "name": "QA",
-      "enabled": true,
-      "conditions": [
-        {
-          "field": "environment",
-          "op": "equals",
-          "value": "QA"
-        }
-      ],
-      "color": "#00b294",
-      "textColor": "#ffffff",
+      "color": "#8764b8",
+      "textColor": "auto",
       "layoutId": "default",
       "favicon": {
         "text": ""

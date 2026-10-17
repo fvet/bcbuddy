@@ -14,6 +14,9 @@
       // The shared file's address when IT set it by browser policy; the field
       // is locked then.
       policyUrl: '',
+      // How BC Buddy was installed (chrome.management); 'admin' when IT
+      // pushed it. Empty until known, and then the samples stay hidden.
+      installType: '',
       testUrl: '',
       panel: 'webclient',
       ctx: null,
@@ -152,8 +155,33 @@
   };
 
   page.renderEmptyState = function () {
+    var samples = page.samplesAllowed();
     page.el.emptyRules.hidden = page.state.settings.rules.length > 0 ||
       page.state.settings.hosted.rules.length > 0;
+    page.el.emptyRules.textContent = t(samples ? 'emptyRulesSamples' : 'emptyRules');
+    page.el.loadSamples.hidden = !samples;
+  };
+
+  /**
+   * The samples are for people who set BC Buddy up themselves. Where IT
+   * installed it or set the shared file, the team's rules come from there,
+   * and own rules from a sample would be checked before them. Fails closed:
+   * an install type we do not know hides them too.
+   */
+  page.samplesAllowed = function () {
+    var type = page.state.installType;
+    return !page.state.policyUrl && (type === 'normal' || type === 'development');
+  };
+
+  /** Resolves to how BC Buddy was installed, or '' when that cannot be told. */
+  page.readInstallType = function () {
+    return Promise.resolve().then(function () {
+      return chrome.management.getSelf();
+    }).then(function (info) {
+      return String(info && info.installType || '');
+    }, function () {
+      return '';
+    });
   };
 
   /** Layout a new rule gets: Default, otherwise the first one. */
@@ -225,7 +253,7 @@
     BCBuddy.applyI18n();
     [
       'status', 'globalEnabled', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
-      'addRule', 'hostedUrl', 'syncNow',
+      'addRule', 'loadSamples', 'samplesStatus', 'hostedUrl', 'syncNow',
       'hostedStatus', 'hostedList', 'importFile', 'importFileBtn',
       'exportDownload', 'transferStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
@@ -242,10 +270,12 @@
       takeOpenPanel(),
       BCBuddy.readPolicy(),
       // A tab that is gone or locked must not keep the page from opening.
-      chrome.tabs.query({}).catch(function () { return []; })
+      chrome.tabs.query({}).catch(function () { return []; }),
+      page.readInstallType()
     ]).then(function (results) {
       state.settings = results[0];
       state.policyUrl = BCBuddy.policyUrl(results[3]);
+      state.installType = results[5];
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
       // An open BC tab beats the remembered URL, so the previews show the

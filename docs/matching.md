@@ -43,6 +43,31 @@ fits. Drag a rule up or down to change the order.
 So put specific rules above general ones: a rule for one customer's production
 environment belongs above a rule for "anything called Production".
 
+## Start from the samples { #samples }
+
+No rules yet, or not sure where to start? Click **Load samples** next to
+**Add rule**. You get four rules of your own:
+
+| Rule | Colour | Fits when |
+|---|---|---|
+| **Production** | green | **Environment** **contains** `production` |
+| **UAT** | red | **Environment** **contains** `uat, test, qa, sandbox` |
+| **Development** | blue | **Environment** **contains** `dev` |
+| **Master Data** | purple | **Company** **contains** `masterdata, master data, template` |
+
+They are ordinary rules: change the colours, the names or the conditions, drag
+them into another order, or delete the ones you do not need. Production comes
+first, so a master data company in production still shows green.
+
+Rules you already have stay as they are. A sample with the same name as one of
+your rules is skipped, so clicking **Load samples** twice adds nothing.
+
+!!! note "No Load samples button?"
+
+    Then your IT department installed BC Buddy or set a shared file for your
+    team. Your colours come from there, and rules of your own would be checked
+    before theirs, so the samples are left out.
+
 ## For advanced use
 
 ??? note "What BC Buddy reads from a web address"

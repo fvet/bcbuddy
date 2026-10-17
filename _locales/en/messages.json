@@ -45,6 +45,18 @@
   "addRule": { "message": "Add rule" },
   "rulesIntro": { "message": "Which environment gets which colour. The first matching rule wins." },
   "emptyRules": { "message": "No rules yet. Click Add rule or import a configuration." },
+  "emptyRulesSamples": { "message": "No rules yet. Click Add rule, Load samples or import a configuration." },
+  "loadSamples": { "message": "Load samples" },
+  "loadSamplesTitle": { "message": "Add ready-made rules for Production, UAT, Development and Master Data. Rules you already have stay as they are." },
+  "samplesAdded": {
+    "message": "$1 sample rule(s) added. Change them like any rule of your own.",
+    "description": "$1 is a number of rules."
+  },
+  "samplesNone": { "message": "The samples are already in your rules." },
+  "samplesFailed": {
+    "message": "Could not load the samples: $1",
+    "description": "$1 is the reason."
+  },
   "sharedHeading": { "message": "Shared configuration" },
   "sharedIntro": {
     "message": "One file over HTTPS gives the whole team the same rules.",

@@ -30,7 +30,8 @@ src/
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted
-examples/              example of a shared configuration (schema version 2);
+examples/              bc-buddy.json: the samples Load samples adds, and the
+                       example of a shared configuration (schema version 2);
                        intune/: scripts that set the policy for IT, and
                        the ExtensionSettings value that limits its hosts
 tests/                 test pages + runner
@@ -951,7 +952,9 @@ powershell -ExecutionPolicy Bypass -File tools/build-package.ps1
 ```
 
 That puts `dist/bcbuddy-<version>.zip` in place with only what the extension
-needs: manifest, `managed_schema.json`, `src`, `_locales` and the PNG icons. Tests, examples, the SVG
+needs: manifest, `managed_schema.json`, `src`, `_locales`, the PNG icons and
+`examples/bc-buddy.json`, which **Load samples** on the options page reads with
+`chrome.runtime.getURL` (no network). Tests, the other examples, the SVG
 sources and these tools stay behind. The script checks that `manifest.json` ends
 up in the root of the ZIP, which is the usual silent upload rejection.
 
@@ -1010,7 +1013,7 @@ the store still reviews the upload, and Chrome rolls updates out over days.
 Screenshots live in `store/` because the store listing is built from there,
 the before-and-after shots of the web client live in `marketing/screenshots/`
 because the deck uses them too, and `examples/bc-buddy.json` is the shared
-configuration people point at.
+configuration people point at, and the samples the extension packages.
 [`tools/mkdocs_assets.py`](tools/mkdocs_assets.py) is an MkDocs hook that adds
 those originals to the build instead of keeping a second copy in `docs/`; every
 `.png` and `.jpg` in `marketing/screenshots/` is served under

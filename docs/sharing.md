@@ -39,7 +39,8 @@ no **X**.
     The file decides what BC Buddy colours. Keep it somewhere only you or your
     team can change, not on a public place anyone can edit.
 
-To see how it works before you publish your own, try this example file:
+To see how it works before you publish your own, try this example file. It has
+the same rules that [**Load samples**](matching.md#samples) adds:
 
 ```
 https://fvet.github.io/bcbuddy/examples/bc-buddy.json

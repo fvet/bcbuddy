@@ -29,9 +29,9 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
 2. **Open Business Central**, or reload a tab where it was already open. The
    web client improvements below are already working.
 3. **Give your environments a colour.** On the settings page, go to
-   **Environments**, click **Add rule**, name it `PRODUCTION`, set the
-   condition **Environment** **equals** `Production` and pick green. Add a
-   second rule for `Sandbox` in red.
+   **Environments** and click **Load samples**: Production turns green, test
+   environments red. Or click **Add rule**, name it `PRODUCTION`, set the
+   condition **Environment** **equals** `Production` and pick green.
 
 Not sure what your environment is called? Open **Environments** while a
 Business Central tab is open: BC Buddy reads that tab and shows its
@@ -120,6 +120,24 @@ your own server.
 
 </details>
 
+### Samples
+
+No rules yet, or not sure where to start? Click **Load samples** next to
+**Add rule**. You get four rules of your own, to change or delete like any
+other:
+
+| Rule | Colour | Fits when |
+|---|---|---|
+| **Production** | green | **Environment** **contains** `production` |
+| **UAT** | red | **Environment** **contains** `uat, test, qa, sandbox` |
+| **Development** | blue | **Environment** **contains** `dev` |
+| **Master Data** | purple | **Company** **contains** `masterdata, master data, template` |
+
+Production comes first, so a master data company in production still shows
+green. Rules you already have stay as they are: a sample with the same name is
+skipped. When your IT department installed BC Buddy or set a shared file, the
+button is not there: your colours come from them.
+
 ### Layouts
 
 A layout can show any of these:
@@ -163,7 +181,8 @@ place. The **X** next to *Shared rules* stops using the file.
    control: the file decides what BC Buddy colours.
 3. Give your team the address. To try it out first, use
    `https://fvet.github.io/bcbuddy/examples/bc-buddy.json`, the same file as
-   [`examples/bc-buddy.json`](examples/bc-buddy.json).
+   [`examples/bc-buddy.json`](examples/bc-buddy.json), with the rules that
+   **Load samples** adds.
 
 The **Web client** settings in a shared file are a starting point. Each one is
 applied on the first sync, and after that only when the team changes it in the

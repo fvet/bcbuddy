@@ -151,6 +151,47 @@
           setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
           page.setTransferStatus(t('exportDone', data.rules.length), 'ok');
         });
+
+        el.loadSamples.addEventListener('click', page.loadSamples);
+      };
+
+      /**
+       * Adds the sample rules from the file packaged with the extension: no
+       * network, and the same file the site offers as a shared example. They
+       * become own rules; rules you already have are left alone.
+       */
+      page.loadSamples = function () {
+        // Checked again on the click: a policy may have arrived since the page
+        // was drawn.
+        Promise.all([BCBuddy.readPolicy(), page.readInstallType()]).then(function (results) {
+          state.policyUrl = BCBuddy.policyUrl(results[0]);
+          state.installType = results[1];
+          if (!page.samplesAllowed()) {
+            page.renderEmptyState();
+            return null;
+          }
+          return fetch(chrome.runtime.getURL(BCBuddy.SAMPLES_PATH)).then(function (response) {
+            if (!response.ok) throw new Error(String(response.status));
+            return response.text();
+          });
+        }).then(function (text) {
+          if (text === null) return;
+          var stats = BCBuddy.addSamples(state.settings, BCBuddy.parseImport(text));
+          if (stats.added) {
+            page.save();
+            page.renderLayouts();
+            page.renderRules(); // rule dropdowns now include the sample layout
+            page.renderParsed();
+          }
+          page.setSamplesStatus(stats.added ? t('samplesAdded', [stats.added]) : t('samplesNone'), 'ok');
+        }).catch(function (err) {
+          page.setSamplesStatus(t('samplesFailed', [String(err && err.message || err)]), 'error');
+        });
+      };
+
+      page.setSamplesStatus = function (text, kind) {
+        el.samplesStatus.textContent = text;
+        el.samplesStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
       };
 
       page.applyImport = function (text, source) {

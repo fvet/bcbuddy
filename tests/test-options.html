@@ -16,6 +16,8 @@ var SESSION = {};
 var LISTENERS = [];
 // What IT set by browser policy (chrome.storage.managed).
 var MANAGED = {};
+// How BC Buddy was installed (chrome.management.getSelf); 'admin' when IT pushed it.
+var INSTALL_TYPE = 'normal';
 var SENT = [];
 
 // The options page is in the active tab itself; the button must look further.
@@ -106,7 +108,11 @@ window.chrome = {
   runtime: {
     sendMessage: function (msg) { SENT.push(msg); return Promise.resolve({ ok: true, count: 3 }); },
     openOptionsPage: function () {},
+    getURL: function (path) { return ROOT + path; },
     onMessage: { addListener: function () {} }
+  },
+  management: {
+    getSelf: function () { return Promise.resolve({ installType: INSTALL_TYPE }); }
   },
   tabs: {
     query: function () { return Promise.resolve(TABS); },
@@ -1016,7 +1022,7 @@ function assertOptions() {
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
     return assertNav().then(assertToolbarOpen).then(assertWebClient).then(assertLayouts).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
-      .then(assertExternalWrite).then(assertPolicyLock).then(assertEdgeCases);
+      .then(assertExternalWrite).then(assertPolicyLock).then(assertEdgeCases).then(assertSamples);
   });
 }
 
@@ -1579,6 +1585,61 @@ function assertEdgeCases() {
       [document.querySelectorAll('#ruleList .rule').length, document.getElementById('emptyRules').hidden],
       [0, false]);
     check('edge: and no shared heading either', document.getElementById('sharedHead').hidden, true);
+  });
+}
+
+/* ---- Load samples: own rules, not where IT manages BC Buddy ------------ */
+function assertSamples() {
+  var button = document.getElementById('loadSamples');
+  var empty = document.getElementById('emptyRules');
+  var status = document.getElementById('samplesStatus');
+  function names() {
+    return Array.prototype.map.call(
+      document.querySelectorAll('#ruleList .rule .rule__name'), function (i) { return i.value; });
+  }
+  function setPolicy(value) {
+    MANAGED = value;
+    LISTENERS.forEach(function (fn) { fn({ sharedConfigUrl: { newValue: value.sharedConfigUrl } }, 'managed'); });
+    return wait(200);
+  }
+
+  truthy('samples: button shown for an install of your own', !button.hidden);
+  check('samples: the empty message points at it', empty.textContent,
+    chrome.i18n.getMessage('emptyRulesSamples'));
+  button.click();
+  return wait(500).then(function () {
+    check('samples: four own rules added', names(), ['Production', 'UAT', 'Development', 'Master Data']);
+    check('samples: and saved', STORE.settings.rules.map(function (r) { return r.id; }),
+      ['sample-production', 'sample-uat', 'sample-development', 'sample-master-data']);
+    check('samples: no shared rules come from it', STORE.settings.hosted.rules.length, 0);
+    check('samples: status says how many', status.textContent,
+      chrome.i18n.getMessage('samplesAdded', ['4']));
+    truthy('samples: the empty message is gone', empty.hidden);
+    button.click();
+    return wait(400);
+  }).then(function () {
+    check('samples: a second click adds nothing', [names().length, status.textContent],
+      [4, chrome.i18n.getMessage('samplesNone')]);
+    return setPolicy({ sharedConfigUrl: 'https://example.com/shared.json' });
+  }).then(function () {
+    truthy('samples: hidden once IT sets the shared file', button.hidden);
+    return setPolicy({});
+  }).then(function () {
+    truthy('samples: back when the policy is gone', !button.hidden);
+    // IT pushed BC Buddy after the page was drawn: the click checks again.
+    INSTALL_TYPE = 'admin';
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.rules = [];
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  }).then(function () {
+    button.click();
+    return wait(400);
+  }).then(function () {
+    check('samples: nothing added when IT installed BC Buddy', names(), []);
+    truthy('samples: and the button hides', button.hidden);
+    check('samples: the empty message does not mention it', empty.textContent,
+      chrome.i18n.getMessage('emptyRules'));
+    INSTALL_TYPE = 'normal';
   });
 }
 

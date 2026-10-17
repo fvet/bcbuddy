@@ -13,6 +13,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Added
 
+- **Load samples** under **Environments** adds four ready-made rules of your
+  own: Production in green, UAT in red, Development in blue and Master Data in
+  purple. Rules you already have stay as they are. Not shown when your IT
+  department installed BC Buddy or set a shared file.
 - **Several values in one condition**: **contains** and **does not contain**
   take a list separated by commas, so one rule can cover several
   environments, for example **Environment** **contains** `DEV, UAT, QA`.

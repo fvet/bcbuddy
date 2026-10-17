@@ -181,6 +181,9 @@
       <div class="section-head">
         <h2 data-i18n="rulesHeading">Rules</h2>
         <div class="row">
+          <!-- Hidden when IT manages BC Buddy: the team's rules come from the shared file. -->
+          <button type="button" class="btn" id="loadSamples" data-i18n="loadSamples"
+                  data-i18n-title="loadSamplesTitle" hidden>Load samples</button>
           <button type="button" class="btn btn--primary" id="addRule" data-i18n="addRule">Add rule</button>
         </div>
       </div>
@@ -195,6 +198,7 @@
         <div id="hostedList" class="rules rules--readonly"></div>
       </div>
       <p class="empty" id="emptyRules" data-i18n="emptyRules" hidden>No rules yet. Click Add rule or import a configuration.</p>
+      <p class="sync-status" id="samplesStatus"></p>
     </section>
 
     <section>

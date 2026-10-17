@@ -2,9 +2,11 @@
   Builds the ZIP file for the Chrome Web Store / Edge Add-ons.
 
   Only what the extension needs for the user goes in: manifest, the policy
-  schema IT sets the shared file with, src, _locales and the PNG icons. Tests, samples, the SVG sources and the icon build script
-  stay out — they only make the package larger and give the reviewer files to
-  read that do nothing.
+  schema IT sets the shared file with, src, _locales, the PNG icons and
+  examples/bc-buddy.json, which Load samples on the options page reads. Tests,
+  the other examples, the SVG sources and the icon build script stay out —
+  they only make the package larger and give the reviewer files to read that
+  do nothing.
 
   LICENSE is the exception to that rule. The ZIP is a copy of the software, and
   MIT asks for the notice to travel with every copy; at a kilobyte it is not
@@ -31,6 +33,7 @@ $include = @(
   'LICENSE',
   'src',
   '_locales',
+  'examples\bc-buddy.json',
   'icons\icon16.png',
   'icons\icon32.png',
   'icons\icon48.png',
