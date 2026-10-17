@@ -424,7 +424,7 @@ The manifest keeps `<all_urls>`: an on-premises server has no address the
 extension could list in advance. IT, who knows those addresses, narrows it with
 Chrome's `ExtensionSettings` policy instead: `runtime_blocked_hosts: ["*://*"]`
 and the BC hosts plus the shared file's host in `runtime_allowed_hosts`
-(`examples/intune/extension-settings.json`, documented in `docs/sharing.md`).
+(`examples/intune/extension-settings.json`, documented in `docs/intune.md`).
 Content scripts then no longer run anywhere else. Nothing in the code depends on
 it; the extension simply never sees the other sites.
 
