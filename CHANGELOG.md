@@ -27,6 +27,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   and fill in your team's shared file for you, for example with Intune. The
   address then says *Set by your organisation* and cannot be changed.
   Instructions for IT are at the bottom of *Sharing with your team*.
+- **Several values in one condition**: **contains** and **does not contain**
+  take a list separated by commas, so one rule can cover several
+  environments, for example **Environment** **contains** `DEV, UAT, QA`.
 
 ### Changed
 

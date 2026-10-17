@@ -101,9 +101,15 @@
       case 'equals': return a === b;
       case 'startsWith': return a.indexOf(b) === 0;
       case 'endsWith': return a.length >= b.length && a.lastIndexOf(b) === a.length - b.length;
-      case 'notContains': return a.indexOf(b) === -1;
-      default: return a.indexOf(b) !== -1;
     }
+    // Contains and does not contain take a list, the way DevOps reads "In":
+    // dev, uat, qa. Empty items from a stray comma are skipped.
+    var items = b.indexOf(',') === -1 ? [b] : b.split(',').map(function (item) {
+      return item.trim();
+    }).filter(Boolean);
+    if (!items.length) return false;
+    var found = items.some(function (item) { return a.indexOf(item) !== -1; });
+    return op === 'notContains' ? !found : found;
   }
 
   // Long enough for real BC URL patterns; short enough to keep ReDoS bounded.

@@ -799,6 +799,7 @@ function assertOptions() {
   check('options: and matches as before',
     first.querySelector('[data-cond-match]').getAttribute('aria-label'),
     chrome.i18n.getMessage('conditionMatches'));
+
   condOp.value = opBefore;
   condOp.dispatchEvent(new Event('change', { bubbles: true }));
 

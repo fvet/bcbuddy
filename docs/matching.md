@@ -21,6 +21,7 @@ The simplest ones:
 | The Production environment | **Environment** **equals** `Production` |
 | Every sandbox | **Environment** **contains** `Sandbox` |
 | One company | **Company** **equals** `CRONUS BE` |
+| Several test environments in one colour | **Environment** **contains** `DEV, UAT, QA` |
 
 A rule with more than one condition applies only when all of them fit. To give
 one company in production its own colour, use **Environment** **equals**
@@ -68,6 +69,11 @@ environment belongs above a rule for "anything called Production".
     **contains** · **equals** · **starts with** · **ends with** ·
     **does not contain** · **RegEx** (a regular expression, for complex
     patterns)
+
+    **contains** and **does not contain** also take a list separated by
+    commas, such as `DEV, UAT, QA`. **contains** then fits when any of them
+    appears, **does not contain** when none of them does. Capitals do not
+    matter.
 
     A RegEx that is not valid, or so complex that checking it could slow
     the page down, never matches. The condition then says why. Starting the

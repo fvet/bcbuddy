@@ -263,6 +263,14 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.safeRegexTest('Sandbox\\.*$', 'Sandbox!'), false);
   check('regex: a lone .* matches anything', BCBuddy.safeRegexTest('.*', 'x'), true);
   check('match: not contains', BCBuddy.matchRule(r([{ field: 'environment', op: 'notContains', value: 'prod' }]), saas), true);
+  check('match: contains a list', BCBuddy.testCondition({ field: 'environment', op: 'contains', value: 'dev,uat,sand' }, saas), true);
+  check('match: contains a list, spaces and case', BCBuddy.testCondition({ field: 'environment', op: 'contains', value: ' DEV , SANDBOX ' }, saas), true);
+  check('match: contains a list, none listed', BCBuddy.testCondition({ field: 'environment', op: 'contains', value: 'dev, uat, qa' }, saas), false);
+  check('match: only commas never matches', BCBuddy.testCondition({ field: 'environment', op: 'contains', value: ' , ,' }, saas), false);
+  check('match: does not contain a list', BCBuddy.testCondition({ field: 'environment', op: 'notContains', value: 'prod, production' }, saas), true);
+  check('match: does not contain a list, one listed', BCBuddy.testCondition({ field: 'environment', op: 'notContains', value: 'prod, sandbox' }, saas), false);
+  check('match: does not contain only commas never matches', BCBuddy.testCondition({ field: 'environment', op: 'notContains', value: ',' }, saas), false);
+  check('match: equals takes no list', BCBuddy.testCondition({ field: 'environment', op: 'equals', value: 'dev, sandbox' }, saas), false);
   check('match: empty value never matches', BCBuddy.matchRule(r([{ field: 'url', op: 'contains', value: '' }]), saas), false);
   check('match: disabled rule', BCBuddy.matchRule(BCBuddy.normalizeRule({ enabled: false, conditions: [{ field: 'url', op: 'contains', value: 'Sandbox' }] }), saas), false);
 
