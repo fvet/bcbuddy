@@ -168,6 +168,38 @@ that part, everyone keeps their own.
 overwritten, new rules are added, rules that are not in the file stay, and the
 **Web client** settings in the file replace yours.
 
+If your IT department set up BC Buddy for you, the address is already filled
+in with *Set by your organisation*, and you cannot change it.
+
+<details>
+<summary><b>For IT: install BC Buddy on every computer with Intune</b></summary>
+
+1. **Install silently.** In an Intune **Settings catalog** profile, set Edge's
+   *Control which extensions are installed silently* and Chrome's *Configure
+   the list of force-installed apps and extensions* to
+   `jpgpcfecpdcocjlepdfceahamliimjdl;https://clients2.google.com/service/update2/crx`.
+   Edge installs it from the Chrome Web Store too. A computer that gets BC
+   Buddy this way does not open its settings page on first start.
+2. **Set the shared file.** BC Buddy reads the string `sharedConfigUrl` from
+   `HKLM\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy`
+   and the same path under `Google\Chrome`. The Settings catalog cannot write
+   these keys: run
+   [`Set-BCBuddyPolicy.ps1`](examples/intune/Set-BCBuddyPolicy.ps1) as a
+   Platform script, or as a Remediation with
+   [`Detect-BCBuddyPolicy.ps1`](examples/intune/Detect-BCBuddyPolicy.ps1)
+   (Windows Enterprise E3/E5). Run it as system in 64-bit PowerShell. For
+   Group Policy there is [`bc-buddy-policy.reg`](examples/intune/bc-buddy-policy.reg).
+3. **Check it** in `edge://policy` or `chrome://policy` on a test computer,
+   then roll out to a pilot group first.
+
+The address is then locked on the settings page and the shared rules cannot be
+cleared. BC Buddy loads the file straight away, retries hourly until it works,
+then checks daily. Removing the policy unlocks the field and keeps the rules.
+The address must be `https://` and readable without signing in, so not behind a
+SharePoint or OneDrive login.
+
+</details>
+
 ## 🛟 Troubleshooting
 
 **Nothing changed after installing.** Reload the Business Central tab (F5), and

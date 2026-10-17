@@ -33,13 +33,19 @@ picker where they were never set.
 This happens entirely inside your browser. Nothing that is read is stored,
 logged or sent anywhere.
 
+If your organisation manages your browser, BC Buddy also reads the one browser
+policy it knows: the address of a shared configuration file
+(`sharedConfigUrl`, in `chrome.storage.managed`). Your IT department sets it;
+BC Buddy only reads it.
+
 ## Network requests
 
 BC Buddy makes exactly one kind of network request: an HTTPS `GET` of the
-shared configuration file, to the URL **you** entered in the options page.
+shared configuration file, to the URL **you** entered in the options page or
+that your organisation set by browser policy.
 Plain HTTP is refused. The request is sent without cookies or credentials
-(`credentials: 'omit'`), and only if you configured such a URL. If you leave
-that field empty, the extension makes no network requests at all.
+(`credentials: 'omit'`), and only if such a URL is set. If that field is
+empty, the extension makes no network requests at all.
 
 Treat that URL as trusted: the file can define rules that mark any site. Use
 a location you control (for example your team's repository).
@@ -51,7 +57,8 @@ to it.
 ## Permissions
 
 - `storage` - keep your settings.
-- `alarms` - check the shared configuration file once a day.
+- `alarms` - check the shared configuration file once a day, or every hour
+  while it could not be loaded.
 - host permissions (`<all_urls>`) - rules may match any URL, because a
   Business Central on-premises server runs on your own host name, and your
   shared configuration file can be hosted anywhere. The extension only uses

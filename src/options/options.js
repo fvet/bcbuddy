@@ -11,6 +11,9 @@
   var page = {
     state: {
       settings: null,
+      // The shared file's address when IT set it by browser policy; the field
+      // is locked then.
+      policyUrl: '',
       testUrl: '',
       panel: 'webclient',
       ctx: null,
@@ -224,7 +227,7 @@
       'hostedStatus', 'hostedList', 'importFile', 'importFileBtn', 'importStatus',
       'exportDownload', 'exportStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
-      'sharedHead', 'clearShared',
+      'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
@@ -233,9 +236,11 @@
     Promise.all([
       BCBuddy.loadSettings(),
       chrome.storage.local.get(page.UI_KEY),
-      takeOpenPanel()
+      takeOpenPanel(),
+      BCBuddy.readPolicy()
     ]).then(function (results) {
       state.settings = results[0];
+      state.policyUrl = BCBuddy.policyUrl(results[3]);
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
       state.testUrl = ui.testUrl || page.SAMPLE_URL;
@@ -251,6 +256,15 @@
     });
 
     chrome.storage.onChanged.addListener(function (changes, area) {
+      // IT set, changed or removed the policy while this page was open. The
+      // service worker writes the address itself; this only (un)locks.
+      if (area === 'managed') {
+        BCBuddy.readPolicy().then(function (policy) {
+          state.policyUrl = BCBuddy.policyUrl(policy);
+          if (state.settings) page.renderHosted();
+        });
+        return;
+      }
       // The toolbar icon was clicked while this page was open.
       if (area === 'session' && changes[BCBuddy.OPEN_PANEL_KEY] &&
         changes[BCBuddy.OPEN_PANEL_KEY].newValue) {

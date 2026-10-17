@@ -11,6 +11,18 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Set up by your IT department**: IT can install BC Buddy on every computer
+  and fill in your team's shared file for you, for example with Intune. The
+  address then says *Set by your organisation* and cannot be changed.
+  Instructions for IT are at the bottom of *Sharing with your team*.
+
+### Changed
+
+- A shared file that could not be loaded is tried again every hour, instead of
+  the next day.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.13 — 2026-10-16

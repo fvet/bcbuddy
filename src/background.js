@@ -17,13 +17,30 @@ var FETCH_TIMEOUT_MS = 15000;
 var MAX_HOSTED_SIZE = 1024 * 1024;
 
 chrome.runtime.onInstalled.addListener(function (details) {
-  scheduleSync();
-  if (details.reason === 'install') {
-    chrome.runtime.openOptionsPage();
-  } else {
-    syncHosted({ reason: 'install' });
-  }
+  enforcePolicy().then(function () {
+    scheduleSync();
+    if (details.reason === 'install') {
+      welcome();
+    } else {
+      syncHosted({ reason: 'install' });
+    }
+  });
 });
+
+/**
+ * A first install opens the options page, unless IT installed BC Buddy by
+ * policy: then it lands on hundreds of laptops at once, and a tab nobody asked
+ * for is the last thing those people need. getSelf needs no permission.
+ */
+function welcome() {
+  Promise.resolve().then(function () {
+    return chrome.management.getSelf();
+  }).then(function (info) {
+    if (info.installType !== 'admin') chrome.runtime.openOptionsPage();
+  }, function () {
+    chrome.runtime.openOptionsPage();
+  });
+}
 
 // The toolbar icon has no popup: a click opens the options page on the Web
 // client panel, or brings an open one to the front and switches it there.
@@ -46,8 +63,10 @@ function openOptions(panel) {
 }
 
 chrome.runtime.onStartup.addListener(function () {
-  scheduleSync();
-  syncHosted({ reason: 'startup' });
+  enforcePolicy().then(function () {
+    scheduleSync();
+    syncHosted({ reason: 'startup' });
+  });
 });
 
 chrome.alarms.onAlarm.addListener(function (alarm) {
@@ -55,6 +74,11 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
 });
 
 chrome.storage.onChanged.addListener(function (changes, area) {
+  // IT set, changed or removed the policy.
+  if (area === 'managed') {
+    enforcePolicy();
+    return;
+  }
   if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
   var before = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].oldValue).hosted;
   var after = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue).hosted;
@@ -63,6 +87,12 @@ chrome.storage.onChanged.addListener(function (changes, area) {
     if (after.url && before.url !== after.url) {
       syncHosted({ reason: 'url-changed', force: true });
     }
+    // The address or the on/off state moved away from what the policy says,
+    // e.g. an options page that was open before the policy arrived.
+    enforcePolicy();
+  } else if (BCBuddy.syncIntervalMinutes(before) !== BCBuddy.syncIntervalMinutes(after)) {
+    // The first sync worked, or a working one started to fail.
+    scheduleSync();
   }
 });
 
@@ -122,6 +152,20 @@ function isExtensionPage(sender) {
 
 /* ------------------------------------------------------------------ sync */
 
+/**
+ * Applies the address IT set by policy, if any (see BCBuddy.applyPolicy). The
+ * resulting settings change starts the sync through the listener above. Never
+ * rejects: startup must go on without a policy, or without managed storage.
+ */
+function enforcePolicy() {
+  return BCBuddy.readPolicy().then(function (policy) {
+    if (!BCBuddy.policyUrl(policy)) return;
+    return BCBuddy.loadSettings().then(function (settings) {
+      if (BCBuddy.applyPolicy(settings, policy)) return BCBuddy.saveSettings(settings);
+    });
+  }).catch(function () {});
+}
+
 function scheduleSync() {
   return BCBuddy.loadSettings().then(function (settings) {
     // clearAll also drops any alarm name left by an older build.
@@ -129,7 +173,7 @@ function scheduleSync() {
       if (!settings.hosted.url || !settings.hosted.active) return;
       return chrome.alarms.create(ALARM_SYNC, {
         delayInMinutes: 1,
-        periodInMinutes: BCBuddy.SYNC_INTERVAL_MINUTES
+        periodInMinutes: BCBuddy.syncIntervalMinutes(settings.hosted)
       });
     });
   }).catch(function () {

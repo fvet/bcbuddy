@@ -46,6 +46,10 @@
   // How often the shared file is checked while the shared configuration is
   // active.
   var SYNC_INTERVAL_MINUTES = 1440;
+  var RETRY_INTERVAL_MINUTES = 60;
+
+  // The keys IT can set by policy (managed_schema.json).
+  var POLICY_KEYS = ['sharedConfigUrl'];
 
   /**
    * The shared configuration is 'active' once you have synced once; from then
@@ -651,6 +655,55 @@
     }
   }
 
+  /**
+   * How often to check the shared file. Daily once it has loaded; hourly while
+   * it never has, or the last try failed, so a laptop that was offline when
+   * the address arrived does not wait a whole day for its colours.
+   */
+  function syncIntervalMinutes(hosted) {
+    return hosted && hosted.lastSync && !hosted.lastError
+      ? SYNC_INTERVAL_MINUTES
+      : RETRY_INTERVAL_MINUTES;
+  }
+
+  /**
+   * IT can set the shared file by browser policy (managed storage, see
+   * managed_schema.json). Returns the address to use, or '' when there is no
+   * policy or its value is not an HTTPS address — that one is ignored rather
+   * than locking the field on something that can never sync.
+   */
+  function policyUrl(policy) {
+    var raw = str(policy && policy.sharedConfigUrl).trim();
+    if (!raw) return '';
+    try {
+      return resolveHostedUrl(raw);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /** Reads the policy; resolves to {} where there is none or no managed storage. */
+  function readPolicy() {
+    var area = root.chrome && chrome.storage && chrome.storage.managed;
+    if (!area) return Promise.resolve({});
+    return area.get(POLICY_KEYS).then(function (obj) { return obj || {}; }, function () { return {}; });
+  }
+
+  /**
+   * Puts the policy's address in place and keeps the shared configuration on.
+   * Returns true when something changed and the settings need saving. Without
+   * a policy nothing changes: removing it unlocks the field, and the address
+   * and shared rules stay as they are.
+   */
+  function applyPolicy(settings, policy) {
+    var url = policyUrl(policy);
+    var hosted = settings.hosted;
+    if (!url || (hosted.url === url && hosted.active)) return false;
+    hosted.url = url;
+    hosted.active = true;
+    return true;
+  }
+
   BCBuddy.STORAGE_KEY = STORAGE_KEY;
   BCBuddy.OPEN_PANEL_KEY = OPEN_PANEL_KEY;
   BCBuddy.SCHEMA_VERSION = SCHEMA_VERSION;
@@ -661,6 +714,10 @@
   BCBuddy.WEB_CLIENT_KEYS = WEB_CLIENT_KEYS;
   BCBuddy.isCorner = isCorner;
   BCBuddy.SYNC_INTERVAL_MINUTES = SYNC_INTERVAL_MINUTES;
+  BCBuddy.syncIntervalMinutes = syncIntervalMinutes;
+  BCBuddy.policyUrl = policyUrl;
+  BCBuddy.readPolicy = readPolicy;
+  BCBuddy.applyPolicy = applyPolicy;
   BCBuddy.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;
   BCBuddy.uid = uid;
   BCBuddy.newRule = newRule;

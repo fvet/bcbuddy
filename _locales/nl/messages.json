@@ -30,6 +30,7 @@
   "syncLoadedUnchanged": { "message": "$1 gedeelde regel(s) geladen (ongewijzigd)." },
   "copiedToOwn": { "message": "$1 regel(s) gekopieerd naar je eigen regels." },
   "statusNotSynced": { "message": "Nog niet gesynchroniseerd." },
+  "hostedManaged": { "message": "Ingesteld door je organisatie." },
   "statusSyncError": { "message": "Laatste poging ($1) mislukte: $2" },
   "statusHosted": { "message": "$1 regel(s), laatst bijgewerkt $2." },
   "statusHostedNamed": { "message": "$1 regel(s) uit \"$2\", laatst bijgewerkt $3." },

@@ -14,6 +14,8 @@ var ROOT = '../';
 var STORE = {};
 var SESSION = {};
 var LISTENERS = [];
+// What IT set by browser policy (chrome.storage.managed).
+var MANAGED = {};
 var SENT = [];
 
 // The options page is in the active tab itself; the button must look further.
@@ -95,6 +97,9 @@ window.chrome = {
         LISTENERS.forEach(function (fn) { fn(changes, 'session'); });
         return Promise.resolve();
       }
+    },
+    managed: {
+      get: function () { return Promise.resolve(JSON.parse(JSON.stringify(MANAGED))); }
     },
     onChanged: { addListener: function (fn) { LISTENERS.push(fn); } }
   },
@@ -972,7 +977,7 @@ function assertOptions() {
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
     return assertNav().then(assertToolbarOpen).then(assertWebClient).then(assertLayouts).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
-      .then(assertExternalWrite);
+      .then(assertExternalWrite).then(assertPolicyLock);
   });
 }
 
@@ -1441,6 +1446,40 @@ function assertExternalWrite() {
       check('external: and carry its name',
         document.querySelector('#hostedList .rule .rule__name').value, 'FROM SERVICE WORKER');
     });
+  });
+}
+
+/* ---- shared file set by browser policy locks the field ------------------ */
+function assertPolicyLock() {
+  var field = document.getElementById('hostedUrl');
+  var note = document.getElementById('hostedManaged');
+  var clear = document.getElementById('clearShared');
+  truthy('policy: field editable without a policy', !field.readOnly && note.hidden);
+
+  function setPolicy(value) {
+    MANAGED = value;
+    LISTENERS.forEach(function (fn) { fn({ sharedConfigUrl: { newValue: value.sharedConfigUrl } }, 'managed'); });
+    return wait(200);
+  }
+
+  return setPolicy({ sharedConfigUrl: 'https://example.com/shared.json' }).then(function () {
+    truthy('policy: field is locked', field.readOnly);
+    truthy('policy: says who set it', !note.hidden &&
+      note.textContent === chrome.i18n.getMessage('hostedManaged'));
+    truthy('policy: shared rules cannot be cleared', clear.hidden);
+    truthy('policy: Synchronise still works', !document.getElementById('syncNow').disabled);
+    var before = STORE.settings.hosted.url;
+    field.value = 'https://elsewhere.example/x.json';
+    field.dispatchEvent(new Event('change'));
+    return wait(400).then(function () {
+      check('policy: a change in the field is not saved', STORE.settings.hosted.url, before);
+      field.value = before;
+      return setPolicy({});
+    });
+  }).then(function () {
+    truthy('policy: removed policy unlocks the field', !field.readOnly && note.hidden);
+    truthy('policy: and the clear button is back', !clear.hidden);
+    check('policy: shared rules stay', document.querySelectorAll('#hostedList .rule').length, 1);
   });
 }
 

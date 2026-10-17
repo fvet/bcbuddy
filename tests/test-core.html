@@ -1051,6 +1051,40 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('hosted-url: http rejected', httpsError, BCBuddy.t('errHttpsOnly'));
   truthy('hosted-url: empty URL is allowed', BCBuddy.hostedUrlAllowed(''));
   check('hosted-url: http is not allowed', BCBuddy.hostedUrlAllowed('http://example.com/x.json'), false);
+
+  /* ---- shared file set by browser policy ---------------------------------- */
+  check('policy: no policy, no address', BCBuddy.policyUrl({}), '');
+  check('policy: blank value is no policy', BCBuddy.policyUrl({ sharedConfigUrl: '  ' }), '');
+  check('policy: http is ignored', BCBuddy.policyUrl({ sharedConfigUrl: 'http://example.com/x.json' }), '');
+  check('policy: github blob becomes raw',
+    BCBuddy.policyUrl({ sharedConfigUrl: ' https://github.com/b/r/blob/main/x.json ' }),
+    'https://raw.githubusercontent.com/b/r/main/x.json');
+
+  var policed = BCBuddy.normalize({});
+  truthy('policy: sets address on fresh settings',
+    BCBuddy.applyPolicy(policed, { sharedConfigUrl: 'https://example.com/x.json' }));
+  check('policy: address and on', [policed.hosted.url, policed.hosted.active],
+    ['https://example.com/x.json', true]);
+  check('policy: nothing to do the second time',
+    BCBuddy.applyPolicy(policed, { sharedConfigUrl: 'https://example.com/x.json' }), false);
+  policed.hosted.active = false;
+  truthy('policy: switched off comes back on',
+    BCBuddy.applyPolicy(policed, { sharedConfigUrl: 'https://example.com/x.json' }) && policed.hosted.active);
+  policed.hosted.rules = [BCBuddy.newRule({ name: 'Shared' })];
+  check('policy: removed policy keeps address and shared rules',
+    [BCBuddy.applyPolicy(policed, {}), policed.hosted.url, policed.hosted.rules.length],
+    [false, 'https://example.com/x.json', 1]);
+  check('policy: invalid value leaves your own address',
+    [BCBuddy.applyPolicy(policed, { sharedConfigUrl: 'ftp://x' }), policed.hosted.url],
+    [false, 'https://example.com/x.json']);
+
+  check('sync-interval: never synced retries hourly',
+    BCBuddy.syncIntervalMinutes({ lastSync: null, lastError: null }), 60);
+  check('sync-interval: failed retries hourly',
+    BCBuddy.syncIntervalMinutes({ lastSync: '2026-10-17T08:00:00Z', lastError: 'HTTP 404' }), 60);
+  check('sync-interval: working is daily',
+    BCBuddy.syncIntervalMinutes({ lastSync: '2026-10-17T08:00:00Z', lastError: null }),
+    BCBuddy.SYNC_INTERVAL_MINUTES);
   truthy('hash: differs for different content', BCBuddy.hash('a') !== BCBuddy.hash('b'));
   truthy('hash: equal for same content', BCBuddy.hash('abc') === BCBuddy.hash('abc'));
 

@@ -20,6 +20,10 @@ your own version, which takes the place of the shared one.
 
 To stop using the team's file, click the **X** next to *Shared rules*.
 
+If your IT department set up BC Buddy for you, the address is already there,
+with *Set by your organisation* under it. You cannot change it, and there is
+no **X**.
+
 ## Publishing a file for your team
 
 1. Set up your rules and layouts and click **Export** under **Settings**. That
@@ -63,3 +67,66 @@ To load a file once, without daily updates, use **Import / export** →
 - new rules are added,
 - rules that are not in the file stay as they are,
 - the **Web client** settings in the file replace yours.
+
+## For IT departments
+
+??? note "Install BC Buddy on every computer with Intune"
+
+    You can put BC Buddy on every computer, with your team's file already
+    set, through browser policy. Nobody has to install anything or paste an
+    address, and people cannot remove it.
+
+    **1. Install BC Buddy silently.** In Intune, create a configuration
+    profile from the **Settings catalog** and add:
+
+    | Browser | Setting | Value |
+    |---|---|---|
+    | Microsoft Edge | Extensions › *Control which extensions are installed silently* | `jpgpcfecpdcocjlepdfceahamliimjdl;https://clients2.google.com/service/update2/crx` |
+    | Google Chrome | Extensions › *Configure the list of force-installed apps and extensions* | the same value |
+
+    Edge installs it from the Chrome Web Store too, even when *Allow
+    extensions from other stores* is off. Updates arrive by themselves. A
+    computer that gets BC Buddy this way does not open its settings page on
+    first start.
+
+    **2. Set the shared file.** BC Buddy reads the string value
+    `sharedConfigUrl` from these keys:
+
+    ```
+    HKLM\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy
+    HKLM\SOFTWARE\Policies\Google\Chrome\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy
+    ```
+
+    The Settings catalog cannot write these keys, so use a script under
+    **Devices › Scripts and remediations**. Put your address in `$Url` and
+    run it as system, in 64-bit PowerShell:
+
+    - [`Set-BCBuddyPolicy.ps1`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/Set-BCBuddyPolicy.ps1)
+      as a **Platform script**, which runs once; or
+    - the same script as a **Remediation**, with
+      [`Detect-BCBuddyPolicy.ps1`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/Detect-BCBuddyPolicy.ps1)
+      as the detection script, which keeps the value in place. Remediations
+      need Windows Enterprise E3 or E5 licences.
+
+    For Group Policy, or one test computer, there is
+    [`bc-buddy-policy.reg`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/bc-buddy-policy.reg).
+
+    **3. Check it.** On a test computer, open `edge://policy` or
+    `chrome://policy` and look for `sharedConfigUrl` under BC Buddy's ID. Then
+    roll out to a small pilot group before everyone.
+
+    **What people see.** Under **Shared configuration** the address is greyed
+    out with *Set by your organisation*, and the **X** that clears the shared
+    rules is gone. **Synchronise** still works. BC Buddy loads the file
+    straight away, tries again every hour until it works, and then checks it
+    daily. When you remove the policy, the field unlocks and the shared rules
+    stay.
+
+    **Good to know:**
+
+    - The address must start with `https://`; any other value is ignored.
+    - BC Buddy downloads the file without signing in, so it cannot sit behind
+      a SharePoint or OneDrive login. Anyone who has the address can read it,
+      environment names and tenant IDs included.
+    - The file decides the colours on every computer. Keep the right to
+      change it to a few people.

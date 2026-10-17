@@ -8,6 +8,7 @@ in [IDEAS.md](IDEAS.md).
 
 ```
 manifest.json
+managed_schema.json    the browser policy IT can set (sharedConfigUrl)
 _locales/              en (default), nl and fr; see TRANSLATING.md
 src/
   background.js        service worker: synchronises the shared file
@@ -27,7 +28,8 @@ src/
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted
-examples/              example of a shared configuration (schema version 2)
+examples/              example of a shared configuration (schema version 2);
+                       intune/: scripts that set the policy for IT
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store;
@@ -366,6 +368,29 @@ changed since then is passed on, so a colleague's own choice survives the
 daily sync. Clearing the shared rules forgets it, so the next sync applies the
 file's settings again.
 
+### Shared file set by policy
+
+IT can set the shared file's address by browser policy: `sharedConfigUrl` in
+`chrome.storage.managed`, declared in `managed_schema.json` (Windows registry:
+`HKLM\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\<id>\policy`, and
+`Google\Chrome` likewise). The policy itself is never stored. The service
+worker reads it on install, at browser start and when it changes, and
+`applyPolicy()` writes the address into `hosted.url` with `active` on; the
+usual settings change then starts the sync. It runs again whenever the address
+or `active` changes, so a write from an options page cannot undo it. The
+options page reads the policy too, only to lock the field, hide the clear
+button and show *Set by your organisation*. A value that does not resolve to
+HTTPS is ignored. Removing the policy changes no settings: the field unlocks
+and the address and shared rules stay.
+
+`syncIntervalMinutes()` sets the alarm: daily once the file has loaded, hourly
+while it never has or the last try failed, so a laptop that was offline when
+the policy arrived does not wait a day. A force-install (`installType`
+`admin`) does not open the options page on first install.
+
+Nothing of this runs in BC tabs: only the service worker and the options page
+read managed storage.
+
 ## 🧩 Adding a web client tweak
 
 Every tweak follows the shape of the existing ones: a switch in the Web client
@@ -592,6 +617,9 @@ var a = document.getElementById('O365_Settings_navbardatalinks');
 
 - `storage` — keeping settings.
 - `alarms` — checking the shared file periodically.
+- `storage.managed_schema` is not a permission and shows no warning, so adding
+  a policy key does not hold up the automatic update. `chrome.management.getSelf`
+  needs no permission either.
 - `<all_urls>` — rules may match on any URL (on-premises servers included), and
   the shared JSON file can live anywhere.
 
@@ -758,7 +786,7 @@ powershell -ExecutionPolicy Bypass -File tools/build-package.ps1
 ```
 
 That puts `dist/bcbuddy-<version>.zip` in place with only what the extension
-needs: manifest, `src`, `_locales` and the PNG icons. Tests, examples, the SVG
+needs: manifest, `managed_schema.json`, `src`, `_locales` and the PNG icons. Tests, examples, the SVG
 sources and these tools stay behind. The script checks that `manifest.json` ends
 up in the root of the ZIP, which is the usual silent upload rejection.
 

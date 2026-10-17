@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "sharedConfigUrl": {
+      "title": "Shared configuration URL",
+      "description": "HTTPS address of the shared bc-buddy.json. BC Buddy keeps it in sync daily and users cannot change or clear it.",
+      "type": "string"
+    }
+  }
+}

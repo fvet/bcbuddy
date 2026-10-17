@@ -6,6 +6,9 @@
   "default_locale": "en",
   "minimum_chrome_version": "111",
   "permissions": ["storage", "alarms"],
+  "storage": {
+    "managed_schema": "managed_schema.json"
+  },
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "src/background.js"

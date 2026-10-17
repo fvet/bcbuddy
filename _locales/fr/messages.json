@@ -30,6 +30,7 @@
   "syncLoadedUnchanged": { "message": "$1 règle(s) partagée(s) chargée(s) (sans changement)." },
   "copiedToOwn": { "message": "$1 règle(s) copiée(s) dans vos propres règles." },
   "statusNotSynced": { "message": "Pas encore synchronisé." },
+  "hostedManaged": { "message": "Défini par votre organisation." },
   "statusSyncError": { "message": "La dernière tentative ($1) a échoué\u00a0: $2" },
   "statusHosted": { "message": "$1 règle(s), dernière mise à jour\u00a0: $2." },
   "statusHostedNamed": { "message": "$1 règle(s) de «\u00a0$2\u00a0», dernière mise à jour\u00a0: $3." },

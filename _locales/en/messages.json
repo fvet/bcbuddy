@@ -72,6 +72,10 @@
     "description": "$1 is a number of rules copied out of the shared configuration into the user\u0027s own list."
   },
   "statusNotSynced": { "message": "Not synced yet." },
+  "hostedManaged": {
+    "message": "Set by your organisation.",
+    "description": "Under the shared file URL when IT set it by browser policy; the field cannot be changed."
+  },
   "statusSyncError": {
     "message": "Last attempt ($1) failed: $2",
     "description": "$1 is a date and time, $2 the error message."

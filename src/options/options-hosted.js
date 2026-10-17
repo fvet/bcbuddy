@@ -18,6 +18,7 @@
           page.updateSyncEnabled(el.hostedUrl.value);
         });
         el.hostedUrl.addEventListener('change', function () {
+          if (state.policyUrl) return;
           page.trimField(el.hostedUrl);
           if (!page.applyHostedUrl(el.hostedUrl.value, { persist: true })) return;
           page.renderHostedStatus();
@@ -99,6 +100,8 @@
        */
       page.clearSharedRules = function () {
         var hosted = state.settings.hosted;
+        // Set by policy: the service worker would turn it straight back on.
+        if (state.policyUrl) return;
         // Deleting one rule asks first; wiping the whole shared set should not
         // be the one destructive action that goes through on a single click.
         if (!confirm(t('clearSharedConfirm', [hosted.rules.length]))) return;
@@ -187,6 +190,12 @@
       page.renderHostedStatus = function () {
         var h = state.settings.hosted;
         page.updateSyncEnabled(h.url);
+        // Set by policy: the address cannot be changed and the shared rules not
+        // cleared. Synchronise stays, to fetch a change right away.
+        var managed = !!state.policyUrl;
+        el.hostedUrl.readOnly = managed;
+        el.hostedManaged.hidden = !managed;
+        el.clearShared.hidden = managed;
         // When shared configuration is off, dim the field — like a disabled rule.
         var field = el.hostedUrl.closest('.field');
         if (field) field.classList.toggle('field--inactive', !h.active);
