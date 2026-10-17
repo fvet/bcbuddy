@@ -117,6 +117,13 @@
     "highlightRow": {
       "enabled": true
     },
+    "stripeRows": {
+      "enabled": false
+    },
+    "compact": {
+      "rows": false,
+      "columns": false
+    },
     "noAnimations": {
       "enabled": false
     },

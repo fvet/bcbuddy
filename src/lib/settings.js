@@ -292,13 +292,15 @@
   // `webClient`, shaped exactly as they are stored. The master switch does not:
   // it belongs to whoever runs the extension.
   var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'highlightRow',
-    'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers'];
+    'stripeRows', 'compact', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
     var pinActionBar = s.pinActionBar || {};
     var dropdown = s.dropdown || {};
     var highlightRow = s.highlightRow || {};
+    var stripeRows = s.stripeRows || {};
+    var compact = s.compact || {};
     var noAnimations = s.noAnimations || {};
     var hideNotifications = s.hideNotifications || {};
     var copyValues = s.copyValues || {};
@@ -318,6 +320,15 @@
       },
       highlightRow: {
         enabled: bool(highlightRow.enabled, true)
+      },
+      // Off until asked for: both change how every list looks.
+      stripeRows: {
+        enabled: bool(stripeRows.enabled, false)
+      },
+      // Two halves that can be tried apart: lower rows, narrower columns.
+      compact: {
+        rows: bool(compact.rows, false),
+        columns: bool(compact.columns, false)
       },
       // Off until asked for: it changes how BC feels, not just how it looks.
       noAnimations: {
@@ -420,6 +431,24 @@
   function highlightRowOn(settings) {
     return !!(settings && settings.enabled &&
       settings.highlightRow && settings.highlightRow.enabled);
+  }
+
+  /** Striped list rows follow the master switch as well. */
+  function stripeRowsOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.stripeRows && settings.stripeRows.enabled);
+  }
+
+  /** Lower list rows follow the master switch as well. */
+  function compactRowsOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.compact && settings.compact.rows);
+  }
+
+  /** Narrower list columns follow the master switch as well. */
+  function compactColumnsOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.compact && settings.compact.columns);
   }
 
   /** Turning animations off follows the master switch as well. */
@@ -678,6 +707,9 @@
   BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.pinActionBarOn = pinActionBarOn;
   BCBuddy.highlightRowOn = highlightRowOn;
+  BCBuddy.stripeRowsOn = stripeRowsOn;
+  BCBuddy.compactRowsOn = compactRowsOn;
+  BCBuddy.compactColumnsOn = compactColumnsOn;
   BCBuddy.noAnimationsOn = noAnimationsOn;
   BCBuddy.hideNotificationsOn = hideNotificationsOn;
   BCBuddy.copyValuesOn = copyValuesOn;

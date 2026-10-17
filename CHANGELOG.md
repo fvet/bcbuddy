@@ -11,6 +11,15 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Striped rows**: every other row in a list gets a light grey, so you stay
+  on the right line in a wide list. Off by default; switch it on under
+  **Web client** in the options.
+- **Compact lists**: lower rows and narrower columns, so more of a list fits
+  on your screen. Each has its own switch under **Web client** in the
+  options; both are off by default. Lists you type in keep their size.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.13 — 2026-10-16

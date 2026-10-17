@@ -52,7 +52,7 @@ Exports carry `"app": "bc-buddy"` and `"version": 2`.
   letters from the rule. Without a layout it falls back to the defaults, so
   drawing never crashes.
 
-Beside rules and layouts sit seven settings for the **Web client** panel,
+Beside rules and layouts sit the settings for the **Web client** panel,
 listed in `WEB_CLIENT_KEYS` and normalised by `normalizeWebClient()`. They
 travel in an export and in the shared file as `webClient`; the master switch
 `enabled` does not:
@@ -61,6 +61,14 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `pinActionBar.enabled` — pin the action bar of a page that opens with it
   floating, on by default.
 - `highlightRow.enabled` — the current-line tint, on by default.
+- `stripeRows.enabled` — every other list row a see-through grey, off by
+  default. Keyed on BC's `aria-rowindex`, since BC reuses its `<tr>`
+  elements while scrolling.
+- `compact.rows` and `compact.columns` — lower rows and narrower columns in
+  read-only lists (`ms-nav-grid-view`), each off by default and switched on
+  its own. Columns narrow because BC sizes them in `ex` of the `<th>` font.
+  Like the row tint, each is one attribute on `<html>` and CSS in
+  `content.css`.
 - `dropdown.width` and `dropdown.height` — slider steps 1–5, stored as the step
   and never as pixels. Step 1 is BC standard; width defaults to 5, height to 1.
   `normalize()` rounds and clamps them, so a hand-edited or garbled value can

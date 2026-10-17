@@ -7,6 +7,7 @@ An easier web client, straight away. No setup needed:
 - Dropdowns that show all their columns, so you no longer scroll sideways.
 - Week numbers in the calendar of a date field.
 - The line you are on in a journal or order stands out.
+- If you like, striped rows and compact lists that fit more rows and columns on the screen.
 - No notifications bell, and if you like, no animations.
 
 Each one has its own switch in the options.

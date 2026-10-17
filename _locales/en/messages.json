@@ -450,6 +450,30 @@
     "message": "Gives the line you are on a light tint in editable lists, such as sales lines and journals.",
     "description": "Explains the current line highlight. Tooltip on its row in the Web client panel. Sales lines and journals are Business Central terms: use the words the Business Central UI uses in this language."
   },
+  "stripeRowsToggle": {
+    "message": "Striped rows",
+    "description": "Label on the on/off switch that gives every other row in a list a light grey, so the eye stays on the right line."
+  },
+  "stripeRowsIntro": {
+    "message": "Gives every other row in a list a light grey, so you stay on the right line in a wide list.",
+    "description": "Explains striped rows. Tooltip on its row in the Web client panel."
+  },
+  "compactHeading": {
+    "message": "Compact lists",
+    "description": "Heading of the setting that fits more rows and columns of a list on the screen."
+  },
+  "compactIntro": {
+    "message": "Fits more of a list on the screen: lower rows show more lines, narrower columns show more columns side by side. Lists you can type in keep their size.",
+    "description": "Explains the two Compact lists switches. Tooltip on their row in the Web client panel."
+  },
+  "compactRows": {
+    "message": "Lower rows",
+    "description": "Label beside the switch that makes the rows of a list lower, so more of them fit."
+  },
+  "compactColumns": {
+    "message": "Narrower columns",
+    "description": "Label beside the switch that makes the columns of a list narrower, so more of them fit side by side."
+  },
   "noAnimationsToggle": {
     "message": "Turn off animations",
     "description": "Label on the on/off switch that makes Business Central pages, FastTabs and panes appear at once instead of sliding or fading in."
