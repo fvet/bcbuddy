@@ -213,6 +213,17 @@ after 1, 2, 4 and 8 hours, then once a day; once it loads, it checks daily. Remo
 The address must be `https://` and readable without signing in, so not behind a
 SharePoint or OneDrive login.
 
+**If something goes wrong.** To stop one feature, set it to
+`"enabled": false` under `webClient` in the shared file. Computers pick it up
+at browser start or within a day, and open tabs follow without a reload. It is
+switched off once, not locked, and leaving a setting out of the file changes
+nothing. To stop BC Buddy as a whole, remove it from the silent-install list
+and add `jpgpcfecpdcocjlepdfceahamliimjdl` to Edge's *Control which extensions
+cannot be installed* and Chrome's *Configure extension installation
+blocklist*; both are needed, because the install list wins. That arrives at the
+next Intune check-in. Rules and settings people made themselves may not
+survive; the shared file's come back when you undo it.
+
 </details>
 
 ## 🛟 Troubleshooting
