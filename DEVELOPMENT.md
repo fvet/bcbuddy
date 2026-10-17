@@ -37,7 +37,8 @@ tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store;
                        get-cws-token.ps1: one-off OAuth setup for releases;
-                       mkdocs_assets.py + requirements-docs.txt: the website
+                       mkdocs_assets.py + requirements-docs.txt: the website;
+                       check-shortcut-docs.mjs: shortcuts against Microsoft's article
 store/                 listing copy and screenshots
 docs/                  the website (its mkdocs.yml lives in the root)
 ```
@@ -582,6 +583,15 @@ usual Windows install paths for Chrome and Edge, then `chrome`,
 `google-chrome`, `chromium` and `msedge` on `PATH`. Set `CHROME_PATH` when your
 browser lives somewhere else — it beats editing the list.
 
+After the pages, the runner runs `tools/check-shortcut-docs.mjs` with Node. It
+loads `SETS` and `DOCS` from `shortcuts.js` itself, looks up every key in the
+Markdown source of Microsoft's *Keyboard Shortcuts* article (in
+`MicrosoftDocs/dynamics365smb-docs` on GitHub), and checks that the panel's
+link still opens. A key or link that is gone fails the run; being offline, or a
+server error, is printed and fails nothing. Without `node` on `PATH` the check
+is skipped. A key that is found is only mentioned somewhere in the article, not
+proven to do the same thing there.
+
 ## 🤖 Continuous integration
 
 Three workflows. The two that touch the extension itself run on
@@ -729,6 +739,9 @@ the shortcuts for where the cursor is. The switch starts off.
   hand-picked lists from Microsoft's *Keyboard Shortcuts* article, only
   shortcuts BC has had for years, worded with Microsoft's own terms in each
   language. Keep them short; the panel links to the article for the rest.
+  The test runner checks them against the article (see [Tests](#-tests)); a
+  key the article spells differently (`Down` is *Down arrow* there) goes in
+  `SPELLING` in `tools/check-shortcut-docs.mjs`.
 - **Where the cursor is.** `context()` looks at the client's
   `activeElement`: an editable grid, a view grid, a card, a date field (an
   input with BC's `.icon-Date` button beside it). Without a cursor in a grid,

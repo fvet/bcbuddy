@@ -93,6 +93,29 @@ foreach ($suite in $suites) {
     Write-Host "  $total"
 }
 
+# The keyboard shortcuts panel's built-in lists against Microsoft's article.
+# This one goes online, so trouble reaching GitHub or Learn (exit 2) is
+# printed and fails nothing; a key or link that is gone (exit 1) fails.
+$node = Get-Command node -ErrorAction SilentlyContinue
+if (-not $node) {
+    Write-Host 'shortcut docs  SKIPPED (no node on PATH)' -ForegroundColor Yellow
+} else {
+    $report = & $node.Source (Join-Path $root 'tools\check-shortcut-docs.mjs')
+    $code = $LASTEXITCODE
+    $text = $report | ForEach-Object { "$_" } | Where-Object { $_ -and $_ -notmatch '^## ' }
+    if ($code -eq 0) {
+        Write-Host 'shortcut docs  OK' -ForegroundColor Green
+        $text | ForEach-Object { Write-Host "  $_" }
+    } elseif ($code -eq 2) {
+        Write-Host 'shortcut docs  NOT CHECKED (offline?)' -ForegroundColor Yellow
+        $text | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkGray }
+    } else {
+        Write-Host 'shortcut docs' -ForegroundColor Red
+        $text | ForEach-Object { Write-Host "  $_" }
+        $totalFailed++
+    }
+}
+
 if ($totalFailed -gt 0) {
     Write-Host "`n$totalFailed check(s) failed." -ForegroundColor Red
     exit 1
