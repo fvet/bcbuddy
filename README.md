@@ -33,9 +33,9 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
    condition **Environment** **equals** `Production` and pick green. Add a
    second rule for `Sandbox` in red.
 
-Not sure what your environment is called? Click **From open tab** at the top
-of **Environments**: BC Buddy reads your open Business Central tab and shows
-its environment and company.
+Not sure what your environment is called? Open **Environments** while a
+Business Central tab is open: BC Buddy reads that tab and shows its
+environment and company at the top.
 
 ## 🖥️ Web client
 
@@ -82,7 +82,9 @@ You set this up with two lists under **Environments**:
 
 A condition looks at the web address of the page: **Environment** **equals**
 `Production`, **Company** **equals** `CRONUS BE`, and so on. A rule with
-several conditions applies only when all of them fit.
+several conditions applies only when all of them fit. To give several
+environments the same colour, list them with commas: **Environment**
+**contains** `DEV, UAT, QA`.
 
 The first rule that fits wins, so put specific rules (one customer's
 production) above general ones (anything called Production).
@@ -102,7 +104,9 @@ https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbo
 ```
 
 Ways to compare: contains, equals, starts with, ends with, does not contain,
-RegEx. A RegEx that is not valid, or so complex that checking it could slow
+RegEx. **contains** and **does not contain** also take a list separated by
+commas: the condition fits when any of them appears, or for **does not
+contain**, when none of them does. A RegEx that is not valid, or so complex that checking it could slow
 the page down, never matches; the condition then says why.
 
 Business Central on your own server (on-premises) is recognised too: the
@@ -209,6 +213,17 @@ after 1, 2, 4 and 8 hours, then once a day; once it loads, it checks daily. Remo
 The address must be `https://` and readable without signing in, so not behind a
 SharePoint or OneDrive login.
 
+**If something goes wrong.** To stop one feature, set it to
+`"enabled": false` under `webClient` in the shared file. Computers pick it up
+at browser start or within a day, and open tabs follow without a reload. It is
+switched off once, not locked, and leaving a setting out of the file changes
+nothing. To stop BC Buddy as a whole, remove it from the silent-install list
+and add `jpgpcfecpdcocjlepdfceahamliimjdl` to Edge's *Control which extensions
+cannot be installed* and Chrome's *Configure extension installation
+blocklist*; both are needed, because the install list wins. That arrives at the
+next Intune check-in. Rules and settings people made themselves may not
+survive; the shared file's come back when you undo it.
+
 </details>
 
 ## 🛟 Troubleshooting
@@ -242,9 +257,9 @@ leaves it.
 Code) opens a whole page, not a dropdown. A list with two short columns needs
 no extra width.
 
-**Nothing is coloured.** Click **From open tab** under **Environments**. A
-green tick shows which rules fit; no tick means none of your conditions fits
-that tab.
+**Nothing is coloured.** Open **Environments** with your Business Central tab
+still open. A green tick shows which rules fit that tab; no tick means none of
+your conditions fits it.
 
 **The bar at the top keeps its usual colour.** BC Buddy finds that bar by its
 text, *Dynamics 365 Business Central*. Where it reads differently, the frame,

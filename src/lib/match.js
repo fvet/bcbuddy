@@ -65,6 +65,26 @@
     return ctx;
   }
 
+  // Microsoft's own Dynamics 365 domain. Sales, Customer Service, Finance and
+  // Operations and the rest share it, so there only Business Central's hosts
+  // count: businesscentral.dynamics.com and the embed apps on *.bc.dynamics.com.
+  var DYNAMICS_HOST_RE = /(^|\.)dynamics(-tie)?\.com$/i;
+  var BC_EMBED_HOST_RE = /(^|\.)bc\.dynamics(-tie)?\.com$/i;
+
+  /**
+   * Where the web client tweaks may apply: BC online and common on-prem URL
+   * shapes. Only the address; the content script still checks the page.
+   */
+  function isWebClientTarget(href) {
+    var u;
+    try { u = new URL(href); } catch (e) { return false; }
+    var host = u.hostname.toLowerCase();
+    if (DYNAMICS_HOST_RE.test(host)) return BC_HOST_RE.test(host) || BC_EMBED_HOST_RE.test(host);
+    if (/(?:^|\.)bc[^.]*(?:\.|$)/.test(host)) return true;   // hostname label starts with 'bc' (bc, bcdev, bcprod, …)
+    if (/^\/bc/i.test(u.pathname)) return true;             // path starts with /BC (on-prem)
+    return false;
+  }
+
   // Labels come from the translations: fieldUrl, opContains, and so on.
   var FIELDS = [
     { value: 'environment', key: 'fieldEnvironment' },
@@ -101,9 +121,15 @@
       case 'equals': return a === b;
       case 'startsWith': return a.indexOf(b) === 0;
       case 'endsWith': return a.length >= b.length && a.lastIndexOf(b) === a.length - b.length;
-      case 'notContains': return a.indexOf(b) === -1;
-      default: return a.indexOf(b) !== -1;
     }
+    // Contains and does not contain take a list, the way DevOps reads "In":
+    // dev, uat, qa. Empty items from a stray comma are skipped.
+    var items = b.indexOf(',') === -1 ? [b] : b.split(',').map(function (item) {
+      return item.trim();
+    }).filter(Boolean);
+    if (!items.length) return false;
+    var found = items.some(function (item) { return a.indexOf(item) !== -1; });
+    return op === 'notContains' ? !found : found;
   }
 
   // Long enough for real BC URL patterns; short enough to keep ReDoS bounded.
@@ -471,6 +497,7 @@
   }
 
   BCBuddy.parseUrl = parseUrl;
+  BCBuddy.isWebClientTarget = isWebClientTarget;
   BCBuddy.testCondition = testCondition;
   BCBuddy.matchRule = matchRule;
   BCBuddy.safeRegexTest = safeRegexTest;

@@ -532,6 +532,15 @@ function assertOptions() {
   // The checks below work with the rules, so open their panel.
   document.querySelector('.nav__item[data-panel="environments"]').click();
 
+  // On open the test URL comes from the BC tab, though Google was used later.
+  var testUrl = document.getElementById('testUrl');
+  check('options: test URL filled in from the open BC tab',
+    [testUrl.value, STORE.ui && STORE.ui.testUrl], [BC_TAB.url, BC_TAB.url]);
+  // The checks below expect the sample URL.
+  testUrl.value = 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
+    'Sandbox?company=CRONUS%20BE&page=1';
+  testUrl.dispatchEvent(new Event('input'));
+
   var cards = document.querySelectorAll('#ruleList .rule');
   check('options: own rules rendered', cards.length, 2);
   check('options: document lang follows UI language',
@@ -799,6 +808,7 @@ function assertOptions() {
   check('options: and matches as before',
     first.querySelector('[data-cond-match]').getAttribute('aria-label'),
     chrome.i18n.getMessage('conditionMatches'));
+
   condOp.value = opBefore;
   condOp.dispatchEvent(new Event('change', { bubbles: true }));
 

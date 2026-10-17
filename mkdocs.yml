@@ -84,7 +84,9 @@ nav:
   - Environment colours:
       - Rules: matching.md
       - Layouts: layouts.md
-  - Sharing with your team: sharing.md
+  - Sharing with your team:
+      - Team file: sharing.md
+      - Install with Intune: intune.md
   - Troubleshooting: troubleshooting.md
   - What's new: whats-new.md
   - Privacy: privacy.md

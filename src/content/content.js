@@ -119,19 +119,9 @@
   };
 
   // Where the web client tweaks (maximize, dropdown size, current row) apply:
-  // BC SaaS and common on-prem URL shapes. Checked against the top window's
-  // href, even when running inside an iframe.
-  var WEB_CLIENT_SAAS_RE = /(\.|^)dynamics\.com$/i;
-
-  function isWebClientTarget(href) {
-    var u;
-    try { u = new URL(href); } catch (e) { return false; }
-    var host = u.hostname.toLowerCase();
-    if (WEB_CLIENT_SAAS_RE.test(host)) return true;         // *.dynamics.com
-    if (/(?:^|\.)bc[^.]*(?:\.|$)/.test(host)) return true;   // hostname label starts with 'bc' (bc, bcdev, bcprod, …)
-    if (/^\/bc/i.test(u.pathname)) return true;             // path starts with /BC (on-prem)
-    return false;
-  }
+  // BC online and common on-prem URL shapes, not the rest of Dynamics 365.
+  // Checked against the top window's href, even when running inside an iframe.
+  var isWebClientTarget = BCBuddy.isWebClientTarget;
 
   // Classes only the Business Central web client uses: the frame it runs in
   // (in the top window) and the container its pages stack in (inside that

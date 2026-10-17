@@ -37,7 +37,8 @@ tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store;
                        get-cws-token.ps1: one-off OAuth setup for releases;
-                       mkdocs_assets.py + requirements-docs.txt: the website
+                       mkdocs_assets.py + requirements-docs.txt: the website;
+                       check-shortcut-docs.mjs: shortcuts against Microsoft's article
 store/                 listing copy and screenshots
 docs/                  the website (its mkdocs.yml lives in the root)
 ```
@@ -424,7 +425,7 @@ The manifest keeps `<all_urls>`: an on-premises server has no address the
 extension could list in advance. IT, who knows those addresses, narrows it with
 Chrome's `ExtensionSettings` policy instead: `runtime_blocked_hosts: ["*://*"]`
 and the BC hosts plus the shared file's host in `runtime_allowed_hosts`
-(`examples/intune/extension-settings.json`, documented in `docs/sharing.md`).
+(`examples/intune/extension-settings.json`, documented in `docs/intune.md`).
 Content scripts then no longer run anywhere else. Nothing in the code depends on
 it; the extension simply never sees the other sites.
 
@@ -433,10 +434,13 @@ it; the extension simply never sees the other sites.
 `state.webClient`, worked out by `webClientHere()` once per `apply()`, decides
 it for every tweak. Two things must hold:
 
-1. **The address looks like Business Central** (`isWebClientTarget()`):
-   `*.dynamics.com`, a host name with a label starting with `bc`, or a path
-   starting with `/bc`. That is cheap and catches the usual on-prem shapes, but
-   also sites such as `www2.gov.bc.ca`.
+1. **The address looks like Business Central** (`isWebClientTarget()` in
+   `match.js`): `businesscentral.dynamics.com` or an embed app on
+   `*.bc.dynamics.com`, a host name with a label starting with `bc`, or a path
+   starting with `/bc`. Other `*.dynamics.com` hosts (Sales, Customer Service,
+   Finance and Operations) never count, whatever their labels or path. That is
+   cheap and catches the usual on-prem shapes, but also sites such as
+   `www2.gov.bc.ca`.
 2. **The page is Business Central.** On BC online (`ctx.isbc`) the host says
    so. Anywhere else the document must hold one of BC's own classes,
    `designer-client-frame` (the client's frame, in the top window) or
@@ -578,6 +582,15 @@ The runner looks for a browser in this order: `CHROME_PATH` if set, then the
 usual Windows install paths for Chrome and Edge, then `chrome`,
 `google-chrome`, `chromium` and `msedge` on `PATH`. Set `CHROME_PATH` when your
 browser lives somewhere else — it beats editing the list.
+
+After the pages, the runner runs `tools/check-shortcut-docs.mjs` with Node. It
+loads `SETS` and `DOCS` from `shortcuts.js` itself, looks up every key in the
+Markdown source of Microsoft's *Keyboard Shortcuts* article (in
+`MicrosoftDocs/dynamics365smb-docs` on GitHub), and checks that the panel's
+link still opens. A key or link that is gone fails the run; being offline, or a
+server error, is printed and fails nothing. Without `node` on `PATH` the check
+is skipped. A key that is found is only mentioned somewhere in the article, not
+proven to do the same thing there.
 
 ## 🤖 Continuous integration
 
@@ -726,6 +739,9 @@ the shortcuts for where the cursor is. The switch starts off.
   hand-picked lists from Microsoft's *Keyboard Shortcuts* article, only
   shortcuts BC has had for years, worded with Microsoft's own terms in each
   language. Keep them short; the panel links to the article for the rest.
+  The test runner checks them against the article (see [Tests](#-tests)); a
+  key the article spells differently (`Down` is *Down arrow* there) goes in
+  `SPELLING` in `tools/check-shortcut-docs.mjs`.
 - **Where the cursor is.** `context()` looks at the client's
   `activeElement`: an editable grid, a view grid, a card, a date field (an
   input with BC's `.icon-Date` button beside it). Without a cursor in a grid,
@@ -936,8 +952,9 @@ needs: manifest, `managed_schema.json`, `src`, `_locales` and the PNG icons. Tes
 sources and these tools stay behind. The script checks that `manifest.json` ends
 up in the root of the ZIP, which is the usual silent upload rejection.
 
-The listing copy sits in [`store/description-nl.txt`](store/description-nl.txt)
-and [`store/description-en.txt`](store/description-en.txt), and the screenshots
+The listing copy sits in [`store/description-en.txt`](store/description-en.txt),
+[`store/description-nl.txt`](store/description-nl.txt) and
+[`store/description-fr.txt`](store/description-fr.txt), and the screenshots
 in `store/`. For the privacy practices tab at submission — single purpose and a
 justification per permission — and for the privacy policy URL the store points
 at, use [`PRIVACY.md`](PRIVACY.md) — the store field takes a URL, so point it

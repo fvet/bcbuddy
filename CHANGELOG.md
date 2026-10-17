@@ -11,6 +11,18 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Several values in one condition**: **contains** and **does not contain**
+  take a list separated by commas, so one rule can cover several
+  environments, for example **Environment** **contains** `DEV, UAT, QA`.
+
+### Changed
+
+- **Environments** now fills in **Test URL** from your open Business Central
+  tab as soon as you open it, so the green ticks show right away which rules
+  fit that tab.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.14 — 2026-10-17

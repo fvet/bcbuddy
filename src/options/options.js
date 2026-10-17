@@ -240,18 +240,25 @@
       BCBuddy.loadSettings(),
       chrome.storage.local.get(page.UI_KEY),
       takeOpenPanel(),
-      BCBuddy.readPolicy()
+      BCBuddy.readPolicy(),
+      // A tab that is gone or locked must not keep the page from opening.
+      chrome.tabs.query({}).catch(function () { return []; })
     ]).then(function (results) {
       state.settings = results[0];
       state.policyUrl = BCBuddy.policyUrl(results[3]);
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
-      state.testUrl = ui.testUrl || page.SAMPLE_URL;
+      // An open BC tab beats the remembered URL, so the previews show the
+      // page you came from. Other sites only count when you ask for them.
+      var tabUrl = page.pickBrowsingTab(results[4]);
+      var fromTab = tabUrl && BCBuddy.parseUrl(tabUrl).isbc;
+      state.testUrl = fromTab ? tabUrl : ui.testUrl || page.SAMPLE_URL;
       state.panel = results[2] || ui.panel || 'webclient';
       // The Web client panel used to be called Maximize.
       if (state.panel === 'maximize') state.panel = 'webclient';
       bind();
       page.renderAll();
+      if (fromTab && tabUrl !== ui.testUrl) page.saveUi();
     }).catch(function (err) {
       // Otherwise the page stays blank with no clue why.
       page.setStatus(String(err && err.message || err), true);

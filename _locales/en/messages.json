@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "Makes the Business Central web client easier to work in, and gives every environment its own colour.",
+    "message": "One-click copy, full-width pages, bigger dropdowns, and a colour per environment so you never post in production by mistake.",
     "description": "The description in the store listing. Hard limit of 132 characters, per language: a longer one is rejected at upload."
   },
   "optionsTitle": {
@@ -206,7 +206,7 @@
   },
   "opContains": {
     "message": "contains",
-    "description": "Operator in a condition, read as one line: environment contains TEST. Lowercase on purpose, it sits in the middle of that line."
+    "description": "Operator in a condition, read as one line: environment contains TEST. The value may also be a comma-separated list: environment contains DEV, UAT, QA. Lowercase on purpose, it sits in the middle of that line."
   },
   "opEquals": {
     "message": "equals",
@@ -226,7 +226,7 @@
   },
   "opNotContains": {
     "message": "does not contain",
-    "description": "Operator in a condition, read as one line: environment does not contain TEST. Lowercase on purpose, it sits in the middle of that line."
+    "description": "Operator in a condition, read as one line: environment does not contain TEST. The value may also be a comma-separated list: environment does not contain PROD, LIVE. Lowercase on purpose, it sits in the middle of that line."
   },
   "colour": { "message": "Colour" },
   "customColour": { "message": "Pick a custom colour" },

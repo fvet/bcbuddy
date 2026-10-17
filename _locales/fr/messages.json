@@ -1,5 +1,5 @@
 {
-  "extDescription": { "message": "Rend le client Web Business Central plus agréable à utiliser et donne à chaque environnement sa propre couleur." },
+  "extDescription": { "message": "Copie en un clic, pages larges, listes déroulantes complètes et une couleur par environnement pour ne plus valider en production." },
   "optionsTitle": { "message": "BC Buddy - paramètres" },
   "tagline": { "message": "Rendez le client Web Business Central plus agréable à utiliser et donnez à chaque environnement sa propre couleur." },
   "extensionActive": { "message": "Extension activée" },
