@@ -64,7 +64,7 @@ function openOptions(panel) {
 
 chrome.runtime.onStartup.addListener(function () {
   enforcePolicy().then(function () {
-    scheduleSync();
+    scheduleSync(true);
     syncHosted({ reason: 'startup' });
   });
 });
@@ -83,7 +83,7 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   var before = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].oldValue).hosted;
   var after = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue).hosted;
   if (before.url !== after.url || before.active !== after.active) {
-    scheduleSync();
+    scheduleSync(!!(after.url && before.url !== after.url));
     if (after.url && before.url !== after.url) {
       syncHosted({ reason: 'url-changed', force: true });
     }
@@ -91,8 +91,9 @@ chrome.storage.onChanged.addListener(function (changes, area) {
     // e.g. an options page that was open before the policy arrived.
     enforcePolicy();
   } else if (BCBuddy.syncIntervalMinutes(before) !== BCBuddy.syncIntervalMinutes(after)) {
-    // The first sync worked, or a working one started to fail.
-    scheduleSync();
+    // A try just ended: the first sync worked, a working one started to
+    // fail, or a failing one failed again and waits longer.
+    scheduleSync(true);
   }
 });
 
@@ -175,14 +176,19 @@ function enforcePolicy() {
   }).catch(function () {});
 }
 
-function scheduleSync() {
+/**
+ * Sets the sync alarm. afterTry: a sync just ran or is running, so the first
+ * alarm waits a whole interval; otherwise it fires in a minute.
+ */
+function scheduleSync(afterTry) {
   return BCBuddy.loadSettings().then(function (settings) {
     // clearAll also drops any alarm name left by an older build.
     return chrome.alarms.clearAll().then(function () {
       if (!settings.hosted.url || !settings.hosted.active) return;
+      var period = BCBuddy.syncIntervalMinutes(settings.hosted);
       return chrome.alarms.create(ALARM_SYNC, {
-        delayInMinutes: 1,
-        periodInMinutes: BCBuddy.syncIntervalMinutes(settings.hosted)
+        delayInMinutes: afterTry ? period : 1,
+        periodInMinutes: period
       });
     });
   }).catch(function () {
@@ -269,12 +275,14 @@ function syncHosted(options) {
       settings.hosted.lastHash = result.hash;
       settings.hosted.lastSync = new Date().toISOString();
       settings.hosted.lastError = null;
+      settings.hosted.failures = 0;
       return BCBuddy.saveSettings(settings).then(function () {
         return { ok: true, count: result.rules.length, unchanged: unchanged, name: result.name };
       });
     }, function (err) {
       settings.hosted.lastError = String(err && err.message || err);
       settings.hosted.lastSync = new Date().toISOString();
+      settings.hosted.failures = (settings.hosted.failures || 0) + 1;
       return BCBuddy.saveSettings(settings).then(function () {
         return { ok: false, error: settings.hosted.lastError };
       });

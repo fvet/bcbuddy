@@ -30,8 +30,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Changed
 
-- A shared file that could not be loaded is tried again every hour, instead of
-  the next day.
+- A shared file that could not be loaded is tried again after 1, 2, 4 and 8
+  hours, instead of only the next day.
 
 ### Fixed
 

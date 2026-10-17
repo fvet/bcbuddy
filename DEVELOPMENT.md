@@ -409,9 +409,13 @@ HTTPS is ignored. Removing the policy changes no settings: the field unlocks
 and the address and shared rules stay.
 
 `syncIntervalMinutes()` sets the alarm: daily once the file has loaded, hourly
-while it never has or the last try failed, so a laptop that was offline when
-the policy arrived does not wait a day. A force-install (`installType`
-`admin`) does not open the options page on first install.
+before the first try, and while it fails 1, 2, 4 and 8 hours after each failed
+try in a row (`hosted.failures`), then daily. A laptop that was offline when the
+policy arrived does not wait a day, and an address that stays broken settles at
+one request a day. After a try, the alarm is set again with a first delay of a
+whole interval, so a failure never brings the next try closer. A
+force-install (`installType` `admin`) does not open the options page on first
+install.
 
 Nothing of this runs in BC tabs: only the service worker and the options page
 read managed storage.

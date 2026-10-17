@@ -113,6 +113,7 @@
         hosted.sourceName = '';
         hosted.lastSync = null;
         hosted.lastError = null;
+        hosted.failures = 0;
         hosted.active = false;
 
         page.save();

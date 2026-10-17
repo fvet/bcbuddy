@@ -1368,8 +1368,16 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 
   check('sync-interval: never synced retries hourly',
     BCBuddy.syncIntervalMinutes({ lastSync: null, lastError: null }), 60);
-  check('sync-interval: failed retries hourly',
+  check('sync-interval: failing backs off 1, 2, 4, 8 hours, then daily',
+    [1, 2, 3, 4, 5, 9].map(function (n) {
+      return BCBuddy.syncIntervalMinutes({ lastSync: '2026-10-17T08:00:00Z', lastError: 'HTTP 404', failures: n });
+    }), [60, 120, 240, 480, 1440, 1440]);
+  check('sync-interval: a failure stored before the count existed retries hourly',
     BCBuddy.syncIntervalMinutes({ lastSync: '2026-10-17T08:00:00Z', lastError: 'HTTP 404' }), 60);
+  check('sync-interval: failures are kept as a whole number',
+    [BCBuddy.normalize({ hosted: { failures: 3 } }).hosted.failures,
+      BCBuddy.normalize({ hosted: { failures: 'x' } }).hosted.failures,
+      BCBuddy.normalize(null).hosted.failures], [3, 0, 0]);
   check('sync-interval: working is daily',
     BCBuddy.syncIntervalMinutes({ lastSync: '2026-10-17T08:00:00Z', lastError: null }),
     BCBuddy.SYNC_INTERVAL_MINUTES);

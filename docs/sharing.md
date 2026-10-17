@@ -157,8 +157,8 @@ To load a file once, without daily updates, use **Import / export** →
     **What people see.** Under **Shared configuration** the address is greyed
     out with *Set by your organisation*, and the **X** that clears the shared
     rules is gone. **Synchronise** still works. BC Buddy loads the file
-    straight away, tries again every hour until it works, and then checks it
-    daily. When you remove the policy, the field unlocks and the shared rules
+    straight away. If that fails, it tries again after 1, 2, 4 and 8 hours,
+    then once a day; once the file loads, it checks it daily. When you remove the policy, the field unlocks and the shared rules
     stay.
 
     **Good to know:**

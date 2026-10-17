@@ -204,8 +204,8 @@ in with *Set by your organisation*, and you cannot change it.
    then roll out to a pilot group first.
 
 The address is then locked on the settings page and the shared rules cannot be
-cleared. BC Buddy loads the file straight away, retries hourly until it works,
-then checks daily. Removing the policy unlocks the field and keeps the rules.
+cleared. BC Buddy loads the file straight away. If that fails, it tries again
+after 1, 2, 4 and 8 hours, then once a day; once it loads, it checks daily. Removing the policy unlocks the field and keeps the rules.
 The address must be `https://` and readable without signing in, so not behind a
 SharePoint or OneDrive login.
 

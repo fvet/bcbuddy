@@ -46,7 +46,9 @@
   // How often the shared file is checked while the shared configuration is
   // active.
   var SYNC_INTERVAL_MINUTES = 1440;
-  var RETRY_INTERVAL_MINUTES = 60;
+  // While the file fails to load: wait 1, 2, 4, then 8 hours after each
+  // failed try in a row, and daily after that.
+  var RETRY_MINUTES = [60, 120, 240, 480];
 
   // The keys IT can set by policy (managed_schema.json).
   var POLICY_KEYS = ['sharedConfigUrl'];
@@ -394,6 +396,8 @@
       sourceName: str(hosted.sourceName),
       lastSync: hosted.lastSync || null,
       lastError: hosted.lastError || null,
+      // Failed tries in a row; back to 0 once the file loads.
+      failures: Math.round(num(hosted.failures, 0, 0, 1000)),
       lastHash: str(hosted.lastHash)
     };
     return result;
@@ -677,14 +681,17 @@
   }
 
   /**
-   * How often to check the shared file. Daily once it has loaded; hourly while
-   * it never has, or the last try failed, so a laptop that was offline when
-   * the address arrived does not wait a whole day for its colours.
+   * How often to check the shared file. Daily once it has loaded. Before the
+   * first try, hourly. While it fails, 1, 2, 4 and 8 hours after each failed
+   * try in a row, then daily: a laptop that was offline when the address
+   * arrived soon gets its colours, and an address that stays broken settles
+   * at one request a day.
    */
   function syncIntervalMinutes(hosted) {
-    return hosted && hosted.lastSync && !hosted.lastError
-      ? SYNC_INTERVAL_MINUTES
-      : RETRY_INTERVAL_MINUTES;
+    if (hosted && hosted.lastSync && !hosted.lastError) return SYNC_INTERVAL_MINUTES;
+    var failures = hosted && hosted.lastError ? Math.max(1, hosted.failures || 0) : 0;
+    if (!failures) return RETRY_MINUTES[0];
+    return failures <= RETRY_MINUTES.length ? RETRY_MINUTES[failures - 1] : SYNC_INTERVAL_MINUTES;
   }
 
   /**
