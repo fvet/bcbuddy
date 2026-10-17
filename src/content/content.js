@@ -810,10 +810,13 @@
       roundRect(ctx2d, 0, 0, size, size, 6);
       ctx2d.fill();
 
-      var initials = label.replace(/[^\p{L}\p{N}]/gu, '').slice(0, 2).toUpperCase();
+      // Letters keep their accents (\p{M}), and two letters are counted as you
+      // see them, not in UTF-16 units.
+      var initials = BCBuddy.leading(label.replace(/[^\p{L}\p{M}\p{N}]/gu, ''), 2).toUpperCase();
       if (initials) {
         ctx2d.fillStyle = BCBuddy.idealText(color);
-        ctx2d.font = 'bold ' + (initials.length > 1 ? 17 : 22) + 'px "Segoe UI", Arial, sans-serif';
+        var single = BCBuddy.leading(initials, 1) === initials;
+        ctx2d.font = 'bold ' + (single ? 22 : 17) + 'px "Segoe UI", Arial, sans-serif';
         ctx2d.textAlign = 'center';
         ctx2d.textBaseline = 'middle';
         ctx2d.fillText(initials, size / 2, size / 2 + 1);

@@ -100,6 +100,19 @@
     return value == null ? (fallback || '') : String(value).trim();
   }
 
+  /**
+   * The first `count` characters as people see them. slice() counts UTF-16
+   * units, so it cuts an emoji, a flag or a letter with an accent in half and
+   * leaves a broken character behind.
+   */
+  function leading(text, count) {
+    var s = String(text == null ? '' : text);
+    var parts = root.Intl && Intl.Segmenter
+      ? Array.from(new Intl.Segmenter().segment(s), function (part) { return part.segment; })
+      : Array.from(s);
+    return parts.slice(0, count).join('');
+  }
+
   function normalizeCondition(c) {
     c = c || {};
     var fields = BCBuddy.FIELDS.map(function (f) { return f.value; });
@@ -158,7 +171,7 @@
       },
       favicon: {
         enabled: bool(favicon.enabled, false),
-        text: str(favicon.text, '').slice(0, 2) // two characters fit on a favicon
+        text: leading(str(favicon.text, ''), 2) // two characters fit on a favicon
       }
     };
   }
@@ -178,7 +191,7 @@
       textColor: r.textColor === 'auto' || !r.textColor ? 'auto' : BCBuddy.toHex(r.textColor),
       // Each rule picks its own layout; appearance comes from that layout.
       layoutId: str(r.layoutId),
-      favicon: { text: str(favicon.text, '').slice(0, 2) }
+      favicon: { text: leading(str(favicon.text, ''), 2) }
     };
   }
 
@@ -242,7 +255,7 @@
     DISPLAY_KEYS.forEach(function (key) { resolved[key] = display[key]; });
     resolved.favicon = {
       enabled: display.favicon.enabled,
-      text: str((rule.favicon && rule.favicon.text) || '', '').slice(0, 2)
+      text: leading(str((rule.favicon && rule.favicon.text) || '', ''), 2)
     };
     return resolved;
   }
@@ -748,6 +761,7 @@
   BCBuddy.applyPolicy = applyPolicy;
   BCBuddy.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;
   BCBuddy.uid = uid;
+  BCBuddy.leading = leading;
   BCBuddy.newRule = newRule;
   BCBuddy.newLayout = newLayout;
   BCBuddy.draftFromContext = draftFromContext;

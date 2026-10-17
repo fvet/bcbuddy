@@ -46,7 +46,9 @@
     ctx.host = u.hostname;
     ctx.path = safeDecode(u.pathname);
     ctx.isbc = BC_HOST_RE.test(u.hostname);
-    ctx.company = safeDecode(u.searchParams.get('company') || '');
+    // searchParams already decodes. Decoding again would read a + as a space
+    // (R%2BD becomes "R D") and a literal %20 in a name as a space.
+    ctx.company = u.searchParams.get('company') || '';
 
     var segs = u.pathname.split('/').filter(Boolean).map(safeDecode);
     if (segs.length) {
@@ -60,7 +62,7 @@
       }
     }
     var qTenant = u.searchParams.get('tenant');
-    if (qTenant) ctx.tenant = safeDecode(qTenant);
+    if (qTenant) ctx.tenant = qTenant;
 
     return ctx;
   }

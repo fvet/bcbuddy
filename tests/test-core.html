@@ -34,6 +34,7 @@
 <script>
 /* ---- chrome API stub ---------------------------------------------------- */
 var STORE = {};
+var LISTENERS = [];
 /*
  * chrome.i18n with the real messages from _locales/en (the default locale). Loaded synchronously
  * so the scripts below can use them immediately.
@@ -74,10 +75,20 @@ window.chrome = {
         });
         return Promise.resolve(out);
       },
-      set: function (obj) { Object.keys(obj).forEach(function (k) { STORE[k] = obj[k]; }); return Promise.resolve(); },
+      // Like Chrome, a write tells every listener, so the content script picks
+      // up new settings while the page stays open.
+      set: function (obj) {
+        var changes = {};
+        Object.keys(obj).forEach(function (k) {
+          changes[k] = { oldValue: STORE[k], newValue: obj[k] };
+          STORE[k] = obj[k];
+        });
+        LISTENERS.forEach(function (fn) { fn(changes, 'local'); });
+        return Promise.resolve();
+      },
       remove: function () { return Promise.resolve(); }
     },
-    onChanged: { addListener: function () {} }
+    onChanged: { addListener: function (fn) { LISTENERS.push(fn); } }
   },
   runtime: { sendMessage: function () { return Promise.resolve({}); }, onMessage: { addListener: function () {} } }
 };
@@ -186,6 +197,27 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     velden('https://localhost:8080/BC/?company=CRONUS'), ['', 'BC', 'CRONUS']);
   check('URL: on-prem without https',
     velden('http://bcserver/BC240/?company=CRONUS%20Belgium&page=21'), ['', 'BC240', 'CRONUS Belgium']);
+
+  // Company names hold more than letters and spaces. The query is decoded once:
+  // a second pass turned R%2BD into "R D" and a literal %20 into a space.
+  var PROD_URL = 'https://businesscentral.dynamics.com/Production/?company=';
+  check('URL: a + in the company name stays a +',
+    velden(PROD_URL + 'R%2BD%20Solutions')[2], 'R+D Solutions');
+  check('URL: a + written for a space still reads as a space',
+    velden(PROD_URL + 'CRONUS+BE')[2], 'CRONUS BE');
+  check('URL: & and accents in the company name',
+    velden(PROD_URL + 'Fa%C3%A7ade%20%26%20Co%27s')[2], 'Façade & Co\'s');
+  check('URL: a percent sign in the company name',
+    velden(PROD_URL + '100%25%20Bio')[2], '100% Bio');
+  check('URL: an encoded %20 in the company name is not decoded twice',
+    velden(PROD_URL + '50%2520off')[2], '50%20off');
+  check('URL: an emoji in the company name',
+    velden(PROD_URL + '%F0%9F%8D%95%20Pizza')[2], '🍕 Pizza');
+  check('URL: a + in the tenant from the query stays a +',
+    velden('https://bc.contoso.local/BC240/?tenant=a%2Bb')[0], 'a+b');
+  check('match: Company equals a name with a +',
+    BCBuddy.matchRule({ conditions: [{ field: 'company', op: 'equals', value: 'R+D Solutions' }] },
+      BCBuddy.parseUrl(PROD_URL + 'R%2BD%20Solutions')), true);
 
   // Web client tweaks: BC only. The rest of Dynamics 365 lives on dynamics.com too.
   [
@@ -950,6 +982,22 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.normalizeLayout({ banner: { fontSize: 9 } }).banner.fontSize, 9);
   check('normalization: favicon letters capped at two',
     BCBuddy.normalizeRule({ favicon: { text: 'ABCD' } }).favicon.text, 'AB');
+  // Two characters as people see them, never half of one. An emoji is two
+  // UTF-16 units, so slice(0, 2) used to leave a broken character behind.
+  check('normalization: favicon letters keep an emoji whole',
+    BCBuddy.normalizeRule({ favicon: { text: 'A🔴' } }).favicon.text, 'A🔴');
+  check('normalization: favicon letters keep an emoji sequence whole',
+    BCBuddy.normalizeRule({ favicon: { text: '👨‍💻XY' } }).favicon.text,
+    '👨‍💻X');
+  check('normalization: favicon letters keep a flag whole',
+    BCBuddy.normalizeRule({ favicon: { text: '🇧🇪ZQ' } }).favicon.text,
+    '🇧🇪Z');
+  check('normalization: favicon letters keep an accent with its letter',
+    BCBuddy.normalizeRule({ favicon: { text: 'état' } }).favicon.text, 'ét');
+  check('layout: resolved favicon letters keep an emoji whole',
+    BCBuddy.resolveRule({ favicon: { text: 'A🔴B' } }, []).favicon.text, 'A🔴');
+  check('normalization: an emoji in a rule name survives a save',
+    BCBuddy.normalize({ rules: [{ name: '🔴 PROD é' }] }).rules[0].name, '🔴 PROD é');
   check('normalization: rule has no border field',
     Object.prototype.hasOwnProperty.call(BCBuddy.normalizeRule({}), 'border'), false);
   check('normalization: width capped', BCBuddy.normalizeLayout({ border: { width: 999 } }).border.width, 5);
@@ -2065,6 +2113,203 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     });
   }
 
+  /* ---- rules on a page that stays open ------------------------------------
+   * Business Central never reloads: settings change while it is open, and a
+   * company or environment switch only changes the address. Each step writes
+   * settings the way the options page does; the content script hears it
+   * through chrome.storage.onChanged and redraws at once.
+   */
+  var SEED = JSON.parse(JSON.stringify(STORE[BCBuddy.STORAGE_KEY]));
+  var BASE = location.href.split('#')[0];
+  var HERE = { field: 'url', op: 'contains', value: 'test-core' };
+
+  function settle(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+
+  function useSettings(settings) {
+    var change = {};
+    change[BCBuddy.STORAGE_KEY] = settings;
+    return chrome.storage.local.set(change);
+  }
+
+  /** One layout with every marking on, and rules that all use it. */
+  function markedSettings(banner, rules) {
+    return BCBuddy.normalize({
+      enabled: true,
+      layouts: [BCBuddy.normalizeLayout({
+        id: 'lay-dom',
+        name: 'DOM',
+        ribbon: { enabled: true, text: '{name}' },
+        border: { enabled: true, width: 3 },
+        banner: Object.assign({ enabled: true, position: 'top-right', text: '{name}' }, banner),
+        title: { enabled: true, text: '[{name}] {title}' },
+        favicon: { enabled: true }
+      })],
+      rules: rules.map(function (rule) {
+        return BCBuddy.normalizeRule(Object.assign({ layoutId: 'lay-dom', color: '#0f6cbd' }, rule));
+      })
+    });
+  }
+
+  function bannerText() {
+    var banner = document.getElementById('bcb-banner');
+    return banner ? banner.textContent : null;
+  }
+
+  function brandText() {
+    var brand = document.querySelector('#fakeHeader .brand-text');
+    return brand ? brand.textContent : null;
+  }
+
+  // Every banner position, measured where it lands in the window rather than
+  // by its class name alone.
+  function bannerPositionsDom() {
+    var W = window.innerWidth;
+    var H = window.innerHeight;
+    function centre(r) { return [r.left + r.width / 2, r.top + r.height / 2]; }
+    var lands = {
+      'bottom': function (r) { return r.bottom >= H - 1 && r.width >= W - 1; },
+      'top-right': function (r) { return centre(r)[0] > W / 2 && centre(r)[1] < H / 2; },
+      'top-left': function (r) { return centre(r)[0] < W / 2 && centre(r)[1] < H / 2; },
+      'bottom-right': function (r) { return centre(r)[0] > W / 2 && centre(r)[1] > H / 2; },
+      'bottom-left': function (r) { return centre(r)[0] < W / 2 && centre(r)[1] > H / 2; }
+    };
+    check('banner DOM: every position is tested', Object.keys(lands).sort(), BCBuddy.POSITIONS.slice().sort());
+
+    return BCBuddy.POSITIONS.reduce(function (chain, position) {
+      return chain.then(function () {
+        return useSettings(markedSettings({ position: position }, [{ name: 'POS', conditions: [HERE] }]));
+      }).then(function () {
+        var banner = document.getElementById('bcb-banner');
+        var rect = banner ? banner.getBoundingClientRect() : null;
+        truthy('banner DOM: ' + position + ' lands in its place', !!rect && lands[position](rect));
+        check('banner DOM: ' + position + ' is the only banner', document.querySelectorAll('#bcb-banner').length, 1);
+        check('banner DOM: ' + position + ' shows its text', bannerText(), 'POS');
+      });
+    }, Promise.resolve());
+  }
+
+  // A long rule name shrinks the banner to its smallest size and never widens
+  // the page; the tab title and the ribbon still hold all of it.
+  function longNameDom() {
+    // About 450 characters: wider than the window even at the smallest size.
+    var name = 'CONTOSO' + new Array(41).join(' PRODUCTION');
+    var widthBefore = document.documentElement.scrollWidth;
+    return useSettings(markedSettings({ position: 'bottom' }, [{ name: name, conditions: [HERE] }]))
+      .then(function () {
+        var banner = document.getElementById('bcb-banner');
+        check('long name: bottom banner shrinks to the smallest size', banner && banner.style.fontSize, '9px');
+        truthy('long name: bottom banner stays inside the window',
+          !!banner && banner.getBoundingClientRect().right <= window.innerWidth + 1);
+        check('long name: tab title holds the whole name', document.title, '[' + name + '] BCBuddy core');
+        check('long name: ribbon holds the whole name', brandText(), name);
+        truthy('long name: the page does not get wider (' + document.documentElement.scrollWidth + ' vs ' + widthBefore + ')',
+          document.documentElement.scrollWidth <= widthBefore);
+        return useSettings(markedSettings({ position: 'top-right' }, [{ name: name, conditions: [HERE] }]));
+      }).then(function () {
+        var banner = document.getElementById('bcb-banner');
+        check('long name: corner ribbon shrinks to the smallest size', banner && banner.style.fontSize, '9px');
+        truthy('long name: corner ribbon does not widen the page',
+          document.documentElement.scrollWidth <= widthBefore);
+      });
+  }
+
+  // 200 rules, a quarter of them RegEx, the only fitting one last. Matching
+  // must run once per address and per settings change, never on the poll or
+  // on a burst of DOM changes: that loop runs in every BC tab all day.
+  function manyRulesDom() {
+    var rules = [];
+    var i;
+    for (i = 0; i < 150; i++) {
+      rules.push({ name: 'C' + i, conditions: [{ field: 'url', op: 'contains', value: 'nowhere-' + i }] });
+    }
+    for (i = 0; i < 49; i++) {
+      rules.push({ name: 'R' + i, conditions: [{ field: 'url', op: 'regex', value: '^https://nowhere-' + i + '\\.example/' }] });
+    }
+    rules.push({ name: 'LAST', color: '#8764b8', conditions: [HERE] });
+
+    var calls = { find: 0, effective: 0 };
+    var findRule = BCBuddy.findRule;
+    var effectiveRules = BCBuddy.effectiveRules;
+    BCBuddy.findRule = function () { calls.find++; return findRule.apply(this, arguments); };
+    BCBuddy.effectiveRules = function () { calls.effective++; return effectiveRules.apply(this, arguments); };
+    function restore() {
+      BCBuddy.findRule = findRule;
+      BCBuddy.effectiveRules = effectiveRules;
+    }
+
+    return useSettings(markedSettings({}, rules)).then(function () {
+      check('many rules: rule 200 still fits', bannerText(), 'LAST');
+      check('many rules: matched once after the settings changed', [calls.find, calls.effective], [1, 1]);
+      document.body.appendChild(document.createElement('span')); // wakes the observer
+      return settle(2000);
+    }).then(function () {
+      check('many rules: polls and DOM changes on the same address match nothing again',
+        [calls.find, calls.effective], [1, 1]);
+      history.replaceState(null, '', BASE + '#bcb-many');
+      return settle(1000);
+    }).then(function () {
+      check('many rules: a new address is matched once more, with the same rules',
+        [calls.find, calls.effective], [2, 1]);
+      history.replaceState(null, '', BASE);
+      return settle(1000);
+    }).then(restore, function (err) {
+      restore();
+      history.replaceState(null, '', BASE);
+      throw err;
+    });
+  }
+
+  // Switching company or environment in BC changes the address without a
+  // reload, and without a popstate either: only the poll notices. The marking
+  // must follow, and disappear when no rule fits the new address.
+  function navigationDom() {
+    var settings = markedSettings({}, [
+      { name: 'NAVPROD', color: '#aa0000', conditions: [{ field: 'url', op: 'contains', value: 'bcb-env=prod' }] },
+      { name: 'NAVBASE', color: '#006600',
+        conditions: [HERE, { field: 'url', op: 'notContains', value: 'bcb-env=none' }] }
+    ]);
+    function frameColor() {
+      var frame = document.getElementById('bcb-frame');
+      return frame ? getComputedStyle(frame).borderTopColor : null;
+    }
+
+    return useSettings(settings).then(function () {
+      check('navigation: starts on the base rule', [bannerText(), frameColor()], ['NAVBASE', 'rgb(0, 102, 0)']);
+      history.replaceState(null, '', BASE + '#bcb-env=prod');
+      return settle(1000);
+    }).then(function () {
+      check('navigation: another environment recolours the open tab',
+        [bannerText(), frameColor(), document.title, brandText()],
+        ['NAVPROD', 'rgb(170, 0, 0)', '[NAVPROD] BCBuddy core', 'NAVPROD']);
+      check('navigation: still one frame and one banner',
+        [document.querySelectorAll('#bcb-frame').length, document.querySelectorAll('#bcb-banner').length], [1, 1]);
+      history.replaceState(null, '', BASE + '#bcb-env=none');
+      return settle(1000);
+    }).then(function () {
+      check('navigation: no rule fits, so every marking is gone',
+        [!!document.getElementById('bcb-frame'), !!document.getElementById('bcb-banner'),
+          !!document.querySelector('[data-bcb-ribbon]'), !!document.querySelector('link[data-bcb-favicon]')],
+        [false, false, false, false]);
+      check('navigation: title and ribbon text are BC\'s own again',
+        [document.title, brandText()], ['BCBuddy core', 'Dynamics 365 Business Central']);
+      // Browser Back fires popstate, which wakes a page that went idle.
+      history.replaceState(null, '', BASE);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return settle(300);
+    }).then(function () {
+      check('navigation: Back to a matching address marks it again', [bannerText(), frameColor()],
+        ['NAVBASE', 'rgb(0, 102, 0)']);
+    }, function (err) {
+      history.replaceState(null, '', BASE);
+      throw err;
+    });
+  }
+
+  function restoreSeed() {
+    history.replaceState(null, '', BASE);
+    return useSettings(JSON.parse(JSON.stringify(SEED)));
+  }
+
   /* ---- DOM effects from the content script ------------------------------- */
   setTimeout(function () {
     var brand = document.querySelector('[data-bcb-brand]');
@@ -2149,7 +2394,15 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
           results.push('FAIL  gear menu DOM: ' + err.message);
         }).then(shortcutsDom).then(null, function (err) {
           results.push('FAIL  shortcuts DOM: ' + err.message);
-        }).then(function () {
+        }).then(bannerPositionsDom).then(null, function (err) {
+          results.push('FAIL  banner DOM: ' + err.message);
+        }).then(longNameDom).then(null, function (err) {
+          results.push('FAIL  long name DOM: ' + err.message);
+        }).then(manyRulesDom).then(null, function (err) {
+          results.push('FAIL  many rules DOM: ' + err.message);
+        }).then(navigationDom).then(null, function (err) {
+          results.push('FAIL  navigation DOM: ' + err.message);
+        }).then(restoreSeed).then(function () {
           var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
           document.getElementById('results').textContent =
             results.join('\n') + '\n\nTOTAL: ' + results.length + ' checks, ' + failed.length + ' failed.';

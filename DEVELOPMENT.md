@@ -561,7 +561,10 @@ either; you upload it in the dashboard.
 The test pages run the real source in headless Chrome (or Edge): parsing URLs,
 matching rules, the tokens, building the options page, and what the
 content script actually does to the DOM (rewriting and colouring the ribbon, the
-frame, the corner ribbon, the title, the favicon). The dropdown sizer runs
+frame, every banner position, the title, the favicon). It also follows the page
+as it stays open: new settings, an address that changes without a reload, 200
+rules matched once per address rather than on every pass, and names that are
+long or hold an emoji. The dropdown sizer runs
 against a trimmed copy of BC's lookup markup and its caps; see
 [After a BC update](#after-a-bc-update) for what that copy cannot catch.
 

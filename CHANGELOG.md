@@ -23,6 +23,11 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   tab as soon as you open it, so the green ticks show right away which rules
   fit that tab.
 
+### Fixed
+
+- A rule on **Company** now fits a company with a `+` in its name, such as
+  `R+D Solutions`. BC Buddy used to read the `+` as a space.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.14 — 2026-10-17

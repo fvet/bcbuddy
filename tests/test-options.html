@@ -1011,7 +1011,7 @@ function assertOptions() {
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
     return assertNav().then(assertToolbarOpen).then(assertWebClient).then(assertLayouts).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
-      .then(assertExternalWrite).then(assertPolicyLock);
+      .then(assertExternalWrite).then(assertPolicyLock).then(assertEdgeCases);
   });
 }
 
@@ -1540,6 +1540,40 @@ function assertPolicyLock() {
     truthy('policy: removed policy unlocks the field', !field.readOnly && note.hidden);
     truthy('policy: and the clear button is back', !clear.hidden);
     check('policy: shared rules stay', document.querySelectorAll('#hostedList .rule').length, 1);
+  });
+}
+
+/* ---- a very long name, an emoji, and no rules at all -------------------- */
+function assertEdgeCases() {
+  // Measure on the panel that shows the rules, not on a hidden one.
+  document.querySelector('.nav__item[data-panel="environments"]').click();
+  var widthBefore = document.documentElement.scrollWidth;
+  var name = '🔴 CONTOSO' + new Array(41).join(' PRODUCTION');
+  var field = document.querySelector('#ruleList .rule .rule__name');
+  field.value = name;
+  field.dispatchEvent(new Event('input', { bubbles: true }));
+  // The parsed fields under Test URL show the company in full.
+  var testUrl = document.getElementById('testUrl');
+  testUrl.value = 'https://businesscentral.dynamics.com/Production/?company=' + encodeURIComponent(name);
+  testUrl.dispatchEvent(new Event('input'));
+  truthy('edge: rules hide the empty message', document.getElementById('emptyRules').hidden);
+
+  return wait(400).then(function () {
+    check('edge: a long name with an emoji is saved whole', STORE.settings.rules[0].name, name);
+    truthy('edge: a long rule name and company do not widen the page (' +
+      document.documentElement.scrollWidth + ' vs ' + widthBefore + ')',
+      document.documentElement.scrollWidth <= widthBefore);
+
+    // Everything gone, own and shared: the page says what to do next.
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.rules = [];
+    stored.hosted.rules = [];
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  }).then(function () {
+    check('edge: no rules at all shows the empty message',
+      [document.querySelectorAll('#ruleList .rule').length, document.getElementById('emptyRules').hidden],
+      [0, false]);
+    check('edge: and no shared heading either', document.getElementById('sharedHead').hidden, true);
   });
 }
 
