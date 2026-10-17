@@ -74,8 +74,8 @@ anything looks wrong while it is on, switch it off.
 
 ### Nothing is coloured
 
-Open **Environments** and click **From open tab** at the top. BC Buddy shows
-what it reads from your Business Central tab, and a green tick on each rule
+Open **Environments** with your Business Central tab still open. At the top,
+BC Buddy shows what it reads from that tab, and a green tick on each rule
 that fits. No tick anywhere means none of your rules fits that tab: compare
 the environment and company it shows with the conditions of your rule.
 

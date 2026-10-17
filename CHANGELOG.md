@@ -33,6 +33,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Changed
 
+- **Environments** now fills in **Test URL** from your open Business Central
+  tab as soon as you open it, so the green ticks show right away which rules
+  fit that tab.
 - A shared file that could not be loaded is tried again after 1, 2, 4 and 8
   hours, instead of only the next day.
 

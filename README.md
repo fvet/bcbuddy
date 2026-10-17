@@ -33,9 +33,9 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
    condition **Environment** **equals** `Production` and pick green. Add a
    second rule for `Sandbox` in red.
 
-Not sure what your environment is called? Click **From open tab** at the top
-of **Environments**: BC Buddy reads your open Business Central tab and shows
-its environment and company.
+Not sure what your environment is called? Open **Environments** while a
+Business Central tab is open: BC Buddy reads that tab and shows its
+environment and company at the top.
 
 ## 🖥️ Web client
 
@@ -246,9 +246,9 @@ leaves it.
 Code) opens a whole page, not a dropdown. A list with two short columns needs
 no extra width.
 
-**Nothing is coloured.** Click **From open tab** under **Environments**. A
-green tick shows which rules fit; no tick means none of your conditions fits
-that tab.
+**Nothing is coloured.** Open **Environments** with your Business Central tab
+still open. A green tick shows which rules fit that tab; no tick means none of
+your conditions fits it.
 
 **The bar at the top keeps its usual colour.** BC Buddy finds that bar by its
 text, *Dynamics 365 Business Central*. Where it reads differently, the frame,

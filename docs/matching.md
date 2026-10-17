@@ -29,9 +29,11 @@ one company in production its own colour, use **Environment** **equals**
 
 !!! tip "Check a rule before you rely on it"
 
-    At the top of **Environments**, click **From open tab**, or paste the
-    address of a Business Central page into **Test URL**. BC Buddy shows the
+    Open **Environments** while a Business Central tab is open: **Test URL**
+    at the top already holds that tab's address. BC Buddy shows the
     environment and company it reads, and a green tick on each rule that fits.
+    Opened another tab since? Click **From open tab**, or paste the address of
+    a Business Central page into **Test URL**.
 
 ## The first rule that fits wins
 
