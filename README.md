@@ -53,7 +53,6 @@ the settings page.
 | **Highlight the current line** | The line you are on in a journal or order stands out | On |
 | **Hide the notifications icon** | No bell in the top bar | On |
 | **Striped rows** | Every other row in a list a light grey | Off |
-| **Column width** | Narrower columns in lists, journals and order lines, so more of them fit on the screen | BC standard |
 | **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
 What each one does, in detail:

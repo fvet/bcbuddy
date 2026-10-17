@@ -16,7 +16,6 @@ page, so you can turn off whatever you do not like.
 | [Highlight the current line](#highlight-the-current-line) | The line you are on in a journal or order stands out | On |
 | [Hide the notifications icon](#hide-the-notifications-icon) | No bell at the top right | On |
 | [Striped rows](#striped-rows) | Every other row in a list a light grey | Off |
-| [Column width](#column-width) | More columns side by side in lists, journals and order lines | BC standard |
 | [Turn off animations](#turn-off-animations) | Pages and dialogs appear at once | Off |
 
 A change takes effect in Business Central straight away. The **Extension
@@ -130,22 +129,6 @@ line when you read across a wide list such as **General Ledger Entries**. The
 line you are on and the lines you select keep Business Central's own colours.
 
 This one is off until you switch it on.
-
-## Column width
-
-Makes every column narrower, in lists and in the lines you type in, such as a
-journal or the lines of an order, so more columns fit side by side before you
-have to scroll. The text keeps its size. Move the slider from **BC standard**
-to 90%, 80% or 75%. At 80% a general journal shows about six more columns.
-
-A column you made wider or narrower yourself, by dragging its edge, gets
-narrower by the same share. A column you drag while the slider is set stays
-where you let it go.
-
-A list or journal that is already open when you move the slider keeps its
-columns until you open the next page.
-
-It starts at **BC standard**, where Business Central keeps its own widths.
 
 ## Turn off animations
 

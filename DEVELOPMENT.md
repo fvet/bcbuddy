@@ -69,11 +69,6 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `stripeRows.enabled` — every other list row a see-through grey, off by
   default. Keyed on BC's `aria-rowindex`, since BC reuses its `<tr>`
   elements while scrolling.
-- `columns.width` — slider steps 1–4 (`COLUMN_WIDTHS`: BC standard, 90%,
-  80%, 75%), stored as the step. Columns narrow because BC sizes them in
-  `ex` of the `<th>` font; `content.css` has a rule per percentage, keyed on
-  the `data-bcb-columns` attribute on `<html>`, set once like the row tint.
-  Lists and editable grids alike; the text keeps its size.
 - `dropdown.width` and `dropdown.height` — slider steps 1–5, stored as the step
   and never as pixels. Step 1 is BC standard; width defaults to 5, height to 1.
   `normalize()` rounds and clamps them, so a hand-edited or garbled value can

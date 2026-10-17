@@ -152,8 +152,6 @@
   "highlightRowIntro": { "message": "Kleurt de regel waarop je staat lichtjes in bewerkbare lijsten, zoals verkoopregels en dagboeken." },
   "stripeRowsToggle": { "message": "Gestreepte rijen" },
   "stripeRowsIntro": { "message": "Geeft om de andere rij in een lijst een lichtgrijze tint, zodat je in een brede lijst op de juiste regel blijft." },
-  "columnWidthHeading": { "message": "Kolombreedte" },
-  "columnWidthIntro": { "message": "Maakt elke kolom in lijsten, dagboeken en de regels van een order smaller, zodat er meer kolommen naast elkaar passen. De tekst houdt zijn grootte." },
   "noAnimationsToggle": { "message": "Animaties uitschakelen" },
   "copyValuesToggle": { "message": "Waarden kopiëren" },
   "copyValuesIntro": { "message": "Laat de muis rusten op een waarde in een lijst of feitenblok, of op een link op een kaart, en klik op het icoon om ze te kopiëren, zoals ze getoond wordt." },

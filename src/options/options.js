@@ -57,7 +57,6 @@
     page.el.pinActionBarEnabled.checked = page.state.settings.pinActionBar.enabled;
     page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
     page.el.stripeRowsEnabled.checked = page.state.settings.stripeRows.enabled;
-    page.renderColumns();
     page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
     page.renderDropdown();
@@ -70,14 +69,6 @@
     page.el.dropdownHeight.value = dropdown.height;
     page.el.dropdownWidthValue.textContent = page.dropdownLabel(Dropdowns.WIDTH_FACTORS, dropdown.width);
     page.el.dropdownHeightValue.textContent = page.dropdownLabel(Dropdowns.HEIGHT_FACTORS, dropdown.height);
-  };
-
-  page.renderColumns = function () {
-    var width = page.state.settings.columns.width;
-    page.el.columnWidth.value = width;
-    page.el.columnWidthValue.textContent = width <= 1
-      ? t('dropdownStandard')
-      : BCBuddy.COLUMN_WIDTHS[width - 1] + '%';
   };
 
   /** A step says how much bigger than BC standard it is, rather than pixels. */
@@ -241,7 +232,7 @@
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
-      'stripeRowsEnabled', 'columnWidth', 'columnWidthValue',
+      'stripeRowsEnabled',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
@@ -337,12 +328,6 @@
 
     el.stripeRowsEnabled.addEventListener('change', function () {
       state.settings.stripeRows.enabled = el.stripeRowsEnabled.checked;
-      page.save();
-    });
-
-    el.columnWidth.addEventListener('input', function () {
-      state.settings.columns.width = Number(el.columnWidth.value);
-      page.renderColumns();
       page.save();
     });
 

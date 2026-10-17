@@ -84,10 +84,6 @@
   // setting needs migrating when BC changes its own size.
   var DROPDOWN_STEPS = 5;
 
-  // Column width per slider step, as a share of BC's own: BC standard, 90%,
-  // 80%, 75%. content.css has a rule per step, keyed on the percentage.
-  var COLUMN_WIDTHS = [100, 90, 80, 75];
-
   function step(value, fallback) {
     return Math.round(num(value, fallback, 1, DROPDOWN_STEPS));
   }
@@ -300,7 +296,7 @@
   // `webClient`, shaped exactly as they are stored. The master switch does not:
   // it belongs to whoever runs the extension.
   var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'highlightRow',
-    'stripeRows', 'columns', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts'];
+    'stripeRows', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
@@ -308,7 +304,6 @@
     var dropdown = s.dropdown || {};
     var highlightRow = s.highlightRow || {};
     var stripeRows = s.stripeRows || {};
-    var columns = s.columns || {};
     var noAnimations = s.noAnimations || {};
     var hideNotifications = s.hideNotifications || {};
     var copyValues = s.copyValues || {};
@@ -330,13 +325,9 @@
       highlightRow: {
         enabled: bool(highlightRow.enabled, true)
       },
-      // Off until asked for: both change how every list looks.
+      // Off until asked for: it changes how every list looks.
       stripeRows: {
         enabled: bool(stripeRows.enabled, false)
-      },
-      // Column width is a slider position too; step 1 is BC standard.
-      columns: {
-        width: Math.round(num(columns.width, 1, 1, COLUMN_WIDTHS.length))
       },
       // Off until asked for: it changes how BC feels, not just how it looks.
       noAnimations: {
@@ -448,16 +439,6 @@
   function stripeRowsOn(settings) {
     return !!(settings && settings.enabled &&
       settings.stripeRows && settings.stripeRows.enabled);
-  }
-
-  /**
-   * The column width in percent of BC's own, or 0 where BC keeps its own:
-   * at BC standard and when the extension is off.
-   */
-  function columnWidth(settings) {
-    if (!settings || !settings.enabled || !settings.columns) return 0;
-    var percent = COLUMN_WIDTHS[settings.columns.width - 1] || 100;
-    return percent < 100 ? percent : 0;
   }
 
   /** Turning animations off follows the master switch as well. */
@@ -776,8 +757,6 @@
   BCBuddy.pinActionBarOn = pinActionBarOn;
   BCBuddy.highlightRowOn = highlightRowOn;
   BCBuddy.stripeRowsOn = stripeRowsOn;
-  BCBuddy.columnWidth = columnWidth;
-  BCBuddy.COLUMN_WIDTHS = COLUMN_WIDTHS;
   BCBuddy.noAnimationsOn = noAnimationsOn;
   BCBuddy.hideNotificationsOn = hideNotificationsOn;
   BCBuddy.copyValuesOn = copyValuesOn;

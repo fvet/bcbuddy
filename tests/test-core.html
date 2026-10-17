@@ -389,26 +389,12 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('current row: off when the extension is off',
     BCBuddy.highlightRowOn(BCBuddy.normalize({ enabled: false, highlightRow: { enabled: true } })), false);
 
-  // striped rows and the column width likewise, both off by default
+  // striped rows likewise, off by default
   check('stripes: off by default', BCBuddy.stripeRowsOn(BCBuddy.normalize(null)), false);
   check('stripes: on with its own toggle',
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ stripeRows: { enabled: true } })), true);
   check('stripes: off when the extension is off',
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ enabled: false, stripeRows: { enabled: true } })), false);
-  check('column width: BC standard by default',
-    [BCBuddy.normalize(null).columns, BCBuddy.columnWidth(BCBuddy.normalize(null))], [{ width: 1 }, 0]);
-  check('column width: each step a share of BC\'s own',
-    [1, 2, 3, 4].map(function (w) { return BCBuddy.columnWidth(BCBuddy.normalize({ columns: { width: w } })); }),
-    [0, 90, 80, 75]);
-  check('column width: garbled or out of range lands on a step',
-    [BCBuddy.normalize({ columns: { width: 9 } }).columns.width, BCBuddy.normalize({ columns: { width: 'x' } }).columns.width,
-      BCBuddy.normalize({ columns: { width: 2.4 } }).columns.width, BCBuddy.normalize({ columns: { width: -3 } }).columns.width],
-    [4, 1, 2, 1]);
-  check('column width: BC\'s own when the extension is off',
-    BCBuddy.columnWidth(BCBuddy.normalize({ enabled: false, columns: { width: 3 } })), 0);
-  check('column width: no older settings left', ['compact', 'narrowColumns'].filter(function (k) {
-    return k in BCBuddy.normalize(null);
-  }), []);
   // and so does the keyboard shortcuts icon, which starts on
   check('shortcuts: on by default', BCBuddy.shortcutsOn(BCBuddy.normalize(null)), true);
   check('shortcuts: off with its own toggle',
@@ -533,37 +519,23 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     host.remove();
   })();
 
-  // striped rows and column width: the rules in content.css against a BC28
-  // list and journal - header tables, and data tables with their hidden copy
-  // of the header. BC reuses <tr> elements, so the stripe follows
-  // aria-rowindex, not the element's place: here the current row 1 sits on
-  // top of rows 85-87. BC's header font is 12px; the test pins it there.
+  // striped rows: the rules in content.css against a BC28 list and journal.
+  // BC reuses <tr> elements, so the stripe follows aria-rowindex, not the
+  // element's place: here the current row 1 sits on top of rows 85-87.
   (function () {
-    function table(cls, rows, cell) {
-      return '<table class="ms-nav-grid ' + cls + '" style="table-layout: fixed; width: auto">' +
-        '<thead><tr><th style="width: 20ex; font-size: 12px">' +
-        '<div class="columncaption"><a>No.</a></div></th></tr></thead>' +
-        (rows ? '<tbody>' + rows.map(function (i) {
-          return '<tr aria-rowindex="' + i + '"><td>' + cell(i) + '</td></tr>';
-        }).join('') + '</tbody>' : '') + '</table>';
+    function table(cls, rows) {
+      return '<table class="ms-nav-grid ' + cls + ' ms-nav-grid-data-table"><tbody>' +
+        rows.map(function (i) { return '<tr aria-rowindex="' + i + '"><td>' + i + '</td></tr>'; }).join('') +
+        '</tbody></table>';
     }
-    function value(i) { return '<span class="value">' + i + '</span>'; }
-    function input(i) { return '<input value="' + i + '" style="box-sizing: border-box; width: 100%">'; }
     var host = document.createElement('div');
-    host.innerHTML =
-      table('ms-nav-grid-view ms-nav-grid-header-table') +
-      table('ms-nav-grid-view ms-nav-grid-data-table ms-nav-grid-header-hide', [1, 85, 86, 87], value) +
-      table('ms-nav-grid-edit ms-nav-grid-header-table') +
-      table('ms-nav-grid-edit ms-nav-grid-data-table ms-nav-grid-header-hide', [1, 2], input);
+    host.innerHTML = table('ms-nav-grid-view', [1, 85, 86, 87]) + table('ms-nav-grid-edit', [1, 2]);
     document.body.appendChild(host);
-    var tables = host.querySelectorAll('table');
-    var view = tables[1];
-    var edit = tables[3];
+    var view = host.querySelectorAll('table')[0];
+    var edit = host.querySelectorAll('table')[1];
     function striped(tbl, row) {
       return getComputedStyle(tbl.tBodies[0].rows[row].cells[0]).backgroundColor !== 'rgba(0, 0, 0, 0)';
     }
-    function px(el, prop) { return parseFloat(getComputedStyle(el)[prop]); }
-    function width(tbl) { return tbl.tHead.rows[0].cells[0].getBoundingClientRect().width; }
     var root = document.documentElement;
     var off = [striped(view, 0), striped(view, 1)];
     root.setAttribute('data-bcb-stripes', '');
@@ -572,32 +544,6 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     check('stripes CSS: nothing while the switch is off', off, [false, false]);
     check('stripes CSS: odd rows by their own number, not their place', on.slice(0, 4), [true, true, false, true]);
     check('stripes CSS: lists you type in are striped too', on.slice(4), [true, false]);
-
-    var before = [0, 1, 2, 3].map(function (i) { return width(tables[i]); });
-    var inputPad = px(edit.querySelector('input'), 'paddingLeft');
-    var valuePad = px(view.querySelector('.value'), 'paddingLeft');
-    var fonts = [getComputedStyle(view.querySelector('.value')).fontSize, getComputedStyle(edit.querySelector('input')).fontSize];
-    var seen = {};
-    ['90', '80', '75'].forEach(function (percent) {
-      root.setAttribute('data-bcb-columns', percent);
-      seen[percent] = {
-        ratio: [0, 1, 2, 3].map(function (i) { return Math.round(width(tables[i]) / before[i] * 100); }),
-        caption: getComputedStyle(tables[0].querySelector('.columncaption > a')).fontSize,
-        fonts: [getComputedStyle(view.querySelector('.value')).fontSize, getComputedStyle(edit.querySelector('input')).fontSize],
-        pads: [px(edit.querySelector('input'), 'paddingLeft'), px(view.querySelector('.value'), 'paddingLeft')]
-      };
-    });
-    root.removeAttribute('data-bcb-columns');
-    function near(list, target) { return list.every(function (r) { return Math.abs(r - target) <= 2; }); }
-    check('column width CSS: every column the chosen share, lists and journals, header and data alike',
-      [near(seen['90'].ratio, 90), near(seen['80'].ratio, 80), near(seen['75'].ratio, 75)], [true, true, true]);
-    check('column width CSS: titles keep BC\'s size', [seen['90'].caption, seen['75'].caption], ['12px', '12px']);
-    check('column width CSS: the text in the cells keeps its size', [seen['80'].fonts, seen['75'].fonts], [fonts, fonts]);
-    check('column width CSS: 5px before a value you type, read-only lists left alone',
-      seen['80'].pads, [5, valuePad]);
-    check('column width CSS: BC\'s own again at BC standard',
-      [[0, 1, 2, 3].map(function (i) { return width(tables[i]); }), px(edit.querySelector('input'), 'paddingLeft')],
-      [before, inputPad]);
     host.remove();
   })();
 

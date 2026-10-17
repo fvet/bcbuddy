@@ -16,10 +16,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Striped rows**: every other row in a list gets a light grey, so you stay
   on the right line in a wide list. Off by default; switch it on under
   **Web client** in the options.
-- **Column width**: make every column in lists, journals and the lines of an
-  order narrower, down to 75%, so more columns fit on your screen. The text
-  keeps its size. It starts at BC standard; move the slider under
-  **Web client** in the options.
 - **Keyboard shortcuts**: a keyboard icon in the top bar of Business Central
   shows the shortcuts that work where you are: the page's own actions, such
   as Post (F9), what works in the lines, the list, the card or the date field

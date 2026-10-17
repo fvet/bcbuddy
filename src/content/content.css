@@ -160,43 +160,6 @@ html[data-bcb-stripes] table.ms-nav-grid-data-table > tbody > tr:is(
   background-color: var(--bcb-stripe);
 }
 
-/* Column width. BC sets each column's width in ex on its <th>, and an ex
-   scales with that <th>'s font size, 12px in BC. A smaller font there, in
-   the visible header and in the data table's hidden copy of it, narrows
-   every column by the same share and keeps the two aligned: 10.8px is 90%,
-   9.6px 80%, 9px 75%. Nothing you read gets smaller: the header's own
-   content goes back to BC's 12px, and the cells are not touched, except
-   that the room before a value in an editable grid goes from 6px to 5px.
-   A column someone dragged to a width of their own is stored in ex as well,
-   so it narrows by the same share. BC measures the ex it sees while you
-   drag, so a column dragged with this on lands where you let go.
-   BC's grids use table-layout: fixed, and Chrome does not work out such a
-   table's column widths again when only the font changes. A list drawn after
-   the attribute is set gets the new widths; a list already open when the
-   slider moves keeps its columns until BC draws it again, on the next page
-   you open. Forcing a new layout would mean inline styles on BC's tables. */
-html[data-bcb-columns="90"] table.ms-nav-grid > thead > tr > th {
-  font-size: 10.8px !important;
-}
-
-html[data-bcb-columns="80"] table.ms-nav-grid > thead > tr > th {
-  font-size: 9.6px !important;
-}
-
-html[data-bcb-columns="75"] table.ms-nav-grid > thead > tr > th {
-  font-size: 9px !important;
-}
-
-html[data-bcb-columns] table.ms-nav-grid > thead > tr > th > div {
-  font-size: 12px !important;
-}
-
-html[data-bcb-columns] table.ms-nav-grid-edit.ms-nav-grid-data-table > tbody > tr > td > input,
-html[data-bcb-columns] table.ms-nav-grid-edit.ms-nav-grid-data-table > tbody > tr > td > select,
-html[data-bcb-columns] table.ms-nav-grid-edit.ms-nav-grid-data-table > tbody > tr > td > .value {
-  padding-left: 5px !important;
-}
-
 /* No animations. BC does not honour prefers-reduced-motion, so these rules
    do it instead. Shorten rather than remove: with `transition: none` the
    transitionend and animationend events never fire, and BC may wait for them

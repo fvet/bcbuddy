@@ -8,7 +8,7 @@ An easier web client, straight away. No setup needed:
 - Week numbers in the calendar of a date field.
 - A keyboard icon that shows the shortcuts for the page and field you are in.
 - The line you are on in a journal or order stands out.
-- If you like, striped rows, and narrower columns so more of a list or journal fits on the screen.
+- If you like, striped rows, so you stay on the right line in a wide list.
 - No notifications bell, and if you like, no animations.
 
 Each one has its own switch in the options.
