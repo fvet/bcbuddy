@@ -69,6 +69,8 @@
   "conditionValuePlaceholder": { "message": "p. ex. Sandbox, CRONUS BE ou une URL complète" },
   "conditionMatches": { "message": "Correspond" },
   "conditionNoMatch": { "message": "Ne correspond pas" },
+  "regexInvalid": { "message": "Cette RegEx n'est pas valide : la condition ne correspond jamais." },
+  "regexTooHeavy": { "message": "Cette RegEx est trop complexe pour être vérifiée sans risque sur cette URL : la condition ne correspond pas. Commencez-la par ^ ou utilisez moins de *, + et ?." },
   "fieldUrl": { "message": "URL" },
   "fieldEnvironment": { "message": "Environnement" },
   "fieldCompany": { "message": "Société" },

@@ -191,6 +191,20 @@
           var hasValue = cond && String(cond.value || '').trim() !== '';
           var condMatches = hasValue && BCBuddy.testCondition(cond, ctx);
           var condLabel = hasValue ? t(condMatches ? 'conditionMatches' : 'conditionNoMatch') : '';
+          // A RegEx that cannot run never matches; say why, or it looks like a
+          // pattern that is merely wrong for this URL.
+          var problem = hasValue && cond.op === 'regex'
+            ? BCBuddy.regexProblem(String(cond.value).trim(), String(ctx[cond.field] || '').length)
+            : '';
+          if (problem) condLabel = t(problem === 'invalid' ? 'regexInvalid' : 'regexTooHeavy');
+          var valueInput = row.querySelector('[data-cond="value"]');
+          if (problem) {
+            valueInput.setAttribute('aria-invalid', 'true');
+            valueInput.title = condLabel;
+          } else if (valueInput.hasAttribute('aria-invalid')) {
+            valueInput.removeAttribute('aria-invalid');
+            valueInput.removeAttribute('title');
+          }
           dot.className = 'dot-indicator ' +
             (!hasValue ? '' : (condMatches ? 'dot-indicator--on' : 'dot-indicator--off'));
           dot.title = condLabel;

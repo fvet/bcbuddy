@@ -160,6 +160,23 @@
     return rulesCache.rules;
   }
 
+  /**
+   * The rule for this page. Matching only looks at the URL, and state.ctx is
+   * replaced whenever that changes, so the answer is kept until the URL or the
+   * rules change: a RegEx condition runs once per page, not on every pass.
+   */
+  var matchCache = { rules: null, ctx: null, rule: null };
+
+  function matchingRule(settings) {
+    var rules = effectiveRules(settings);
+    if (matchCache.rules !== rules || matchCache.ctx !== state.ctx) {
+      matchCache.rules = rules;
+      matchCache.ctx = state.ctx;
+      matchCache.rule = BCBuddy.findRule(rules, state.ctx);
+    }
+    return matchCache.rule;
+  }
+
   function start() {
     // apply() decides whether to watch; start idle so a no-op page never arms
     // the observer and poll for a single frame.
@@ -262,9 +279,7 @@
     // Rules apply on every site. From the URL alone you cannot tell that a
     // custom host runs Business Central, so filtering on the BC host would
     // shut out on-prem installs.
-    var rule = settings.enabled
-      ? BCBuddy.findRule(effectiveRules(settings), state.ctx)
-      : null;
+    var rule = settings.enabled ? matchingRule(settings) : null;
 
     var changed = !sameRule(rule, state.rule);
     if (changed) {

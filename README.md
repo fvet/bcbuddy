@@ -100,7 +100,8 @@ https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbo
 ```
 
 Ways to compare: contains, equals, starts with, ends with, does not contain,
-RegEx.
+RegEx. A RegEx that is not valid, or so complex that checking it could slow
+the page down, never matches; the condition then says why.
 
 Business Central on your own server (on-premises) is recognised too: the
 server instance sits where the environment would be (`/BC240/?company=...`)

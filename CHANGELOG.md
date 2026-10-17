@@ -23,6 +23,11 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - A shared file that could not be loaded is tried again every hour, instead of
   the next day.
 
+### Fixed
+
+- A **RegEx** condition can no longer freeze your browser. A pattern too
+  complex to check safely does not match, and the condition says why.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.13 — 2026-10-16

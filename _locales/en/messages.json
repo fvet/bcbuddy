@@ -180,6 +180,14 @@
     "message": "Does not match",
     "description": "Choice in a condition: the rule applies when the condition is false."
   },
+  "regexInvalid": {
+    "message": "This RegEx is not valid, so the condition never matches.",
+    "description": "Shown on a condition whose regular expression has a syntax error."
+  },
+  "regexTooHeavy": {
+    "message": "This RegEx is too complex to check safely on this URL, so the condition does not match. Start it with ^, or use fewer *, + and ?.",
+    "description": "Shown on a condition whose regular expression could freeze the page. ^, *, + and ? are RegEx symbols and stay as they are."
+  },
   "fieldUrl": {
     "message": "Url",
     "description": "Part of the address a condition looks at. Stays URL in most languages."

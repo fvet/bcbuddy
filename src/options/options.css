@@ -492,6 +492,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .condition { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 .condition select { flex: 0 1 150px; }
 .condition input { flex: 1 1 220px; }
+.condition input[aria-invalid="true"] { border-color: var(--danger); }
 
 .dot-indicator {
   width: 9px; height: 9px; border-radius: 50%;

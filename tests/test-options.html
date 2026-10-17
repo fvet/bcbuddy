@@ -778,6 +778,30 @@ function assertOptions() {
 
   setCondition('url', 'intranet.local');
   check('options: condition updated', first.querySelector('[data-cond="value"]').value, 'intranet.local');
+
+  // a RegEx that cannot run says why, instead of looking like a plain mismatch
+  var condOp = first.querySelector('select[data-cond="op"]');
+  var opBefore = condOp.value;
+  condOp.value = 'regex';
+  condOp.dispatchEvent(new Event('change', { bubbles: true }));
+  setCondition('environment', '(a+)+');
+  check('options: too heavy RegEx marks the field',
+    condValue.getAttribute('aria-invalid'), 'true');
+  check('options: too heavy RegEx says why',
+    first.querySelector('[data-cond-match]').getAttribute('aria-label'),
+    chrome.i18n.getMessage('regexTooHeavy'));
+  setCondition('environment', '[');
+  check('options: invalid RegEx says why',
+    condValue.title, chrome.i18n.getMessage('regexInvalid'));
+  setCondition('environment', '^sand');
+  check('options: a RegEx that runs clears the mark',
+    condValue.getAttribute('aria-invalid'), null);
+  check('options: and matches as before',
+    first.querySelector('[data-cond-match]').getAttribute('aria-label'),
+    chrome.i18n.getMessage('conditionMatches'));
+  condOp.value = opBefore;
+  condOp.dispatchEvent(new Event('change', { bubbles: true }));
+
   setCondition('environment', 'Sandbox');
 
   check('options: layout preview shows BC page',

@@ -69,6 +69,8 @@
   "conditionValuePlaceholder": { "message": "bv. Sandbox, CRONUS BE of een volledige URL" },
   "conditionMatches": { "message": "Voldoet" },
   "conditionNoMatch": { "message": "Voldoet niet" },
+  "regexInvalid": { "message": "Deze RegEx is ongeldig, dus de voorwaarde voldoet nooit." },
+  "regexTooHeavy": { "message": "Deze RegEx is te zwaar om veilig te controleren op deze URL, dus de voorwaarde voldoet niet. Begin hem met ^, of gebruik minder *, + en ?." },
   "fieldUrl": { "message": "Url" },
   "fieldEnvironment": { "message": "Omgeving" },
   "fieldCompany": { "message": "Bedrijf" },
