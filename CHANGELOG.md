@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.14 — 2026-10-17
+
 ### Added
 
 - **Striped rows**: every other row in a list gets a light grey, so you stay
@@ -43,8 +47,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 - A **RegEx** condition can no longer freeze your browser. A pattern too
   complex to check safely does not match, and the condition says why.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.13 — 2026-10-16
 
