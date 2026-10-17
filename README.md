@@ -156,7 +156,7 @@ place. The **X** next to *Shared rules* stops using the file.
 
 **Publishing a file:**
 
-1. Click **Export**. That saves `bc-buddy.json`, with your rules, layouts and
+1. Click **Export to file**. That saves `bc-buddy.json`, with your rules, layouts and
    **Web client** settings.
 2. Put it somewhere everyone can open it over `https://`, such as a repository.
    An ordinary `github.com/.../blob/...` link works. Only use an address you
@@ -171,7 +171,7 @@ file, so a colleague who switches something off keeps it off. To share only
 some of them, delete the others from the `webClient` part of the file; without
 that part, everyone keeps their own.
 
-**Import / export > Choose file** loads a file once: rules you already have are
+**Import / export > Import from file** loads a file once: rules you already have are
 overwritten, new rules are added, rules that are not in the file stay, and the
 **Web client** settings in the file replace yours.
 

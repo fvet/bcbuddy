@@ -241,24 +241,28 @@
       <div class="section-head">
         <h2 data-i18n="importExportHeading">Import / export</h2>
       </div>
-      <!-- Same list as the Web client panel; the full explanation is the
-           row's tooltip. -->
-      <div class="card card--list">
-        <div class="setting" data-i18n-title="importIntro">
-          <span class="setting__text">
-            <span class="setting__name" data-i18n="importHeading">Import</span>
-            <span class="sync-status" id="importStatus"></span>
-          </span>
-          <input type="file" id="importFile" accept="application/json,.json" hidden>
-          <button type="button" class="btn" id="importFileBtn" data-i18n="chooseFile">Choose file...</button>
+      <p class="muted small" data-i18n="importExportIntro">Move your own rules, layouts and Web client settings in one file.</p>
+
+      <!-- Two equal buttons; what an import does is on the page, not in a
+           tooltip, because it overwrites things. -->
+      <div class="card">
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <div class="transfer">
+          <button type="button" class="btn btn--tile" id="importFileBtn">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 10.5V2M4.8 5.2 8 2l3.2 3.2M2.5 10.5v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2"/>
+            </svg>
+            <span data-i18n="importButton">Import from file...</span>
+          </button>
+          <button type="button" class="btn btn--tile" id="exportDownload">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 2v8.5M4.8 7.3 8 10.5l3.2-3.2M2.5 10.5v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2"/>
+            </svg>
+            <span data-i18n="exportButton">Export to file</span>
+          </button>
         </div>
-        <div class="setting" data-i18n-title="exportIntro">
-          <span class="setting__text">
-            <span class="setting__name" data-i18n="exportHeading">Export</span>
-            <span class="sync-status" id="exportStatus"></span>
-          </span>
-          <button type="button" class="btn" id="exportDownload" data-i18n="exportButton">Export</button>
-        </div>
+        <p class="note" data-i18n="importNote">Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client settings in the file replace yours. The shared configuration is not touched.</p>
+        <p class="sync-status" id="transferStatus"></p>
       </div>
     </section>
 

@@ -134,7 +134,7 @@
             page.applyImport(String(reader.result), file.name);
             el.importFile.value = '';
           };
-          reader.onerror = function () { page.setImportStatus(t('importReadFailed'), 'error'); };
+          reader.onerror = function () { page.setTransferStatus(t('importReadFailed'), 'error'); };
           reader.readAsText(file);
         });
 
@@ -149,7 +149,7 @@
           a.click();
           a.remove();
           setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
-          page.setExportStatus(t('exportDone', data.rules.length), 'ok');
+          page.setTransferStatus(t('exportDone', data.rules.length), 'ok');
         });
       };
 
@@ -158,7 +158,7 @@
         try {
           parsed = BCBuddy.parseImport(text);
         } catch (e) {
-          page.setImportStatus(t('importFailed', e.message), 'error');
+          page.setTransferStatus(t('importFailed', e.message), 'error');
           return;
         }
         // Layouts first, so rules can point at something that already exists.
@@ -182,7 +182,7 @@
         var layouts = page.counts([[layoutStats.overwritten, 'importOverwritten'],
           [layoutStats.added, 'importAdded']]);
 
-        page.setImportStatus(
+        page.setTransferStatus(
           t('importDone', [parsed.rules.length, page.shorten(source), rules || t('importNone')]) +
           (layouts ? t('importLayouts', [layouts]) : '') +
           (webClientChanged ? t('importWebClient', [webClientChanged]) : ''), 'ok');

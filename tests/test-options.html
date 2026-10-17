@@ -662,14 +662,19 @@ function assertOptions() {
   truthy('options: active config is not dimmed',
     !document.getElementById('hostedUrl').closest('.field').classList.contains('field--inactive'));
   // one primary button in the Settings panel: Synchronise. Import and export
-  // are rows in a single list with an ordinary button each.
+  // are two ordinary buttons side by side, with the import note in view.
   check('options: Settings has one primary button',
     Array.prototype.map.call(
       document.querySelectorAll('.panel[data-panel="settings"] .btn--primary'),
       function (button) { return button.id; }), ['syncNow']);
-  check('options: import and export share one list',
-    document.getElementById('importFileBtn').closest('.card--list'),
-    document.getElementById('exportDownload').closest('.card--list'));
+  var transfer = document.getElementById('importFileBtn').closest('.transfer');
+  check('options: import and export side by side',
+    transfer && transfer.contains(document.getElementById('exportDownload')), true);
+  check('options: import note is on the page, not a tooltip',
+    transfer.closest('.card').querySelector('.note').textContent,
+    chrome.i18n.getMessage('importNote'));
+  check('options: one status line for import and export',
+    transfer.closest('.card').querySelectorAll('.sync-status').length, 1);
   // The test URL heads the panel like Shared configuration heads Settings;
   // then Rules before Layouts, because that is where everyone starts
   var envHeads = Array.prototype.map.call(
@@ -723,7 +728,7 @@ function assertOptions() {
   check('options: no name on export', document.getElementById('exportName'), null);
   check('options: no clipboard button', document.getElementById('exportCopy'), null);
   check('options: export button renamed',
-    document.getElementById('exportDownload').textContent, chrome.i18n.getMessage('exportButton'));
+    document.getElementById('exportDownload').textContent.trim(), chrome.i18n.getMessage('exportButton'));
   truthy('options: file picker present', !!document.getElementById('importFileBtn'));
 
   // display lives only at layout level now
@@ -1470,7 +1475,7 @@ function importFile() {
         .querySelector('input[type="color"][data-path="color"]').value, '#8764b8');
     check('import: overwritten rule got id from file',
       STORE.settings.rules[0].id, 'imp-1');
-    var status = document.getElementById('importStatus').textContent;
+    var status = document.getElementById('transferStatus').textContent;
     check('import: status mentions overwritten and added',
       status.indexOf(chrome.i18n.getMessage('importOverwritten', ['1'])) !== -1 &&
       status.indexOf(chrome.i18n.getMessage('importAdded', ['1'])) !== -1 ? 'ok' : status, 'ok');

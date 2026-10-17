@@ -216,9 +216,6 @@ section { display: flex; flex-direction: column; gap: 10px; }
 label.setting { cursor: pointer; }
 .setting + .setting { border-top: 1px solid var(--border); }
 .setting--wrap { flex-wrap: wrap; }
-/* A status line inside a row (import, export) takes no room while empty. */
-.setting .sync-status { min-height: 0; margin-top: 2px; }
-.setting .sync-status:empty { display: none; }
 .setting__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .setting__name { font-weight: 600; }
 .setting__sliders { display: flex; flex-wrap: wrap; gap: 8px 20px; }
@@ -354,6 +351,38 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
    its grey background and the dark text becomes unreadable. */
 .btn--primary:hover { background: var(--accent); color: var(--accent-text); filter: brightness(1.08); }
 .btn--small { align-self: flex-start; padding: 5px 10px; font-size: 12.5px; }
+/* A wide button with an icon, for an action that is the whole card. */
+.btn--tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 13px;
+  font-size: 13.5px;
+  white-space: normal;
+}
+.btn__icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Import and export side by side; stacked when the page is narrow. */
+.transfer { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
 
 .icon-btn {
   background: transparent;

@@ -226,8 +226,8 @@
     [
       'status', 'globalEnabled', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
       'addRule', 'hostedUrl', 'syncNow',
-      'hostedStatus', 'hostedList', 'importFile', 'importFileBtn', 'importStatus',
-      'exportDownload', 'exportStatus',
+      'hostedStatus', 'hostedList', 'importFile', 'importFileBtn',
+      'exportDownload', 'transferStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',

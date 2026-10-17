@@ -90,12 +90,12 @@
   },
   "unknownDate": { "message": "unknown" },
   "importExportHeading": { "message": "Import / export" },
-  "importHeading": { "message": "Import" },
-  "importIntro": {
-    "message": "From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. Web client settings in the file replace yours. This does not touch the shared configuration.",
-    "description": "Tooltip on the Import row in the Settings panel."
+  "importExportIntro": { "message": "Move your own rules, layouts and Web client settings in one file." },
+  "importButton": { "message": "Import from file..." },
+  "importNote": {
+    "message": "Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client settings in the file replace yours. The shared configuration is not touched.",
+    "description": "Note under the Import and Export buttons in the Settings panel."
   },
-  "chooseFile": { "message": "Choose file..." },
   "importFailed": {
     "message": "Failed: $1",
     "description": "$1 is the reason the import failed."
@@ -121,12 +121,7 @@
     "message": "nothing changed",
     "description": "Stands in for the summary in importDone when the file changed nothing."
   },
-  "exportHeading": { "message": "Export" },
-  "exportIntro": {
-    "message": "Exports your own rules and layouts, plus your Web client settings, in the format this extension also reads.",
-    "description": "Tooltip on the Export row in the Settings panel."
-  },
-  "exportButton": { "message": "Export" },
+  "exportButton": { "message": "Export to file" },
   "exportDone": {
     "message": "Exported $1 rule(s) to bc-buddy.json.",
     "description": "$1 is a number of rules. bc-buddy.json is a file name and stays as it is."

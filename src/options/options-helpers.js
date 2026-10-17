@@ -143,14 +143,10 @@
         el.hostedStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
       };
 
-      page.setImportStatus = function (text, kind) {
-        el.importStatus.textContent = text;
-        el.importStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
-      };
-
-      page.setExportStatus = function (text, kind) {
-        el.exportStatus.textContent = text;
-        el.exportStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
+      // One line under both buttons: the last import or export speaks.
+      page.setTransferStatus = function (text, kind) {
+        el.transferStatus.textContent = text;
+        el.transferStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
       };
     }
   };

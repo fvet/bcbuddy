@@ -26,7 +26,7 @@ no **X**.
 
 ## Publishing a file for your team
 
-1. Set up your rules and layouts and click **Export** under **Settings**. That
+1. Set up your rules and layouts and click **Export to file** under **Settings**. That
    saves `bc-buddy.json`, with your rules, your layouts and your **Web client**
    settings.
 2. Put that file somewhere everyone can open it with an address starting with
@@ -61,7 +61,7 @@ The **Extension active** switch is never shared.
 ## Importing a file once
 
 To load a file once, without daily updates, use **Import / export** →
-**Choose file** under **Settings**:
+**Import from file** under **Settings**:
 
 - rules you already have are overwritten,
 - new rules are added,
