@@ -29,7 +29,7 @@ Choisissez une couleur par environnement, par société ou par client. Les deux 
 
 👥 Une seule configuration pour toute l'équipe
 
-Une personne choisit les couleurs, tous les autres les reçoivent automatiquement, modifications ultérieures comprises. Le service informatique peut déployer BC Buddy sur chaque ordinateur, par exemple avec Intune.
+Une personne choisit les couleurs, tous les autres les reçoivent automatiquement, modifications ultérieures comprises.
 
 🔒 Rien ne quitte votre ordinateur
 

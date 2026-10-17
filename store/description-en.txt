@@ -29,7 +29,7 @@ Choose a colour per environment, per company or per customer. Setting up your fi
 
 👥 Set it up once for the whole team
 
-One person picks the colours, everyone else gets them automatically, later changes included. IT can roll BC Buddy out to every computer, for example with Intune.
+One person picks the colours, everyone else gets them automatically, later changes included.
 
 🔒 Nothing leaves your computer
 

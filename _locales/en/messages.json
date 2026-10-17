@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "Makes the Business Central web client easier to work in, and gives every environment its own colour.",
+    "message": "One-click copy, full-width pages, bigger dropdowns, and a colour per environment so you never post in production by mistake.",
     "description": "The description in the store listing. Hard limit of 132 characters, per language: a longer one is rejected at upload."
   },
   "optionsTitle": {

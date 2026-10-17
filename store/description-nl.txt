@@ -29,7 +29,7 @@ Kies een kleur per omgeving, per bedrijf of per klant. Je eerste twee stel je in
 
 👥 Een keer instellen voor het hele team
 
-Een persoon kiest de kleuren, de rest krijgt ze automatisch, ook als er later iets verandert. IT kan BC Buddy op elke computer uitrollen, bijvoorbeeld met Intune.
+Een persoon kiest de kleuren, de rest krijgt ze automatisch, ook als er later iets verandert.
 
 🔒 Niets verlaat je computer
 

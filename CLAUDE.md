@@ -36,6 +36,15 @@ improvements come before environment colours, everywhere: README, `docs/`,
 loading from source belongs under *For developers* in the README, nowhere on
 the site.
 
+The store listing (`store/description-*.txt`, and `extDescription` in
+`_locales/*/messages.json` for the 132-character summary) is a pitch, not a
+manual. Open with a one-line hook, put each part under a short heading that
+names what people gain, keep every bullet to one line, and close with a short
+checklist of facts (where it runs, languages, free). Switches that start off go
+in one "want more?" line, not among the things that work straight away. Leave
+out setup for IT or admins (Intune, policies, a managed shared file): that
+belongs in `docs/`. Keep English, Dutch and French saying the same thing.
+
 New functionality gets a line under `## Unreleased` in `CHANGELOG.md`, in the
 same commit that adds it: a new feature or switch, or a fix people notice. Small
 changes to how existing settings and screens look or behave stay out: a
