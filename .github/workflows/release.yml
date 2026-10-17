@@ -5,8 +5,13 @@ name: Release
 # tag and the package are all produced here, so they cannot disagree.
 #
 # One workflow rather than two: the tag is pushed from inside this run, so a
-# separate tag-triggered job would be a second place for the release to go
-# wrong. Everything therefore happens inline.
+# separate tag-triggered workflow would be a second place for the release to go
+# wrong. The release job versions, builds, tags and pushes; the GitHub release
+# and the store upload follow as jobs of their own, on fresh runners, so the
+# deploy key, the store secrets and the third-party action never share one.
+#
+# Every action is pinned to a full commit SHA, with its version in a comment
+# that Dependabot keeps up to date: a tag can be moved, a commit cannot.
 on:
   workflow_dispatch:
     inputs:
@@ -25,8 +30,10 @@ on:
         default: draft
         options: [draft, publish, none]
 
+# Read-only by default. The release job pushes over SSH with the deploy key,
+# not with this token; only the GitHub release job gets to write.
 permissions:
-  contents: write
+  contents: read
 
 # Two releases at once would race on the version in main.
 concurrency:
@@ -37,10 +44,12 @@ jobs:
   release:
     runs-on: windows-latest
 
-    # Read by the site job below, so the website is built from the very commit
-    # this run tagged.
+    # Read by the jobs below: the site is built from the very commit this run
+    # tagged, and the store job only uploads a ZIP with this hash.
     outputs:
       tag: v${{ steps.version.outputs.next }}
+      version: ${{ steps.version.outputs.next }}
+      sha256: ${{ steps.package.outputs.sha256 }}
 
     steps:
       - name: Release from main only
@@ -52,7 +61,7 @@ jobs:
             throw "Releases are cut from main; this run is on '$env:REF_NAME'."
           }
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Full history so the release notes can be diffed against the last tag.
           fetch-depth: 0
@@ -240,23 +249,88 @@ jobs:
           # rejected push cannot leave a tag pointing at a commit no branch has.
           git push origin HEAD:main --follow-tags --atomic
 
-      - name: Publish the GitHub release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: v${{ steps.version.outputs.next }}
-          name: v${{ steps.version.outputs.next }}
-          files: dist/bcbuddy-${{ steps.version.outputs.next }}.zip
-          # The changelog section this run just dated, rather than a generated
-          # list of merged pull requests. See 'Close off the changelog' above.
-          body_path: ${{ runner.temp }}/release-notes.md
+      # The jobs below take the package from here, on fresh runners that never
+      # see the deploy key above. The hash travels as a job output, which only
+      # this job can set: the store job checks the ZIP against it before it
+      # uploads anything.
+      - name: Fingerprint the package
+        id: package
+        shell: pwsh
+        run: |
+          $zip = 'dist/bcbuddy-${{ steps.version.outputs.next }}.zip'
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          Copy-Item (Join-Path $env:RUNNER_TEMP 'release-notes.md') dist/
+          "sha256=$hash" | Out-File $env:GITHUB_OUTPUT -Append
+          Write-Host "SHA-256: $hash"
 
-      # Last, because the store refuses to take the same version twice: a failure
-      # anywhere earlier costs nothing, a failure here costs this version number.
+      - name: Keep the package for the next jobs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package
+          path: |
+            dist/bcbuddy-${{ steps.version.outputs.next }}.zip
+            dist/release-notes.md
+          if-no-files-found: error
+          retention-days: 7
+
+  # A job of its own, because softprops/action-gh-release is the one action in
+  # this workflow that is not GitHub's. Here it gets the package and a token
+  # that can write releases, and nothing more: not the deploy key that may push
+  # to main, not the store secrets, and no hand in what the store receives.
+  github-release:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: package
+          path: dist
+
+      - name: Publish the GitHub release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: ${{ needs.release.outputs.tag }}
+          name: ${{ needs.release.outputs.tag }}
+          files: dist/bcbuddy-${{ needs.release.outputs.version }}.zip
+          # The changelog section the release job dated, rather than a generated
+          # list of merged pull requests. See 'Close off the changelog' above.
+          body_path: dist/release-notes.md
+
+  # After the tag, because the store refuses to take the same version twice: a
+  # failure anywhere earlier costs nothing, a failure here costs this version
+  # number. It runs beside the GitHub release, not after it, so neither can
+  # touch what the other works with.
+  store:
+    needs: release
+    if: inputs.store != 'none'
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: package
+          path: dist
+
+      - name: Package must be the one the release job built
+        shell: pwsh
+        env:
+          EXPECTED: ${{ needs.release.outputs.sha256 }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          $hash = (Get-FileHash "dist/bcbuddy-$env:VERSION.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          if (-not $env:EXPECTED -or $hash -ne $env:EXPECTED) {
+            throw "The package's SHA-256 is $hash, the release job built $env:EXPECTED."
+          }
+          Write-Host "SHA-256 matches: $hash"
+
       - name: Upload to the Chrome Web Store
-        if: inputs.store != 'none'
         shell: pwsh
         env:
           STORE_ACTION: ${{ inputs.store }}
+          VERSION: ${{ needs.release.outputs.version }}
           CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
@@ -278,7 +352,7 @@ jobs:
           }).access_token
 
           $headers = @{ Authorization = "Bearer $token"; 'x-goog-api-version' = '2' }
-          $zip = (Get-Item "dist/bcbuddy-${{ steps.version.outputs.next }}.zip").FullName
+          $zip = (Get-Item "dist/bcbuddy-$env:VERSION.zip").FullName
 
           $upload = Invoke-RestMethod -Method Put -Headers $headers `
             -Uri "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$env:EXTENSION_ID" `
@@ -305,9 +379,9 @@ jobs:
   # Called rather than triggered: the tag and the GitHub release above are both
   # created with GITHUB_TOKEN, and neither would start a workflow of its own.
   #
-  # If this job fails the release itself still stands — the tag, the GitHub
-  # release and the store upload have all happened by then. Run the Site
-  # workflow by hand from the Actions tab to publish the site afterwards.
+  # If this job fails the release itself still stands — the tag is pushed by
+  # then, and the GitHub release and the store upload do not wait for the site.
+  # Run the Site workflow by hand from the Actions tab to publish it afterwards.
   site:
     needs: release
     uses: ./.github/workflows/pages.yml

@@ -553,7 +553,27 @@ hand from the Actions tab and does everything a release needs. See
 It is one workflow rather than two on purpose. A push made with `GITHUB_TOKEN`
 does not trigger other workflows, so a tag pushed from a job would never start a
 tag-triggered job: the release would silently produce nothing. Everything
-therefore happens inline.
+therefore happens in this one run, split over jobs that each get only what they
+need:
+
+| Job | Gets | Does |
+|---|---|---|
+| `release` | the deploy key (`RELEASE_SSH_KEY`), GitHub's own actions only | tests, versions, builds, commits, tags, pushes; hands the ZIP and notes on as an artifact, its SHA-256 as a job output |
+| `github-release` | `contents: write`, the artifact | runs `softprops/action-gh-release`, the one third-party action |
+| `store` | the `CWS_*` secrets, the artifact | checks the ZIP against the SHA-256, uploads to the Web Store |
+| `site` | Pages permissions | builds the site from the tag (`pages.yml`) |
+
+The split is a supply-chain measure. The deploy key may push to `main` past the
+ruleset, and the store upload reaches every installed copy, so neither may sit
+on a runner where a third-party action has run: such an action could rewrite
+files, `GITHUB_ENV` or `GITHUB_PATH` for every later step of its job. The
+workflow token is read-only except in `github-release`. `github-release` and
+`store` run side by side after the push; the hash is what keeps an artifact
+replaced in the meantime from reaching the store.
+
+Every action is pinned to a full commit SHA, with the version in a trailing
+comment (`@3d3c42e… # v7.0.1`). A tag can be moved to other code; a commit
+cannot. Dependabot understands this form and bumps SHA and comment together.
 
 [`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds and deploys
 the website. Release calls it as a reusable workflow for the same reason: a
@@ -569,7 +589,8 @@ dependencies at all — `src/lib/` is our own code — so there is nothing else 
 track, and that is worth keeping true.
 
 Action bumps arrive as one grouped pull request a month, which `tests.yml`
-checks like any other. Read them anyway before merging: `release.yml` and the
+checks like any other. They change a commit SHA, so check that the comment
+beside it names a real release of that action. Read them anyway before merging: `release.yml` and the
 Pages deploy do **not** run on pull requests, so a bad bump to
 `softprops/action-gh-release`, `upload-pages-artifact` or `deploy-pages` would
 only show up at the next release. The pip entry stays quiet by design, because
@@ -682,10 +703,11 @@ The step order is deliberate:
 2. **Nothing is pushed until the package is built and verified.** The ZIP's own
    `manifest.json` is read back and compared with the expected version; if the
    build or that check fails, `main` is untouched and the version is still free.
-3. **The store upload happens last.** The Web Store refuses a version it already
-   holds, so a version number cannot be retried. A failure anywhere earlier
-   costs nothing; a failure here costs that number and you release again with
-   the next one.
+3. **The store upload happens after the push**, in its own job, beside the
+   GitHub release. The Web Store refuses a version it already holds, so a
+   version number cannot be retried. A failure anywhere before the push costs
+   nothing; a failure in the store job costs that number and you release again
+   with the next one. A failed GitHub release job can simply be re-run.
 
 A version must be one to four dot-separated integers, each 0–65535 — Chrome
 takes no suffix, so `1.2.0-rc.1` is not a version you can ship. The workflow
