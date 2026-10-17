@@ -40,11 +40,10 @@
   var CLIENT_FRAME = 'iframe.designer-client-frame';
   var SVG_NS = 'http://www.w3.org/2000/svg';
 
-  // Without a locale in the path, Learn opens these in the reader's language.
+  // One link, to Microsoft's full article. Without a locale in the path,
+  // Learn opens it in the reader's language.
   var DOCS = [
-    ['scDocsAll', 'https://learn.microsoft.com/dynamics365/business-central/keyboard-shortcuts'],
-    ['scDocsCheatsheet', 'https://learn.microsoft.com/dynamics365/business-central/keyboard-shortcuts-cheatsheet'],
-    ['scDocsPdf', 'https://learn.microsoft.com/en-us/dynamics365/business-central/media/keyboard-shortcuts.pdf']
+    ['scDocsAll', 'https://learn.microsoft.com/dynamics365/business-central/keyboard-shortcuts']
   ];
 
   // [heading, [[keys, description], ...]]. In keys, " / " separates

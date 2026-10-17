@@ -93,7 +93,7 @@ question mark. Click it to see the shortcuts that work where you are:
 - A few that work anywhere, such as Alt+Q to find a page.
 
 Press **Esc** or click anywhere else to close it; your cursor goes back to
-where it was. Links at the bottom open Microsoft's full list of shortcuts.
+where it was. A link at the bottom opens Microsoft's full list of shortcuts.
 
 Actions in a menu you have not opened yet are not listed: Business Central only
 builds those when you open the menu.

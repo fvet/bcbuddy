@@ -569,9 +569,9 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
           });
         });
       }), true);
-    check('shortcuts: docs links open Learn, two of them in the reader\'s language',
-      S.DOCS.map(function (d) { return d[1].indexOf('https://learn.microsoft.com/') === 0 && !/\/en-us\//.test(d[1]); }),
-      [true, true, false]);
+    check('shortcuts: one link, to Microsoft\'s full article in the reader\'s language',
+      S.DOCS.map(function (d) { return d[1]; }),
+      ['https://learn.microsoft.com/dynamics365/business-central/keyboard-shortcuts']);
   })();
 
   // keyboard shortcuts: the page's own actions, and where the cursor is

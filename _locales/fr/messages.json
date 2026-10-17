@@ -198,8 +198,6 @@
   "scNotListed": { "message": "Les actions des menus que vous n'avez pas encore ouverts ne sont pas listées." },
   "scMore": { "message": "Plus chez Microsoft :" },
   "scDocsAll": { "message": "Tous les raccourcis clavier" },
-  "scDocsCheatsheet": { "message": "Aide-mémoire" },
-  "scDocsPdf": { "message": "PDF à imprimer" },
   "weekNumbersToggle": { "message": "Numéros de semaine dans le sélecteur de date" },
   "weekNumbersIntro": { "message": "Active les numéros de semaine de Business Central dans le calendrier d'un champ date. Appuyez sur Maj+Origine dans le calendrier pour les masquer ou les réafficher\u00a0; Business Central s'en souvient." },
   "hideNotificationsToggle": { "message": "Masquer l'icône des notifications" },

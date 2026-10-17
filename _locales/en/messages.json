@@ -690,19 +690,11 @@
   },
   "scMore": {
     "message": "More from Microsoft:",
-    "description": "Lead-in before three links to Microsoft documentation about keyboard shortcuts."
+    "description": "Lead-in before the link to Microsoft's article about keyboard shortcuts."
   },
   "scDocsAll": {
     "message": "All keyboard shortcuts",
     "description": "Link to Microsoft's article with every Business Central keyboard shortcut."
-  },
-  "scDocsCheatsheet": {
-    "message": "Quick reference",
-    "description": "Link to Microsoft's short overview of the most used shortcuts."
-  },
-  "scDocsPdf": {
-    "message": "Printable PDF",
-    "description": "Link to Microsoft's PDF with the most used shortcuts."
   },
   "gearMenuSettings": {
     "message": "Settings",

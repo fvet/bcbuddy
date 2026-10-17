@@ -197,8 +197,6 @@
   "scNotListed": { "message": "Acties in menu's die je nog niet opende, staan er niet bij." },
   "scMore": { "message": "Meer bij Microsoft:" },
   "scDocsAll": { "message": "Alle sneltoetsen" },
-  "scDocsCheatsheet": { "message": "Kort overzicht" },
-  "scDocsPdf": { "message": "Pdf om af te drukken" },
   "weekNumbersToggle": { "message": "Weeknummers in de datumkiezer" },
   "weekNumbersIntro": { "message": "Zet de eigen weeknummers van Business Central aan in de kalender van een datumveld. Druk in de kalender op Shift+Home om ze uit of weer aan te zetten; Business Central onthoudt dat." },
   "hideNotificationsToggle": { "message": "Berichtenicoon verbergen" },

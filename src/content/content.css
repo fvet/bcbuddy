@@ -264,7 +264,9 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
   overflow: auto;
   padding: 16px 18px 14px;
   border-radius: 8px;
-  background: #ffffff;
+  /* A little see-through, so the page behind stays in view. No blur: a
+     backdrop-filter would repaint the grid behind it while you scroll. */
+  background: rgba(255, 255, 255, .92);
   color: #201f1e;
   box-shadow: 0 8px 28px rgba(0, 0, 0, .24);
   font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
