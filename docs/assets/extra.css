@@ -41,7 +41,8 @@
 }
 
 /* Screenshots read as part of the page, not as floating images. */
-.md-typeset figure img {
+.md-typeset figure img,
+.md-typeset .tabbed-block img {
   border: 1px solid var(--md-default-fg-color--lightest);
   border-radius: 0.2rem;
 }

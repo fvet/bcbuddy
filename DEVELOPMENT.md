@@ -1004,10 +1004,16 @@ the store still reviews the upload, and Chrome rolls updates out over days.
 
 ### Files from outside docs/
 
-Screenshots live in `store/` because the store listing is built from there, and
-`examples/bc-buddy.json` is the shared configuration people point at.
+Screenshots live in `store/` because the store listing is built from there,
+the before-and-after shots of the web client live in `marketing/screenshots/`
+because the deck uses them too, and `examples/bc-buddy.json` is the shared
+configuration people point at.
 [`tools/mkdocs_assets.py`](tools/mkdocs_assets.py) is an MkDocs hook that adds
-those originals to the build instead of keeping a second copy in `docs/`. It
+those originals to the build instead of keeping a second copy in `docs/`; every
+`.png` and `.jpg` in `marketing/screenshots/` is served under
+`assets/screenshots/`. The Web client page shows them in content tabs
+(`pymdownx.tabbed`), and the Site workflow runs on a pull request that changes
+that folder. It
 registers them as files rather than copying them in afterwards, so `--strict`
 still catches a page pointing at a screenshot that has been renamed.
 

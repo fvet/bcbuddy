@@ -35,6 +35,7 @@ on:
       - 'examples/**'
       - 'icons/logo.svg'
       - 'store/*.png'
+      - 'marketing/screenshots/**'
       - '.github/workflows/pages.yml'
 
 permissions:

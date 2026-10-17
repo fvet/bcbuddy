@@ -69,6 +69,10 @@ skipped and why:
   screenshots need the maintainer at Chrome, so ask for them instead of
   leaving the slide out. Skip it only when there is nothing to see in a
   screenshot, as with *Hide the notifications icon* and *Turn off animations*.
+- The same screenshots on the feature's section in `docs/web-client.md`:
+  "With BC Buddy" and "Without BC Buddy" tabs pointing at
+  `assets/screenshots/`, which the MkDocs hook serves from
+  `marketing/screenshots/`. Never copy them into `docs/`.
 
 Beta features stay out of every document. Ctrl+click / middle-click to open a
 link in a new tab (`src/lib/newtab.js`) is beta and undocumented on purpose:
@@ -83,8 +87,9 @@ code rather than against prose, so re-read it when `.github/workflows/`,
 
 Prefer single sourcing over a second copy wherever it is cheap. `docs/privacy.md`
 and `docs/whats-new.md` are `pymdownx.snippets` includes of `PRIVACY.md` and
-`CHANGELOG.md`, and `tools/mkdocs_assets.py` adds the `store/` screenshots and
-`examples/bc-buddy.json` to the MkDocs build instead of duplicating them.
+`CHANGELOG.md`, and `tools/mkdocs_assets.py` adds the `store/` screenshots, the
+deck's screenshots in `marketing/screenshots/` and `examples/bc-buddy.json` to
+the MkDocs build instead of duplicating them.
 
 `docs/whats-new.md` includes only the `released` section of `CHANGELOG.md`, the
 part below the `<!-- --8<-- [start:released] -->` marker. Leave that marker

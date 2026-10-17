@@ -5,6 +5,13 @@ presentations and for announcing BC Buddy on LinkedIn. Nothing in this folder
 goes into the extension package: `tools/build-package.ps1` only takes
 `manifest.json`, `src`, `_locales` and the icons.
 
+The website uses the same screenshots: `tools/mkdocs_assets.py` serves
+`screenshots/` as `assets/screenshots/`, and `docs/web-client.md` shows the
+crops (and the full maximize shots) in "With BC Buddy" / "Without BC Buddy"
+tabs. A re-shoot under the same file name updates the deck (after uploading
+the asset) and the site (at the next release) at once. Renaming or removing a
+file breaks the site build until the page is updated, which is on purpose.
+
 - `screenshots/without-*.jpg` and `screenshots/with-*.jpg`: full Business
   Central screens, 1512×794, before and after.
 - `screenshots/crop-*.png`: the part of each screen the slides show.
@@ -15,7 +22,8 @@ goes into the extension package: `tools/build-package.ps1` only takes
 
 This is the recipe for Claude Code with Claude in Chrome. Ask Claude to
 "recreate the marketing material" and it follows these steps. When a feature is
-added, add a row to the shot list and a slide to the deck.
+added, add a row to the shot list, a slide to the deck and the tabs to its
+section in `docs/web-client.md`.
 
 ### Before you start
 
