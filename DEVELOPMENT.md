@@ -433,10 +433,13 @@ it; the extension simply never sees the other sites.
 `state.webClient`, worked out by `webClientHere()` once per `apply()`, decides
 it for every tweak. Two things must hold:
 
-1. **The address looks like Business Central** (`isWebClientTarget()`):
-   `*.dynamics.com`, a host name with a label starting with `bc`, or a path
-   starting with `/bc`. That is cheap and catches the usual on-prem shapes, but
-   also sites such as `www2.gov.bc.ca`.
+1. **The address looks like Business Central** (`isWebClientTarget()` in
+   `match.js`): `businesscentral.dynamics.com` or an embed app on
+   `*.bc.dynamics.com`, a host name with a label starting with `bc`, or a path
+   starting with `/bc`. Other `*.dynamics.com` hosts (Sales, Customer Service,
+   Finance and Operations) never count, whatever their labels or path. That is
+   cheap and catches the usual on-prem shapes, but also sites such as
+   `www2.gov.bc.ca`.
 2. **The page is Business Central.** On BC online (`ctx.isbc`) the host says
    so. Anywhere else the document must hold one of BC's own classes,
    `designer-client-frame` (the client's frame, in the top window) or
