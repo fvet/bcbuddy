@@ -249,9 +249,8 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
 }
 
 /* Keyboard shortcuts (shortcuts.js). The panel is our own element in the top
-   window's body, under BC's top bar; the key badges are our own elements in
-   BC's client document, placed over the actions they belong to while the
-   panel is open. `all: initial` keeps the shell's and BC's styles off both. */
+   window's body, under BC's top bar. `all: initial` keeps the shell's styles
+   off it. */
 #bcb-keys {
   all: initial;
   display: block;
@@ -264,15 +263,17 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
   overflow: auto;
   padding: 16px 18px 14px;
   border-radius: 8px;
-  /* A little see-through, so the page behind stays in view. No blur: a
-     backdrop-filter would repaint the grid behind it while you scroll. */
-  background: rgba(255, 255, 255, .92);
+  background: #fff;
   color: #201f1e;
   box-shadow: 0 8px 28px rgba(0, 0, 0, .24);
   font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
 }
 #bcb-keys:focus { outline: none; }
-#bcb-keys .bcb-keys__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#bcb-keys .bcb-keys__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  /* The grip the panel is dragged by (shortcuts.js, draggable). */
+  cursor: move; user-select: none; touch-action: none;
+}
 #bcb-keys h2 { margin: 0; font: 600 17px/1.3 "Segoe UI", system-ui, sans-serif; }
 #bcb-keys h3 {
   margin: 16px 0 8px;
@@ -352,15 +353,3 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
 #bcb-keys .bcb-keys__foot p { margin: 4px 0 0; }
 #bcb-keys a { color: #00718c; text-decoration: underline; cursor: pointer; }
 
-.bcb-keycap {
-  all: initial;
-  position: fixed;
-  z-index: 2147483645;
-  pointer-events: none;
-  padding: 0 5px;
-  border-radius: 4px;
-  background: #00718c;
-  color: #ffffff;
-  font: 600 11px/17px Consolas, "Cascadia Mono", monospace;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
-}

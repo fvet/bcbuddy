@@ -12,9 +12,9 @@ page, so you can turn off whatever you do not like.
 | [Pin the action bar](#pin-the-action-bar) | The row of actions under a page's tabs is pinned | On |
 | [Dropdown size](#dropdown-size) | The list under a field shows all its columns | On |
 | [Week numbers in the date picker](#week-numbers-in-the-date-picker) | Business Central's own week numbers in the calendar of a date field | On |
-| [Keyboard shortcuts](#keyboard-shortcuts) | A keyboard icon in the top bar that shows the shortcuts for where you are | On |
 | [Highlight the current line](#highlight-the-current-line) | The line you are on in a journal or order stands out | On |
 | [Hide the notifications icon](#hide-the-notifications-icon) | No bell at the top right | On |
+| [Keyboard shortcuts](#keyboard-shortcuts) | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
 | [Striped rows](#striped-rows) | Every other row in a list a light grey | Off |
 | [Turn off animations](#turn-off-animations) | Pages and dialogs appear at once | Off |
 
@@ -81,22 +81,38 @@ Business Central counts the weeks as the **Region** in **My Settings** says.
 With Dutch, for example, weeks start on Monday and week 1 is the week with the
 first Thursday of the year.
 
+## Highlight the current line
+
+On the lines of a sales order or in a journal, Business Central shows the line
+you are on with only a small arrow at the far left. With this on, the whole line
+gets a light tint, so you do not lose your place on a wide line.
+
+## Hide the notifications icon
+
+The bell at the top right of Business Central is hidden. Switch this off to get
+it back.
+
 ## Keyboard shortcuts
 
 BC Buddy adds a keyboard icon to the top bar of Business Central, next to the
 question mark. Click it to see the shortcuts that work where you are:
 
 - **On this page**: the page's own actions that have a shortcut, such as
-  **Post** (F9). Each one also gets a small label on the action itself.
+  **Post** (F9).
 - What works in the lines of a journal or order, in a list, on a card or in a
   date field, depending on where your cursor is.
 - A few that work anywhere, such as Alt+Q to find a page.
 
-Press **Esc** or click anywhere else to close it; your cursor goes back to
-where it was. A link at the bottom opens Microsoft's full list of shortcuts.
+The panel stays open while you work in Business Central. Drag it by its title
+to move it out of the way; it opens in that spot again until you close the
+tab. Click **×** or the keyboard icon to close it; your cursor goes back to
+where it was. A link at the bottom opens Microsoft's full list of
+shortcuts.
 
 Actions in a menu you have not opened yet are not listed: Business Central only
 builds those when you open the menu.
+
+This one is off until you switch it on.
 
 <details>
 <summary>Opening it with a key, or on Business Central on your own server</summary>
@@ -110,17 +126,6 @@ Business Central on your own server (on-premises) has a different top bar,
 without the icon. There this key is the way to open the panel.
 
 </details>
-
-## Highlight the current line
-
-On the lines of a sales order or in a journal, Business Central shows the line
-you are on with only a small arrow at the far left. With this on, the whole line
-gets a light tint, so you do not lose your place on a wide line.
-
-## Hide the notifications icon
-
-The bell at the top right of Business Central is hidden. Switch this off to get
-it back.
 
 ## Striped rows
 

@@ -1025,7 +1025,9 @@ function assertWebClient() {
     stripes.closest('.setting').nextElementSibling.contains(document.getElementById('noAnimationsEnabled')), true);
   var keys = document.getElementById('shortcutsEnabled');
   check('web client: keyboard shortcuts switch lives in the panel', keys.closest('.panel'), panel);
-  check('web client: keyboard shortcuts switch is on by default', keys.checked, true);
+  check('web client: keyboard shortcuts switch is off by default', keys.checked, false);
+  check('web client: keyboard shortcuts sits with the switches that start off',
+    keys.closest('.setting').nextElementSibling.contains(stripes), true);
   var calm = document.getElementById('noAnimationsEnabled');
   check('web client: animations switch lives in the panel', calm.closest('.panel'), panel);
   check('web client: animations switch is off by default', calm.checked, false);
@@ -1134,11 +1136,11 @@ function assertWebClient() {
     keys.click();
     return wait(400);
   }).then(function () {
-    check('web client: keyboard shortcuts switch is saved', STORE.settings.shortcuts, { enabled: false });
+    check('web client: keyboard shortcuts switch is saved', STORE.settings.shortcuts, { enabled: true });
     keys.click();
     return wait(400);
   }).then(function () {
-    check('web client: and the keyboard shortcuts switch turns back on', STORE.settings.shortcuts, { enabled: true });
+    check('web client: and the keyboard shortcuts switch turns back off', STORE.settings.shortcuts, { enabled: false });
   });
 }
 

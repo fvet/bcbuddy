@@ -710,23 +710,36 @@ the shortcuts for where the cursor is.
   window; the panel reads the client's document directly. The icon goes just
   before `#O365_MainLink_Help_container` and copies its classes and those of
   the Help button, element by element, like the gear menu section does.
-- **What it lists.** *On this page* is read when the panel opens: BC ends an
-  action's tooltip with its shortcut, `"... (F9)"`, and `tooltipKey()` takes
-  that. It is right for the BC version, the language and any extension, but
+- **What it lists.** *On this page* is read when the panel opens, and again
+  when BC swaps the page under it: BC ends an action's tooltip with its
+  shortcut, `"... (F9)"`, and `tooltipKey()` takes that. Only from the page
+  on screen (`topView()`): BC keeps the pages you came from rendered below
+  it, in sibling `.spa-view` elements. It is right for the BC version, the language and any extension, but
   only sees rendered actions; a closed submenu is not in the DOM. The rest
   comes from `SETS`: short, hand-picked lists from Microsoft's
   *Keyboard Shortcuts* article, only shortcuts BC has had for years. Keep
   them short; the panel links to Microsoft's article for everything else.
 - **Where the cursor is.** `context()` looks at the client's
   `activeElement`: an editable grid, a view grid, a card, a date field (an
-  input with BC's `.icon-Date` button beside it). The button cancels its own
+  input with BC's `.icon-Date` button beside it). Without a cursor in a grid,
+  the page decides: a card form is a card, a list or worksheet form goes by
+  its own grid (a read-only worksheet such as Find entries is a list), and a
+  Role Center gets no area. Alt+N needs a New action, found by its icon
+  (`data-icon-name="Add"` in a card header, `icon-Plus` in a list's action
+  bar); Alt+F2 needs a form without `form-no-factboxes`. Action shortcuts
+  inside a field's `.edit-container`, such as Copilot's Alt+I, are skipped,
+  and so are greyed-out ones (`aria-disabled="true"`) and a part's own
+  actions (inside `.formhost-control`) unless the cursor is in that part.
+  The button cancels its own
   `mousedown`, because BC drops the field focus as soon as its frame loses
   focus; the panel then takes the focus and gives it back on close.
 - **Cost.** One observer on the top window's `body` (subtree) while the
   switch is on: BC's grids live in the iframe's document, so the top window
-  changes rarely, and each change costs one `getElementById`. Panel, page
-  scan and key badges exist only while the panel is open, and so do its
-  `pointerdown` listeners. No key listener in the page.
+  changes rarely, and each change costs one `getElementById`. Panel and
+  page scan exist only while the panel is open, and so do its drag listeners
+  (on its own header) and an observer on the direct children of each
+  `.spa-container`, which rebuilds the panel when BC swaps the page. No key
+  listener in the page.
 - **Browser shortcut.** The manifest declares a `show-shortcuts` command
   without a default key, so it never takes one from BC. Someone who sets a
   key gets `chrome.commands.onCommand` in the service worker, which sends

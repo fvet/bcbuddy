@@ -550,11 +550,11 @@
   },
   "scIconLabel": {
     "message": "Keyboard shortcuts",
-    "description": "Tooltip and accessible name of the keyboard icon BC Buddy adds to the top bar of Business Central."
+    "description": "Tooltip of the keyboard icon BC Buddy adds to the top bar of Business Central."
   },
   "scTitle": {
-    "message": "Keyboard shortcuts here",
-    "description": "Heading of the panel that lists the keyboard shortcuts for where the user is in Business Central."
+    "message": "Keyboard shortcuts Buddy",
+    "description": "Heading of the keyboard shortcuts panel. Buddy stays in English in every language."
   },
   "scClose": {
     "message": "Close",
@@ -597,7 +597,7 @@
     "description": "What Ctrl+Delete does."
   },
   "scOpenList": {
-    "message": "Open the list of this field",
+    "message": "Open the dropdown list or look up a value",
     "description": "What Alt+Down does: opens the dropdown or lookup of a field."
   },
   "scSearch": {
@@ -605,11 +605,11 @@
     "description": "What F3 does in a list."
   },
   "scFilterValue": {
-    "message": "Filter on this value, or clear that filter",
+    "message": "Filter to this value, or clear that filter",
     "description": "What Alt+F3 does in a list."
   },
   "scFilterPane": {
-    "message": "Show or hide the filter pane",
+    "message": "Open or close the filter pane",
     "description": "What Shift+F3 does in a list."
   },
   "scResetFilters": {
@@ -617,7 +617,7 @@
     "description": "What Ctrl+Shift+Alt+F3 does in a list."
   },
   "scSort": {
-    "message": "Sort on this column",
+    "message": "Sort this column",
     "description": "What Alt+F7 does in a list."
   },
   "scCopyRows": {
@@ -649,11 +649,11 @@
     "description": "What Alt+Shift+W does on a card."
   },
   "scToday": {
-    "message": "Today's date",
+    "message": "Enter the current date",
     "description": "What typing t does in a date field."
   },
   "scWorkDate": {
-    "message": "The work date",
+    "message": "Enter the work date",
     "description": "What typing w does in a date field. Work date is the Business Central term."
   },
   "scCalendar": {
@@ -677,20 +677,16 @@
     "description": "What Alt+F2 does. FactBox is the Business Central term."
   },
   "scRefresh": {
-    "message": "Refresh the data",
+    "message": "Update the data",
     "description": "What F5 does in Business Central."
   },
   "scKeyTips": {
-    "message": "Show letters to pick an action",
-    "description": "What pressing Alt alone does: Business Central shows a letter on each action."
+    "message": "Show access keys for the actions",
+    "description": "What pressing Alt alone does: Business Central shows a letter on each action. Access keys is the Business Central term."
   },
   "scNotListed": {
     "message": "Actions in menus you have not opened yet are not listed.",
     "description": "Note at the bottom of the shortcuts panel."
-  },
-  "scMore": {
-    "message": "More from Microsoft:",
-    "description": "Lead-in before the link to Microsoft's article about keyboard shortcuts."
   },
   "scDocsAll": {
     "message": "All keyboard shortcuts",

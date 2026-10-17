@@ -27,7 +27,9 @@
  * Cost: one observer on the top window's body (subtree) while the icon is
  * wanted. BC's grids live in the iframe's document, so the top window only
  * changes when the shell opens a pane or redraws its bar; each change costs
- * one getElementById. Everything else runs when the panel opens, once.
+ * one getElementById. Everything else runs when the panel opens, and again
+ * when BC swaps the page under an open panel: while it is open, an observer
+ * on the direct children of each .spa-container (no subtree) notices that.
  */
 (function (root) {
   'use strict';
@@ -35,10 +37,24 @@
 
   var ICON_ID = 'bcb-keys_container';
   var PANEL_ID = 'bcb-keys';
-  var CAP_CLASS = 'bcb-keycap';
   var HELP_ID = 'O365_MainLink_Help_container';
   var CLIENT_FRAME = 'iframe.designer-client-frame';
+  var CONTAINER_SEL = '.spa-container';
+  var VIEW_SEL = '.spa-container > .spa-view:not(.spa-lookup)';
+  var FIELD_SEL = '.edit-container, .ms-nav-edit-control-container';
+  // A part (subpage) on a page, such as the lines of an order.
+  var PART_SEL = '.formhost-control';
+  var FACTBOX_SEL = '.ms-nav-layout-factbox-content-area';
+  // The New action, by its icon, so in any language: the + in a card's header
+  // and the New button in a list's action bar.
+  var NEW_SEL = 'button i[data-icon-name="Add"], button.ms-Button--command i.icon-Plus';
+  // After BC swaps the page: how long to wait for it to render, and how often
+  // to look again before giving up.
+  var REFRESH_MS = 300;
+  var REFRESH_TRIES = 10;
   var SVG_NS = 'http://www.w3.org/2000/svg';
+  // How much of a dragged panel stays in view at the bottom of the window.
+  var MIN_SHOWN = 120;
 
   // One link, to Microsoft's full article. Without a locale in the path,
   // Learn opens it in the reader's language.
@@ -76,11 +92,13 @@
       ['w', 'scWorkDate'],
       ['Alt+Down', 'scCalendar']
     ]],
+    // 'new': only on a page with a New action; 'factbox': only on a page
+    // with a FactBox pane. Find entries and a Role Center have neither.
     anywhere: ['scAnywhere', [
       ['Alt+Q', 'scTellMe'],
-      ['Alt+N', 'scNew'],
+      ['Alt+N', 'scNew', 'new'],
       ['Ctrl+O', 'scCompany'],
-      ['Alt+F2', 'scFactBox'],
+      ['Alt+F2', 'scFactBox', 'factbox'],
       ['F5', 'scRefresh'],
       ['Alt', 'scKeyTips']
     ]]
@@ -122,10 +140,26 @@
   }
 
   /**
-   * This page's actions with a shortcut, as [{ keys, name, el }], each
-   * shortcut once. Only what is rendered: a hidden copy has no width.
+   * The page on screen. BC keeps the pages you came from in the DOM, each in
+   * its own .spa-view under a .spa-container, still rendered but marked
+   * spa-not-top-most and inert; a lookup is a view too, and is skipped. The
+   * whole document when there are no views.
    */
-  function pageActions(doc) {
+  function topView(doc) {
+    var views = doc.querySelectorAll(VIEW_SEL);
+    for (var i = views.length - 1; i >= 0; i--) {
+      var view = views[i];
+      if (!view.classList.contains('spa-not-top-most') && !view.hasAttribute('inert')) return view;
+    }
+    return views.length ? views[views.length - 1] : doc;
+  }
+
+  /**
+   * This page's actions with a shortcut, as [{ keys, name }], each
+   * shortcut once. Only what is rendered: a hidden copy has no width. A
+   * part's actions only with focus, the cursor's element, in that part.
+   */
+  function pageActions(doc, focus) {
     var found = [];
     var seen = {};
     var nodes = doc.querySelectorAll('[title]');
@@ -133,32 +167,66 @@
       var el = nodes[i];
       var keys = tooltipKey(el.getAttribute('title'));
       if (!keys || seen[keys]) continue;
+      // Only actions: a field's own buttons, such as Copilot's suggestion
+      // icon (Alt+I), sit in its edit container and only work from there.
+      if (el.closest(FIELD_SEL)) continue;
+      // Greyed out, such as New Line before a row is picked: nothing to press.
+      if (el.getAttribute('aria-disabled') === 'true') continue;
+      // A part's own action bar, such as History on a contact card, only
+      // works with the cursor in that part.
+      var part = el.closest(PART_SEL);
+      if (part && !(focus && part.contains(focus))) continue;
       var name = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim();
+      // Some actions carry the key in their name too: "Suggest a value (Alt+I)".
+      var tail = ' (' + keys + ')';
+      if (name.slice(-tail.length) === tail) name = name.slice(0, -tail.length);
       if (!name || !el.offsetWidth) continue;
       seen[keys] = true;
-      found.push({ keys: keys, name: name, el: el });
+      found.push({ keys: keys, name: name });
     }
     return found;
   }
 
   /**
-   * Where the cursor is: { area: 'lines' | 'list' | 'card', date: bool }.
-   * Without a cursor in the page, the kind of page decides.
+   * Where the cursor is: { area: 'lines' | 'list' | 'card' | null, date,
+   * newRecord, factBox }. Without a cursor in a grid, the page decides: a card
+   * is a card; a list or worksheet goes by its own grid, so a read-only one
+   * such as Find entries is a list, not lines; a Role Center gets no area.
+   * newRecord: the page has a New action. factBox: it has a FactBox pane.
    */
   function context(doc) {
     var active = doc.activeElement;
     var inPage = active && active !== doc.body && active.closest;
     var grid = inPage ? active.closest('table.ms-nav-grid') : null;
-    var forms = doc.querySelectorAll('form.ms-nav-root-form');
+    var view = topView(doc);
+    var forms = view.querySelectorAll('form.ms-nav-root-form');
     var form = (inPage && active.closest('form.ms-nav-root-form')) || forms[forms.length - 1] || null;
     // A date field's input has BC's date picker button right beside it.
     var date = !!(inPage && active.tagName === 'INPUT' && active.parentElement &&
       active.parentElement.querySelector(':scope > .icon-Date'));
-    var area = 'list';
+    var area = null;
     if (grid) area = grid.classList.contains('ms-nav-grid-edit') ? 'lines' : 'list';
     else if (form && form.classList.contains('ms-nav-cardform')) area = 'card';
-    else if (form && form.classList.contains('ms-nav-worksheetform')) area = 'lines';
-    return { area: area, date: date };
+    else if (form && (form.classList.contains('ms-nav-worksheetform') || form.classList.contains('ms-nav-listform'))) {
+      var own = pageGrid(form);
+      if (own) area = own.classList.contains('ms-nav-grid-edit') ? 'lines' : 'list';
+      else if (form.classList.contains('ms-nav-listform')) area = 'list';
+    }
+    return {
+      area: area,
+      date: date,
+      newRecord: !!(area && view.querySelector(NEW_SEL)),
+      factBox: !!(area && form && !form.classList.contains('form-no-factboxes'))
+    };
+  }
+
+  /** The page's own grid: the first one that is not in a FactBox. */
+  function pageGrid(form) {
+    var grids = form.querySelectorAll('table.ms-nav-grid-data-table');
+    for (var i = 0; i < grids.length; i++) {
+      if (!grids[i].closest(FACTBOX_SEL)) return grids[i];
+    }
+    return null;
   }
 
   /**
@@ -168,7 +236,10 @@
   function sections(actions, ctx, t) {
     function set(key) {
       var s = SETS[key];
-      return { title: t(s[0]), rows: s[1].map(function (r) { return [r[0], t(r[1])]; }) };
+      var rows = s[1].filter(function (r) {
+        return !r[2] || (r[2] === 'new' ? ctx.newRecord : ctx.factBox);
+      });
+      return { title: t(s[0]), rows: rows.map(function (r) { return [r[0], t(r[1])]; }) };
     }
     var out = [];
     if (actions.length) {
@@ -179,7 +250,7 @@
       });
     }
     if (ctx.date) out.push(set('date'));
-    out.push(set(ctx.area));
+    if (ctx.area) out.push(set(ctx.area));
     out.push(set('anywhere'));
     return out;
   }
@@ -215,7 +286,12 @@
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', t('scTitle'));
     panel.tabIndex = -1;
+    panel.appendChild(buildHead(doc, t));
+    fillPanel(panel, list, t);
+    return panel;
+  }
 
+  function buildHead(doc, t) {
     var head = el(doc, 'div', 'bcb-keys__head');
     head.appendChild(el(doc, 'h2', '', t('scTitle')));
     var close = el(doc, 'button', 'bcb-keys__close', '×');
@@ -223,7 +299,14 @@
     close.title = t('scClose');
     close.setAttribute('aria-label', t('scClose'));
     head.appendChild(close);
-    panel.appendChild(head);
+    return head;
+  }
+
+  /** Everything under the header, in place of what was there. */
+  function fillPanel(panel, list, t) {
+    var doc = panel.ownerDocument;
+    var head = panel.firstElementChild;
+    while (head.nextSibling) panel.removeChild(head.nextSibling);
 
     list.forEach(function (section) {
       var heading = el(doc, 'h3', '', section.title);
@@ -247,7 +330,6 @@
 
     var foot = el(doc, 'div', 'bcb-keys__foot');
     var links = el(doc, 'p');
-    links.appendChild(el(doc, 'span', '', t('scMore') + ' '));
     DOCS.forEach(function (doc_, i) {
       if (i) links.appendChild(el(doc, 'span', 'bcb-keys__sep', ' · '));
       var a = el(doc, 'a', '', t(doc_[0]));
@@ -258,26 +340,6 @@
     });
     foot.appendChild(links);
     panel.appendChild(foot);
-    return panel;
-  }
-
-  /** A small key badge above each listed action, in BC's own document. */
-  function addCaps(doc, actions) {
-    var rects = actions.map(function (a) { return a.el.getBoundingClientRect(); });
-    actions.forEach(function (a, i) {
-      var r = rects[i];
-      if (!r.width || r.top < 0) return;
-      var cap = el(doc, 'span', CAP_CLASS, a.keys);
-      cap.setAttribute('aria-hidden', 'true');
-      cap.style.left = Math.round(r.left + 4) + 'px';
-      cap.style.top = Math.max(0, Math.round(r.top - 9)) + 'px';
-      doc.body.appendChild(cap);
-    });
-  }
-
-  function removeCaps(doc) {
-    var caps = doc.querySelectorAll('.' + CAP_CLASS);
-    for (var i = 0; i < caps.length; i++) caps[i].remove();
   }
 
   /* ----------------------------------------------------------------- icon */
@@ -344,6 +406,63 @@
     return box;
   }
 
+  /**
+   * Puts the panel at left, top, kept inside the window with at least
+   * MIN_SHOWN px of it in view. Returns where it went, as { left, top }.
+   */
+  function place(panel, left, top, width) {
+    var win = panel.ownerDocument.defaultView;
+    left = Math.round(Math.max(0, Math.min(left, win.innerWidth - width)));
+    top = Math.round(Math.max(0, Math.min(top, win.innerHeight - MIN_SHOWN)));
+    panel.style.left = left + 'px';
+    panel.style.right = 'auto';
+    panel.style.top = top + 'px';
+    panel.style.maxHeight = 'calc(100vh - ' + (top + 16) + 'px)';
+    return { left: left, top: top };
+  }
+
+  /**
+   * Lets the panel be dragged by its header. The listeners sit on the header
+   * only and do nothing until it is pressed; pointer capture keeps the moves
+   * coming while the pointer is over BC's frame. onMoved gets where it was
+   * dropped.
+   */
+  function draggable(panel, onMoved) {
+    var head = panel.querySelector('.bcb-keys__head');
+    var grab = null;
+    head.addEventListener('pointerdown', function (event) {
+      if (event.button !== 0 || event.target.closest('button')) return;
+      var box = panel.getBoundingClientRect();
+      grab = { id: event.pointerId, dx: event.clientX - box.left, dy: event.clientY - box.top, width: box.width, at: null };
+      try { head.setPointerCapture(event.pointerId); } catch (e) { /* not an active pointer */ }
+      event.preventDefault();
+    });
+    head.addEventListener('pointermove', function (event) {
+      if (!grab || event.pointerId !== grab.id) return;
+      grab.at = place(panel, event.clientX - grab.dx, event.clientY - grab.dy, grab.width);
+    });
+    function drop(event) {
+      if (!grab || event.pointerId !== grab.id) return;
+      if (grab.at) onMoved(grab.at);
+      grab = null;
+    }
+    head.addEventListener('pointerup', drop);
+    head.addEventListener('pointercancel', drop);
+  }
+
+  /**
+   * Calls onChange when BC adds or removes a page: an observer on the direct
+   * children of each .spa-container, never a subtree, so typing and
+   * scrolling in a grid never reach it.
+   */
+  function watchPages(client, onChange) {
+    var Observer = (client.defaultView || root).MutationObserver;
+    var observer = new Observer(onChange);
+    var containers = client.querySelectorAll(CONTAINER_SEL);
+    for (var i = 0; i < containers.length; i++) observer.observe(containers[i], { childList: true });
+    return observer;
+  }
+
   /* --------------------------------------------------------------- attach */
 
   /**
@@ -357,6 +476,7 @@
     var open = null;
     var detached = false;
     var observer = null;
+    var spot = null;
 
     if (options.icon) {
       observer = new win.MutationObserver(insertIcon);
@@ -387,7 +507,8 @@
       var client = clientDoc(doc);
       // Read the cursor before the panel takes the focus.
       var returnTo = client.activeElement;
-      var actions = pageActions(client);
+      var view = topView(client);
+      var actions = pageActions(view, client.activeElement);
       var panel = buildPanel(doc, sections(actions, context(client), t), t);
 
       var header = doc.getElementById('O365_NavHeader');
@@ -395,7 +516,9 @@
       panel.style.top = top + 'px';
       panel.style.maxHeight = 'calc(100vh - ' + (top + 16) + 'px)';
       doc.body.appendChild(panel);
-      addCaps(client, actions);
+      // Back where it was last dropped, for as long as this tab lives.
+      if (spot) place(panel, spot.left, spot.top, panel.getBoundingClientRect().width);
+      draggable(panel, function (where) { spot = where; });
 
       function onKey(event) {
         if (event.key !== 'Escape') return;
@@ -403,40 +526,56 @@
         event.stopPropagation();
         hide(true);
       }
-      // Only while the panel is open: a press outside it closes it.
-      function onPointer(event) {
-        if (!panel.contains(event.target) && !isIconEvent(event)) hide(false);
-      }
+      // A press outside the panel leaves it open, so people can work in BC
+      // with it beside them; only ×, Escape or the icon closes it.
       panel.addEventListener('keydown', onKey);
       panel.querySelector('.bcb-keys__close').addEventListener('click', function () { hide(true); });
-      doc.addEventListener('pointerdown', onPointer, true);
-      if (client !== doc) client.addEventListener('pointerdown', onPointer, true);
 
       open = {
         panel: panel,
         client: client,
+        view: view,
         returnTo: returnTo,
-        cleanup: function () {
-          doc.removeEventListener('pointerdown', onPointer, true);
-          if (client !== doc) client.removeEventListener('pointerdown', onPointer, true);
-        }
+        pages: watchPages(client, pagesChanged),
+        timer: 0
       };
       setExpanded(true);
       panel.focus();
     }
 
-    function isIconEvent(event) {
-      var icon = doc.getElementById(ICON_ID);
-      return !!(icon && event.target && event.target.nodeType === 1 && icon.contains(event.target));
+    // BC opened or closed a page while the panel is open: once the page on
+    // screen is another one and has rendered, show its shortcuts instead. A
+    // lookup opening or closing leaves the page as it is, so nothing changes.
+    function pagesChanged() {
+      if (!open) return;
+      win.clearTimeout(open.timer);
+      var tries = 0;
+      (function later() {
+        open.timer = win.setTimeout(function () {
+          if (!open) return;
+          var view = topView(open.client);
+          if (view !== open.view && view.querySelector('form.ms-nav-root-form')) render(view);
+          else if (++tries < REFRESH_TRIES) later();
+        }, REFRESH_MS);
+      })();
+    }
+
+    // The open panel, filled for another page. The focus stays where it is.
+    function render(view) {
+      var actions = pageActions(view, open.client.activeElement);
+      fillPanel(open.panel, sections(actions, context(open.client), t), t);
+      open.view = view;
+      // The field the cursor was in belongs to the page that went away.
+      open.returnTo = null;
     }
 
     function hide(restoreFocus) {
       if (!open) return;
       var was = open;
       open = null;
-      was.cleanup();
+      was.pages.disconnect();
+      win.clearTimeout(was.timer);
       was.panel.remove();
-      removeCaps(was.client);
       setExpanded(false);
       // Back to where the cursor was, so typing goes on there.
       if (restoreFocus && was.returnTo && was.returnTo.isConnected && was.returnTo.focus) {

@@ -343,7 +343,7 @@
         enabled: bool(weekNumbers.enabled, true)
       },
       shortcuts: {
-        enabled: bool(shortcuts.enabled, true)
+        enabled: bool(shortcuts.enabled, false)
       }
     };
   }

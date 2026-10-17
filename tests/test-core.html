@@ -395,8 +395,10 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ stripeRows: { enabled: true } })), true);
   check('stripes: off when the extension is off',
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ enabled: false, stripeRows: { enabled: true } })), false);
-  // and so does the keyboard shortcuts icon, which starts on
-  check('shortcuts: on by default', BCBuddy.shortcutsOn(BCBuddy.normalize(null)), true);
+  // and so does the keyboard shortcuts icon, which starts off
+  check('shortcuts: off by default', BCBuddy.shortcutsOn(BCBuddy.normalize(null)), false);
+  check('shortcuts: on with its own toggle',
+    BCBuddy.shortcutsOn(BCBuddy.normalize({ shortcuts: { enabled: true } })), true);
   check('shortcuts: off with its own toggle',
     BCBuddy.shortcutsOn(BCBuddy.normalize({ shortcuts: { enabled: false } })), false);
   check('shortcuts: off when the extension is off',
@@ -585,6 +587,10 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       '<button title="A copy that is not shown. (F7)" style="display:none">Statistics</button>' +
       '<button title="Same key again. (F9)">Post again</button>' +
       '<span title="Balance (LCY)">Balance</span>' +
+      '<button title="Suggest a value. (Alt+I)" aria-label="Suggest a value (Alt+I)">Suggest</button>' +
+      '<button title="Not available now. (Ctrl+D)" aria-disabled="true">Greyed out</button>' +
+      '<div class="formhost-control"><button title="Create a new entry. (Ctrl+Ins)">New Line</button>' +
+      '<input id="sc-part"></div>' +
       '</div>' +
       '<form class="ms-nav-root-form ms-nav-cardform">' +
       '<table class="ms-nav-grid ms-nav-grid-edit ms-nav-grid-data-table"><tbody><tr><td>' +
@@ -594,15 +600,21 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       '<table class="ms-nav-grid ms-nav-grid-view ms-nav-grid-data-table"><tbody><tr><td>' +
       '<input id="sc-view"></td></tr></tbody></table>' +
       '<input id="sc-card">' +
+      '<div class="ms-nav-edit-control-container"><div class="edit-container"><div class="floating-field-action">' +
+      '<button title="A field\'s own button. (Ctrl+Y)">*</button></div></div></div>' +
       '</form>';
     document.body.appendChild(host);
     var actions = S.pageActions(host);
-    check('shortcuts: actions read from their tooltips, shown ones, each key once',
-      actions.map(function (a) { return [a.keys, a.name]; }), [['F9', 'Post'], ['Shift+F9', 'Post and Print']]);
+    check('shortcuts: a part\'s own actions only with the cursor in that part',
+      S.pageActions(host, document.getElementById('sc-part')).map(function (a) { return a.keys; }),
+      ['F9', 'Shift+F9', 'Alt+I', 'Ctrl+Ins']);
+    check('shortcuts: actions read from their tooltips, shown ones, each key once, not a field\'s own buttons',
+      actions.map(function (a) { return [a.keys, a.name]; }), [['F9', 'Post'], ['Shift+F9', 'Post and Print'], ['Alt+I', 'Suggest a value']]);
 
     function at(id) {
       document.getElementById(id).focus();
-      return S.context(document);
+      var c = S.context(document);
+      return { area: c.area, date: c.date };
     }
     check('shortcuts: a date field in editable lines', at('sc-date'), { area: 'lines', date: true });
     check('shortcuts: another field in editable lines', at('sc-text'), { area: 'lines', date: false });
@@ -610,17 +622,49 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     check('shortcuts: a field on a card', at('sc-card'), { area: 'card', date: false });
     document.activeElement.blur();
 
+    function page(formClass, inner) {
+      var doc = document.implementation.createHTMLDocument('');
+      doc.body.innerHTML = '<form class="ms-nav-root-form ' + formClass + '">' + (inner || '') + '</form>';
+      return S.context(doc);
+    }
+    var NEW_BUTTON = '<button class="ms-Button ms-Button--command"><i class="ms-Icon icon-Plus"></i></button>';
+    var factboxGrid = '<div class="ms-nav-layout-factbox-content-area">' +
+      '<table class="ms-nav-grid ms-nav-grid-edit ms-nav-grid-data-table"></table></div>';
+    check('shortcuts: no cursor on a list page, with New and FactBoxes',
+      page('ms-nav-listform', NEW_BUTTON),
+      { area: 'list', date: false, newRecord: true, factBox: true });
+    check('shortcuts: no cursor on a Role Center, no area, no New or FactBox',
+      page('ms-nav-rolecenter', NEW_BUTTON),
+      { area: null, date: false, newRecord: false, factBox: false });
+    check('shortcuts: a read-only worksheet such as Find entries is a list, without New or FactBox',
+      page('ms-nav-worksheetform in-edit-mode form-no-factboxes',
+        factboxGrid + '<table class="ms-nav-grid ms-nav-grid-view ms-nav-grid-data-table"></table>'),
+      { area: 'list', date: false, newRecord: false, factBox: false });
+    check('shortcuts: a journal is lines',
+      page('ms-nav-worksheetform', '<table class="ms-nav-grid ms-nav-grid-edit ms-nav-grid-data-table"></table>').area,
+      'lines');
+    check('shortcuts: the + in a card header is New too',
+      page('card ms-nav-cardform', '<button class="ms-Button ms-Button--icon"><i data-icon-name="Add"></i></button>').newRecord,
+      true);
+
     var t = function (k) { return '[' + k + ']'; };
     var withPage = S.sections(actions, { area: 'lines', date: true }, t);
     check('shortcuts: sections in order, page first',
       withPage.map(function (s) { return s.title; }), ['[scPage]', '[scDate]', '[scLines]', '[scAnywhere]']);
     check('shortcuts: the page section lists the actions by their own name',
-      withPage[0].rows, [['F9', 'Post'], ['Shift+F9', 'Post and Print']]);
+      withPage[0].rows, [['F9', 'Post'], ['Shift+F9', 'Post and Print'], ['Alt+I', 'Suggest a value']]);
     check('shortcuts: only the page section carries the note on unopened menus',
       withPage.map(function (s) { return s.note || ''; }), ['[scNotListed]', '', '', '']);
     check('shortcuts: no page section without actions',
       S.sections([], { area: 'list', date: false }, t).map(function (s) { return s.title; }),
       ['[scList]', '[scAnywhere]']);
+    var bare = S.sections([], { area: null, date: false }, t);
+    check('shortcuts: no area, no area section', bare.map(function (s) { return s.title; }), ['[scAnywhere]']);
+    check('shortcuts: no area, no new record or FactBox',
+      bare[0].rows.map(function (r) { return r[0]; }), ['Alt+Q', 'Ctrl+O', 'F5', 'Alt']);
+    check('shortcuts: with New and FactBoxes, new record and FactBox are there',
+      S.sections([], { area: 'list', date: false, newRecord: true, factBox: true }, t)[1].rows.map(function (r) { return r[0]; }),
+      ['Alt+Q', 'Alt+N', 'Ctrl+O', 'Alt+F2', 'F5', 'Alt']);
     host.remove();
   })();
 
@@ -668,16 +712,42 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     check('shortcuts panel: links to Microsoft open in a new tab',
       [].map.call(panel.querySelectorAll('a'), function (a) { return [a.href, a.target, a.rel]; }),
       S.DOCS.map(function (d) { return [d[1], '_blank', 'noopener noreferrer']; }));
-    check('shortcuts panel: a badge over the action', document.querySelectorAll('.bcb-keycap').length, 1);
     check('shortcuts icon: says it is open', button.getAttribute('aria-expanded'), 'true');
     panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    check('shortcuts panel: Escape closes it and its badges',
-      [handle.isOpen(), !!document.getElementById(S.PANEL_ID), document.querySelectorAll('.bcb-keycap').length,
-        button.getAttribute('aria-expanded')], [false, false, 0, 'false']);
+    check('shortcuts panel: Escape closes it',
+      [handle.isOpen(), !!document.getElementById(S.PANEL_ID), button.getAttribute('aria-expanded')],
+      [false, false, 'false']);
 
     handle.toggle();
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-    check('shortcuts panel: a press outside closes it', handle.isOpen(), false);
+    check('shortcuts panel: a press outside leaves it open', handle.isOpen(), true);
+    handle.toggle();
+    check('shortcuts panel: the icon closes it again', handle.isOpen(), false);
+
+    // Dragged by its header: follows the pointer, stays in the window, and
+    // opens where it was dropped. A press on × moves nothing.
+    handle.toggle();
+    panel = document.getElementById(S.PANEL_ID);
+    var head = panel.querySelector('.bcb-keys__head');
+    function pointer(target, type, x, y) {
+      target.dispatchEvent(new PointerEvent(type, { bubbles: true, button: 0, pointerId: 7, clientX: x, clientY: y }));
+    }
+    var box = panel.getBoundingClientRect();
+    pointer(panel.querySelector('.bcb-keys__close'), 'pointerdown', box.left + 2, box.top + 2);
+    pointer(head, 'pointermove', 300, 300);
+    check('shortcuts panel: a press on × drags nothing', panel.getBoundingClientRect().left, box.left);
+    pointer(head, 'pointerup', 300, 300);
+    pointer(head.querySelector('h2'), 'pointerdown', box.left + 10, box.top + 10);
+    pointer(head, 'pointermove', -500, -500);
+    check('shortcuts panel: kept inside the window', [panel.style.left, panel.style.top], ['0px', '0px']);
+    pointer(head, 'pointermove', 60, 110);
+    pointer(head, 'pointerup', 60, 110);
+    check('shortcuts panel: follows the pointer', [panel.style.left, panel.style.top], ['50px', '100px']);
+    handle.toggle();
+    handle.toggle();
+    panel = document.getElementById(S.PANEL_ID);
+    check('shortcuts panel: opens where it was dropped', [panel.style.left, panel.style.top], ['50px', '100px']);
+    handle.toggle();
 
     handle.detach();
     check('shortcuts icon: gone after detach', document.getElementById(S.ICON_ID), null);
@@ -1624,6 +1694,65 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     '<td class="edit-container edit-container-read" role="gridcell" data-k="lookup" style="width:120px"><span class="stringcontrol-read value">BE</span></td>' +
     '</tr></tbody></table></div>';
 
+  // keyboard shortcuts: an open panel follows BC to the next page. Pages are
+  // sibling .spa-view elements; the one below stays rendered, so its
+  // actions must not be listed. A lookup leaves the panel as it is.
+  function shortcutsDom() {
+    var S = BCBuddy.Shortcuts;
+    function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+    function view(form, action) {
+      var v = document.createElement('div');
+      v.className = 'spa-view';
+      v.innerHTML = '<form class="ms-nav-root-form ' + form + '">' + action + '</form>';
+      return v;
+    }
+    function titles() {
+      return [].map.call(document.querySelectorAll('#' + S.PANEL_ID + ' h3'), function (h) {
+        return h.firstChild.textContent;
+      });
+    }
+    function names() {
+      return [].map.call(document.querySelectorAll('#' + S.PANEL_ID + ' dl:first-of-type dd'), function (d) {
+        return d.textContent;
+      });
+    }
+    var box = document.createElement('div');
+    box.className = 'spa-container';
+    var list = view('ms-nav-listform', '<button title="Open the card. (Shift+F7)">Edit</button>');
+    box.appendChild(list);
+    document.body.appendChild(box);
+    var handle = S.attach(document, { t: function (k) { return '[' + k + ']'; }, icon: false });
+    handle.toggle();
+    check('shortcuts panel: a list page', [titles(), names()],
+      [['[scPage]', '[scList]', '[scAnywhere]'], ['Edit']]);
+
+    list.classList.add('spa-not-top-most');
+    list.setAttribute('inert', '');
+    var card = view('ms-nav-cardform', '<button title="Finalize. (F9)">Post</button>');
+    box.appendChild(card);
+    return wait(400).then(function () {
+      check('shortcuts panel: follows BC to the card, without the list below',
+        [titles(), names()], [['[scPage]', '[scCard]', '[scAnywhere]'], ['Post']]);
+      var lookup = document.createElement('div');
+      lookup.className = 'spa-view spa-lookup';
+      lookup.innerHTML = '<form class="ms-nav-root-form ms-nav-lookupform"></form>';
+      box.appendChild(lookup);
+      return wait(400).then(function () {
+        check('shortcuts panel: a lookup leaves it as it is', titles(), ['[scPage]', '[scCard]', '[scAnywhere]']);
+        lookup.remove();
+        card.remove();
+        list.classList.remove('spa-not-top-most');
+        list.removeAttribute('inert');
+        return wait(400);
+      });
+    }).then(function () {
+      check('shortcuts panel: back on the list', [titles(), names()],
+        [['[scPage]', '[scList]', '[scAnywhere]'], ['Edit']]);
+      handle.detach();
+      box.remove();
+    });
+  }
+
   function copyDom() {
     var C = BCBuddy.CopyValues;
     var host = document.createElement('div');
@@ -1967,6 +2096,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
           results.push('FAIL  new tab flow DOM: ' + err.message);
         }).then(gearDom).then(null, function (err) {
           results.push('FAIL  gear menu DOM: ' + err.message);
+        }).then(shortcutsDom).then(null, function (err) {
+          results.push('FAIL  shortcuts DOM: ' + err.message);
         }).then(function () {
           var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
           document.getElementById('results').textContent =
