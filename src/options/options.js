@@ -44,6 +44,9 @@
 
   page.renderAll = function () {
     page.el.globalEnabled.checked = page.state.settings.enabled;
+    // Settings changed under us (or the page just opened): an undo from
+    // before would now put back something else.
+    page.setResetStatus('');
     page.renderWebClient();
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
@@ -63,6 +66,52 @@
     page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
     page.renderDropdown();
+    var team = page.teamDefaults();
+    page.el.resetWebClient.textContent = t(team ? 'resetWebClientTeam' : 'resetWebClient');
+    page.el.resetWebClient.title = t(team ? 'resetWebClientTeamTitle' : 'resetWebClientTitle');
+  };
+
+  /** True when Reset to defaults takes values from the shared file. */
+  page.teamDefaults = function () {
+    var hosted = page.state.settings.hosted;
+    return hosted.active && Object.keys(hosted.webClient || {}).length > 0;
+  };
+
+  /**
+   * Puts the Web client settings back to the defaults (see
+   * BCBuddy.webClientDefaults) and offers to undo it. The master switch is not
+   * part of it, as it is not part of an export.
+   */
+  page.resetWebClient = function () {
+    var settings = page.state.settings;
+    var before = BCBuddy.webClientOf(settings);
+    var changed = BCBuddy.applyWebClient(settings, BCBuddy.webClientDefaults(settings));
+    if (!changed) {
+      page.setResetStatus(t('resetWebClientNone'), 'ok');
+      return;
+    }
+    page.save();
+    page.renderWebClient();
+    page.setResetStatus(t('resetWebClientDone', [changed]), 'ok', function () {
+      BCBuddy.applyWebClient(page.state.settings, before);
+      page.save();
+      page.renderWebClient();
+      page.setResetStatus(t('resetWebClientUndone'), 'ok');
+    });
+  };
+
+  /** The line under the Web client card; with `undo`, an Undo link after the text. */
+  page.setResetStatus = function (text, kind, undo) {
+    var status = page.el.resetStatus;
+    status.textContent = text;
+    status.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
+    if (!undo) return;
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'sync-status__action';
+    button.textContent = t('undo');
+    button.addEventListener('click', undo);
+    status.appendChild(button);
   };
 
   page.renderDropdown = function () {
@@ -260,7 +309,7 @@
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
-      'stripeRowsEnabled',
+      'stripeRowsEnabled', 'resetWebClient', 'resetStatus',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
@@ -384,6 +433,12 @@
         page.renderDropdown();
         page.save();
       });
+    });
+
+    el.resetWebClient.addEventListener('click', page.resetWebClient);
+    // Changing a setting by hand after a reset: undoing would throw that away.
+    el.resetWebClient.closest('section').querySelector('.card').addEventListener('change', function () {
+      page.setResetStatus('');
     });
 
     el.testUrl.addEventListener('input', function () {

@@ -151,8 +151,14 @@
           <input type="checkbox" class="toggle" id="noAnimationsEnabled">
         </label>
       </div>
-      <p class="muted small"><a href="https://fvet.github.io/bcbuddy/web-client/"
-         target="_blank" rel="noopener noreferrer" data-i18n="webClientMore">More about these settings</a></p>
+      <div class="webclient-foot">
+        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/web-client/"
+           target="_blank" rel="noopener noreferrer" data-i18n="webClientMore">More about these settings</a></p>
+        <!-- The label says where the defaults come from; see renderWebClient(). -->
+        <button type="button" class="btn btn--small" id="resetWebClient"
+                data-i18n="resetWebClient" data-i18n-title="resetWebClientTitle">Reset to defaults</button>
+      </div>
+      <p class="sync-status" id="resetStatus"></p>
     </section>
     </div>
 

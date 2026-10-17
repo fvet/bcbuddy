@@ -21,6 +21,12 @@ page, so you can turn off whatever you do not like.
 A change takes effect in Business Central straight away. The **Extension
 active** switch at the top of the settings page pauses all of BC Buddy at once.
 
+Changed too much? **Reset to defaults**, under the list, puts every switch and
+slider back to how BC Buddy starts out. **Undo**, right next to the message,
+takes it back. When your team shares a file, the button reads **Reset to your
+team's defaults** and takes the team's choices from that file; see
+[Team file](sharing.md#web-client-settings-in-the-file).
+
 ## Copy values
 
 Rest the mouse on a value in a list or a FactBox for a moment, and a small copy

@@ -1022,7 +1022,8 @@ function assertOptions() {
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
     return assertNav().then(assertToolbarOpen).then(assertWebClient).then(assertLayouts).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
-      .then(assertExternalWrite).then(assertPolicyLock).then(assertEdgeCases).then(assertSamples);
+      .then(assertExternalWrite).then(assertPolicyLock).then(assertEdgeCases).then(assertSamples)
+      .then(assertResetWebClient);
   });
 }
 
@@ -1640,6 +1641,68 @@ function assertSamples() {
     check('samples: the empty message does not mention it', empty.textContent,
       chrome.i18n.getMessage('emptyRules'));
     INSTALL_TYPE = 'normal';
+  });
+}
+
+/* ---- Reset to defaults on the Web client panel -------------------------- */
+function assertResetWebClient() {
+  var button = document.getElementById('resetWebClient');
+  var status = document.getElementById('resetStatus');
+  function store(patch) {
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    Object.keys(patch).forEach(function (key) { stored[key] = patch[key]; });
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  }
+  function onOff() {
+    return [STORE.settings.stripeRows.enabled, STORE.settings.shortcuts.enabled,
+      STORE.settings.copyValues.enabled];
+  }
+
+  check('reset: the button lives in the Web client panel',
+    button.closest('.panel'), document.querySelector('.panel[data-panel="webclient"]'));
+  return store({
+    stripeRows: { enabled: true }, shortcuts: { enabled: true }, copyValues: { enabled: true },
+    dropdown: { width: 5, height: 5 },
+    hosted: { url: 'https://example.com/shared.json', active: true, rules: [], layouts: [],
+      webClient: { copyValues: { enabled: false } } }
+  }).then(function () {
+    check('reset: the label names the team when the shared file sets something',
+      button.textContent, chrome.i18n.getMessage('resetWebClientTeam'));
+    button.click();
+    return wait(400);
+  }).then(function () {
+    check('reset: app defaults, with the shared file on top', onOff(), [false, false, false]);
+    check('reset: the switches follow',
+      document.getElementById('copyValuesEnabled').checked, false);
+    check('reset: the master switch is left alone', STORE.settings.enabled, true);
+    check('reset: says how many, with an undo',
+      [status.firstChild.textContent, status.querySelector('button').textContent],
+      [chrome.i18n.getMessage('resetWebClientDone', ['3']), chrome.i18n.getMessage('undo')]);
+    status.querySelector('button').click();
+    return wait(400);
+  }).then(function () {
+    check('reset: undo puts everything back', onOff(), [true, true, true]);
+    check('reset: and says so', status.textContent, chrome.i18n.getMessage('resetWebClientUndone'));
+    button.click();
+    return wait(100);
+  }).then(function () {
+    document.getElementById('stripeRowsEnabled').click();
+    check('reset: a change by hand drops the undo', status.textContent, '');
+    var hosted = JSON.parse(JSON.stringify(STORE.settings.hosted));
+    hosted.active = false;
+    return wait(400).then(function () { return store({ hosted: hosted }); });
+  }).then(function () {
+    check('reset: without the shared file, the plain label',
+      button.textContent, chrome.i18n.getMessage('resetWebClient'));
+    button.click();
+    return wait(400);
+  }).then(function () {
+    check('reset: then only the app defaults count', onOff(), [false, false, true]);
+    button.click();
+    return wait(100);
+  }).then(function () {
+    check('reset: nothing to reset says so', status.textContent,
+      chrome.i18n.getMessage('resetWebClientNone'));
   });
 }
 

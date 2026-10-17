@@ -56,6 +56,9 @@ an order:
   colleague who switches something off keeps it off.
 - To share only some of them, delete the others from the `webClient` part of
   the file. Without that part, everyone keeps their own.
+- **Reset to your team's defaults** under **Web client** brings a colleague
+  back to what the file says. Settings the file leaves out go back to how BC
+  Buddy starts out.
 
 The **Extension active** switch is never shared.
 

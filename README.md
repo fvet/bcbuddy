@@ -55,6 +55,11 @@ the settings page.
 | **Striped rows** | Every other row in a list a light grey | Off |
 | **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
+**Reset to defaults**, under the list, puts every switch and slider back to
+how BC Buddy starts out. When your team shares a file, the button reads
+**Reset to your team's defaults** and takes the team's choices from that file.
+Clicked by mistake? **Undo** sits right next to the message.
+
 What each one does, in detail:
 [Web client](https://fvet.github.io/bcbuddy/web-client/) on the website.
 
@@ -188,7 +193,8 @@ The **Web client** settings in a shared file are a starting point. Each one is
 applied on the first sync, and after that only when the team changes it in the
 file, so a colleague who switches something off keeps it off. To share only
 some of them, delete the others from the `webClient` part of the file; without
-that part, everyone keeps their own.
+that part, everyone keeps their own. **Reset to your team's defaults** under
+**Web client** brings a colleague back to what the file says.
 
 **Import / export > Import from file** loads a file once: rules you already have are
 overwritten, new rules are added, rules that are not in the file stay, and the

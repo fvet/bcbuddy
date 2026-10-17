@@ -1434,6 +1434,32 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.applySharedWebClient(colleague, null), 0);
   check('shared: nothing remembered by default', def.hosted.webClient, {});
 
+  // Reset to defaults: the app's defaults, with the shared file's on top
+  check('reset: without a shared file, the app defaults',
+    BCBuddy.webClientDefaults(BCBuddy.normalize({})), BCBuddy.webClientOf(BCBuddy.normalize({})));
+  var teamMember = BCBuddy.normalize({
+    stripeRows: { enabled: true }, copyValues: { enabled: false }, dropdown: { width: 2, height: 2 },
+    hosted: { url: 'https://example.com/bc-buddy.json', active: true,
+      webClient: { copyValues: { enabled: false }, dropdown: { width: 3, height: 9 } } }
+  });
+  var teamDefaults = BCBuddy.webClientDefaults(teamMember);
+  check('reset: the shared file wins where it says something',
+    [teamDefaults.copyValues.enabled, teamDefaults.dropdown], [false, { width: 3, height: 5 }]);
+  check('reset: the rest goes back to the app defaults', teamDefaults.stripeRows.enabled, false);
+  check('reset: every Web client setting is there', Object.keys(teamDefaults), BCBuddy.WEB_CLIENT_KEYS);
+  check('reset: applying it counts the changes',
+    BCBuddy.applyWebClient(teamMember, teamDefaults), 2);
+  teamMember.hosted.active = false;
+  check('reset: a shared file that is off no longer counts',
+    BCBuddy.webClientDefaults(teamMember).dropdown, { width: 5, height: 5 });
+  check('reset: a hostile stored value is normalised again',
+    BCBuddy.webClientDefaults({ hosted: { active: true,
+      webClient: { dropdown: { width: '1e9' }, stripeRows: { enabled: 'yes' } } } })
+      .dropdown.width, 5);
+  var snapshot = BCBuddy.webClientOf(teamMember);
+  snapshot.dropdown.width = 1;
+  check('reset: the undo copy stands apart from the settings', teamMember.dropdown.width, 3);
+
   var mergedResult = BCBuddy.mergeLayouts(
     [BCBuddy.normalizeLayout({ id: 'lay-1', name: 'Standaard', border: { width: 3 } })],
     [layout, BCBuddy.normalizeLayout({ id: 'lay-2', name: 'Compact' })]);
