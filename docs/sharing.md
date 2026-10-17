@@ -111,9 +111,48 @@ To load a file once, without daily updates, use **Import / export** →
     For Group Policy, or one test computer, there is
     [`bc-buddy-policy.reg`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/bc-buddy-policy.reg).
 
-    **3. Check it.** On a test computer, open `edge://policy` or
-    `chrome://policy` and look for `sharedConfigUrl` under BC Buddy's ID. Then
-    roll out to a small pilot group before everyone.
+    **3. Keep BC Buddy to Business Central (recommended).** Out of the box
+    BC Buddy may run on every website, because it cannot know the address of
+    a Business Central on your own server. You do know it, so you can tell
+    the browser to keep BC Buddy away from everything else. In the same
+    Settings catalog profile, add Edge's Extensions › *Configure extension
+    management settings* and Chrome's Extensions › *Extension management
+    settings*, both with this value:
+
+    ```json
+    {
+      "jpgpcfecpdcocjlepdfceahamliimjdl": {
+        "runtime_blocked_hosts": ["*://*"],
+        "runtime_allowed_hosts": [
+          "*://*.dynamics.com",
+          "*://bc.example.local",
+          "*://example.com"
+        ]
+      }
+    }
+    ```
+
+    - `*://*` blocks every website; the list below it lets BC Buddy back in.
+    - `*://*.dynamics.com` is Business Central online. Keep it.
+    - Replace `bc.example.local` with your own Business Central server, if
+      you have one. Add a line per server, or use `*://*.yourdomain.local`.
+      Leave it out if you only use Business Central online.
+    - Replace `example.com` with the host of your shared file, so BC Buddy
+      can still download it.
+    - Only host names, no paths: `*://bc.example.local`, not
+      `https://bc.example.local/BC240`. At most 100 lines.
+
+    This policy is one value for all extensions. If your organisation
+    already sets it, add BC Buddy's entry to the value you have instead of
+    making a second profile: two profiles with the same setting conflict, and
+    then neither applies. The value is also in
+    [`extension-settings.json`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/extension-settings.json).
+
+    **4. Check it.** On a test computer, open `edge://policy` or
+    `chrome://policy` and look for `sharedConfigUrl` under BC Buddy's ID, and
+    for the extension settings without an error. Open Business Central and
+    check that the colours and the shared rules are there. Then roll out to
+    a small pilot group before everyone.
 
     **What people see.** Under **Shared configuration** the address is greyed
     out with *Set by your organisation*, and the **X** that clears the shared

@@ -190,7 +190,15 @@ in with *Set by your organisation*, and you cannot change it.
    [`Detect-BCBuddyPolicy.ps1`](examples/intune/Detect-BCBuddyPolicy.ps1)
    (Windows Enterprise E3/E5). Run it as system in 64-bit PowerShell. For
    Group Policy there is [`bc-buddy-policy.reg`](examples/intune/bc-buddy-policy.reg).
-3. **Check it** in `edge://policy` or `chrome://policy` on a test computer,
+3. **Keep BC Buddy to Business Central (recommended).** Set Edge's
+   *Configure extension management settings* and Chrome's *Extension
+   management settings* to
+   [`extension-settings.json`](examples/intune/extension-settings.json), with
+   your own on-premises server and the host of your shared file in
+   `runtime_allowed_hosts`. `*://*` in `runtime_blocked_hosts` keeps BC Buddy
+   off every other website. The policy is one value for all extensions, so
+   merge this entry into any value you already have.
+4. **Check it** in `edge://policy` or `chrome://policy` on a test computer,
    then roll out to a pilot group first.
 
 The address is then locked on the settings page and the shared rules cannot be

@@ -29,7 +29,8 @@ src/
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted
 examples/              example of a shared configuration (schema version 2);
-                       intune/: scripts that set the policy for IT
+                       intune/: scripts that set the policy for IT, and
+                       the ExtensionSettings value that limits its hosts
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store;
@@ -407,6 +408,14 @@ the policy arrived does not wait a day. A force-install (`installType`
 
 Nothing of this runs in BC tabs: only the service worker and the options page
 read managed storage.
+
+The manifest keeps `<all_urls>`: an on-premises server has no address the
+extension could list in advance. IT, who knows those addresses, narrows it with
+Chrome's `ExtensionSettings` policy instead: `runtime_blocked_hosts: ["*://*"]`
+and the BC hosts plus the shared file's host in `runtime_allowed_hosts`
+(`examples/intune/extension-settings.json`, documented in `docs/sharing.md`).
+Content scripts then no longer run anywhere else. Nothing in the code depends on
+it; the extension simply never sees the other sites.
 
 ## 🧩 Adding a web client tweak
 
