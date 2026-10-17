@@ -1,6 +1,6 @@
 # Privacy policy - BC Buddy
 
-_Last updated: 24 August 2026_
+_Last updated: 17 October 2026_
 
 BC Buddy is a browser extension that colours and labels Business Central
 environments so you can tell them apart. **It does not collect, transmit or
@@ -62,7 +62,9 @@ to it.
 - host permissions (`<all_urls>`) - rules may match any URL, because a
   Business Central on-premises server runs on your own host name, and your
   shared configuration file can be hosted anywhere. The extension only uses
-  this access to draw its own markers on pages that match one of your rules.
+  this access to draw its own markers on pages that match one of your rules,
+  and to apply its web client improvements on pages that are Business
+  Central.
 
 ## Contact
 

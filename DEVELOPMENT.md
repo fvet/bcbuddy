@@ -417,11 +417,44 @@ and the BC hosts plus the shared file's host in `runtime_allowed_hosts`
 Content scripts then no longer run anywhere else. Nothing in the code depends on
 it; the extension simply never sees the other sites.
 
+### Where the web client tweaks run
+
+`state.webClient`, worked out by `webClientHere()` once per `apply()`, decides
+it for every tweak. Two things must hold:
+
+1. **The address looks like Business Central** (`isWebClientTarget()`):
+   `*.dynamics.com`, a host name with a label starting with `bc`, or a path
+   starting with `/bc`. That is cheap and catches the usual on-prem shapes, but
+   also sites such as `www2.gov.bc.ca`.
+2. **The page is Business Central.** On BC online (`ctx.isbc`) the host says
+   so. Anywhere else the document must hold one of BC's own classes,
+   `designer-client-frame` (the client's frame, in the top window) or
+   `spa-container` (where its pages stack, inside that frame), or the ribbon
+   search must have found the brand name (`state.bcSeen`).
+
+When only the address matches, `probeForBC()` looks for those classes on a
+timer instead of waking the observer and the poll: every second, then every
+2 s after 10 s. It stops at once when they appear, and gives up 10 s after the
+page's load event (or after the address changed, for a page that loaded long
+before), within a minute in any case. The client builds its frame with script
+as the page finishes loading, so later than that it is not coming: a
+look-alike page gets about ten looks, then none for that address. A BC page
+that does turn up later is still caught when a rule matches it, because the
+800 ms poll that keeps its colours checks again on every pass. It reads two live `getElementsByClassName`
+collections made once, which the browser answers from cache while the page
+does not change (measured: 0.003 ms, against 2.3 ms for one `querySelector`
+over 60,000 elements). Before this, a look-alike address woke the full
+observer and the 800 ms poll for good.
+
+A frame of BC that holds neither class, such as an add-in's frame, gets no
+tweak, which none of them needs. On-prem has the same client, so the same
+classes; that was reasoned from the shared code, not seen on a live server.
+
 ## 🧩 Adding a web client tweak
 
 Every tweak follows the shape of the existing ones: a switch in the Web client
-panel, off when the extension as a whole is off, limited to
-`isWebClientTarget()` URLs, and CSS first wherever CSS can do it. A CSS rule
+panel, off when the extension as a whole is off, limited to frames where
+`state.webClient` is true, and CSS first wherever CSS can do it. A CSS rule
 that stops matching after a BC update does nothing; a script that clicks the
 wrong thing does damage. A new one brings along:
 
@@ -637,8 +670,8 @@ section; `gearmenu.js` inserts `#bcb-gear-section` right after it, above
   its releases. The section copies, element by element, the classes of BC's own
   section (heading, list, link) and the divider of the Microsoft 365 section, so
   it looks native on whatever release is live. Ids are not copied.
-- **Cost.** One `childList` observer on `body` (no subtree), top window only, on
-  `isWebClientTarget()` hosts. Only while the pane is open, a second observer
+- **Cost.** One `childList` observer on `body` (no subtree), top window only,
+  where `state.webClient` is true. Only while the pane is open, a second observer
   watches the pane's own subtree — a few dozen elements — because the shell can
   switch between Settings, Help and Notifications without closing it.
 - **Always on.** It does not follow the extension's on/off switch and has no
