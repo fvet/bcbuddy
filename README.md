@@ -49,6 +49,7 @@ the settings page.
 | **Pin the action bar** | Every page opens with the row of actions under its tabs pinned | On |
 | **Dropdown size** | The list under a field as wide as its columns need, and taller if you like | On |
 | **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
+| **Keyboard shortcuts** | A keyboard icon in the top bar that shows the shortcuts for where you are | On |
 | **Highlight the current line** | The line you are on in a journal or order stands out | On |
 | **Hide the notifications icon** | No bell in the top bar | On |
 | **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
@@ -184,6 +185,11 @@ or pick list view once, and Business Central remembers that instead.
 **The action bar floats on a page.** Pin the action bar likewise only pins a
 page nobody set yet. Click the pin at the right end of the action bar once, and
 Business Central keeps it pinned from then on.
+
+**No keyboard icon in the top bar.** Check that **Keyboard shortcuts** is on
+under **Web client**, and reload the tab. Business Central on your own server
+has no room for the icon; set a key for the panel at
+`chrome://extensions/shortcuts` instead.
 
 **No week numbers in the date picker.** Press Shift+Home while the calendar is
 open: that turns Business Central's week numbers on or off, and someone may

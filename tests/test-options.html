@@ -163,7 +163,7 @@ function report() {
 var FILES = [
   'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/lib/bcstate.js',
   'src/lib/maximize.js', 'src/lib/actionbar.js', 'src/lib/copyvalues.js', 'src/lib/newtab.js',
-  'src/lib/weeknumbers.js', 'src/lib/gearmenu.js',
+  'src/lib/weeknumbers.js', 'src/lib/gearmenu.js', 'src/lib/shortcuts.js',
   'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
   'src/options/options-hosted.js', 'src/options/options.js'
@@ -989,6 +989,9 @@ function assertWebClient() {
   var row = document.getElementById('highlightRowEnabled');
   check('web client: current line switch lives in the panel', row.closest('.panel'), panel);
   check('web client: current line is on by default', row.checked, true);
+  var keys = document.getElementById('shortcutsEnabled');
+  check('web client: keyboard shortcuts switch lives in the panel', keys.closest('.panel'), panel);
+  check('web client: keyboard shortcuts switch is on by default', keys.checked, true);
   var calm = document.getElementById('noAnimationsEnabled');
   check('web client: animations switch lives in the panel', calm.closest('.panel'), panel);
   check('web client: animations switch is off by default', calm.checked, false);
@@ -1086,6 +1089,14 @@ function assertWebClient() {
     return wait(400);
   }).then(function () {
     check('web client: and the pin action bar switch turns back on', STORE.settings.pinActionBar, { enabled: true });
+    keys.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: keyboard shortcuts switch is saved', STORE.settings.shortcuts, { enabled: false });
+    keys.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the keyboard shortcuts switch turns back on', STORE.settings.shortcuts, { enabled: true });
   });
 }
 

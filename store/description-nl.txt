@@ -6,6 +6,7 @@ Een makkelijkere webclient, meteen. Niets in te stellen:
 - Elke pagina in een brede lay-out met de actiebalk vastgezet, en lijsten in plaats van tegels.
 - Keuzelijsten die al hun kolommen tonen, zodat je niet meer opzij scrolt.
 - Weeknummers in de kalender van een datumveld.
+- Een toetsenbordicoon dat de sneltoetsen toont voor de pagina en het veld waar je bent.
 - De regel waarop je staat in een dagboek of order valt op.
 - Geen meldingenbelletje, en als je wil, geen animaties.
 

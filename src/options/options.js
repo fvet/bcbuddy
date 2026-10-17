@@ -49,6 +49,7 @@
   page.renderWebClient = function () {
     page.el.copyValuesEnabled.checked = page.state.settings.copyValues.enabled;
     page.el.weekNumbersEnabled.checked = page.state.settings.weekNumbers.enabled;
+    page.el.shortcutsEnabled.checked = page.state.settings.shortcuts.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
     page.el.pinActionBarEnabled.checked = page.state.settings.pinActionBar.enabled;
     page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
@@ -226,7 +227,7 @@
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
       'sharedHead', 'clearShared',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
-      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled',
+      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
@@ -286,6 +287,11 @@
 
     el.weekNumbersEnabled.addEventListener('change', function () {
       state.settings.weekNumbers.enabled = el.weekNumbersEnabled.checked;
+      page.save();
+    });
+
+    el.shortcutsEnabled.addEventListener('change', function () {
+      state.settings.shortcuts.enabled = el.shortcutsEnabled.checked;
       page.save();
     });
 

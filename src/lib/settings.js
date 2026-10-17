@@ -292,7 +292,7 @@
   // `webClient`, shaped exactly as they are stored. The master switch does not:
   // it belongs to whoever runs the extension.
   var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'highlightRow',
-    'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers'];
+    'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
@@ -303,6 +303,7 @@
     var hideNotifications = s.hideNotifications || {};
     var copyValues = s.copyValues || {};
     var weekNumbers = s.weekNumbers || {};
+    var shortcuts = s.shortcuts || {};
 
     return {
       maximize: {
@@ -331,6 +332,9 @@
       },
       weekNumbers: {
         enabled: bool(weekNumbers.enabled, true)
+      },
+      shortcuts: {
+        enabled: bool(shortcuts.enabled, true)
       }
     };
   }
@@ -444,6 +448,12 @@
   function weekNumbersOn(settings) {
     return !!(settings && settings.enabled &&
       settings.weekNumbers && settings.weekNumbers.enabled);
+  }
+
+  /** The keyboard shortcuts icon and panel follow the master switch as well. */
+  function shortcutsOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.shortcuts && settings.shortcuts.enabled);
   }
 
   function load() {
@@ -682,6 +692,7 @@
   BCBuddy.hideNotificationsOn = hideNotificationsOn;
   BCBuddy.copyValuesOn = copyValuesOn;
   BCBuddy.weekNumbersOn = weekNumbersOn;
+  BCBuddy.shortcutsOn = shortcutsOn;
   BCBuddy.loadSettings = load;
   BCBuddy.saveSettings = save;
   BCBuddy.toExport = toExport;

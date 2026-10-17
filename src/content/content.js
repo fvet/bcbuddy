@@ -97,6 +97,8 @@
     newTab: null,
     // Week numbers in the date picker: its storage listener while the switch is on.
     weekNumbers: null,
+    // Keyboard shortcuts icon and panel (shortcuts.js), while the switch is on.
+    shortcuts: null,
     // Handle of the BC Buddy section in BC's gear menu, while it is attached.
     gearMenu: null,
     // MutationObserver that reapplies ribbon inline styles if Dark Reader
@@ -122,6 +124,18 @@
   init();
 
   function init() {
+    // The browser shortcut for the keyboard shortcuts panel arrives from the
+    // service worker, in the top frame only.
+    if (IS_TOP) {
+      try {
+        chrome.runtime.onMessage.addListener(function (message, sender) {
+          if (!message || message.type !== 'bcb:toggle-shortcuts') return;
+          if (!sender || sender.id !== chrome.runtime.id || sender.tab) return;
+          if (state.shortcuts) state.shortcuts.toggle();
+        });
+      } catch (e) { /* extension reloaded */ }
+    }
+
     read().then(function (settings) {
       state.settings = settings;
       start();
@@ -290,6 +304,7 @@
     applyNewTab();
     applyWeekNumbers();
     applyGearMenu();
+    applyShortcuts();
   }
 
   function sameRule(a, b) {
@@ -886,6 +901,23 @@
     if (state.gearMenu) state.gearMenu.detach();
     state.gearMenu = want
       ? BCBuddy.GearMenu.attach(document, { label: BCBuddy.t('gearMenuSettings'), onOpen: openOptions })
+      : null;
+  }
+
+  /* ------------------------------------------------------------ shortcuts */
+
+  /**
+   * The keyboard icon in BC's top bar and the panel it opens; see
+   * shortcuts.js. Top window only: from there it reads BC's client frame.
+   * Attached once, like the gear menu, so this costs one comparison per
+   * apply().
+   */
+  function applyShortcuts() {
+    var want = IS_TOP && BCBuddy.shortcutsOn(state.settings) && isWebClientTarget(state.href);
+    if (want === !!state.shortcuts) return;
+    if (state.shortcuts) state.shortcuts.detach();
+    state.shortcuts = want
+      ? BCBuddy.Shortcuts.attach(document, { t: BCBuddy.t, icon: true })
       : null;
   }
 

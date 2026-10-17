@@ -11,6 +11,14 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Keyboard shortcuts**: a keyboard icon in the top bar of Business Central
+  shows the shortcuts that work where you are: the page's own actions, such
+  as Post (F9), what works in the lines, the list, the card or the date field
+  you are in, and a few that work anywhere, with links to Microsoft's full
+  list. On by default; switch it off under **Web client** in the options.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.13 — 2026-10-16
