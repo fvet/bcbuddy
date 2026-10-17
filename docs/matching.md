@@ -53,7 +53,7 @@ No rules yet, or not sure where to start? Click **Load samples** next to
 | **Production** | green | **Environment** **contains** `production` |
 | **UAT** | red | **Environment** **contains** `uat, test, qa, sandbox` |
 | **Development** | blue | **Environment** **contains** `dev` |
-| **Master Data** | purple | **Company** **contains** `masterdata, master data, template` |
+| **Master Data** | yellow | **Company** **contains** `masterdata, master data, template` |
 
 They are ordinary rules: change the colours, the names or the conditions, drag
 them into another order, or delete the ones you do not need. Production comes

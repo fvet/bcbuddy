@@ -131,7 +131,7 @@ other:
 | **Production** | green | **Environment** **contains** `production` |
 | **UAT** | red | **Environment** **contains** `uat, test, qa, sandbox` |
 | **Development** | blue | **Environment** **contains** `dev` |
-| **Master Data** | purple | **Company** **contains** `masterdata, master data, template` |
+| **Master Data** | yellow | **Company** **contains** `masterdata, master data, template` |
 
 Production comes first, so a master data company in production still shows
 green. Rules you already have stay as they are: a sample with the same name is
