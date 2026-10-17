@@ -1018,6 +1018,15 @@ function assertWebClient() {
   var row = document.getElementById('highlightRowEnabled');
   check('web client: current line switch lives in the panel', row.closest('.panel'), panel);
   check('web client: current line is on by default', row.checked, true);
+  var stripes = document.getElementById('stripeRowsEnabled');
+  check('web client: striped rows switch lives in the panel', stripes.closest('.panel'), panel);
+  check('web client: striped rows switch is off by default', stripes.checked, false);
+  var compactRows = document.getElementById('compactRows');
+  var compactColumns = document.getElementById('compactColumns');
+  check('web client: both compact switches share one row in the panel',
+    [compactRows.closest('.setting') === compactColumns.closest('.setting'), compactRows.closest('.panel')],
+    [true, panel]);
+  check('web client: compact lists are off by default', [compactRows.checked, compactColumns.checked], [false, false]);
   var calm = document.getElementById('noAnimationsEnabled');
   check('web client: animations switch lives in the panel', calm.closest('.panel'), panel);
   check('web client: animations switch is off by default', calm.checked, false);
@@ -1115,6 +1124,25 @@ function assertWebClient() {
     return wait(400);
   }).then(function () {
     check('web client: and the pin action bar switch turns back on', STORE.settings.pinActionBar, { enabled: true });
+    stripes.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: striped rows switch is saved', STORE.settings.stripeRows, { enabled: true });
+    stripes.click();
+    compactColumns.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and striped rows turn back off', STORE.settings.stripeRows, { enabled: false });
+    check('web client: narrower columns saved on their own', STORE.settings.compact, { rows: false, columns: true });
+    compactRows.click();
+    compactColumns.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: lower rows saved on their own', STORE.settings.compact, { rows: true, columns: false });
+    compactRows.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and compact lists turn back off', STORE.settings.compact, { rows: false, columns: false });
   });
 }
 

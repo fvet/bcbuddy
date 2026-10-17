@@ -50,6 +50,8 @@ the settings page.
 | **Dropdown size** | The list under a field as wide as its columns need, and taller if you like | On |
 | **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
 | **Highlight the current line** | The line you are on in a journal or order stands out | On |
+| **Striped rows** | Every other row in a list a light grey | Off |
+| **Compact lists** | Lower rows and narrower columns, so more of a list fits on the screen | Off |
 | **Hide the notifications icon** | No bell in the top bar | On |
 | **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 

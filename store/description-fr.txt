@@ -7,6 +7,7 @@ Un client Web plus pratique, tout de suite. Aucune configuration nécessaire :
 - Des listes déroulantes qui montrent toutes leurs colonnes : plus besoin de faire défiler sur le côté.
 - Les numéros de semaine dans le calendrier d'un champ date.
 - La ligne sur laquelle vous êtes dans une feuille ou une commande ressort.
+- Si vous le souhaitez, des lignes alternées et des listes compactes qui affichent plus de lignes et de colonnes à l'écran.
 - Plus de cloche des notifications et, si vous le souhaitez, plus d'animations.
 
 Chacun a son propre interrupteur dans les paramètres.

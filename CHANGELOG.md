@@ -13,6 +13,12 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Added
 
+- **Striped rows**: every other row in a list gets a light grey, so you stay
+  on the right line in a wide list. Off by default; switch it on under
+  **Web client** in the options.
+- **Compact lists**: lower rows and narrower columns, so more of a list fits
+  on your screen. Each has its own switch under **Web client** in the
+  options; both are off by default. Lists you type in keep their size.
 - **Set up by your IT department**: IT can install BC Buddy on every computer
   and fill in your team's shared file for you, for example with Intune. The
   address then says *Set by your organisation* and cannot be changed.

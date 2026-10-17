@@ -7,6 +7,7 @@ Een makkelijkere webclient, meteen. Niets in te stellen:
 - Keuzelijsten die al hun kolommen tonen, zodat je niet meer opzij scrolt.
 - Weeknummers in de kalender van een datumveld.
 - De regel waarop je staat in een dagboek of order valt op.
+- Als je wil, gestreepte rijen en compacte lijsten die meer rijen en kolommen op het scherm tonen.
 - Geen meldingenbelletje, en als je wil, geen animaties.
 
 Elk ervan heeft een eigen schakelaar in de opties.
