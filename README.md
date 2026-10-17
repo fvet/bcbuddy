@@ -228,8 +228,8 @@ or pick list view once, and Business Central remembers that instead.
 page nobody set yet. Click the pin at the right end of the action bar once, and
 Business Central keeps it pinned from then on.
 
-**No keyboard icon in the top bar.** Check that **Keyboard shortcuts** is on
-under **Web client**, and reload the tab. Business Central on your own server
+**No keyboard icon in the top bar.** **Keyboard shortcuts** starts off; switch
+it on under **Web client**, and reload the tab. Business Central on your own server
 has no room for the icon; set a key for the panel at
 `chrome://extensions/shortcuts` instead.
 

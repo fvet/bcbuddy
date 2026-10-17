@@ -50,8 +50,8 @@ columns needs no extra width; it only grows taller if you raise **Height**.
 
 ### No keyboard icon in the top bar
 
-Check that **Keyboard shortcuts** is on under **Web client** on the settings
-page, and reload the Business Central tab (F5). Business Central on your own
+**Keyboard shortcuts** starts off. Switch it on under **Web client** on the
+settings page, and reload the Business Central tab (F5). Business Central on your own
 server has a different top bar without the icon; there you can open the panel
 with a key of your own, see [Keyboard shortcuts](web-client.md#keyboard-shortcuts).
 

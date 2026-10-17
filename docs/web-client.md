@@ -98,16 +98,17 @@ BC Buddy adds a keyboard icon to the top bar of Business Central, next to the
 question mark. Click it to see the shortcuts that work where you are:
 
 - **On this page**: the page's own actions that have a shortcut, such as
-  **Post** (F9).
+  **Post** (F9). Buttons in one part of a page, such as the lines of an
+  order, are listed when your cursor is in that part.
 - What works in the lines of a journal or order, in a list, on a card or in a
   date field, depending on where your cursor is.
 - A few that work anywhere, such as Alt+Q to find a page.
 
-The panel stays open while you work in Business Central. Drag it by its title
-to move it out of the way; it opens in that spot again until you close the
-tab. Click **×** or the keyboard icon to close it; your cursor goes back to
-where it was. A link at the bottom opens Microsoft's full list of
-shortcuts.
+The panel stays open while you work in Business Central, and changes along
+when you open another page. Drag it by its title to move it out of the way;
+it opens in that spot again until you close the tab. Click **×** or the
+keyboard icon to close it; your cursor goes back to where it was. A link at
+the bottom opens Microsoft's full list of shortcuts.
 
 Actions in a menu you have not opened yet are not listed: Business Central only
 builds those when you open the menu.

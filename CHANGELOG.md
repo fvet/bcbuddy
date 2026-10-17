@@ -20,7 +20,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   shows the shortcuts that work where you are: the page's own actions, such
   as Post (F9), what works in the lines, the list, the card or the date field
   you are in, and a few that work anywhere, with a link to Microsoft's full
-  list. The panel stays open while you work, and you can drag it by its title.
+  list. The panel stays open while you work, changes along when you open
+  another page, and you can drag it by its title.
   Off by default; switch it on under **Web client** in the options.
 - **Set up by your IT department**: IT can install BC Buddy on every computer
   and fill in your team's shared file for you, for example with Intune. The
