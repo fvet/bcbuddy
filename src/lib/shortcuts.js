@@ -162,7 +162,10 @@
     return { area: area, date: date };
   }
 
-  /** The sections to show, in order: [{ title, rows: [[keys, text]] }]. */
+  /**
+   * The sections to show, in order: [{ title, rows: [[keys, text]], note }].
+   * Only the page's own section has a note: what it cannot list.
+   */
   function sections(actions, ctx, t) {
     function set(key) {
       var s = SETS[key];
@@ -170,7 +173,11 @@
     }
     var out = [];
     if (actions.length) {
-      out.push({ title: t('scPage'), rows: actions.map(function (a) { return [a.keys, a.name]; }) });
+      out.push({
+        title: t('scPage'),
+        rows: actions.map(function (a) { return [a.keys, a.name]; }),
+        note: t('scNotListed')
+      });
     }
     if (ctx.date) out.push(set('date'));
     out.push(set(ctx.area));
@@ -220,7 +227,17 @@
     panel.appendChild(head);
 
     list.forEach(function (section) {
-      panel.appendChild(el(doc, 'h3', '', section.title));
+      var heading = el(doc, 'h3', '', section.title);
+      // A (?) that shows the note on hover or keyboard focus (content.css).
+      if (section.note) {
+        var info = el(doc, 'span', 'bcb-keys__info', '?');
+        info.tabIndex = 0;
+        info.setAttribute('role', 'img');
+        info.setAttribute('aria-label', section.note);
+        info.setAttribute('data-tip', section.note);
+        heading.appendChild(info);
+      }
+      panel.appendChild(heading);
       var dl = el(doc, 'dl');
       section.rows.forEach(function (row) {
         dl.appendChild(renderKeys(doc, row[0]));
@@ -230,7 +247,6 @@
     });
 
     var foot = el(doc, 'div', 'bcb-keys__foot');
-    foot.appendChild(el(doc, 'p', '', t('scNotListed')));
     var links = el(doc, 'p');
     links.appendChild(el(doc, 'span', '', t('scMore') + ' '));
     DOCS.forEach(function (doc_, i) {

@@ -259,22 +259,22 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
   right: 16px;
   z-index: 2147483646;
   box-sizing: border-box;
-  width: 360px;
+  width: 400px;
   max-width: calc(100vw - 32px);
   overflow: auto;
-  padding: 14px 16px 12px;
+  padding: 16px 18px 14px;
   border-radius: 8px;
   background: #ffffff;
   color: #201f1e;
   box-shadow: 0 8px 28px rgba(0, 0, 0, .24);
-  font: 13px/1.35 "Segoe UI", system-ui, sans-serif;
+  font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
 }
 #bcb-keys:focus { outline: none; }
 #bcb-keys .bcb-keys__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-#bcb-keys h2 { margin: 0; font: 600 15px/1.3 "Segoe UI", system-ui, sans-serif; }
+#bcb-keys h2 { margin: 0; font: 600 17px/1.3 "Segoe UI", system-ui, sans-serif; }
 #bcb-keys h3 {
-  margin: 14px 0 6px;
-  font: 600 11px/1.3 "Segoe UI", system-ui, sans-serif;
+  margin: 16px 0 8px;
+  font: 600 12px/1.3 "Segoe UI", system-ui, sans-serif;
   letter-spacing: .04em;
   text-transform: uppercase;
   color: #00718c;
@@ -293,7 +293,7 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
 #bcb-keys dl {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 5px 12px;
+  gap: 7px 14px;
   align-items: center;
   margin: 0;
 }
@@ -301,19 +301,52 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
 #bcb-keys dd { margin: 0; }
 #bcb-keys kbd {
   display: inline-block;
-  min-width: 14px;
-  padding: 1px 5px;
+  min-width: 16px;
+  padding: 1px 6px;
   border: 1px solid #c8c6c4;
   border-bottom-width: 2px;
   border-radius: 4px;
   background: #faf9f8;
-  font: 600 11px/16px Consolas, "Cascadia Mono", monospace;
+  font: 600 12px/18px Consolas, "Cascadia Mono", monospace;
   text-align: center;
   color: #201f1e;
 }
 #bcb-keys .bcb-keys__plus,
 #bcb-keys .bcb-keys__sep { color: #8a8886; margin: 0 2px; }
-#bcb-keys .bcb-keys__foot { margin-top: 14px; color: #605e5c; font-size: 12px; }
+#bcb-keys .bcb-keys__info {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font: 600 11px/16px "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+  vertical-align: 1px;
+  cursor: help;
+}
+#bcb-keys .bcb-keys__info:focus-visible { outline: 2px solid #00718c; outline-offset: 1px; }
+/* The note itself, shown under the (?) while it is hovered or focused. */
+#bcb-keys .bcb-keys__info:hover::after,
+#bcb-keys .bcb-keys__info:focus::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: 22px;
+  left: -8px;
+  z-index: 1;
+  width: 240px;
+  padding: 6px 9px;
+  border-radius: 4px;
+  background: #323130;
+  color: #ffffff;
+  font: 400 13px/1.35 "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+}
+#bcb-keys .bcb-keys__foot { margin-top: 16px; color: #605e5c; font-size: 13px; }
 #bcb-keys .bcb-keys__foot p { margin: 4px 0 0; }
 #bcb-keys a { color: #00718c; text-decoration: underline; cursor: pointer; }
 
@@ -326,6 +359,6 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
   border-radius: 4px;
   background: #00718c;
   color: #ffffff;
-  font: 600 10px/16px Consolas, "Cascadia Mono", monospace;
+  font: 600 11px/17px Consolas, "Cascadia Mono", monospace;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
 }

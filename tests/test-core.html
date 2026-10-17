@@ -616,6 +616,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       withPage.map(function (s) { return s.title; }), ['[scPage]', '[scDate]', '[scLines]', '[scAnywhere]']);
     check('shortcuts: the page section lists the actions by their own name',
       withPage[0].rows, [['F9', 'Post'], ['Shift+F9', 'Post and Print']]);
+    check('shortcuts: only the page section carries the note on unopened menus',
+      withPage.map(function (s) { return s.note || ''; }), ['[scNotListed]', '', '', '']);
     check('shortcuts: no page section without actions',
       S.sections([], { area: 'list', date: false }, t).map(function (s) { return s.title; }),
       ['[scList]', '[scAnywhere]']);
@@ -654,7 +656,14 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     var panel = document.getElementById(S.PANEL_ID);
     check('shortcuts panel: open as a dialog', [handle.isOpen(), panel && panel.getAttribute('role')], [true, 'dialog']);
     check('shortcuts panel: page actions on top',
-      panel.querySelector('h3').textContent + ' ' + panel.querySelector('dd').textContent, '[scPage] Post');
+      panel.querySelector('h3').firstChild.textContent + ' ' + panel.querySelector('dd').textContent, '[scPage] Post');
+    var info = panel.querySelector('h3 > .bcb-keys__info');
+    check('shortcuts panel: a (?) by the page heading holds the note, also for keyboard and screen reader',
+      [!!info, info && info.getAttribute('data-tip'), info && info.getAttribute('aria-label'), info && info.tabIndex,
+        panel.querySelectorAll('.bcb-keys__info').length],
+      [true, '[scNotListed]', '[scNotListed]', 0, 1]);
+    check('shortcuts panel: the footer only links to Microsoft',
+      panel.querySelector('.bcb-keys__foot').textContent.indexOf('[scNotListed]'), -1);
     check('shortcuts panel: keys drawn as keys', panel.querySelector('dt kbd').textContent, 'F9');
     check('shortcuts panel: links to Microsoft open in a new tab',
       [].map.call(panel.querySelectorAll('a'), function (a) { return [a.href, a.target, a.rel]; }),
