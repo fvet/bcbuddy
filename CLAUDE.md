@@ -55,10 +55,25 @@ release workflow dates the `Unreleased` section, uses it as
 the GitHub release body and opens an empty one for next time — so an entry that
 was never written is a release note nobody gets.
 
+A new feature or switch is not done until every place that lists features has
+it. Go through this list before calling it finished, and say which items you
+skipped and why:
+
+- `README.md`: a row in the feature table and its own section.
+- `docs/`: the same on the counterpart page from the table above.
+- `CHANGELOG.md`: a line under `## Unreleased`.
+- `store/` and `extDescription`: only when it works straight away; a switch
+  that starts off goes in the "want more?" line.
+- The marketing deck (`marketing/deck/`): a slide in the order of
+  `docs/web-client.md`, made with the recipe in `marketing/README.md`. The
+  screenshots need the maintainer at Chrome, so ask for them instead of
+  leaving the slide out. Skip it only when there is nothing to see in a
+  screenshot, as with *Hide the notifications icon* and *Turn off animations*.
+
 Beta features stay out of every document. Ctrl+click / middle-click to open a
 link in a new tab (`src/lib/newtab.js`) is beta and undocumented on purpose:
 never mention it in `README.md`, `docs/`, `CHANGELOG.md`, `DEVELOPMENT.md`,
-`store/`, release notes or UI strings, and give it no switch in the options,
+`store/`, `marketing/`, release notes or UI strings, and give it no switch in the options,
 until the maintainer says it leaves beta. Its notes live in the code comments
 at the top of `newtab.js`.
 
