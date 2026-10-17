@@ -389,25 +389,18 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('current row: off when the extension is off',
     BCBuddy.highlightRowOn(BCBuddy.normalize({ enabled: false, highlightRow: { enabled: true } })), false);
 
-  // striped rows and both halves of compact lists likewise, all off by default
+  // striped rows and narrower columns likewise, both off by default
   check('stripes: off by default', BCBuddy.stripeRowsOn(BCBuddy.normalize(null)), false);
   check('stripes: on with its own toggle',
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ stripeRows: { enabled: true } })), true);
   check('stripes: off when the extension is off',
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ enabled: false, stripeRows: { enabled: true } })), false);
-  check('compact: both halves off by default', BCBuddy.normalize(null).compact, { rows: false, columns: false });
-  check('compact: rows and columns switch apart',
-    [BCBuddy.compactRowsOn(BCBuddy.normalize({ compact: { rows: true } })),
-      BCBuddy.compactColumnsOn(BCBuddy.normalize({ compact: { rows: true } }))], [true, false]);
-  check('compact: columns on their own',
-    [BCBuddy.compactRowsOn(BCBuddy.normalize({ compact: { columns: true } })),
-      BCBuddy.compactColumnsOn(BCBuddy.normalize({ compact: { columns: true } }))], [false, true]);
-  check('compact: off when the extension is off',
-    [BCBuddy.compactRowsOn(BCBuddy.normalize({ enabled: false, compact: { rows: true, columns: true } })),
-      BCBuddy.compactColumnsOn(BCBuddy.normalize({ enabled: false, compact: { rows: true, columns: true } }))],
-    [false, false]);
-  check('compact: garbled values read as off', BCBuddy.normalize({ compact: { rows: 'yes', columns: 1 } }).compact,
-    { rows: false, columns: false });
+  check('narrow columns: off by default', BCBuddy.narrowColumnsOn(BCBuddy.normalize(null)), false);
+  check('narrow columns: on with its own toggle',
+    BCBuddy.narrowColumnsOn(BCBuddy.normalize({ narrowColumns: { enabled: true } })), true);
+  check('narrow columns: off when the extension is off',
+    BCBuddy.narrowColumnsOn(BCBuddy.normalize({ enabled: false, narrowColumns: { enabled: true } })), false);
+  check('narrow columns: no lower rows setting', 'compact' in BCBuddy.normalize(null), false);
   // and so does the keyboard shortcuts icon, which starts on
   check('shortcuts: on by default', BCBuddy.shortcutsOn(BCBuddy.normalize(null)), true);
   check('shortcuts: off with its own toggle',
@@ -532,7 +525,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     host.remove();
   })();
 
-  // striped rows and compact lists: the rules in content.css against a BC28
+  // striped rows and narrower columns: the rules in content.css against a BC28
   // list - a header table, and a data table with its hidden copy of the
   // header. BC reuses <tr> elements, so the stripe follows aria-rowindex, not
   // the element's place: here the current row 1 sits on top of rows 85-87.
@@ -560,36 +553,28 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     function width(tbl) { return tbl.tHead.rows[0].cells[0].getBoundingClientRect().width; }
     var root = document.documentElement;
     var off = [striped(view, 0), striped(view, 1)];
-    var paddingBefore = px(view.tBodies[0].rows[1].cells[0], 'paddingTop');
+    var rowBefore = getComputedStyle(view.tBodies[0].rows[1]).height;
     var widthBefore = width(view);
     var headerBefore = width(tables[0]);
     root.setAttribute('data-bcb-stripes', '');
     var on = [striped(view, 0), striped(view, 1), striped(view, 2), striped(view, 3), striped(edit, 0), striped(edit, 1)];
     root.removeAttribute('data-bcb-stripes');
-    root.setAttribute('data-bcb-compact-rows', '');
-    var rows = [getComputedStyle(view.tBodies[0].rows[1]).height,
-      px(view.tBodies[0].rows[1].cells[0], 'paddingTop'),
-      getComputedStyle(edit.tBodies[0].rows[0]).height === '24px',
-      width(view) === widthBefore];
-    root.removeAttribute('data-bcb-compact-rows');
-    root.setAttribute('data-bcb-compact-columns', '');
+    root.setAttribute('data-bcb-narrow-columns', '');
     var widthOn = width(view);
     var headerOn = width(tables[0]);
     var caption = getComputedStyle(tables[0].querySelector('.columncaption > span')).fontSize;
     var value = getComputedStyle(view.querySelector('.value')).fontSize;
     var editValue = getComputedStyle(edit.querySelector('.value')).fontSize;
-    root.removeAttribute('data-bcb-compact-columns');
+    var rowOn = getComputedStyle(view.tBodies[0].rows[1]).height;
+    root.removeAttribute('data-bcb-narrow-columns');
     check('stripes CSS: nothing while the switch is off', off, [false, false]);
     check('stripes CSS: odd rows by their own number, not their place', on.slice(0, 4), [true, true, false, true]);
     check('stripes CSS: lists you type in are striped too', on.slice(4), [true, false]);
-    check('compact rows CSS: 24px rows without padding, view lists only, columns untouched',
-      rows, ['24px', 0, false, true]);
-    check('compact rows CSS: BC padding back when off',
-      px(view.tBodies[0].rows[1].cells[0], 'paddingTop'), paddingBefore);
-    check('compact columns CSS: every column narrower, header and data alike',
+    check('narrow columns CSS: every column narrower, header and data alike',
       [widthOn < widthBefore, headerOn < headerBefore, Math.abs(widthOn - headerOn) < 0.5], [true, true, true]);
-    check('compact columns CSS: caption keeps its size, values a size down', [caption, value], ['12px', '12.5px']);
-    check('compact columns CSS: lists you type in keep their font', editValue !== '12.5px', true);
+    check('narrow columns CSS: caption keeps its size, values a size down', [caption, value], ['12px', '12.5px']);
+    check('narrow columns CSS: lists you type in keep their font', editValue !== '12.5px', true);
+    check('narrow columns CSS: rows keep their height', rowOn, rowBefore);
     host.remove();
   })();
 

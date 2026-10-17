@@ -28,8 +28,7 @@
   var CALM_ATTR = 'data-bcb-calm';
   var NO_BELL_ATTR = 'data-bcb-no-bell';
   var STRIPES_ATTR = 'data-bcb-stripes';
-  var COMPACT_ROWS_ATTR = 'data-bcb-compact-rows';
-  var COMPACT_COLUMNS_ATTR = 'data-bcb-compact-columns';
+  var NARROW_COLUMNS_ATTR = 'data-bcb-narrow-columns';
   var BANNER_ID = 'bcb-banner';
   var FAVICON_REL = 'icon';
 
@@ -902,18 +901,17 @@
   /* ------------------------------------------------------------ list look */
 
   /**
-   * Striped rows, lower rows and narrower columns in BC's lists; the rules are
-   * in content.css. Like the row tint each is one attribute on <html>, set
-   * once per page load, URL change or settings change, so none of them costs
-   * anything while you scroll or type.
+   * Striped rows and narrower columns in BC's lists; the rules are in
+   * content.css. Like the row tint each is one attribute on <html>, set once
+   * per page load, URL change or settings change, so neither costs anything
+   * while you scroll or type.
    */
   function applyListLook() {
     var root = document.documentElement;
     if (!root) return;
     var target = isWebClientTarget(state.href);
     toggleRootAttr(root, STRIPES_ATTR, target && BCBuddy.stripeRowsOn(state.settings));
-    toggleRootAttr(root, COMPACT_ROWS_ATTR, target && BCBuddy.compactRowsOn(state.settings));
-    toggleRootAttr(root, COMPACT_COLUMNS_ATTR, target && BCBuddy.compactColumnsOn(state.settings));
+    toggleRootAttr(root, NARROW_COLUMNS_ATTR, target && BCBuddy.narrowColumnsOn(state.settings));
   }
 
   function toggleRootAttr(root, name, on) {

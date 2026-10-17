@@ -1021,12 +1021,9 @@ function assertWebClient() {
   var stripes = document.getElementById('stripeRowsEnabled');
   check('web client: striped rows switch lives in the panel', stripes.closest('.panel'), panel);
   check('web client: striped rows switch is off by default', stripes.checked, false);
-  var compactRows = document.getElementById('compactRows');
-  var compactColumns = document.getElementById('compactColumns');
-  check('web client: both compact switches share one row in the panel',
-    [compactRows.closest('.setting') === compactColumns.closest('.setting'), compactRows.closest('.panel')],
-    [true, panel]);
-  check('web client: compact lists are off by default', [compactRows.checked, compactColumns.checked], [false, false]);
+  var narrow = document.getElementById('narrowColumnsEnabled');
+  check('web client: narrower columns switch lives in the panel', narrow.closest('.panel'), panel);
+  check('web client: narrower columns switch is off by default', narrow.checked, false);
   var keys = document.getElementById('shortcutsEnabled');
   check('web client: keyboard shortcuts switch lives in the panel', keys.closest('.panel'), panel);
   check('web client: keyboard shortcuts switch is on by default', keys.checked, true);
@@ -1132,20 +1129,15 @@ function assertWebClient() {
   }).then(function () {
     check('web client: striped rows switch is saved', STORE.settings.stripeRows, { enabled: true });
     stripes.click();
-    compactColumns.click();
+    narrow.click();
     return wait(400);
   }).then(function () {
     check('web client: and striped rows turn back off', STORE.settings.stripeRows, { enabled: false });
-    check('web client: narrower columns saved on their own', STORE.settings.compact, { rows: false, columns: true });
-    compactRows.click();
-    compactColumns.click();
+    check('web client: narrower columns switch is saved', STORE.settings.narrowColumns, { enabled: true });
+    narrow.click();
     return wait(400);
   }).then(function () {
-    check('web client: lower rows saved on their own', STORE.settings.compact, { rows: true, columns: false });
-    compactRows.click();
-    return wait(400);
-  }).then(function () {
-    check('web client: and compact lists turn back off', STORE.settings.compact, { rows: false, columns: false });
+    check('web client: and narrower columns turn back off', STORE.settings.narrowColumns, { enabled: false });
     keys.click();
     return wait(400);
   }).then(function () {

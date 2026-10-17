@@ -57,8 +57,7 @@
     page.el.pinActionBarEnabled.checked = page.state.settings.pinActionBar.enabled;
     page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
     page.el.stripeRowsEnabled.checked = page.state.settings.stripeRows.enabled;
-    page.el.compactRows.checked = page.state.settings.compact.rows;
-    page.el.compactColumns.checked = page.state.settings.compact.columns;
+    page.el.narrowColumnsEnabled.checked = page.state.settings.narrowColumns.enabled;
     page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
     page.renderDropdown();
@@ -234,7 +233,7 @@
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
-      'stripeRowsEnabled', 'compactRows', 'compactColumns',
+      'stripeRowsEnabled', 'narrowColumnsEnabled',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
@@ -333,11 +332,9 @@
       page.save();
     });
 
-    [['rows', el.compactRows], ['columns', el.compactColumns]].forEach(function (pair) {
-      pair[1].addEventListener('change', function () {
-        state.settings.compact[pair[0]] = pair[1].checked;
-        page.save();
-      });
+    el.narrowColumnsEnabled.addEventListener('change', function () {
+      state.settings.narrowColumns.enabled = el.narrowColumnsEnabled.checked;
+      page.save();
     });
 
     el.noAnimationsEnabled.addEventListener('change', function () {

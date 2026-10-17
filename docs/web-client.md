@@ -14,9 +14,9 @@ page, so you can turn off whatever you do not like.
 | [Week numbers in the date picker](#week-numbers-in-the-date-picker) | Business Central's own week numbers in the calendar of a date field | On |
 | [Keyboard shortcuts](#keyboard-shortcuts) | A keyboard icon in the top bar that shows the shortcuts for where you are | On |
 | [Highlight the current line](#highlight-the-current-line) | The line you are on in a journal or order stands out | On |
-| [Striped rows](#striped-rows) | Every other row in a list a light grey | Off |
-| [Compact lists](#compact-lists) | More rows and columns of a list on the screen | Off |
 | [Hide the notifications icon](#hide-the-notifications-icon) | No bell at the top right | On |
+| [Striped rows](#striped-rows) | Every other row in a list a light grey | Off |
+| [Narrower columns](#narrower-columns) | More columns of a list side by side on the screen | Off |
 | [Turn off animations](#turn-off-animations) | Pages and dialogs appear at once | Off |
 
 A change takes effect in Business Central straight away. The **Extension
@@ -118,6 +118,11 @@ On the lines of a sales order or in a journal, Business Central shows the line
 you are on with only a small arrow at the far left. With this on, the whole line
 gets a light tint, so you do not lose your place on a wide line.
 
+## Hide the notifications icon
+
+The bell at the top right of Business Central is hidden. Switch this off to get
+it back.
+
 ## Striped rows
 
 Every other row in a list gets a light grey, so your eye stays on the right
@@ -126,24 +131,16 @@ line you are on and the lines you select keep Business Central's own colours.
 
 This one is off until you switch it on.
 
-## Compact lists
+## Narrower columns
 
-Fits more of a list on your screen. There are two switches:
+Every column in a list gets a little narrower and its text a size smaller, so
+more columns fit side by side before you have to scroll. Lists you type in,
+such as journals and the lines of an order, keep their size.
 
-- **Lower rows**: every row takes less height, so you see about a third more
-  lines at once.
-- **Narrower columns**: every column is a little narrower and the text a size
-  smaller, so more columns fit side by side before you have to scroll. A list
-  that is already open when you switch this keeps its columns until you open
-  the next page.
+A list that is already open when you switch this keeps its columns until you
+open the next page.
 
-Lists you type in, such as journals and the lines of an order, keep their
-size. Both are off until you switch them on.
-
-## Hide the notifications icon
-
-The bell at the top right of Business Central is hidden. Switch this off to get
-it back.
+This one is off until you switch it on.
 
 ## Turn off animations
 

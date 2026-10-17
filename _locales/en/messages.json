@@ -470,21 +470,13 @@
     "message": "Gives every other row in a list a light grey, so you stay on the right line in a wide list.",
     "description": "Explains striped rows. Tooltip on its row in the Web client panel."
   },
-  "compactHeading": {
-    "message": "Compact lists",
-    "description": "Heading of the setting that fits more rows and columns of a list on the screen."
-  },
-  "compactIntro": {
-    "message": "Fits more of a list on the screen: lower rows show more lines, narrower columns show more columns side by side. Lists you can type in keep their size.",
-    "description": "Explains the two Compact lists switches. Tooltip on their row in the Web client panel."
-  },
-  "compactRows": {
-    "message": "Lower rows",
-    "description": "Label beside the switch that makes the rows of a list lower, so more of them fit."
-  },
-  "compactColumns": {
+  "narrowColumnsToggle": {
     "message": "Narrower columns",
-    "description": "Label beside the switch that makes the columns of a list narrower, so more of them fit side by side."
+    "description": "Label on the on/off switch that makes the columns of a list narrower, so more of them fit side by side."
+  },
+  "narrowColumnsIntro": {
+    "message": "Makes every column of a list a little narrower and its text a size smaller, so more columns fit side by side. Lists you type in keep their size.",
+    "description": "Explains narrower columns. Tooltip on its row in the Web client panel."
   },
   "noAnimationsToggle": {
     "message": "Turn off animations",

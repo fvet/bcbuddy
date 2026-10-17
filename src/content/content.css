@@ -160,35 +160,9 @@ html[data-bcb-stripes] table.ms-nav-grid-data-table > tbody > tr:is(
   background-color: var(--bcb-stripe);
 }
 
-/* Compact lists, in two halves that switch separately. Only read-only lists
-   (ms-nav-grid-view): an editable grid (journal, document lines) already has
-   lower rows and holds input boxes that need their height.
-   Rows: BC's rows are 34px, set on the <tr> and padded inside the cells; the
-   value, a link or the row's three-dot link keep a minimum height of their
-   own. These bring a row to 26px. BC's scrolling keeps the visible part of
-   a list filled at any row height, so nothing else changes. */
-html[data-bcb-compact-rows] table.ms-nav-grid-view.ms-nav-grid-data-table > tbody > tr {
-  height: 24px !important;
-}
-
-html[data-bcb-compact-rows] table.ms-nav-grid-view.ms-nav-grid-data-table > tbody > tr > td {
-  height: 24px !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  line-height: 22px !important;
-}
-
-html[data-bcb-compact-rows] table.ms-nav-grid-view.ms-nav-grid-data-table > tbody > tr > td > .value,
-html[data-bcb-compact-rows] table.ms-nav-grid-view.ms-nav-grid-data-table > tbody > tr > td > a,
-html[data-bcb-compact-rows] table.ms-nav-grid-view.ms-nav-grid-data-table > tbody > tr > td a.ms-list-itemLink {
-  min-height: 0 !important;
-  height: 22px !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  line-height: 22px !important;
-}
-
-/* Columns: BC sets each column's width in ex on its <th>, so the width scales
+/* Narrower columns, in read-only lists only (ms-nav-grid-view): an editable
+   grid (journal, document lines) holds input boxes that need their width.
+   BC sets each column's width in ex on its <th>, so the width scales
    with the header's font size. A smaller font there, in the visible header
    and in the data table's hidden copy of it, narrows every column by about
    12% and keeps the two aligned. The caption keeps its size, and the values
@@ -198,15 +172,15 @@ html[data-bcb-compact-rows] table.ms-nav-grid-view.ms-nav-grid-data-table > tbod
    the attribute is set gets the narrow columns; a list already open when the
    switch changes keeps its columns until BC draws it again, on the next page
    you open. Forcing a new layout would mean inline styles on BC's tables. */
-html[data-bcb-compact-columns] table.ms-nav-grid-view > thead > tr > th {
+html[data-bcb-narrow-columns] table.ms-nav-grid-view > thead > tr > th {
   font-size: 10.5px !important;
 }
 
-html[data-bcb-compact-columns] table.ms-nav-grid-view > thead > tr > th .columncaption > span {
+html[data-bcb-narrow-columns] table.ms-nav-grid-view > thead > tr > th .columncaption > span {
   font-size: 12px !important;
 }
 
-html[data-bcb-compact-columns] table.ms-nav-grid-view.ms-nav-grid-data-table > tbody > tr > td .value {
+html[data-bcb-narrow-columns] table.ms-nav-grid-view.ms-nav-grid-data-table > tbody > tr > td .value {
   font-size: 12.5px !important;
 }
 

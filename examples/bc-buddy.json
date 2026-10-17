@@ -120,9 +120,8 @@
     "stripeRows": {
       "enabled": false
     },
-    "compact": {
-      "rows": false,
-      "columns": false
+    "narrowColumns": {
+      "enabled": false
     },
     "noAnimations": {
       "enabled": false

@@ -296,7 +296,7 @@
   // `webClient`, shaped exactly as they are stored. The master switch does not:
   // it belongs to whoever runs the extension.
   var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'highlightRow',
-    'stripeRows', 'compact', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts'];
+    'stripeRows', 'narrowColumns', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
@@ -304,7 +304,7 @@
     var dropdown = s.dropdown || {};
     var highlightRow = s.highlightRow || {};
     var stripeRows = s.stripeRows || {};
-    var compact = s.compact || {};
+    var narrowColumns = s.narrowColumns || {};
     var noAnimations = s.noAnimations || {};
     var hideNotifications = s.hideNotifications || {};
     var copyValues = s.copyValues || {};
@@ -330,10 +330,8 @@
       stripeRows: {
         enabled: bool(stripeRows.enabled, false)
       },
-      // Two halves that can be tried apart: lower rows, narrower columns.
-      compact: {
-        rows: bool(compact.rows, false),
-        columns: bool(compact.columns, false)
+      narrowColumns: {
+        enabled: bool(narrowColumns.enabled, false)
       },
       // Off until asked for: it changes how BC feels, not just how it looks.
       noAnimations: {
@@ -447,16 +445,10 @@
       settings.stripeRows && settings.stripeRows.enabled);
   }
 
-  /** Lower list rows follow the master switch as well. */
-  function compactRowsOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.compact && settings.compact.rows);
-  }
-
   /** Narrower list columns follow the master switch as well. */
-  function compactColumnsOn(settings) {
+  function narrowColumnsOn(settings) {
     return !!(settings && settings.enabled &&
-      settings.compact && settings.compact.columns);
+      settings.narrowColumns && settings.narrowColumns.enabled);
   }
 
   /** Turning animations off follows the master switch as well. */
@@ -775,8 +767,7 @@
   BCBuddy.pinActionBarOn = pinActionBarOn;
   BCBuddy.highlightRowOn = highlightRowOn;
   BCBuddy.stripeRowsOn = stripeRowsOn;
-  BCBuddy.compactRowsOn = compactRowsOn;
-  BCBuddy.compactColumnsOn = compactColumnsOn;
+  BCBuddy.narrowColumnsOn = narrowColumnsOn;
   BCBuddy.noAnimationsOn = noAnimationsOn;
   BCBuddy.hideNotificationsOn = hideNotificationsOn;
   BCBuddy.copyValuesOn = copyValuesOn;
