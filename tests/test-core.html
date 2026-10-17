@@ -1984,7 +1984,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 
     var opened = [];
     var handle = N.attach(document, function (url, active) { opened.push([url, active]); },
-      { hrefOf: function () { return href; }, dialogMs: 200 });
+      { hrefOf: function () { return href; }, dialogMs: 200, trusted: function () { return true; } });
     function wait(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
     function top() { return BCBuddy.Maximize.topView(document).getAttribute('data-v'); }
     function busy() {
@@ -1997,6 +1997,21 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       el.dispatchEvent(event);
       return reached !== event;
     }
+
+    // Without the test's trusted(), a click the page made up stays BC's.
+    var strict = N.attach(document, function (url, active) { opened.push([url, active]); },
+      { hrefOf: function () { return href; }, dialogMs: 200 });
+    handle.detach();
+    mode = 'none';
+    check('new tab flow: a made-up Ctrl+click is left to BC',
+      [press(fb, 'click', { button: 0, ctrlKey: true }), bc.ctrl], [false, 1]);
+    check('new tab flow: a made-up middle-click is left to BC',
+      press(grid, 'auxclick', { button: 1 }), false);
+    strict.detach();
+    bc.ctrl = 0;
+    mode = 'card';
+    handle = N.attach(document, function (url, active) { opened.push([url, active]); },
+      { hrefOf: function () { return href; }, dialogMs: 200, trusted: function () { return true; } });
 
     var running = handle.open(fb, false);
     var second = handle.open(grid, false);

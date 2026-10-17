@@ -84,7 +84,8 @@
 
   /**
    * Starts it in this document. openTab(url, active) hands the address to the
-   * service worker. options, for the tests: { hrefOf(win), dialogMs }.
+   * service worker. options, for the tests: { hrefOf(win), dialogMs,
+   * trusted(event) }.
    * Returns { open(link, active), detach() }; open resolves to 'tab' once
    * the new tab was asked for, or 'kept' when BC opened something without an
    * address and keeps it in place.
@@ -94,6 +95,9 @@
     var win = doc.defaultView;
     var hrefOf = options.hrefOf || topHref;
     var dialogMs = options.dialogMs || DIALOG_MS;
+    // Only a click by the person at the mouse opens a tab: one the page made
+    // up (isTrusted false) is left to BC, so a page cannot open tabs with it.
+    var trusted = options.trusted || function (event) { return event.isTrusted; };
     var Maximize = BCBuddy.Maximize;
     var busy = false;
 
@@ -110,7 +114,7 @@
     }
 
     function onClick(event) {
-      if (event.button !== 0 || !(event.ctrlKey || event.metaKey)) return;
+      if (event.button !== 0 || !(event.ctrlKey || event.metaKey) || !trusted(event)) return;
       var link = linkAt(event.target, false);
       if (!link) return;
       event.preventDefault();
@@ -119,7 +123,7 @@
     }
 
     function onAuxClick(event) {
-      if (event.button !== 1) return;
+      if (event.button !== 1 || !trusted(event)) return;
       var link = linkAt(event.target, true);
       if (!link) return;
       event.preventDefault();
