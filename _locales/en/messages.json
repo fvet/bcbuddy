@@ -72,6 +72,10 @@
     "description": "$1 is a number of rules copied out of the shared configuration into the user\u0027s own list."
   },
   "statusNotSynced": { "message": "Not synced yet." },
+  "hostedManaged": {
+    "message": "Set by your organisation.",
+    "description": "Under the shared file URL when IT set it by browser policy; the field cannot be changed."
+  },
   "statusSyncError": {
     "message": "Last attempt ($1) failed: $2",
     "description": "$1 is a date and time, $2 the error message."
@@ -175,6 +179,14 @@
   "conditionNoMatch": {
     "message": "Does not match",
     "description": "Choice in a condition: the rule applies when the condition is false."
+  },
+  "regexInvalid": {
+    "message": "This RegEx is not valid, so the condition never matches.",
+    "description": "Shown on a condition whose regular expression has a syntax error."
+  },
+  "regexTooHeavy": {
+    "message": "This RegEx is too complex to check safely on this URL, so the condition does not match. Start it with ^, or use fewer *, + and ?.",
+    "description": "Shown on a condition whose regular expression could freeze the page. ^, *, + and ? are RegEx symbols and stay as they are."
   },
   "fieldUrl": {
     "message": "Url",
@@ -450,6 +462,14 @@
     "message": "Gives the line you are on a light tint in editable lists, such as sales lines and journals.",
     "description": "Explains the current line highlight. Tooltip on its row in the Web client panel. Sales lines and journals are Business Central terms: use the words the Business Central UI uses in this language."
   },
+  "stripeRowsToggle": {
+    "message": "Striped rows",
+    "description": "Label on the on/off switch that gives every other row in a list a light grey, so the eye stays on the right line."
+  },
+  "stripeRowsIntro": {
+    "message": "Gives every other row in a list a light grey, so you stay on the right line in a wide list.",
+    "description": "Explains striped rows. Tooltip on its row in the Web client panel."
+  },
   "noAnimationsToggle": {
     "message": "Turn off animations",
     "description": "Label on the on/off switch that makes Business Central pages, FastTabs and panes appear at once instead of sliding or fading in."
@@ -516,6 +536,162 @@
   },
   "navAbout": { "message": "About" },
   "navSettings": { "message": "Settings" },
+  "shortcutsToggle": {
+    "message": "Keyboard shortcuts",
+    "description": "Label on the on/off switch that adds a keyboard icon to the top bar of Business Central, which shows the keyboard shortcuts."
+  },
+  "shortcutsIntro": {
+    "message": "Adds a keyboard icon to the top bar of Business Central. It shows the keyboard shortcuts that work where you are, and the ones of the page itself.",
+    "description": "Explains the keyboard shortcuts switch. Tooltip on its row in the Web client panel."
+  },
+  "commandShortcuts": {
+    "message": "Show the keyboard shortcuts for this Business Central page",
+    "description": "Name of the browser keyboard shortcut people can set for the panel, shown on the browser page where extension shortcuts are set."
+  },
+  "scIconLabel": {
+    "message": "Keyboard shortcuts",
+    "description": "Tooltip of the keyboard icon BC Buddy adds to the top bar of Business Central."
+  },
+  "scTitle": {
+    "message": "Keyboard shortcuts Buddy",
+    "description": "Heading of the keyboard shortcuts panel. Buddy stays in English in every language."
+  },
+  "scClose": {
+    "message": "Close",
+    "description": "Tooltip of the close button of the keyboard shortcuts panel."
+  },
+  "scPage": {
+    "message": "On this page",
+    "description": "Heading above the actions of the current Business Central page that have a shortcut, read from the page."
+  },
+  "scLines": {
+    "message": "In these lines",
+    "description": "Heading above the shortcuts for editable lines: journal lines or the lines of a sales order. Lines is the Business Central term."
+  },
+  "scList": {
+    "message": "In this list",
+    "description": "Heading above the shortcuts for a Business Central list."
+  },
+  "scCard": {
+    "message": "On this card",
+    "description": "Heading above the shortcuts for a Business Central card or document page. Card is the Business Central term."
+  },
+  "scDate": {
+    "message": "In this date field",
+    "description": "Heading above the shortcuts that fill in a date field."
+  },
+  "scAnywhere": {
+    "message": "Anywhere",
+    "description": "Heading above the shortcuts that work on every Business Central page."
+  },
+  "scCopyAbove": {
+    "message": "Copy the value from the line above",
+    "description": "What F8 does in editable lines."
+  },
+  "scNewLine": {
+    "message": "Insert a new line",
+    "description": "What Ctrl+Insert does."
+  },
+  "scDeleteLine": {
+    "message": "Delete this line",
+    "description": "What Ctrl+Delete does."
+  },
+  "scOpenList": {
+    "message": "Open the dropdown list or look up a value",
+    "description": "What Alt+Down does: opens the dropdown or lookup of a field."
+  },
+  "scSearch": {
+    "message": "Search the list",
+    "description": "What F3 does in a list."
+  },
+  "scFilterValue": {
+    "message": "Filter to this value, or clear that filter",
+    "description": "What Alt+F3 does in a list."
+  },
+  "scFilterPane": {
+    "message": "Open or close the filter pane",
+    "description": "What Shift+F3 does in a list."
+  },
+  "scResetFilters": {
+    "message": "Reset the filters",
+    "description": "What Ctrl+Shift+Alt+F3 does in a list."
+  },
+  "scSort": {
+    "message": "Sort this column",
+    "description": "What Alt+F7 does in a list."
+  },
+  "scCopyRows": {
+    "message": "Select and copy all rows, for Excel",
+    "description": "What Ctrl+A followed by Ctrl+C does in a list."
+  },
+  "scFirstLast": {
+    "message": "Go to the first or last row",
+    "description": "What Ctrl+Home and Ctrl+End do in a list."
+  },
+  "scFastTabs": {
+    "message": "Next or previous FastTab",
+    "description": "What F6 and Shift+F6 do on a card. FastTab is the Business Central term: use the word the Business Central UI uses in this language."
+  },
+  "scFoldFastTab": {
+    "message": "Collapse or expand this FastTab",
+    "description": "What Alt+F6 does on a card."
+  },
+  "scNextRecord": {
+    "message": "Next or previous record",
+    "description": "What Ctrl+Down and Ctrl+Up do on a card."
+  },
+  "scSaveClose": {
+    "message": "Save and close",
+    "description": "What Ctrl+Enter does on a card."
+  },
+  "scNewWindow": {
+    "message": "Open in a new window",
+    "description": "What Alt+Shift+W does on a card."
+  },
+  "scToday": {
+    "message": "Enter the current date",
+    "description": "What typing t does in a date field."
+  },
+  "scWorkDate": {
+    "message": "Enter the work date",
+    "description": "What typing w does in a date field. Work date is the Business Central term."
+  },
+  "scCalendar": {
+    "message": "Open the calendar",
+    "description": "What Alt+Down does in a date field."
+  },
+  "scTellMe": {
+    "message": "Tell me: find a page or report",
+    "description": "What Alt+Q does. Tell me is the name of the Business Central search: use the name the Business Central UI uses in this language."
+  },
+  "scNew": {
+    "message": "Create a new record",
+    "description": "What Alt+N does."
+  },
+  "scCompany": {
+    "message": "Switch company",
+    "description": "What Ctrl+O does."
+  },
+  "scFactBox": {
+    "message": "Show or hide the FactBox pane",
+    "description": "What Alt+F2 does. FactBox is the Business Central term."
+  },
+  "scRefresh": {
+    "message": "Update the data",
+    "description": "What F5 does in Business Central."
+  },
+  "scKeyTips": {
+    "message": "Show access keys for the actions",
+    "description": "What pressing Alt alone does: Business Central shows a letter on each action. Access keys is the Business Central term."
+  },
+  "scNotListed": {
+    "message": "Actions in menus you have not opened yet are not listed.",
+    "description": "Note at the bottom of the shortcuts panel."
+  },
+  "scDocsAll": {
+    "message": "All keyboard shortcuts",
+    "description": "Link to Microsoft's article with every Business Central keyboard shortcut."
+  },
   "gearMenuSettings": {
     "message": "Settings",
     "description": "Link under the BC Buddy heading in Business Central's gear menu (Settings pane). Opens the options page."

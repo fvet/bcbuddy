@@ -6,7 +6,9 @@ Un client Web plus pratique, tout de suite. Aucune configuration nécessaire :
 - Chaque page en disposition large avec la barre d'actions épinglée, et des listes au lieu de mosaïques.
 - Des listes déroulantes qui montrent toutes leurs colonnes : plus besoin de faire défiler sur le côté.
 - Les numéros de semaine dans le calendrier d'un champ date.
+- Une icône de clavier qui montre les raccourcis de la page et du champ où vous êtes.
 - La ligne sur laquelle vous êtes dans une feuille ou une commande ressort.
+- Si vous le souhaitez, des lignes alternées, pour ne pas perdre la ligne dans une liste large.
 - Plus de cloche des notifications et, si vous le souhaitez, plus d'animations.
 
 Chacun a son propre interrupteur dans les paramètres.

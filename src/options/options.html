@@ -132,6 +132,18 @@
           </span>
           <input type="checkbox" class="toggle" id="hideNotificationsEnabled">
         </label>
+        <label class="setting" data-i18n-title="shortcutsIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="shortcutsToggle">Keyboard shortcuts</span>
+          </span>
+          <input type="checkbox" class="toggle" id="shortcutsEnabled">
+        </label>
+        <label class="setting" data-i18n-title="stripeRowsIntro">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="stripeRowsToggle">Striped rows</span>
+          </span>
+          <input type="checkbox" class="toggle" id="stripeRowsEnabled">
+        </label>
         <label class="setting" data-i18n-title="noAnimationsIntro">
           <span class="setting__text">
             <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>
@@ -220,6 +232,7 @@
             <button type="button" class="btn btn--primary" id="syncNow" data-i18n="syncNow">Synchronise</button>
           </div>
         </div>
+        <p class="muted small" id="hostedManaged" data-i18n="hostedManaged" hidden>Set by your organisation.</p>
         <p class="sync-status" id="hostedStatus"></p>
       </div>
     </section>

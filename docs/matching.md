@@ -69,6 +69,10 @@ environment belongs above a rule for "anything called Production".
     **does not contain** · **RegEx** (a regular expression, for complex
     patterns)
 
+    A RegEx that is not valid, or so complex that checking it could slow
+    the page down, never matches. The condition then says why. Starting the
+    pattern with `^` often helps.
+
 ??? note "Business Central on your own server (on-premises)"
 
     BC Buddy recognises it too. There the server instance sits where the

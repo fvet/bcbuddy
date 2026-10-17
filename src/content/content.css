@@ -137,6 +137,29 @@ html[data-bcb-row] form.ms-nav-cardform table.ms-nav-grid-view > tbody > tr.real
   background-image: linear-gradient(var(--bcb-row-tint), var(--bcb-row-tint)) !important;
 }
 
+/* Striped rows. Every other row in a list gets a faint grey. BC renders only
+   the rows in view and reuses the same <tr> elements while you scroll, and it
+   keeps the current row as the first child even when it is far out of view,
+   so :nth-child would make the stripes flip. aria-rowindex is the row's own
+   number in the list: an odd last digit is an odd row, whichever <tr> shows
+   it. A see-through colour, so it darkens whatever is underneath, also under
+   Dark Reader. It is a background-color without !important, so BC's own
+   hover and selection colours, which carry !important, still win; the
+   current-line tint is a background-image and stacks on top. */
+html[data-bcb-stripes] {
+  --bcb-stripe: rgb(0 0 0 / .045);
+}
+
+html[data-bcb-stripes][data-darkreader-scheme="dark"] {
+  --bcb-stripe: rgb(255 255 255 / .05);
+}
+
+html[data-bcb-stripes] table.ms-nav-grid-data-table > tbody > tr:is(
+  [aria-rowindex$="1"], [aria-rowindex$="3"], [aria-rowindex$="5"],
+  [aria-rowindex$="7"], [aria-rowindex$="9"]) > td {
+  background-color: var(--bcb-stripe);
+}
+
 /* No animations. BC does not honour prefers-reduced-motion, so these rules
    do it instead. Shorten rather than remove: with `transition: none` the
    transitionend and animationend events never fire, and BC may wait for them
@@ -224,3 +247,109 @@ html[data-bcb-no-bell] #notifications_container {
 html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
   visibility: hidden !important;
 }
+
+/* Keyboard shortcuts (shortcuts.js). The panel is our own element in the top
+   window's body, under BC's top bar. `all: initial` keeps the shell's styles
+   off it. */
+#bcb-keys {
+  all: initial;
+  display: block;
+  position: fixed;
+  right: 16px;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  overflow: auto;
+  padding: 16px 18px 14px;
+  border-radius: 8px;
+  background: #fff;
+  color: #201f1e;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .24);
+  font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
+}
+#bcb-keys:focus { outline: none; }
+#bcb-keys .bcb-keys__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  /* The grip the panel is dragged by (shortcuts.js, draggable). */
+  cursor: move; user-select: none; touch-action: none;
+}
+#bcb-keys h2 { margin: 0; font: 600 17px/1.3 "Segoe UI", system-ui, sans-serif; }
+#bcb-keys h3 {
+  margin: 16px 0 8px;
+  font: 600 12px/1.3 "Segoe UI", system-ui, sans-serif;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #00718c;
+}
+#bcb-keys .bcb-keys__close {
+  all: unset;
+  cursor: pointer;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 24px;
+  color: #605e5c;
+}
+#bcb-keys .bcb-keys__close:hover { background: #f3f2f1; color: #201f1e; }
+#bcb-keys .bcb-keys__close:focus-visible { outline: 2px solid #00718c; }
+#bcb-keys dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 7px 14px;
+  align-items: center;
+  margin: 0;
+}
+#bcb-keys dt { white-space: nowrap; }
+#bcb-keys dd { margin: 0; }
+#bcb-keys kbd {
+  display: inline-block;
+  min-width: 16px;
+  padding: 1px 6px;
+  border: 1px solid #c8c6c4;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: #faf9f8;
+  font: 600 12px/18px Consolas, "Cascadia Mono", monospace;
+  text-align: center;
+  color: #201f1e;
+}
+#bcb-keys .bcb-keys__plus,
+#bcb-keys .bcb-keys__sep { color: #8a8886; margin: 0 2px; }
+#bcb-keys .bcb-keys__info {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font: 600 11px/16px "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+  vertical-align: 1px;
+  cursor: help;
+}
+#bcb-keys .bcb-keys__info:focus-visible { outline: 2px solid #00718c; outline-offset: 1px; }
+/* The note itself, shown under the (?) while it is hovered or focused. */
+#bcb-keys .bcb-keys__info:hover::after,
+#bcb-keys .bcb-keys__info:focus::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: 22px;
+  left: -8px;
+  z-index: 1;
+  width: 240px;
+  padding: 6px 9px;
+  border-radius: 4px;
+  background: #323130;
+  color: #ffffff;
+  font: 400 13px/1.35 "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+}
+#bcb-keys .bcb-keys__foot { margin-top: 16px; color: #605e5c; font-size: 13px; }
+#bcb-keys .bcb-keys__foot p { margin: 4px 0 0; }
+#bcb-keys a { color: #00718c; text-decoration: underline; cursor: pointer; }
+

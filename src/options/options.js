@@ -11,6 +11,9 @@
   var page = {
     state: {
       settings: null,
+      // The shared file's address when IT set it by browser policy; the field
+      // is locked then.
+      policyUrl: '',
       testUrl: '',
       panel: 'webclient',
       ctx: null,
@@ -49,9 +52,11 @@
   page.renderWebClient = function () {
     page.el.copyValuesEnabled.checked = page.state.settings.copyValues.enabled;
     page.el.weekNumbersEnabled.checked = page.state.settings.weekNumbers.enabled;
+    page.el.shortcutsEnabled.checked = page.state.settings.shortcuts.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
     page.el.pinActionBarEnabled.checked = page.state.settings.pinActionBar.enabled;
     page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
+    page.el.stripeRowsEnabled.checked = page.state.settings.stripeRows.enabled;
     page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
     page.renderDropdown();
@@ -224,18 +229,21 @@
       'hostedStatus', 'hostedList', 'importFile', 'importFileBtn', 'importStatus',
       'exportDownload', 'exportStatus',
       'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
-      'sharedHead', 'clearShared',
+      'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
-      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled',
+      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
+      'stripeRowsEnabled',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
       BCBuddy.loadSettings(),
       chrome.storage.local.get(page.UI_KEY),
-      takeOpenPanel()
+      takeOpenPanel(),
+      BCBuddy.readPolicy()
     ]).then(function (results) {
       state.settings = results[0];
+      state.policyUrl = BCBuddy.policyUrl(results[3]);
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
       state.testUrl = ui.testUrl || page.SAMPLE_URL;
@@ -251,6 +259,15 @@
     });
 
     chrome.storage.onChanged.addListener(function (changes, area) {
+      // IT set, changed or removed the policy while this page was open. The
+      // service worker writes the address itself; this only (un)locks.
+      if (area === 'managed') {
+        BCBuddy.readPolicy().then(function (policy) {
+          state.policyUrl = BCBuddy.policyUrl(policy);
+          if (state.settings) page.renderHosted();
+        });
+        return;
+      }
       // The toolbar icon was clicked while this page was open.
       if (area === 'session' && changes[BCBuddy.OPEN_PANEL_KEY] &&
         changes[BCBuddy.OPEN_PANEL_KEY].newValue) {
@@ -289,6 +306,11 @@
       page.save();
     });
 
+    el.shortcutsEnabled.addEventListener('change', function () {
+      state.settings.shortcuts.enabled = el.shortcutsEnabled.checked;
+      page.save();
+    });
+
     el.maximizeEnabled.addEventListener('change', function () {
       state.settings.maximize.enabled = el.maximizeEnabled.checked;
       page.save();
@@ -301,6 +323,11 @@
 
     el.highlightRowEnabled.addEventListener('change', function () {
       state.settings.highlightRow.enabled = el.highlightRowEnabled.checked;
+      page.save();
+    });
+
+    el.stripeRowsEnabled.addEventListener('change', function () {
+      state.settings.stripeRows.enabled = el.stripeRowsEnabled.checked;
       page.save();
     });
 

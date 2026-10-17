@@ -110,30 +110,158 @@
   var REGEX_MAX_LEN = 200;
 
   // A subject longer than this is not a URL anyone navigated to, and the cost
-  // of backtracking grows with it. Bounding both ends keeps the worst case
-  // finite even for a pattern the filter below does not recognise.
+  // of backtracking grows with it.
   var SUBJECT_MAX_LEN = 2048;
+
+  // How much backtracking a pattern may need in the worst case, in the units
+  // of estimateCost(). Measured in Chrome's engine, a pattern at this budget
+  // takes 20 to 60 ms on a subject it does not match; one twenty times over
+  // it freezes the tab for seconds. Ungrouped quantifiers are what the shape
+  // filter below cannot see: .*.*.*.*.*.*Q is 13 characters and kept a tab
+  // busy for 45 s on a 100-character URL before this budget existed.
+  var REGEX_BUDGET = 1 << 24;
+
+  // Stands for "as many as the subject has" in a list of quantifier widths.
+  var OPEN = -1;
+
+  // Compiled patterns and their quantifiers, so the content script does not
+  // parse the same few patterns again on every pass. Patterns come from the
+  // settings, so there are few; the cap only guards against a long session of
+  // typing in the options page.
+  var compiled = {};
+  var compiledCount = 0;
+  var COMPILED_MAX = 500;
+
+  /**
+   * Why a RegEx condition cannot run on a subject of `length` characters:
+   * 'invalid' for a syntax error, 'heavy' when checking it could take long
+   * enough to freeze the page, '' when it can run. The options page shows the
+   * reason; matching treats both the same, as a condition that does not match.
+   */
+  function regexProblem(pattern, length) {
+    var entry = inspect(String(pattern == null ? '' : pattern));
+    if (entry.problem) return entry.problem;
+    if (length > SUBJECT_MAX_LEN) return 'heavy';
+    return estimateCost(entry, length) > REGEX_BUDGET ? 'heavy' : '';
+  }
 
   /**
    * Runs a user/shared RegEx against a subject. Invalid patterns, oversized
-   * ones and the quantifier shapes below all fail closed — the condition simply
-   * does not match, same as a syntax error.
+   * ones, the nested shapes below and anything over the backtracking budget
+   * fail closed — the condition simply does not match, same as a syntax error.
+   * A wrong colour on Production is worse than none, so a pattern that is
+   * too heavy is never run on part of the subject instead.
    *
-   * The filter is deliberately conservative rather than complete: deciding
-   * whether an arbitrary pattern backtracks catastrophically is not something
-   * a source scan can settle. It rejects the shapes that show up in practice
-   * and bounds the subject; a pattern that slips through is still bounded by
-   * that length, not by the filter.
+   * Deciding whether an arbitrary pattern backtracks catastrophically is not
+   * something a source scan can settle, so both checks are conservative: the
+   * shape filter catches nested quantifiers, which blow up exponentially, and
+   * the budget bounds what is left by the subject's length.
    */
   function safeRegexTest(pattern, subject) {
-    if (pattern.length > REGEX_MAX_LEN) return false;
-    if (subject.length > SUBJECT_MAX_LEN) return false;
-    if (hasRiskyQuantifier(pattern)) return false;
-    try {
-      return new RegExp(pattern, 'i').test(subject);
-    } catch (e) {
-      return false;
+    var entry = inspect(pattern);
+    if (entry.problem || subject.length > SUBJECT_MAX_LEN) return false;
+    if (estimateCost(entry, subject.length) > REGEX_BUDGET) return false;
+    return entry.re.test(subject);
+  }
+
+  function inspect(pattern) {
+    if (Object.prototype.hasOwnProperty.call(compiled, pattern)) return compiled[pattern];
+    var entry = { problem: '', re: null, widths: [], anchored: false };
+    var source = trimLooseEnds(pattern);
+    if (pattern.length > REGEX_MAX_LEN || hasRiskyQuantifier(source)) {
+      entry.problem = 'heavy';
+    } else {
+      try {
+        entry.re = new RegExp(source, 'i');
+        var shape = quantifiers(source);
+        entry.widths = shape.widths;
+        entry.anchored = source.charAt(0) === '^' && !shape.alternation;
+      } catch (e) {
+        entry.problem = 'invalid';
+      }
     }
+    if (compiledCount >= COMPILED_MAX) {
+      compiled = {};
+      compiledCount = 0;
+    }
+    compiled[pattern] = entry;
+    compiledCount += 1;
+    return entry;
+  }
+
+  /**
+   * An upper bound on the paths the engine may try before it gives up on a
+   * subject of `length`: each quantifier multiplies them by the number of
+   * lengths it can take, and an unanchored pattern is tried again from every
+   * position. Real patterns usually stay far below it, because their literal
+   * parts rule out most paths at once.
+   */
+  function estimateCost(entry, length) {
+    var n = Math.max(length, 1);
+    var cost = entry.anchored ? 1 : n;
+    for (var i = 0; i < entry.widths.length && cost <= REGEX_BUDGET; i++) {
+      cost *= entry.widths[i] === OPEN ? n : entry.widths[i];
+    }
+    return cost;
+  }
+
+  /**
+   * A .* at the very start or end changes nothing for test(): it may match
+   * nothing, so the rest matches wherever it would have anyway. People write
+   * .*CRONUS.* all the same, and dropping those ends keeps the pattern from
+   * spending its budget on them.
+   */
+  function trimLooseEnds(source) {
+    var s = source;
+    var lead = /^\.\*\??/;
+    var m;
+    while ((m = lead.exec(s)) && !/^[*+?{]/.test(s.slice(m[0].length))) s = s.slice(m[0].length);
+    while ((m = /\.\*\??$/.exec(s)) && !isEscaped(s, m.index)) s = s.slice(0, m.index);
+    return s;
+  }
+
+  function isEscaped(source, index) {
+    var slashes = 0;
+    for (var i = index - 1; i >= 0 && source.charAt(i) === '\\'; i--) slashes += 1;
+    return slashes % 2 === 1;
+  }
+
+  /**
+   * The quantifiers of a pattern as widths — how many lengths each can take,
+   * OPEN for *, + and {n,} — and whether it has an | outside any group, which
+   * makes a leading ^ anchor only its first branch. Character classes and
+   * escapes are skipped; the pattern already compiled, so it is well formed.
+   */
+  function quantifiers(source) {
+    var widths = [];
+    var depth = 0;
+    var alternation = false;
+    for (var i = 0; i < source.length; i++) {
+      var ch = source.charAt(i);
+      var width = 0;
+      if (ch === '\\') { i += 1; continue; }
+      if (ch === '[') { i = findClassEnd(source, i); continue; }
+      if (ch === '(') {
+        depth += 1;
+        // The ? of (?: (?= (?! (?<name> is not a quantifier.
+        if (source.charAt(i + 1) === '?') i += 1;
+        continue;
+      }
+      if (ch === ')') { depth -= 1; continue; }
+      if (ch === '|') { if (depth === 0) alternation = true; continue; }
+      if (ch === '*' || ch === '+') width = OPEN;
+      else if (ch === '?') width = 2;
+      else if (ch === '{') {
+        var range = /^\{(\d+)(?:(,)(\d*))?\}/.exec(source.slice(i));
+        if (!range) continue; // a literal brace
+        width = !range[2] ? 1 : (range[3] === '' ? OPEN : Math.max(1, range[3] - range[1] + 1));
+        i += range[0].length - 1;
+      } else continue;
+      widths.push(width);
+      // A ? right after a quantifier makes it lazy; it is no quantifier itself.
+      if (source.charAt(i + 1) === '?') i += 1;
+    }
+    return { widths: widths, alternation: alternation };
   }
 
   /**
@@ -346,6 +474,7 @@
   BCBuddy.testCondition = testCondition;
   BCBuddy.matchRule = matchRule;
   BCBuddy.safeRegexTest = safeRegexTest;
+  BCBuddy.regexProblem = regexProblem;
   BCBuddy.findRule = findRule;
   BCBuddy.render = render;
   BCBuddy.renderTidy = renderTidy;

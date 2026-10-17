@@ -51,6 +51,8 @@ the settings page.
 | **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
 | **Highlight the current line** | The line you are on in a journal or order stands out | On |
 | **Hide the notifications icon** | No bell in the top bar | On |
+| **Keyboard shortcuts** | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
+| **Striped rows** | Every other row in a list a light grey | Off |
 | **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
 What each one does, in detail:
@@ -100,7 +102,8 @@ https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbo
 ```
 
 Ways to compare: contains, equals, starts with, ends with, does not contain,
-RegEx.
+RegEx. A RegEx that is not valid, or so complex that checking it could slow
+the page down, never matches; the condition then says why.
 
 Business Central on your own server (on-premises) is recognised too: the
 server instance sits where the environment would be (`/BC240/?company=...`)
@@ -168,6 +171,46 @@ that part, everyone keeps their own.
 overwritten, new rules are added, rules that are not in the file stay, and the
 **Web client** settings in the file replace yours.
 
+If your IT department set up BC Buddy for you, the address is already filled
+in with *Set by your organisation*, and you cannot change it.
+
+<details>
+<summary><b>For IT: install BC Buddy on every computer with Intune</b></summary>
+
+1. **Install silently.** In an Intune **Settings catalog** profile, set Edge's
+   *Control which extensions are installed silently* and Chrome's *Configure
+   the list of force-installed apps and extensions* to
+   `jpgpcfecpdcocjlepdfceahamliimjdl;https://clients2.google.com/service/update2/crx`.
+   Edge installs it from the Chrome Web Store too. A computer that gets BC
+   Buddy this way does not open its settings page on first start.
+2. **Set the shared file.** BC Buddy reads the string `sharedConfigUrl` from
+   `HKLM\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy`
+   and the same path under `Google\Chrome`. The Settings catalog cannot write
+   these keys: run
+   [`Set-BCBuddyPolicy.ps1`](examples/intune/Set-BCBuddyPolicy.ps1) as a
+   Platform script, or as a Remediation with
+   [`Detect-BCBuddyPolicy.ps1`](examples/intune/Detect-BCBuddyPolicy.ps1)
+   (Windows Enterprise E3/E5). Run it as system in 64-bit PowerShell. For
+   Group Policy there is [`bc-buddy-policy.reg`](examples/intune/bc-buddy-policy.reg).
+3. **Keep BC Buddy to Business Central (recommended).** Set Edge's
+   *Configure extension management settings* and Chrome's *Extension
+   management settings* to
+   [`extension-settings.json`](examples/intune/extension-settings.json), with
+   your own on-premises server and the host of your shared file in
+   `runtime_allowed_hosts`. `*://*` in `runtime_blocked_hosts` keeps BC Buddy
+   off every other website. The policy is one value for all extensions, so
+   merge this entry into any value you already have.
+4. **Check it** in `edge://policy` or `chrome://policy` on a test computer,
+   then roll out to a pilot group first.
+
+The address is then locked on the settings page and the shared rules cannot be
+cleared. BC Buddy loads the file straight away. If that fails, it tries again
+after 1, 2, 4 and 8 hours, then once a day; once it loads, it checks daily. Removing the policy unlocks the field and keeps the rules.
+The address must be `https://` and readable without signing in, so not behind a
+SharePoint or OneDrive login.
+
+</details>
+
 ## 🛟 Troubleshooting
 
 **Nothing changed after installing.** Reload the Business Central tab (F5), and
@@ -184,6 +227,11 @@ or pick list view once, and Business Central remembers that instead.
 **The action bar floats on a page.** Pin the action bar likewise only pins a
 page nobody set yet. Click the pin at the right end of the action bar once, and
 Business Central keeps it pinned from then on.
+
+**No keyboard icon in the top bar.** **Keyboard shortcuts** starts off; switch
+it on under **Web client**, and reload the tab. Business Central on your own server
+has no room for the icon; set a key for the panel at
+`chrome://extensions/shortcuts` instead.
 
 **No week numbers in the date picker.** Press Shift+Home while the calendar is
 open: that turns Business Central's week numbers on or off, and someone may

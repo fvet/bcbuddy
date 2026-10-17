@@ -117,6 +117,9 @@
     "highlightRow": {
       "enabled": true
     },
+    "stripeRows": {
+      "enabled": false
+    },
     "noAnimations": {
       "enabled": false
     },
@@ -127,6 +130,9 @@
       "enabled": true
     },
     "weekNumbers": {
+      "enabled": true
+    },
+    "shortcuts": {
       "enabled": true
     }
   }

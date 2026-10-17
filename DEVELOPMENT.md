@@ -8,6 +8,7 @@ in [IDEAS.md](IDEAS.md).
 
 ```
 manifest.json
+managed_schema.json    the browser policy IT can set (sharedConfigUrl)
 _locales/              en (default), nl and fr; see TRANSLATING.md
 src/
   background.js        service worker: synchronises the shared file
@@ -21,13 +22,17 @@ src/
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
   lib/gearmenu.js      the BC Buddy section in BC's gear menu (Settings pane)
+  lib/shortcuts.js     keyboard shortcuts: the top bar icon and its panel
   content/content.js   draws frame, banner, ribbon, title and favicon;
                        starts maximize, the dropdown sizer, the copy icon,
-                       week numbers, the row tint and the gear menu section
+                       week numbers, the row tint, the gear menu section
+                       and the keyboard shortcuts icon
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted
-examples/              example of a shared configuration (schema version 2)
+examples/              example of a shared configuration (schema version 2);
+                       intune/: scripts that set the policy for IT, and
+                       the ExtensionSettings value that limits its hosts
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs
 tools/                 build-package.ps1: the ZIP for the store;
@@ -52,7 +57,7 @@ Exports carry `"app": "bc-buddy"` and `"version": 2`.
   letters from the rule. Without a layout it falls back to the defaults, so
   drawing never crashes.
 
-Beside rules and layouts sit seven settings for the **Web client** panel,
+Beside rules and layouts sit the settings for the **Web client** panel,
 listed in `WEB_CLIENT_KEYS` and normalised by `normalizeWebClient()`. They
 travel in an export and in the shared file as `webClient`; the master switch
 `enabled` does not:
@@ -61,6 +66,9 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `pinActionBar.enabled` — pin the action bar of a page that opens with it
   floating, on by default.
 - `highlightRow.enabled` — the current-line tint, on by default.
+- `stripeRows.enabled` — every other list row a see-through grey, off by
+  default. Keyed on BC's `aria-rowindex`, since BC reuses its `<tr>`
+  elements while scrolling.
 - `dropdown.width` and `dropdown.height` — slider steps 1–5, stored as the step
   and never as pixels. Step 1 is BC standard; width defaults to 5, height to 1.
   `normalize()` rounds and clamps them, so a hand-edited or garbled value can
@@ -72,6 +80,8 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
 - `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
   where nobody set them, on by default.
+- `shortcuts.enabled` — the keyboard icon in BC's top bar and its panel, on
+  by default.
 
 `normalize()` always ensures every rule points at a valid layout: a
 configuration with no layouts gets a Default, and a rule whose `layoutId` names
@@ -336,9 +346,26 @@ is quantified while its body already holds a quantifier — `(a+)+` — or when 
 quantified group contains alternation — `(a|a)+`. Anything rejected fails
 closed: the condition simply does not match, exactly as a syntax error does.
 
-That filter is conservative, not complete — whether an arbitrary pattern
-backtracks catastrophically is not decidable from a source scan. It covers the
-shapes that occur in practice; the length caps are what bound the rest.
+That filter misses ungrouped quantifiers, and the length caps alone do not
+bound those: `.*.*.*.*.*.*Q` kept a tab busy for 45 s on a 100-character URL.
+So every pattern also gets a backtracking budget (`REGEX_BUDGET`). Each
+quantifier multiplies an estimate by the lengths it can take — 2 for `?`, the
+range for `{n,m}`, the subject's length for `*`, `+` and `{n,}` — and an
+unanchored pattern is multiplied by the subject's length once more, for every
+start position. Over the budget, the pattern fails closed on that subject. A
+leading or trailing `.*` is dropped first, since it changes nothing for
+`test()`, so `.*CRONUS.*` costs no more than `CRONUS`. At the budget the worst
+pattern measured takes about 60 ms in Chrome; real patterns run in well under
+1 ms. `regexProblem()` gives the reason (`invalid` or `heavy`), which the
+options page shows on the condition.
+
+The estimate is an upper bound, so it refuses some patterns that would run
+fast, such as `[^/]+/[^/]+/Sandbox` on a URL over 256 characters; anchoring
+with `^` lifts that. Deciding whether an arbitrary pattern backtracks
+catastrophically is not possible from a source scan, so it errs that way.
+
+The content script keeps the matched rule until the URL or the rules change,
+so a pattern runs once per page, not on every pass of `apply()`.
 
 ## 📄 Import format
 
@@ -366,11 +393,79 @@ changed since then is passed on, so a colleague's own choice survives the
 daily sync. Clearing the shared rules forgets it, so the next sync applies the
 file's settings again.
 
+### Shared file set by policy
+
+IT can set the shared file's address by browser policy: `sharedConfigUrl` in
+`chrome.storage.managed`, declared in `managed_schema.json` (Windows registry:
+`HKLM\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\<id>\policy`, and
+`Google\Chrome` likewise). The policy itself is never stored. The service
+worker reads it on install, at browser start and when it changes, and
+`applyPolicy()` writes the address into `hosted.url` with `active` on; the
+usual settings change then starts the sync. It runs again whenever the address
+or `active` changes, so a write from an options page cannot undo it. The
+options page reads the policy too, only to lock the field, hide the clear
+button and show *Set by your organisation*. A value that does not resolve to
+HTTPS is ignored. Removing the policy changes no settings: the field unlocks
+and the address and shared rules stay.
+
+`syncIntervalMinutes()` sets the alarm: daily once the file has loaded, hourly
+before the first try, and while it fails 1, 2, 4 and 8 hours after each failed
+try in a row (`hosted.failures`), then daily. A laptop that was offline when the
+policy arrived does not wait a day, and an address that stays broken settles at
+one request a day. After a try, the alarm is set again with a first delay of a
+whole interval, so a failure never brings the next try closer. A
+force-install (`installType` `admin`) does not open the options page on first
+install.
+
+Nothing of this runs in BC tabs: only the service worker and the options page
+read managed storage.
+
+The manifest keeps `<all_urls>`: an on-premises server has no address the
+extension could list in advance. IT, who knows those addresses, narrows it with
+Chrome's `ExtensionSettings` policy instead: `runtime_blocked_hosts: ["*://*"]`
+and the BC hosts plus the shared file's host in `runtime_allowed_hosts`
+(`examples/intune/extension-settings.json`, documented in `docs/sharing.md`).
+Content scripts then no longer run anywhere else. Nothing in the code depends on
+it; the extension simply never sees the other sites.
+
+### Where the web client tweaks run
+
+`state.webClient`, worked out by `webClientHere()` once per `apply()`, decides
+it for every tweak. Two things must hold:
+
+1. **The address looks like Business Central** (`isWebClientTarget()`):
+   `*.dynamics.com`, a host name with a label starting with `bc`, or a path
+   starting with `/bc`. That is cheap and catches the usual on-prem shapes, but
+   also sites such as `www2.gov.bc.ca`.
+2. **The page is Business Central.** On BC online (`ctx.isbc`) the host says
+   so. Anywhere else the document must hold one of BC's own classes,
+   `designer-client-frame` (the client's frame, in the top window) or
+   `spa-container` (where its pages stack, inside that frame), or the ribbon
+   search must have found the brand name (`state.bcSeen`).
+
+When only the address matches, `probeForBC()` looks for those classes on a
+timer instead of waking the observer and the poll: every second, then every
+2 s after 10 s. It stops at once when they appear, and gives up 10 s after the
+page's load event (or after the address changed, for a page that loaded long
+before), within a minute in any case. The client builds its frame with script
+as the page finishes loading, so later than that it is not coming: a
+look-alike page gets about ten looks, then none for that address. A BC page
+that does turn up later is still caught when a rule matches it, because the
+800 ms poll that keeps its colours checks again on every pass. It reads two live `getElementsByClassName`
+collections made once, which the browser answers from cache while the page
+does not change (measured: 0.003 ms, against 2.3 ms for one `querySelector`
+over 60,000 elements). Before this, a look-alike address woke the full
+observer and the 800 ms poll for good.
+
+A frame of BC that holds neither class, such as an add-in's frame, gets no
+tweak, which none of them needs. On-prem has the same client, so the same
+classes; that was reasoned from the shared code, not seen on a live server.
+
 ## 🧩 Adding a web client tweak
 
 Every tweak follows the shape of the existing ones: a switch in the Web client
-panel, off when the extension as a whole is off, limited to
-`isWebClientTarget()` URLs, and CSS first wherever CSS can do it. A CSS rule
+panel, off when the extension as a whole is off, limited to frames where
+`state.webClient` is true, and CSS first wherever CSS can do it. A CSS rule
 that stops matching after a BC update does nothing; a script that clicks the
 wrong thing does damage. A new one brings along:
 
@@ -502,7 +597,27 @@ hand from the Actions tab and does everything a release needs. See
 It is one workflow rather than two on purpose. A push made with `GITHUB_TOKEN`
 does not trigger other workflows, so a tag pushed from a job would never start a
 tag-triggered job: the release would silently produce nothing. Everything
-therefore happens inline.
+therefore happens in this one run, split over jobs that each get only what they
+need:
+
+| Job | Gets | Does |
+|---|---|---|
+| `release` | the deploy key (`RELEASE_SSH_KEY`), GitHub's own actions only | tests, versions, builds, commits, tags, pushes; hands the ZIP and notes on as an artifact, its SHA-256 as a job output |
+| `github-release` | `contents: write`, the artifact | runs `softprops/action-gh-release`, the one third-party action |
+| `store` | the `CWS_*` secrets, the artifact | checks the ZIP against the SHA-256, uploads to the Web Store |
+| `site` | Pages permissions | builds the site from the tag (`pages.yml`) |
+
+The split is a supply-chain measure. The deploy key may push to `main` past the
+ruleset, and the store upload reaches every installed copy, so neither may sit
+on a runner where a third-party action has run: such an action could rewrite
+files, `GITHUB_ENV` or `GITHUB_PATH` for every later step of its job. The
+workflow token is read-only except in `github-release`. `github-release` and
+`store` run side by side after the push; the hash is what keeps an artifact
+replaced in the meantime from reaching the store.
+
+Every action is pinned to a full commit SHA, with the version in a trailing
+comment (`@3d3c42e… # v7.0.1`). A tag can be moved to other code; a commit
+cannot. Dependabot understands this form and bumps SHA and comment together.
 
 [`.github/workflows/pages.yml`](.github/workflows/pages.yml) builds and deploys
 the website. Release calls it as a reusable workflow for the same reason: a
@@ -518,7 +633,8 @@ dependencies at all — `src/lib/` is our own code — so there is nothing else 
 track, and that is worth keeping true.
 
 Action bumps arrive as one grouped pull request a month, which `tests.yml`
-checks like any other. Read them anyway before merging: `release.yml` and the
+checks like any other. They change a commit SHA, so check that the comment
+beside it names a real release of that action. Read them anyway before merging: `release.yml` and the
 Pages deploy do **not** run on pull requests, so a bad bump to
 `softprops/action-gh-release`, `upload-pages-artifact` or `deploy-pages` would
 only show up at the next release. The pip entry stays quiet by design, because
@@ -565,8 +681,8 @@ section; `gearmenu.js` inserts `#bcb-gear-section` right after it, above
   its releases. The section copies, element by element, the classes of BC's own
   section (heading, list, link) and the divider of the Microsoft 365 section, so
   it looks native on whatever release is live. Ids are not copied.
-- **Cost.** One `childList` observer on `body` (no subtree), top window only, on
-  `isWebClientTarget()` hosts. Only while the pane is open, a second observer
+- **Cost.** One `childList` observer on `body` (no subtree), top window only,
+  where `state.webClient` is true. Only while the pane is open, a second observer
   watches the pane's own subtree — a few dozen elements — because the shell can
   switch between Settings, Help and Notifications without closing it.
 - **Always on.** It does not follow the extension's on/off switch and has no
@@ -588,10 +704,67 @@ var a = document.getElementById('O365_Settings_navbardatalinks');
   a && a.outerHTML.slice(0, 600), a && a.nextElementSibling.outerHTML.slice(0, 300)];
 ```
 
+## ⌨️ Keyboard shortcuts
+
+`shortcuts.js` adds a keyboard button to BC's top bar and opens a panel with
+the shortcuts for where the cursor is. The switch starts off.
+
+- **Where.** BC online shows the client in `iframe.designer-client-frame`,
+  same origin, under the Microsoft 365 top bar. Icon and panel live in the top
+  window; the panel reads the client's document directly. The icon goes just
+  before `#O365_MainLink_Help_container` and copies its classes and those of
+  the Help button, element by element, like the gear menu section does.
+- **What it lists.** *On this page* comes from the page itself: BC ends an
+  action's tooltip with its shortcut, `"... (F9)"`, and `tooltipKey()` takes
+  that, so it is right for the BC version, the language and any extension.
+  Only from the page on screen (`topView()`): BC keeps the pages you came
+  from rendered below it, in sibling `.spa-view` elements. Skipped: a
+  field's own buttons inside `.edit-container` (Copilot's Alt+I), greyed-out
+  actions (`aria-disabled="true"`), and a part's own action bar (inside
+  `.formhost-control`) unless the cursor is in that part. A closed submenu
+  is not in the DOM, so it is not listed. The rest comes from `SETS`: short,
+  hand-picked lists from Microsoft's *Keyboard Shortcuts* article, only
+  shortcuts BC has had for years, worded with Microsoft's own terms in each
+  language. Keep them short; the panel links to the article for the rest.
+- **Where the cursor is.** `context()` looks at the client's
+  `activeElement`: an editable grid, a view grid, a card, a date field (an
+  input with BC's `.icon-Date` button beside it). Without a cursor in a grid,
+  the page decides: a card form is a card, a list or worksheet form goes by
+  its own grid (a read-only worksheet such as Find entries is a list), and a
+  Role Center gets no area. Alt+N needs a New action, found by its icon
+  (`data-icon-name="Add"` in a card header, `icon-Plus` in a list's action
+  bar); Alt+F2 needs a form without `form-no-factboxes`. The cursor is read
+  when the panel opens and when the page changes, not as it moves.
+- **The panel.** It stays open until ×, Escape (with the focus in it) or the
+  icon closes it; a click in BC does not. The header is a drag handle
+  (pointer capture, so the drag keeps going over BC's frame); the spot is
+  kept for the tab's lifetime, clamped to the window. While it is open, an
+  observer on the direct children of each `.spa-container` notices BC
+  adding or removing a page, and the panel refills once the new top view
+  has a root form (up to 10 tries, 300 ms apart). A lookup is a view too
+  but never the top view, so it changes nothing. The icon button cancels
+  its own `mousedown`, because BC drops the field focus as soon as its
+  frame loses focus; the panel then takes the focus and gives it back on
+  close, unless the page changed meanwhile.
+- **Cost.** One observer on the top window's `body` (subtree) while the
+  switch is on: BC's grids live in the iframe's document, so the top window
+  changes rarely, and each change costs one `getElementById`. Everything
+  else exists only while the panel is open: the page scan, the drag
+  listeners on its own header, and the `childList` observer on each
+  `.spa-container`, never a subtree. No key listener in the page.
+- **Browser shortcut.** The manifest declares a `show-shortcuts` command
+  without a default key, so it never takes one from BC. Someone who sets a
+  key gets `chrome.commands.onCommand` in the service worker, which sends
+  `bcb:toggle-shortcuts` to the tab's top frame. On-prem, without the
+  Microsoft 365 top bar, that key is the only way in.
+
 ## 🔑 Permissions
 
 - `storage` — keeping settings.
 - `alarms` — checking the shared file periodically.
+- `storage.managed_schema` is not a permission and shows no warning, so adding
+  a policy key does not hold up the automatic update. `chrome.management.getSelf`
+  needs no permission either.
 - `<all_urls>` — rules may match on any URL (on-premises servers included), and
   the shared JSON file can live anywhere.
 
@@ -628,10 +801,11 @@ The step order is deliberate:
 2. **Nothing is pushed until the package is built and verified.** The ZIP's own
    `manifest.json` is read back and compared with the expected version; if the
    build or that check fails, `main` is untouched and the version is still free.
-3. **The store upload happens last.** The Web Store refuses a version it already
-   holds, so a version number cannot be retried. A failure anywhere earlier
-   costs nothing; a failure here costs that number and you release again with
-   the next one.
+3. **The store upload happens after the push**, in its own job, beside the
+   GitHub release. The Web Store refuses a version it already holds, so a
+   version number cannot be retried. A failure anywhere before the push costs
+   nothing; a failure in the store job costs that number and you release again
+   with the next one. A failed GitHub release job can simply be re-run.
 
 A version must be one to four dot-separated integers, each 0–65535 — Chrome
 takes no suffix, so `1.2.0-rc.1` is not a version you can ship. The workflow
@@ -758,7 +932,7 @@ powershell -ExecutionPolicy Bypass -File tools/build-package.ps1
 ```
 
 That puts `dist/bcbuddy-<version>.zip` in place with only what the extension
-needs: manifest, `src`, `_locales` and the PNG icons. Tests, examples, the SVG
+needs: manifest, `managed_schema.json`, `src`, `_locales` and the PNG icons. Tests, examples, the SVG
 sources and these tools stay behind. The script checks that `manifest.json` ends
 up in the root of the ZIP, which is the usual silent upload rejection.
 

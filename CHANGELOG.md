@@ -11,6 +11,33 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Striped rows**: every other row in a list gets a light grey, so you stay
+  on the right line in a wide list. Off by default; switch it on under
+  **Web client** in the options.
+- **Keyboard shortcuts**: a keyboard icon in the top bar of Business Central
+  shows the shortcuts that work where you are: the page's own actions, such
+  as Post (F9), what works in the lines, the list, the card or the date field
+  you are in, and a few that work anywhere, with a link to Microsoft's full
+  list. The panel stays open while you work, changes along when you open
+  another page, and you can drag it by its title.
+  Off by default; switch it on under **Web client** in the options.
+- **Set up by your IT department**: IT can install BC Buddy on every computer
+  and fill in your team's shared file for you, for example with Intune. The
+  address then says *Set by your organisation* and cannot be changed.
+  Instructions for IT are at the bottom of *Sharing with your team*.
+
+### Changed
+
+- A shared file that could not be loaded is tried again after 1, 2, 4 and 8
+  hours, instead of only the next day.
+
+### Fixed
+
+- A **RegEx** condition can no longer freeze your browser. A pattern too
+  complex to check safely does not match, and the condition says why.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.13 — 2026-10-16

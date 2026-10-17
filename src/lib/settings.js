@@ -46,6 +46,12 @@
   // How often the shared file is checked while the shared configuration is
   // active.
   var SYNC_INTERVAL_MINUTES = 1440;
+  // While the file fails to load: wait 1, 2, 4, then 8 hours after each
+  // failed try in a row, and daily after that.
+  var RETRY_MINUTES = [60, 120, 240, 480];
+
+  // The keys IT can set by policy (managed_schema.json).
+  var POLICY_KEYS = ['sharedConfigUrl'];
 
   /**
    * The shared configuration is 'active' once you have synced once; from then
@@ -292,17 +298,19 @@
   // `webClient`, shaped exactly as they are stored. The master switch does not:
   // it belongs to whoever runs the extension.
   var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'highlightRow',
-    'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers'];
+    'stripeRows', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
     var pinActionBar = s.pinActionBar || {};
     var dropdown = s.dropdown || {};
     var highlightRow = s.highlightRow || {};
+    var stripeRows = s.stripeRows || {};
     var noAnimations = s.noAnimations || {};
     var hideNotifications = s.hideNotifications || {};
     var copyValues = s.copyValues || {};
     var weekNumbers = s.weekNumbers || {};
+    var shortcuts = s.shortcuts || {};
 
     return {
       maximize: {
@@ -319,6 +327,10 @@
       highlightRow: {
         enabled: bool(highlightRow.enabled, true)
       },
+      // Off until asked for: it changes how every list looks.
+      stripeRows: {
+        enabled: bool(stripeRows.enabled, false)
+      },
       // Off until asked for: it changes how BC feels, not just how it looks.
       noAnimations: {
         enabled: bool(noAnimations.enabled, false)
@@ -331,6 +343,9 @@
       },
       weekNumbers: {
         enabled: bool(weekNumbers.enabled, true)
+      },
+      shortcuts: {
+        enabled: bool(shortcuts.enabled, false)
       }
     };
   }
@@ -381,6 +396,8 @@
       sourceName: str(hosted.sourceName),
       lastSync: hosted.lastSync || null,
       lastError: hosted.lastError || null,
+      // Failed tries in a row; back to 0 once the file loads.
+      failures: Math.round(num(hosted.failures, 0, 0, 1000)),
       lastHash: str(hosted.lastHash)
     };
     return result;
@@ -422,6 +439,12 @@
       settings.highlightRow && settings.highlightRow.enabled);
   }
 
+  /** Striped list rows follow the master switch as well. */
+  function stripeRowsOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.stripeRows && settings.stripeRows.enabled);
+  }
+
   /** Turning animations off follows the master switch as well. */
   function noAnimationsOn(settings) {
     return !!(settings && settings.enabled &&
@@ -444,6 +467,12 @@
   function weekNumbersOn(settings) {
     return !!(settings && settings.enabled &&
       settings.weekNumbers && settings.weekNumbers.enabled);
+  }
+
+  /** The keyboard shortcuts icon and panel follow the master switch as well. */
+  function shortcutsOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.shortcuts && settings.shortcuts.enabled);
   }
 
   function load() {
@@ -651,6 +680,58 @@
     }
   }
 
+  /**
+   * How often to check the shared file. Daily once it has loaded. Before the
+   * first try, hourly. While it fails, 1, 2, 4 and 8 hours after each failed
+   * try in a row, then daily: a laptop that was offline when the address
+   * arrived soon gets its colours, and an address that stays broken settles
+   * at one request a day.
+   */
+  function syncIntervalMinutes(hosted) {
+    if (hosted && hosted.lastSync && !hosted.lastError) return SYNC_INTERVAL_MINUTES;
+    var failures = hosted && hosted.lastError ? Math.max(1, hosted.failures || 0) : 0;
+    if (!failures) return RETRY_MINUTES[0];
+    return failures <= RETRY_MINUTES.length ? RETRY_MINUTES[failures - 1] : SYNC_INTERVAL_MINUTES;
+  }
+
+  /**
+   * IT can set the shared file by browser policy (managed storage, see
+   * managed_schema.json). Returns the address to use, or '' when there is no
+   * policy or its value is not an HTTPS address — that one is ignored rather
+   * than locking the field on something that can never sync.
+   */
+  function policyUrl(policy) {
+    var raw = str(policy && policy.sharedConfigUrl).trim();
+    if (!raw) return '';
+    try {
+      return resolveHostedUrl(raw);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /** Reads the policy; resolves to {} where there is none or no managed storage. */
+  function readPolicy() {
+    var area = root.chrome && chrome.storage && chrome.storage.managed;
+    if (!area) return Promise.resolve({});
+    return area.get(POLICY_KEYS).then(function (obj) { return obj || {}; }, function () { return {}; });
+  }
+
+  /**
+   * Puts the policy's address in place and keeps the shared configuration on.
+   * Returns true when something changed and the settings need saving. Without
+   * a policy nothing changes: removing it unlocks the field, and the address
+   * and shared rules stay as they are.
+   */
+  function applyPolicy(settings, policy) {
+    var url = policyUrl(policy);
+    var hosted = settings.hosted;
+    if (!url || (hosted.url === url && hosted.active)) return false;
+    hosted.url = url;
+    hosted.active = true;
+    return true;
+  }
+
   BCBuddy.STORAGE_KEY = STORAGE_KEY;
   BCBuddy.OPEN_PANEL_KEY = OPEN_PANEL_KEY;
   BCBuddy.SCHEMA_VERSION = SCHEMA_VERSION;
@@ -661,6 +742,10 @@
   BCBuddy.WEB_CLIENT_KEYS = WEB_CLIENT_KEYS;
   BCBuddy.isCorner = isCorner;
   BCBuddy.SYNC_INTERVAL_MINUTES = SYNC_INTERVAL_MINUTES;
+  BCBuddy.syncIntervalMinutes = syncIntervalMinutes;
+  BCBuddy.policyUrl = policyUrl;
+  BCBuddy.readPolicy = readPolicy;
+  BCBuddy.applyPolicy = applyPolicy;
   BCBuddy.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;
   BCBuddy.uid = uid;
   BCBuddy.newRule = newRule;
@@ -678,10 +763,12 @@
   BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.pinActionBarOn = pinActionBarOn;
   BCBuddy.highlightRowOn = highlightRowOn;
+  BCBuddy.stripeRowsOn = stripeRowsOn;
   BCBuddy.noAnimationsOn = noAnimationsOn;
   BCBuddy.hideNotificationsOn = hideNotificationsOn;
   BCBuddy.copyValuesOn = copyValuesOn;
   BCBuddy.weekNumbersOn = weekNumbersOn;
+  BCBuddy.shortcutsOn = shortcutsOn;
   BCBuddy.loadSettings = load;
   BCBuddy.saveSettings = save;
   BCBuddy.toExport = toExport;

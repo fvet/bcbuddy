@@ -27,6 +27,7 @@
   var ROW_ATTR = 'data-bcb-row';
   var CALM_ATTR = 'data-bcb-calm';
   var NO_BELL_ATTR = 'data-bcb-no-bell';
+  var STRIPES_ATTR = 'data-bcb-stripes';
   var BANNER_ID = 'bcb-banner';
   var FAVICON_REL = 'icon';
 
@@ -97,11 +98,24 @@
     newTab: null,
     // Week numbers in the date picker: its storage listener while the switch is on.
     weekNumbers: null,
+    // Keyboard shortcuts icon and panel (shortcuts.js), while the switch is on.
+    shortcuts: null,
     // Handle of the BC Buddy section in BC's gear menu, while it is attached.
     gearMenu: null,
     // MutationObserver that reapplies ribbon inline styles if Dark Reader
     // overrides them. Disconnected whenever the ribbon is released.
-    ribbonGuard: null
+    ribbonGuard: null,
+    // Whether the web client tweaks apply in this frame, worked out once per
+    // apply() by webClientHere().
+    webClient: false,
+    // This document showed Business Central's own elements (BC_PAGE_CLASSES).
+    bcPage: false,
+    // The look for those elements on a BC-like address: its timer, when it
+    // started, and until when it runs (0 = not started, -1 = gave up on this
+    // address).
+    probeTimer: 0,
+    probeFrom: 0,
+    probeUntil: 0
   };
 
   // Where the web client tweaks (maximize, dropdown size, current row) apply:
@@ -119,9 +133,110 @@
     return false;
   }
 
+  // Classes only the Business Central web client uses: the frame it runs in
+  // (in the top window) and the container its pages stack in (inside that
+  // frame). On-prem runs the same client, so it has them too.
+  var BC_PAGE_CLASSES = ['designer-client-frame', 'spa-container'];
+
+  // A page with a BC-like address that shows neither is looked at again: every
+  // second while the client is usually still loading, then less often. The
+  // client builds its frame with script as the page finishes loading, so the
+  // look ends 10 s after the load event (or after the address changed, for a
+  // page that loaded long before), and after a minute in any case.
+  var BC_PROBE_LIMIT_MS = 60000;
+  var BC_AFTER_LOAD_MS = 10000;
+
+  function probeDelay(elapsed) {
+    if (elapsed < 10000) return 1000;
+    return elapsed < 30000 ? 2000 : 5000;
+  }
+
+  /**
+   * Whether the web client tweaks apply in this frame. The address must look
+   * like Business Central, and on any host but BC online the page must prove
+   * it: BC's own elements, or the brand name in its ribbon (state.bcSeen). A
+   * site that only looks like BC by its address, such as a host name starting
+   * with "bc", gets no tweak.
+   */
+  function webClientHere() {
+    if (!isWebClientTarget(state.href)) return false;
+    if (state.bcPage || state.bcSeen || (state.ctx && state.ctx.isbc)) return true;
+    if (hasBCElements()) return true;
+    probeForBC();
+    return false;
+  }
+
+  /**
+   * Live collections from getElementsByClassName, made once: the browser
+   * keeps their answer until the page changes, so a look at a page that did
+   * not change costs next to nothing, and one after a change walks the page
+   * once (2 ms for 60,000 elements, measured).
+   */
+  var bcMarks = null;
+
+  function hasBCElements() {
+    if (!bcMarks) {
+      bcMarks = BC_PAGE_CLASSES.map(function (name) { return document.getElementsByClassName(name); });
+    }
+    for (var i = 0; i < bcMarks.length; i++) {
+      if (bcMarks[i].length) {
+        state.bcPage = true;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Looks for BC's elements on a timer, without waking the observer and the
+   * poll. Found, it runs apply(), which starts the tweaks; not found by 10 s
+   * after the page loaded, it stops. A look-alike page gets about ten looks.
+   */
+  function probeForBC() {
+    if (state.probeTimer || state.probeUntil === -1) return;
+    var now = Date.now();
+    if (!state.probeUntil) {
+      state.probeFrom = now;
+      state.probeUntil = now + BC_PROBE_LIMIT_MS;
+    }
+    state.probeTimer = setTimeout(function () {
+      state.probeTimer = 0;
+      if (hasBCElements()) apply();
+      else if (probeGoesOn()) probeForBC();
+      else state.probeUntil = -1;
+    }, probeDelay(now - state.probeFrom));
+  }
+
+  function probeGoesOn() {
+    var now = Date.now();
+    if (now >= state.probeUntil) return false;
+    var loaded = loadedAt();
+    return !loaded || now < Math.max(loaded, state.probeFrom) + BC_AFTER_LOAD_MS;
+  }
+
+  /** When this page's load event fired, or 0 while it is still loading. */
+  function loadedAt() {
+    if (document.readyState !== 'complete') return 0;
+    var nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+    // loadEventEnd is still 0 while load handlers run.
+    return nav && nav.loadEventEnd ? Math.round(performance.timeOrigin + nav.loadEventEnd) : Date.now();
+  }
+
   init();
 
   function init() {
+    // The browser shortcut for the keyboard shortcuts panel arrives from the
+    // service worker, in the top frame only.
+    if (IS_TOP) {
+      try {
+        chrome.runtime.onMessage.addListener(function (message, sender) {
+          if (!message || message.type !== 'bcb:toggle-shortcuts') return;
+          if (!sender || sender.id !== chrome.runtime.id || sender.tab) return;
+          if (state.shortcuts) state.shortcuts.toggle();
+        });
+      } catch (e) { /* extension reloaded */ }
+    }
+
     read().then(function (settings) {
       state.settings = settings;
       start();
@@ -158,6 +273,23 @@
       rulesCache.rules = BCBuddy.effectiveRules(settings);
     }
     return rulesCache.rules;
+  }
+
+  /**
+   * The rule for this page. Matching only looks at the URL, and state.ctx is
+   * replaced whenever that changes, so the answer is kept until the URL or the
+   * rules change: a RegEx condition runs once per page, not on every pass.
+   */
+  var matchCache = { rules: null, ctx: null, rule: null };
+
+  function matchingRule(settings) {
+    var rules = effectiveRules(settings);
+    if (matchCache.rules !== rules || matchCache.ctx !== state.ctx) {
+      matchCache.rules = rules;
+      matchCache.ctx = state.ctx;
+      matchCache.rule = BCBuddy.findRule(rules, state.ctx);
+    }
+    return matchCache.rule;
   }
 
   function start() {
@@ -228,7 +360,7 @@
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
-    if (clicksBC && isWebClientTarget(state.href)) return true;
+    if (clicksBC && state.webClient) return true;
     return false;
   }
 
@@ -257,14 +389,16 @@
       // search immediately.
       state.lastBrandSearch = 0;
       state.bcSeen = false;
+      // A new address may be BC where the old one was not: look again. Once
+      // this document showed BC's elements, that stays true.
+      if (state.probeUntil === -1) state.probeUntil = 0;
     }
+    state.webClient = webClientHere();
 
     // Rules apply on every site. From the URL alone you cannot tell that a
     // custom host runs Business Central, so filtering on the BC host would
     // shut out on-prem installs.
-    var rule = settings.enabled
-      ? BCBuddy.findRule(effectiveRules(settings), state.ctx)
-      : null;
+    var rule = settings.enabled ? matchingRule(settings) : null;
 
     var changed = !sameRule(rule, state.rule);
     if (changed) {
@@ -284,12 +418,14 @@
     applyPinActionBar();
     applyDropdowns();
     applyHighlightRow();
+    applyListLook();
     applyNoAnimations();
     applyHideNotifications();
     applyCopyValues();
     applyNewTab();
     applyWeekNumbers();
     applyGearMenu();
+    applyShortcuts();
   }
 
   function sameRule(a, b) {
@@ -716,7 +852,7 @@
    */
   function applyMaximize() {
     if (!BCBuddy.maximizeOn(state.settings)) return;
-    if (!isWebClientTarget(state.href)) return;
+    if (!state.webClient) return;
     BCBuddy.Maximize.apply(document, state.maximized, bcStorage());
   }
 
@@ -730,7 +866,7 @@
    */
   function applyPinActionBar() {
     if (!BCBuddy.pinActionBarOn(state.settings)) return;
-    if (!isWebClientTarget(state.href)) return;
+    if (!state.webClient) return;
     BCBuddy.ActionBar.apply(document, state.pinned, bcStorage());
   }
 
@@ -755,10 +891,31 @@
   function applyHighlightRow() {
     var root = document.documentElement;
     if (!root) return;
-    var on = BCBuddy.highlightRowOn(state.settings) && isWebClientTarget(state.href);
+    var on = BCBuddy.highlightRowOn(state.settings) && state.webClient;
     if (on === root.hasAttribute(ROW_ATTR)) return;
     if (on) root.setAttribute(ROW_ATTR, '');
     else root.removeAttribute(ROW_ATTR);
+  }
+
+  /* ------------------------------------------------------------ list look */
+
+  /**
+   * Striped rows in BC's lists and editable grids; the rules are in
+   * content.css. Like the row tint this is one attribute on <html>, set once
+   * per page load, URL change or settings change, so it costs nothing while
+   * you scroll or type.
+   */
+  function applyListLook() {
+    var root = document.documentElement;
+    if (!root) return;
+    var on = isWebClientTarget(state.href) && BCBuddy.stripeRowsOn(state.settings);
+    toggleRootAttr(root, STRIPES_ATTR, on);
+  }
+
+  function toggleRootAttr(root, name, on) {
+    if (on === root.hasAttribute(name)) return;
+    if (on) root.setAttribute(name, '');
+    else root.removeAttribute(name);
   }
 
   /* ----------------------------------------------------------- animations */
@@ -772,7 +929,7 @@
   function applyNoAnimations() {
     var root = document.documentElement;
     if (!root) return;
-    var on = BCBuddy.noAnimationsOn(state.settings) && isWebClientTarget(state.href);
+    var on = BCBuddy.noAnimationsOn(state.settings) && state.webClient;
     if (on === root.hasAttribute(CALM_ATTR)) return;
     if (on) root.setAttribute(CALM_ATTR, '');
     else root.removeAttribute(CALM_ATTR);
@@ -788,7 +945,7 @@
   function applyHideNotifications() {
     var root = document.documentElement;
     if (!root) return;
-    var on = BCBuddy.hideNotificationsOn(state.settings) && isWebClientTarget(state.href);
+    var on = BCBuddy.hideNotificationsOn(state.settings) && state.webClient;
     if (on === root.hasAttribute(NO_BELL_ATTR)) return;
     if (on) root.setAttribute(NO_BELL_ATTR, '');
     else root.removeAttribute(NO_BELL_ATTR);
@@ -802,7 +959,7 @@
    * until the switch changes, so this costs one comparison per apply().
    */
   function applyCopyValues() {
-    var want = BCBuddy.copyValuesOn(state.settings) && isWebClientTarget(state.href);
+    var want = BCBuddy.copyValuesOn(state.settings) && state.webClient;
     if (want === !!state.copyValues) return;
     if (state.copyValues) state.copyValues.detach();
     state.copyValues = want ? BCBuddy.CopyValues.attach(document, {
@@ -821,7 +978,7 @@
    * keeps them.
    */
   function applyWeekNumbers() {
-    var want = BCBuddy.weekNumbersOn(state.settings) && isWebClientTarget(state.href);
+    var want = BCBuddy.weekNumbersOn(state.settings) && state.webClient;
     if (want === !!state.weekNumbers) return;
     if (state.weekNumbers) state.weekNumbers.detach();
     state.weekNumbers = want ? BCBuddy.WeekNumbers.attach(window) : null;
@@ -837,7 +994,7 @@
    * comparison per apply().
    */
   function applyNewTab() {
-    var want = !!(state.settings && state.settings.enabled) && isWebClientTarget(state.href);
+    var want = !!(state.settings && state.settings.enabled) && state.webClient;
     if (want === !!state.newTab) return;
     if (state.newTab) state.newTab.detach();
     state.newTab = want ? BCBuddy.NewTab.attach(document, openTab) : null;
@@ -863,7 +1020,7 @@
   function applyDropdowns() {
     var settings = state.settings;
     var want = !!settings && settings.enabled && BCBuddy.Dropdowns.isOn(settings.dropdown) &&
-      isWebClientTarget(state.href);
+      state.webClient;
     var key = want ? settings.dropdown.width + 'x' + settings.dropdown.height : '';
     if (key === state.dropdownKey) return;
 
@@ -881,11 +1038,28 @@
    * off, this link is the quickest way back to turning it on.
    */
   function applyGearMenu() {
-    var want = IS_TOP && isWebClientTarget(state.href);
+    var want = IS_TOP && state.webClient;
     if (want === !!state.gearMenu) return;
     if (state.gearMenu) state.gearMenu.detach();
     state.gearMenu = want
       ? BCBuddy.GearMenu.attach(document, { label: BCBuddy.t('gearMenuSettings'), onOpen: openOptions })
+      : null;
+  }
+
+  /* ------------------------------------------------------------ shortcuts */
+
+  /**
+   * The keyboard icon in BC's top bar and the panel it opens; see
+   * shortcuts.js. Top window only: from there it reads BC's client frame.
+   * Attached once, like the gear menu, so this costs one comparison per
+   * apply().
+   */
+  function applyShortcuts() {
+    var want = IS_TOP && BCBuddy.shortcutsOn(state.settings) && isWebClientTarget(state.href);
+    if (want === !!state.shortcuts) return;
+    if (state.shortcuts) state.shortcuts.detach();
+    state.shortcuts = want
+      ? BCBuddy.Shortcuts.attach(document, { t: BCBuddy.t, icon: true })
       : null;
   }
 

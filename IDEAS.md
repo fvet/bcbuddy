@@ -43,19 +43,3 @@ noted when the error appeared (message, time, page), the last *Copy error
 details* the user made (session ids), and the *Latest Error* page read in the
 same tab (call stack). Startup errors ("Something went wrong") print time,
 tenant, environment and operation id on the page itself.
-
-## FastTabs open, or "Show more", on first use
-
-BC remembers per FastTab whether it is collapsed and whether *Show more* is
-open: LocalState `{"Collapsed", "MoreFieldsShown"}` under the group's own id,
-written only when the user changes it (capability
-`shouldUsePersistedExpandCollapseState`, on for desktop). The same rule as
-Maximize and Pin the action bar would fit: change BC's default the first time
-a FastTab shows, never a stored choice (`lib/bcstate.js`).
-
-## `expandAllFastTabs` in the URL
-
-BC reads `expandAllFastTabs=true` from the address when the client starts and
-then opens every FastTab on every page for that session. Cheap to offer, for
-example as an option on links BC Buddy builds, but it only takes effect on a
-fresh load.

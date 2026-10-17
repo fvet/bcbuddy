@@ -248,6 +248,9 @@ input[type="text"]:focus, input[type="url"]:focus, input[type="number"]:focus, s
   outline-offset: -1px;
 }
 
+/* Set by browser policy (the shared file's address): readable, not editable. */
+input[type="url"]:read-only { background: var(--surface-2); color: var(--muted); }
+
 input[type="color"] {
   width: 38px;
   height: 32px;
@@ -489,6 +492,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .condition { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 .condition select { flex: 0 1 150px; }
 .condition input { flex: 1 1 220px; }
+.condition input[aria-invalid="true"] { border-color: var(--danger); }
 
 .dot-indicator {
   width: 9px; height: 9px; border-radius: 50%;
