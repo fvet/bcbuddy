@@ -8,7 +8,7 @@ Een makkelijkere webclient, meteen. Niets in te stellen:
 - Weeknummers in de kalender van een datumveld.
 - Een toetsenbordicoon dat de sneltoetsen toont voor de pagina en het veld waar je bent.
 - De regel waarop je staat in een dagboek of order valt op.
-- Als je wil, gestreepte rijen, en smallere kolommen zodat meer van een lijst op het scherm past.
+- Als je wil, gestreepte rijen, en smallere kolommen zodat meer van een lijst of dagboek op het scherm past.
 - Geen meldingenbelletje, en als je wil, geen animaties.
 
 Elk ervan heeft een eigen schakelaar in de opties.

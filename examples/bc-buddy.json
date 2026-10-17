@@ -120,8 +120,8 @@
     "stripeRows": {
       "enabled": false
     },
-    "narrowColumns": {
-      "enabled": false
+    "columns": {
+      "width": 1
     },
     "noAnimations": {
       "enabled": false

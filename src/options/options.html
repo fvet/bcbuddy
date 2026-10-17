@@ -144,12 +144,17 @@
           </span>
           <input type="checkbox" class="toggle" id="stripeRowsEnabled">
         </label>
-        <label class="setting" data-i18n-title="narrowColumnsIntro">
+        <div class="setting setting--wrap" data-i18n-title="columnWidthIntro">
           <span class="setting__text">
-            <span class="setting__name" data-i18n="narrowColumnsToggle">Narrower columns</span>
+            <span class="setting__name" data-i18n="columnWidthHeading">Column width</span>
           </span>
-          <input type="checkbox" class="toggle" id="narrowColumnsEnabled">
-        </label>
+          <span class="setting__sliders">
+            <label class="slider">
+              <input type="range" id="columnWidth" min="1" max="4" step="1" data-i18n-label="columnWidthHeading">
+              <output id="columnWidthValue" for="columnWidth"></output>
+            </label>
+          </span>
+        </div>
         <label class="setting" data-i18n-title="noAnimationsIntro">
           <span class="setting__text">
             <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>

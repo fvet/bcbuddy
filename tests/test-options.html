@@ -1021,9 +1021,13 @@ function assertWebClient() {
   var stripes = document.getElementById('stripeRowsEnabled');
   check('web client: striped rows switch lives in the panel', stripes.closest('.panel'), panel);
   check('web client: striped rows switch is off by default', stripes.checked, false);
-  var narrow = document.getElementById('narrowColumnsEnabled');
-  check('web client: narrower columns switch lives in the panel', narrow.closest('.panel'), panel);
-  check('web client: narrower columns switch is off by default', narrow.checked, false);
+  var columns = document.getElementById('columnWidth');
+  check('web client: column width slider lives in the panel', columns.closest('.panel'), panel);
+  check('web client: column width has four steps, at BC standard',
+    [columns.min, columns.max, columns.step, columns.value, document.getElementById('columnWidthValue').textContent],
+    ['1', '4', '1', '1', chrome.i18n.getMessage('dropdownStandard')]);
+  check('web client: column width sits with the switches that start off',
+    columns.closest('.setting').nextElementSibling.contains(document.getElementById('noAnimationsEnabled')), true);
   var keys = document.getElementById('shortcutsEnabled');
   check('web client: keyboard shortcuts switch lives in the panel', keys.closest('.panel'), panel);
   check('web client: keyboard shortcuts switch is on by default', keys.checked, true);
@@ -1129,15 +1133,18 @@ function assertWebClient() {
   }).then(function () {
     check('web client: striped rows switch is saved', STORE.settings.stripeRows, { enabled: true });
     stripes.click();
-    narrow.click();
+    columns.value = '3';
+    columns.dispatchEvent(new Event('input', { bubbles: true }));
     return wait(400);
   }).then(function () {
     check('web client: and striped rows turn back off', STORE.settings.stripeRows, { enabled: false });
-    check('web client: narrower columns switch is saved', STORE.settings.narrowColumns, { enabled: true });
-    narrow.click();
+    check('web client: the column width step is saved', STORE.settings.columns, { width: 3 });
+    check('web client: and shown as a share', document.getElementById('columnWidthValue').textContent, '80%');
+    columns.value = '1';
+    columns.dispatchEvent(new Event('input', { bubbles: true }));
     return wait(400);
   }).then(function () {
-    check('web client: and narrower columns turn back off', STORE.settings.narrowColumns, { enabled: false });
+    check('web client: and back to BC standard', STORE.settings.columns, { width: 1 });
     keys.click();
     return wait(400);
   }).then(function () {

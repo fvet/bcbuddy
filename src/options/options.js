@@ -57,7 +57,7 @@
     page.el.pinActionBarEnabled.checked = page.state.settings.pinActionBar.enabled;
     page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
     page.el.stripeRowsEnabled.checked = page.state.settings.stripeRows.enabled;
-    page.el.narrowColumnsEnabled.checked = page.state.settings.narrowColumns.enabled;
+    page.renderColumns();
     page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
     page.renderDropdown();
@@ -70,6 +70,14 @@
     page.el.dropdownHeight.value = dropdown.height;
     page.el.dropdownWidthValue.textContent = page.dropdownLabel(Dropdowns.WIDTH_FACTORS, dropdown.width);
     page.el.dropdownHeightValue.textContent = page.dropdownLabel(Dropdowns.HEIGHT_FACTORS, dropdown.height);
+  };
+
+  page.renderColumns = function () {
+    var width = page.state.settings.columns.width;
+    page.el.columnWidth.value = width;
+    page.el.columnWidthValue.textContent = width <= 1
+      ? t('dropdownStandard')
+      : BCBuddy.COLUMN_WIDTHS[width - 1] + '%';
   };
 
   /** A step says how much bigger than BC standard it is, rather than pixels. */
@@ -233,7 +241,7 @@
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
-      'stripeRowsEnabled', 'narrowColumnsEnabled',
+      'stripeRowsEnabled', 'columnWidth', 'columnWidthValue',
       'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
@@ -332,8 +340,9 @@
       page.save();
     });
 
-    el.narrowColumnsEnabled.addEventListener('change', function () {
-      state.settings.narrowColumns.enabled = el.narrowColumnsEnabled.checked;
+    el.columnWidth.addEventListener('input', function () {
+      state.settings.columns.width = Number(el.columnWidth.value);
+      page.renderColumns();
       page.save();
     });
 

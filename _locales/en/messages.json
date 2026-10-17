@@ -470,13 +470,13 @@
     "message": "Gives every other row in a list a light grey, so you stay on the right line in a wide list.",
     "description": "Explains striped rows. Tooltip on its row in the Web client panel."
   },
-  "narrowColumnsToggle": {
-    "message": "Narrower columns",
-    "description": "Label on the on/off switch that makes the columns of a list narrower, so more of them fit side by side."
+  "columnWidthHeading": {
+    "message": "Column width",
+    "description": "Heading of the setting with a slider that makes every column of a list or editable grid narrower, so more of them fit side by side."
   },
-  "narrowColumnsIntro": {
-    "message": "Makes every column of a list a little narrower and its text a size smaller, so more columns fit side by side. Lists you type in keep their size.",
-    "description": "Explains narrower columns. Tooltip on its row in the Web client panel."
+  "columnWidthIntro": {
+    "message": "Makes every column in lists, journals and the lines of an order narrower, so more columns fit side by side. The text keeps its size.",
+    "description": "Explains the column width slider. Tooltip on its row in the Web client panel."
   },
   "noAnimationsToggle": {
     "message": "Turn off animations",
@@ -536,7 +536,7 @@
   },
   "dropdownStandard": {
     "message": "BC standard",
-    "description": "Shown beside a dropdown size slider at its lowest step, where Business Central keeps its own size. BC is short for Business Central and stays as it is."
+    "description": "Shown beside a dropdown size or column width slider at its lowest step, where Business Central keeps its own size. BC is short for Business Central and stays as it is."
   },
   "navEnvironments": {
     "message": "Environments",
