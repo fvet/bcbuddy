@@ -181,6 +181,32 @@
       page.el.ruleList.appendChild(page.createCard(rule, index, { kind: 'rule', readOnly: false }));
     });
     page.renderEmptyState();
+    page.markWinner();
+  };
+
+  /**
+   * The rule a BC tab at the test URL gets has its colour all round
+   * (.rule--wins), so it stands out from rules that come later. Same order as
+   * in the tab: own rules first, then the shared ones.
+   */
+  page.markWinner = function () {
+    var settings = page.state.settings;
+    var ctx = page.state.ctx;
+    var found = false;
+    [[page.el.ruleList, settings.rules], [page.el.hostedList, settings.hosted.rules]].forEach(function (pair) {
+      var winner = -1;
+      if (!found) {
+        for (var i = 0; i < pair[1].length; i++) {
+          if (BCBuddy.matchRule(pair[1][i], ctx)) { winner = i; found = true; break; }
+        }
+      }
+      pair[0].querySelectorAll('.rule').forEach(function (card) {
+        var wins = Number(card.dataset.index) === winner;
+        card.classList.toggle('rule--wins', wins);
+        var label = card.querySelector('[data-match]');
+        if (label) label.textContent = wins ? t('matchYes') : '';
+      });
+    });
   };
 
   page.renderHosted = function () {
@@ -191,6 +217,7 @@
     });
     page.el.sharedHead.hidden = !hosted.length;
     page.renderEmptyState();
+    page.markWinner();
     page.renderHostedStatus();
   };
 

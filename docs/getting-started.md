@@ -67,7 +67,7 @@ and a coloured frame runs around the window.
 
     Open **Environments** while your Business Central tab is open. At the top,
     BC Buddy shows the name of the environment and the company it reads from
-    that tab. A green tick on a rule means it fits that tab.
+    that tab. The rule that tab gets has a border all round in its colour.
 
 Does your team already use BC Buddy? Ask whether there is a shared file: then
 you get everyone's colours in one go. See

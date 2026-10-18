@@ -31,7 +31,8 @@ one company in production its own colour, use **Environment** **equals**
 
     Open **Environments** while a Business Central tab is open: **Test URL**
     at the top already holds that tab's address. BC Buddy shows the
-    environment and company it reads, and a green tick on each rule that fits.
+    environment and company it reads, and the rule that wins has a border all
+    round in its colour.
     Opened another tab since? Click **From open tab**, or paste the address of
     a Business Central page into **Test URL**.
 

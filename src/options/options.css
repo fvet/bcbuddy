@@ -464,6 +464,9 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   gap: 14px;
 }
 .rule--disabled { opacity: .6; }
+/* The rule the test URL gets: its colour all round. The ring is a shadow, so
+   the card does not shift by a pixel when another rule takes over. */
+.rule--wins { border-color: var(--rule-color); box-shadow: 0 0 0 1px var(--rule-color), var(--shadow); }
 
 .rule__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; cursor: pointer; }
 .rule__head input[type="text"] { cursor: text; }
@@ -504,22 +507,15 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .rule--drop-before { box-shadow: 0 -3px 0 -1px var(--accent), var(--shadow); }
 .rule--drop-after { box-shadow: 0 3px 0 -1px var(--accent), var(--shadow); }
 
-/* Does the rule match the test URL? A tick or a circle; the explanation is in
-   the tooltip, so the header row stays short. */
-.match {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 12px;
-  line-height: 1;
-  cursor: help;
+/* Read by a screen reader, not shown. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
-.match--yes { color: var(--ok); background: rgba(16, 124, 16, .12); }
-.match--no { color: var(--muted); background: var(--surface-2); }
 
 .shared-head {
   display: flex;

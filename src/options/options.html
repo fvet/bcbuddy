@@ -328,9 +328,9 @@
         <span class="rule__swatch rule__grip" data-swatch data-grip aria-hidden="true"
               data-i18n-title="toggleOrDrag"></span>
         <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="ruleNamePlaceholder">
-        <!-- The glyph is decorative; role+aria-label carry the state instead,
-             so it is not a tick that only sighted users can read. -->
-        <span class="match" data-match role="img"></span>
+        <!-- The rule that wins has a border all round (.rule--wins); this says
+             the same to a screen reader. -->
+        <span class="sr-only" data-match></span>
         <div class="rule__tools">
           <label class="switch switch--compact" data-i18n-title="ruleActiveTitle">
             <input type="checkbox" class="toggle" data-path="enabled" data-i18n-label="ruleActiveTitle">

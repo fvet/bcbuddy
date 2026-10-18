@@ -162,12 +162,8 @@
     "description": "Asked before a rule is deleted. $1 is the name the user gave it."
   },
   "matchYes": {
-    "message": "Matches the test URL",
-    "description": "Shown on a rule that matches the test URL filled in above."
-  },
-  "matchNo": {
-    "message": "Does not match the test URL",
-    "description": "Shown on a rule that does not match the test URL filled in above."
+    "message": "Used for the test URL",
+    "description": "Read out by a screen reader on the rule that wins for the test URL filled in above."
   },
   "newRuleName": { "message": "New rule" },
   "copySuffix": {

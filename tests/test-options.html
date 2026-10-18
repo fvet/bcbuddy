@@ -561,22 +561,19 @@ function assertOptions() {
   check('options: ribbon preview text lives on the layout',
     layoutOne.querySelector('[data-preview-brand]').textContent,
     'Dynamics 365 Business Central - Sandbox - CRONUS BE (Standaard)');
-  check('options: match is a checkmark', first.querySelector('[data-match]').textContent, '✓');
-  check('options: with tooltip on hover',
-    first.querySelector('[data-match]').title, chrome.i18n.getMessage('matchYes'));
-  check('options: no match is a neutral circle',
-    cards[1].querySelector('[data-match]').textContent, '○');
-  check('options: tooltip on hover there too',
-    cards[1].querySelector('[data-match]').title, chrome.i18n.getMessage('matchNo'));
+  check('options: the rule that wins has its colour all round',
+    [first.classList.contains('rule--wins'), cards[1].classList.contains('rule--wins')], [true, false]);
+  check('options: the ring is in the rule colour',
+    getComputedStyle(first).borderTopColor, getComputedStyle(first).borderLeftColor);
+  check('options: no tick or circle any more', first.querySelector('.match'), null);
+  check('options: only one rule wins, shared ones included',
+    document.querySelectorAll('.rule--wins').length, 1);
 
-  // The glyph alone is invisible to a screen reader, so the state sits on the
-  // element as a label rather than behind aria-hidden.
-  check('a11y: match state is exposed, not hidden',
-    first.querySelector('[data-match]').getAttribute('aria-hidden'), null);
-  check('a11y: match state carries a label',
-    first.querySelector('[data-match]').getAttribute('aria-label'), chrome.i18n.getMessage('matchYes'));
-  check('a11y: no-match state carries its own label',
-    cards[1].querySelector('[data-match]').getAttribute('aria-label'), chrome.i18n.getMessage('matchNo'));
+  // The border is for the eye; a screen reader hears it from a hidden label.
+  check('a11y: the winning rule says so',
+    first.querySelector('[data-match]').textContent, chrome.i18n.getMessage('matchYes'));
+  check('a11y: the others say nothing',
+    cards[1].querySelector('[data-match]').textContent, '');
   check('a11y: a filled condition announces whether it matches',
     first.querySelector('[data-cond-match]').getAttribute('aria-label'),
     chrome.i18n.getMessage('conditionMatches'));
@@ -605,7 +602,7 @@ function assertOptions() {
   truthy('options: details hidden when collapsed',
     first.querySelector('[data-body]').offsetParent === null);
 
-  first.querySelector('[data-match]').click();
+  first.querySelector('[data-swatch]').click();
   truthy('options: click on header expands', !first.classList.contains('rule--collapsed'));
   check('options: aria-expanded is true',
     first.querySelector('[data-action="toggle"]').getAttribute('aria-expanded'), 'true');
@@ -933,8 +930,10 @@ function assertOptions() {
         row.querySelector('[data-cond="value"]').value;
     }),
     ['environment equals Sandbox']);
-  truthy('options: new rule matches test URL immediately',
-    added.querySelector('[data-match]').textContent === '\u2713');
+  // It fits the test URL too, but the first rule that fits wins.
+  check('options: an earlier matching rule still wins',
+    [document.querySelectorAll('#ruleList .rule')[0].classList.contains('rule--wins'),
+      added.classList.contains('rule--wins')], [true, false]);
   check('options: new rule gets default layout',
     added.querySelector('[data-layout-picker]').value, 'lay-1');
   check('options: no arrow buttons to move',
@@ -1194,8 +1193,9 @@ function assertParsedUrl() {
     fresh.querySelector('[data-cond="op"]').value + ' ' +
     fresh.querySelector('[data-cond="value"]').value,
     'url contains https://www.google.com/shopping');
-  check('new rule: matches test URL immediately',
-    fresh.querySelector('[data-match]').title, chrome.i18n.getMessage('matchYes'));
+  check('new rule: wins for the test URL immediately',
+    [fresh.classList.contains('rule--wins'), fresh.querySelector('[data-match]').textContent],
+    [true, chrome.i18n.getMessage('matchYes')]);
   check('new rule: no preview on rule', fresh.querySelector('[data-preview]'), null);
 
   setUrl('niet-een-url');

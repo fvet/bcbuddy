@@ -283,8 +283,8 @@ Code) opens a whole page, not a dropdown. A list with two short columns needs
 no extra width.
 
 **Nothing is coloured.** Open **Environments** with your Business Central tab
-still open. A green tick shows which rules fit that tab; no tick means none of
-your conditions fits it.
+still open. The rule that tab gets has a border all round in its colour; no
+such border means none of your rules fits it.
 
 **The bar at the top keeps its usual colour.** BC Buddy finds that bar by its
 text, *Dynamics 365 Business Central*. Where it reads differently, the frame,

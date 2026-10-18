@@ -174,14 +174,8 @@
         });
 
         var matched = isLayout ? true : BCBuddy.matchRule(item, ctx);
-        var badge = card.querySelector('[data-match]');
-        if (badge) {
-          var matchLabel = t(matched ? 'matchYes' : 'matchNo');
-          badge.textContent = matched ? '\u2713' : '\u25CB';
-          badge.className = 'match ' + (matched ? 'match--yes' : 'match--no');
-          badge.title = matchLabel;
-          badge.setAttribute('aria-label', matchLabel);
-        }
+        // A change to one rule can change which rule wins.
+        if (!isLayout) page.markWinner();
         var preview = card.querySelector('[data-preview]');
         if (preview) preview.classList.toggle('preview--nomatch', !matched);
 
