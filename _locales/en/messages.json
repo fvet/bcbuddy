@@ -736,6 +736,14 @@
     "message": "Default",
     "description": "The name of the style that is there from the start. A name somebody sees in a list, not the word standard as a setting."
   },
+  "fullStyleName": {
+    "message": "Full",
+    "description": "Name of a ready-made style that shows every marking: bar at the top, frame, banner, tab title and tab icon. A name in a list, given once when the style is added; renaming it later is up to the user."
+  },
+  "subtleStyleName": {
+    "message": "Subtle",
+    "description": "Name of a ready-made style that only colours the bar at the top: a quiet marking, the opposite of fullStyleName. A name in a list, given once when the style is added."
+  },
   "lastStyle": {
     "message": "The last style cannot be removed: there must always be one.",
     "description": "Shown when somebody tries to delete the only style left."

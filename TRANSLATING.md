@@ -100,6 +100,7 @@ up to date, they are the only context a translator gets.
 | `titleToggle`, `titleText` | The title of the Business Central page | The title of the browser tab |
 | `opContains`, `opEquals`, … | Standalone buttons | Words in the middle of a sentence, hence lowercase |
 | `defaultStyleName` | The setting "default" | A name in a list, the way somebody would name a style |
+| `fullStyleName`, `subtleStyleName` | Descriptions of a setting | Names of the two ready-made styles, given once when they are added; short words somebody would pick as a style name |
 
 ## Working process
 

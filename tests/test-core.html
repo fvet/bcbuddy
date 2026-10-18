@@ -1433,6 +1433,10 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.DISPLAY_KEYS.map(function (key) { return samples.styles[1][key].enabled; })
       .concat([samples.styles[1].ribbon.text]),
     [false, false, true, false, false, '']);
+  check('samples: named in the browser language',
+    BCBuddy.localizeSamples(BCBuddy.parseImport(JSON.stringify(BCBuddy.toExport(
+      { rules: [], styles: samples.styles })))).styles.map(function (l) { return l.name; }),
+    [chrome.i18n.getMessage('fullStyleName'), chrome.i18n.getMessage('subtleStyleName')]);
   check('samples: every rule on Full',
     samples.rules.map(function (r) { return r.styleId; }), ['full', 'full', 'full', 'full']);
   var installed = BCBuddy.normalize({});
@@ -1878,7 +1882,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     var asked = [];
     chrome.runtime.sendMessage = function (message) {
       asked.push(message);
-      return Promise.resolve({ newRuleName: 'Nouvelle règle', errHttp: 'HTTP $1 ($2) $$', bad: 7 });
+      return Promise.resolve({ newRuleName: 'Nouvelle règle', errHttp: 'HTTP $1 ($2) $$', bad: 7,
+        fullStyleName: 'Complet' });
     };
     function restore() {
       chrome.runtime.sendMessage = send;
@@ -1904,6 +1909,12 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       check('language: missing key falls back to Chrome', BCBuddy.t('rulesHeading'), chrome.i18n.getMessage('rulesHeading'));
       check('language: non-string value dropped', BCBuddy.t('bad'), 'bad');
       check('language: current language', BCBuddy.currentLanguage(), 'fr');
+      var named = BCBuddy.localizeSamples({ rules: [], styles: [
+        BCBuddy.normalizeStyle({ id: 'full', name: 'Full' }),
+        BCBuddy.normalizeStyle({ id: 'mine', name: 'Full' }),
+        BCBuddy.normalizeStyle({ id: '__proto__', name: 'Odd' })] });
+      check('language: sample styles named in the chosen language, others left alone',
+        named.styles.map(function (l) { return l.name; }), ['Complet', 'Full', 'Odd']);
       return restore();
     }).then(function (lang) {
       check('language: back to the browser', lang + '|' + BCBuddy.t('newRuleName'), '|' + chrome.i18n.getMessage('newRuleName'));

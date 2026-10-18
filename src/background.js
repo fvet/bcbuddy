@@ -33,15 +33,17 @@ chrome.runtime.onInstalled.addListener(function (details) {
 
 /**
  * A first install starts with the styles from the packaged samples file, the
- * same file Load samples reads. Never fails: without them BC Buddy keeps its
- * built-in Default.
+ * same file Load samples reads, named in the browser's language. Never fails:
+ * without them BC Buddy keeps its built-in Default.
  */
 function seedStyles() {
-  return fetch(chrome.runtime.getURL(BCBuddy.SAMPLES_PATH)).then(function (response) {
+  return languageReady.then(function () {
+    return fetch(chrome.runtime.getURL(BCBuddy.SAMPLES_PATH));
+  }).then(function (response) {
     if (!response.ok) throw new Error(String(response.status));
     return response.text();
   }).then(function (text) {
-    var samples = BCBuddy.parseImport(text);
+    var samples = BCBuddy.localizeSamples(BCBuddy.parseImport(text));
     return BCBuddy.loadSettings().then(function (settings) {
       if (BCBuddy.seedStyles(settings, samples)) return BCBuddy.saveSettings(settings);
     });

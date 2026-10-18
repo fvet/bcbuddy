@@ -176,7 +176,8 @@
           });
         }).then(function (text) {
           if (text === null) return;
-          var stats = BCBuddy.addSamples(state.settings, BCBuddy.parseImport(text));
+          var samples = BCBuddy.localizeSamples(BCBuddy.parseImport(text));
+          var stats = BCBuddy.addSamples(state.settings, samples);
           if (stats.added || stats.styles) {
             page.save();
             page.renderStyles();

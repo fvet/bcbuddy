@@ -80,7 +80,8 @@ You set this up with two lists under **Environments**:
   conditions, a colour, and the letters on the tab icon.
 - A **style** says *what* the marking looks like. Several rules can share one.
   You start with two: *Full* shows every marking, *Subtle* only colours the
-  bar at the top.
+  bar at the top. In Dutch they are *Volledig* and *Subtiel*, in French
+  *Complet* and *Discret*.
 
 ![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](store/screenshot-3-1280x800.png)
 

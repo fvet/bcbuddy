@@ -747,6 +747,24 @@
     return stats;
   }
 
+  // The packaged sample styles by id, with the message that names them.
+  var SAMPLE_STYLE_NAMES = { full: 'fullStyleName', subtle: 'subtleStyleName' };
+
+  /**
+   * Names the packaged sample styles in the language BC Buddy is in, so
+   * someone who installs it in Dutch gets Volledig and Subtiel. Only for the
+   * packaged samples file: a shared or imported file keeps its own names.
+   */
+  function localizeSamples(samples) {
+    samples.styles.forEach(function (style) {
+      if (!Object.prototype.hasOwnProperty.call(SAMPLE_STYLE_NAMES, style.id)) return;
+      var key = SAMPLE_STYLE_NAMES[style.id];
+      var name = BCBuddy.t(key);
+      if (name && name !== key) style.name = name;
+    });
+    return samples;
+  }
+
   /**
    * A first install starts with the sample styles (parsed with parseImport)
    * instead of the bare Default. Only while nothing is set up yet: no own
@@ -909,6 +927,7 @@
   BCBuddy.mergeStyles = mergeStyles;
   BCBuddy.addSamples = addSamples;
   BCBuddy.seedStyles = seedStyles;
+  BCBuddy.localizeSamples = localizeSamples;
   // Packaged with the extension and the same file as the shared example on
   // the site, so there is one copy of the samples.
   BCBuddy.SAMPLES_PATH = 'examples/bc-buddy.json';

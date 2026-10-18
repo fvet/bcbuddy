@@ -9,7 +9,9 @@ Several rules can share one style, so you set it up once. You start with two:
   bottom-left corner, the tab title and the tab icon. New rules get this one.
 - *Subtle* only colours the bar at the top and leaves its text as it is.
 
-Pick one on each rule, change them, or add your own.
+Pick one on each rule, change them, or add your own. They are named in the
+language you install BC Buddy in: *Volledig* and *Subtiel* in Dutch, *Complet*
+and *Discret* in French.
 
 <figure markdown>
 ![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](assets/screenshot-2-1280x800.png)
