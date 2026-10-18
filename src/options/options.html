@@ -53,14 +53,18 @@
         </svg>
         <span data-i18n="navSettings">Settings</span>
       </button>
-      <button type="button" class="nav__item" data-panel="about">
+      <!-- Not a section: help is the documentation site, in a new tab. -->
+      <a class="nav__item" href="https://fvet.github.io/bcbuddy/" target="_blank" rel="noopener noreferrer">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <circle cx="8" cy="8" r="6.2"/>
-          <path d="M8 7.3v4"/>
-          <circle cx="8" cy="4.9" r=".7" fill="currentColor" stroke="none"/>
+          <path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.5"/>
+          <circle cx="8" cy="11.4" r=".7" fill="currentColor" stroke="none"/>
         </svg>
-        <span data-i18n="navAbout">About</span>
-      </button>
+        <span data-i18n="navHelp">Help</span>
+        <svg class="nav__icon nav__external" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M6.5 3.5h-3v9h9v-3M9.5 2.5h4v4M13.5 2.5 7.5 8.5"/>
+        </svg>
+      </a>
 
       <!-- Below the nav, separate from the sections: the master switch. -->
       <label class="switch nav__toggle">
@@ -169,7 +173,7 @@
     <div class="panel" data-panel="environments">
     <section>
       <div class="section-head">
-        <h2 data-i18n="testUrlHeading">Test URL</h2>
+        <h2 data-i18n="testUrlHeading">Test</h2>
         <div class="row">
           <button type="button" class="btn btn--icon" id="useCurrentTab"
                   data-i18n-title="useOpenTabTitle">
@@ -303,33 +307,6 @@
 
     </div>
 
-    <div class="panel" data-panel="about" hidden>
-      <section>
-        <div class="section-head">
-          <h2 data-i18n="navAbout">About</h2>
-        </div>
-        <div class="card">
-          <p data-i18n="aboutIntroMaximize">BC Buddy makes the Business Central web client easier to work in: copy any value with one click, pages open in wide layout with the action bar pinned, tile pages switch to list view, dropdowns get more space, the date picker shows week numbers and the line you are on stands out.</p>
-          <p data-i18n="aboutIntro">It also gives every environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.</p>
-          <dl class="parsed">
-            <div>
-              <dt data-i18n="aboutContact">Contact</dt>
-              <dd><a href="mailto:frederic.vercaemst@outlook.com">frederic.vercaemst@outlook.com</a></dd>
-            </div>
-            <div>
-              <dt data-i18n="aboutDocs">Documentation</dt>
-              <dd><a href="https://fvet.github.io/bcbuddy/" target="_blank"
-                     rel="noopener noreferrer">fvet.github.io/bcbuddy</a></dd>
-            </div>
-            <div>
-              <dt data-i18n="aboutSource">Source code</dt>
-              <dd><a href="https://github.com/fvet/bcbuddy" target="_blank"
-                     rel="noopener noreferrer">github.com/fvet/bcbuddy</a></dd>
-            </div>
-          </dl>
-        </div>
-      </section>
-    </div>
   </main>
   </div>
 

@@ -1269,9 +1269,9 @@ function assertNav() {
     document.querySelector('.topbar__actions #globalEnabled'), null);
   check('nav: master toggle is a switch not checkbox',
     getComputedStyle(document.getElementById('globalEnabled')).width, '34px');
-  check('nav: four sections',
-    Array.prototype.map.call(items, function (b) { return b.dataset.panel; }),
-    ['webclient', 'environments', 'settings', 'about']);
+  check('nav: three sections and a help link',
+    Array.prototype.map.call(items, function (b) { return b.dataset.panel || b.getAttribute('href'); }),
+    ['webclient', 'environments', 'settings', 'https://fvet.github.io/bcbuddy/']);
   check('nav: each section has an icon',
     Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 4);
   check('nav: environments is open',
@@ -1289,23 +1289,19 @@ function assertNav() {
   check('nav: clicked section marked', items[2].getAttribute('aria-current'), 'page');
   truthy('nav: choice remembered', STORE.ui && STORE.ui.panel === 'settings');
 
+  check('nav: no About panel any more',
+    document.querySelector('.panel[data-panel="about"]'), null);
+  check('nav: help is a link, not a section', items[3].tagName, 'A');
+  check('nav: help is called Help',
+    items[3].textContent.trim(), chrome.i18n.getMessage('navHelp'));
+  check('nav: help opens in a new tab', items[3].getAttribute('target'), '_blank');
+  check('nav: help gives the site no opener',
+    items[3].getAttribute('rel'), 'noopener noreferrer');
+  // The click would open the site; the panel must not change because of it.
+  items[3].addEventListener('click', function (e) { e.preventDefault(); }, { once: true });
   items[3].click();
-  var about = document.querySelector('.panel[data-panel="about"]');
-  truthy('nav: about section no longer called Help',
-    items[3].textContent.trim() === chrome.i18n.getMessage('navAbout'));
-  truthy('nav: and explains what the extension does',
-    about.querySelector('[data-i18n="aboutIntro"]').textContent.length > 60);
-  check('nav: with the web client paragraph first',
-    about.querySelector('.card p').getAttribute('data-i18n'), 'aboutIntroMaximize');
-  check('nav: with email address',
-    about.querySelector('a[href^="mailto:"]').getAttribute('href'),
-    'mailto:frederic.vercaemst@outlook.com');
-  check('nav: and link to github',
-    about.querySelector('a[href^="https://github.com"]').getAttribute('href'),
-    'https://github.com/fvet/bcbuddy');
-  check('nav: and link to the documentation site',
-    about.querySelector('a[href^="https://fvet.github.io"]').getAttribute('href'),
-    'https://fvet.github.io/bcbuddy/');
+  check('nav: help leaves the open section alone', items[2].getAttribute('aria-current'), 'page');
+  truthy('nav: help does not change the remembered section', STORE.ui.panel === 'settings');
 
   items[1].click(); // back to environments; the rest of the test works with the rules
   return Promise.resolve();

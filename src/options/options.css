@@ -128,6 +128,7 @@ a { color: var(--accent); }
   font: inherit;
   font-size: 13.5px;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
 .nav__item:hover { background: var(--surface-2); color: var(--text); }
@@ -162,6 +163,8 @@ a { color: var(--accent); }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* Help leaves the page: a small arrow on the right says so. */
+.nav__external { width: 12px; height: 12px; margin-left: auto; opacity: .7; }
 
 .panel { display: flex; flex-direction: column; gap: 26px; }
 .panel[hidden] { display: none; }

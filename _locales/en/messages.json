@@ -16,7 +16,7 @@
     "message": "Saving failed: $1",
     "description": "Shown when the settings could not be stored. $1 is the error message from the browser."
   },
-  "testUrlHeading": { "message": "Test URL" },
+  "testUrlHeading": { "message": "Test" },
   "testUrlIntro": {
     "message": "Drives the previews of the rules and styles below.",
     "description": "One line under the Test URL heading."
@@ -561,7 +561,10 @@
     "message": "Environments",
     "description": "Navigation item leading to the rules, one per Business Central environment."
   },
-  "navAbout": { "message": "About" },
+  "navHelp": {
+    "message": "Help",
+    "description": "Last item in the options page navigation. It opens the BC Buddy documentation website in a new tab."
+  },
   "navSettings": { "message": "Settings" },
   "shortcutsToggle": {
     "message": "Keyboard shortcuts",
@@ -732,17 +735,6 @@
     "message": "The last style cannot be removed: there must always be one.",
     "description": "Shown when somebody tries to delete the only style left."
   },
-  "aboutIntro": {
-    "message": "It also gives every environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.",
-    "description": "Second paragraph in the About panel, after the web client one. Production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
-  },
-  "aboutIntroMaximize": {
-    "message": "BC Buddy makes the Business Central web client easier to work in: copy any value with one click, pages open in wide layout with the action bar pinned, tile pages switch to list view, dropdowns get more space, the date picker shows week numbers and the line you are on stands out.",
-    "description": "First paragraph in the About panel, describing the web client improvements. Dropdown and date picker are Business Central terms: use the words the Business Central UI uses in this language."
-  },
-  "aboutContact": { "message": "Contact" },
-  "aboutDocs": { "message": "Documentation" },
-  "aboutSource": { "message": "Source code" },
   "clearShared": {
     "message": "Clear shared rules and stop updating",
     "description": "Button that throws away the shared rules and stops the daily update."

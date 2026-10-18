@@ -686,7 +686,8 @@
    * page reopens where you left off.
    */
   function bindNav() {
-    document.querySelectorAll('.nav__item').forEach(function (button) {
+    // Only the sections: Help is a plain link to the documentation site.
+    document.querySelectorAll('.nav__item[data-panel]').forEach(function (button) {
       button.addEventListener('click', function () {
         goToPanel(button.dataset.panel);
       });
