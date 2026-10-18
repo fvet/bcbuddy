@@ -686,6 +686,10 @@
    * you already use is skipped, and a sample layout you already have by name
    * is not added again; the sample rules then point at yours. Returns how
    * many rules were added and skipped.
+   *
+   * A sample you deleted comes back where it was among the samples you kept:
+   * before the next sample in the file you still have, otherwise after the
+   * previous one. Samples you have none of go after your own rules.
    */
   function addSamples(settings, samples) {
     var rules = settings.rules.slice();
@@ -698,14 +702,26 @@
       layoutIds[layout.id] = mine ? mine.id : layout.id;
       if (!mine) layouts.push(layout);
     });
-    samples.rules.forEach(function (sample) {
-      if (findSame(rules, sample)) {
+    var at = -1; // where the next sample goes: after the last one placed
+    samples.rules.forEach(function (sample, index) {
+      var mine = findSame(rules, sample);
+      if (mine) {
+        at = rules.indexOf(mine) + 1;
         stats.skipped++;
         return;
       }
+      if (at < 0) {
+        // No earlier sample yet: just before the first later one you have.
+        var next = null;
+        for (var i = index + 1; i < samples.rules.length && !next; i++) {
+          next = findSame(rules, samples.rules[i]);
+        }
+        at = next ? rules.indexOf(next) : rules.length;
+      }
       var rule = normalizeRule(sample);
       if (layoutIds[rule.layoutId]) rule.layoutId = layoutIds[rule.layoutId];
-      rules.push(rule);
+      rules.splice(at, 0, rule);
+      at++;
       stats.added++;
     });
 

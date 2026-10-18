@@ -1364,6 +1364,27 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   var fresh = BCBuddy.normalize({});
   check('samples: a fresh install gets all four',
     BCBuddy.addSamples(fresh, samples), { added: 4, skipped: 0 });
+
+  // A deleted sample comes back in its place, whatever order the file has.
+  function sampleNames(settings) { return settings.rules.map(function (r) { return r.name; }); }
+  var inFile = sampleNames(samples);
+  var unrelated = BCBuddy.normalize({ rules: [{ id: 'mine', name: 'Shop', color: '#0f6cbd',
+    conditions: [{ field: 'url', op: 'contains', value: 'shop' }] }] });
+  BCBuddy.addSamples(unrelated, samples);
+  check('samples: added after your own rules', sampleNames(unrelated), ['Shop'].concat(inFile));
+  var deleted = JSON.parse(JSON.stringify(fresh));
+  deleted.rules.shift();
+  BCBuddy.addSamples(deleted, samples);
+  check('samples: a deleted first sample comes back at the front', sampleNames(deleted), inFile);
+  deleted.rules.splice(2, 1);
+  deleted.rules.push(unrelated.rules[0]);
+  BCBuddy.addSamples(deleted, samples);
+  check('samples: one from the middle goes back between its neighbours',
+    sampleNames(deleted), inFile.concat(['Shop']));
+  deleted.rules.splice(3, 1);
+  BCBuddy.addSamples(deleted, samples);
+  check('samples: the last one goes after the samples, not after your rules',
+    sampleNames(deleted), inFile.concat(['Shop']));
   check('samples: on the Default layout',
     [fresh.layouts.length, fresh.rules[0].layoutId], [1, BCBuddy.DEFAULT_LAYOUT_ID]);
 

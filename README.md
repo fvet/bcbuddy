@@ -140,8 +140,9 @@ other:
 
 Production comes first, so a master data company in production still shows
 green. Rules you already have stay as they are: a sample with the same name is
-skipped. When your IT department installed BC Buddy or set a shared file, the
-button is not there: your colours come from them.
+skipped. Deleted a sample? Click **Load samples** again and it comes back in
+its old place. When your IT department installed BC Buddy or set a shared file,
+the button is not there: your colours come from them.
 
 ### Layouts
 

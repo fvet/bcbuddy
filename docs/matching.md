@@ -62,6 +62,8 @@ first, so a master data company in production still shows green.
 
 Rules you already have stay as they are. A sample with the same name as one of
 your rules is skipped, so clicking **Load samples** twice adds nothing.
+Deleted a sample? Click **Load samples** again and it comes back in its old
+place.
 
 !!! note "No Load samples button?"
 
