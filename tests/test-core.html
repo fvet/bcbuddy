@@ -180,13 +180,22 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   }
   check('URL: without tenant and without environment',
     velden('https://businesscentral.dynamics.com/?company=CRONUS%20International%20Ltd.&page=9305'),
-    ['', '', 'CRONUS International Ltd.']);
+    ['', 'Production', 'CRONUS International Ltd.']);
   check('URL: environment without tenant',
     velden('https://businesscentral.dynamics.com/Production/?company=CRONUS%20BE'),
     ['', 'Production', 'CRONUS BE']);
   check('URL: tenant as GUID without environment',
     velden('https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/?company=CRONUS%20BE'),
-    ['c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811', '', 'CRONUS BE']);
+    ['c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811', 'Production', 'CRONUS BE']);
+  check('URL: tenant as domain name alone opens the default, Production',
+    velden('https://businesscentral.dynamics.com/contoso.com'), ['contoso.com', 'Production', '']);
+  check('URL: a deep link without environment opens Production too',
+    velden('https://businesscentral.dynamics.com/contoso.com/deeplink?company=CRONUS'),
+    ['contoso.com', 'Production', 'CRONUS']);
+  check('URL: an empty path elsewhere is no environment',
+    [BCBuddy.parseUrl('https://example.com/').environment,
+      BCBuddy.parseUrl('https://example.com/?company=CRONUS').environment,
+      BCBuddy.parseUrl('https://contoso.bc.dynamics.com/').environment], ['', '', '']);
   check('URL: tenant as domain name with environment',
     velden('https://businesscentral.dynamics.com/contoso.onmicrosoft.com/Sandbox/?company=CRONUS%20BE'),
     ['contoso.onmicrosoft.com', 'Sandbox', 'CRONUS BE']);
@@ -221,7 +230,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 
   // Web client tweaks: BC only. The rest of Dynamics 365 lives on dynamics.com too.
   [
-    ['https://businesscentral.dynamics.com/stadsbader.com/Production', true],
+    ['https://businesscentral.dynamics.com/contoso.com/Production', true],
     [SAAS, true],
     ['https://businesscentral.dynamics-tie.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/', true],
     ['https://contoso.bc.dynamics.com/', true],
@@ -1336,6 +1345,11 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('samples: which rule each environment gets',
     ['Production', 'Sandbox', 'QA-2', 'UAT', 'TEST', 'DEV01', 'Other'].map(sampleFor),
     ['Production', 'UAT', 'UAT', 'UAT', 'UAT', 'Development', null]);
+  check('samples: no environment in the address is Production',
+    ['', '?company=CRONUS', 'dev', 'test', 'qa'].map(sampleFor),
+    ['Production', 'Production', 'Development', 'UAT', 'UAT']);
+  check('samples: no colour on another site',
+    BCBuddy.findRule(samples.rules, BCBuddy.parseUrl('https://example.com/')), null);
   check('samples: master data and template companies, with or without a space',
     ['Other?company=MasterData', 'Other?company=Master%20Data', 'Other?company=CRONUS%20Template',
       'Other?company=CRONUS'].map(sampleFor),

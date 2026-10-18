@@ -11,6 +11,8 @@
   var BC_HOST_RE = /(^|\.)businesscentral\.dynamics(-tie)?\.com$/i;
   // Segments that can follow the tenant but are not an environment name themselves.
   var NON_ENV_SEG = /^(deeplink|signin|_layouts|api|webhooks)$/i;
+  // What BC online opens when the address names no environment.
+  var DEFAULT_ENVIRONMENT = 'Production';
 
   function safeDecode(value) {
     try {
@@ -63,6 +65,11 @@
     }
     var qTenant = u.searchParams.get('tenant');
     if (qTenant) ctx.tenant = qTenant;
+
+    // BC online without an environment in the address opens the tenant's
+    // default environment, which Microsoft names Production. Only on BC's own
+    // host: anywhere else an empty path says nothing about an environment.
+    if (ctx.isbc && !ctx.environment) ctx.environment = DEFAULT_ENVIRONMENT;
 
     return ctx;
   }

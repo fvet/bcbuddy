@@ -34,6 +34,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 - A rule on **Company** now fits a company with a `+` in its name, such as
   `R+D Solutions`. BC Buddy used to read the `+` as a space.
+- An address without an environment, such as
+  `businesscentral.dynamics.com/contoso.com`, opens your default environment,
+  and BC Buddy now reads it as **Production**. Rules on Production used to miss
+  it.
 
 <!-- --8<-- [start:released] -->
 

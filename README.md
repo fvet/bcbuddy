@@ -91,6 +91,10 @@ several conditions applies only when all of them fit. To give several
 environments the same colour, list them with commas: **Environment**
 **contains** `DEV, UAT, QA`.
 
+An address without an environment, such as
+`businesscentral.dynamics.com/contoso.com`, opens your default environment:
+BC Buddy reads it as **Production**.
+
 The first rule that fits wins, so put specific rules (one customer's
 production) above general ones (anything called Production).
 

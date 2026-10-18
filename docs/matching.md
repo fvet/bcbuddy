@@ -27,6 +27,10 @@ A rule with more than one condition applies only when all of them fit. To give
 one company in production its own colour, use **Environment** **equals**
 `Production` and **Company** **equals** `CRONUS BE` in the same rule.
 
+An address without an environment, such as
+`businesscentral.dynamics.com/contoso.com`, opens your default environment.
+BC Buddy reads it as **Production**, so your Production rule covers it too.
+
 !!! tip "Check a rule before you rely on it"
 
     Open **Environments** while a Business Central tab is open: **Test URL**
