@@ -56,7 +56,10 @@ foreach ($suite in $suites) {
     $url = 'file:///' + ((Join-Path $testDir $suite) -replace '\\', '/') + '?locales=' + $locales
     $dumpFile = Join-Path $work ($suite + '.txt')
 
+    # A fixed window: headless Chrome's default size differs per machine, and a
+    # layout check that passes at 1280 pixels here failed at 800 on CI.
     & $browser --headless=new --disable-gpu --no-sandbox --allow-file-access-from-files `
+        --window-size=800,600 `
         --user-data-dir="$work\profile" --virtual-time-budget=20000 --dump-dom $url |
         Out-File -FilePath $dumpFile -Encoding utf8
 
