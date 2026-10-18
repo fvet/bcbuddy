@@ -30,7 +30,7 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
    web client improvements below are already working.
 3. **Give your environments a colour.** On the settings page, go to
    **Environments** and click **Load samples**: Production turns green, test
-   environments red. Or click **Add rule**, name it `PRODUCTION`, set the
+   environments red. Or click **+** next to **Rules**, name it `PRODUCTION`, set the
    condition **Environment** **equals** `Production` and pick green.
 
 Not sure what your environment is called? Open **Environments** while a
@@ -132,7 +132,7 @@ your own server.
 ### Samples
 
 No rules yet, or not sure where to start? Click **Load samples** next to
-**Add rule**. You get four rules of your own, to change or delete like any
+**Rules**. You get four rules of your own, to change or delete like any
 other:
 
 | Rule | Colour | Fits when |

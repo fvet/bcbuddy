@@ -194,6 +194,8 @@ section { display: flex; flex-direction: column; gap: 10px; }
 }
 .section-head h2 { white-space: nowrap; }
 .section-head .row { width: auto; margin-left: auto; }
+/* A heading with its add (+) button right beside it. */
+.section-title { display: flex; align-items: center; gap: 4px; }
 
 .card {
   background: var(--surface);
@@ -401,7 +403,11 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 }
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .icon-btn--danger:hover { background: rgba(196, 49, 75, .12); color: var(--danger); }
-
+/* Add (+) beside a section heading: in the accent colour, so it still reads
+   as the section's main action without a label. */
+.icon-btn--add { display: inline-flex; padding: 4px; color: var(--accent); }
+.icon-btn--add:hover { color: var(--accent); }
+.icon-btn--add .btn__icon { width: 18px; height: 18px; stroke-width: 1.6; }
 .grid { display: flex; flex-wrap: wrap; gap: 12px; }
 .grid--two > * { flex: 1 1 320px; }
 /* Top-align so Colour (short swatch) shares a baseline with Text colour / Style. */

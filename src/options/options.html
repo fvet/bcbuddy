@@ -170,6 +170,15 @@
     <section>
       <div class="section-head">
         <h2 data-i18n="testUrlHeading">Test URL</h2>
+        <div class="row">
+          <button type="button" class="btn btn--icon" id="useCurrentTab"
+                  data-i18n-title="useOpenTabTitle">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M2.5 3.5h11v9h-11zM2.5 6h11"/>
+            </svg>
+            <span data-i18n="useOpenTab">From open tab</span>
+          </button>
+        </div>
       </div>
       <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and styles below.</p>
 
@@ -177,13 +186,9 @@
         <div class="field">
           <!-- The label is the placeholder, to save a line; aria-label keeps it
                once the field is filled in. -->
-          <div class="row">
-            <input type="text" id="testUrl" spellcheck="false"
-                   data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
-                   placeholder="URL of a Business Central page">
-            <button type="button" class="btn" id="useCurrentTab"
-                    data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
-          </div>
+          <input type="text" id="testUrl" spellcheck="false"
+                 data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
+                 placeholder="URL of a Business Central page">
         </div>
         <dl class="parsed" id="parsed"></dl>
       </div>
@@ -191,7 +196,13 @@
 
     <section>
       <div class="section-head">
-        <h2 data-i18n="rulesHeading">Rules</h2>
+        <div class="section-title">
+          <h2 data-i18n="rulesHeading">Rules</h2>
+          <button type="button" class="icon-btn icon-btn--add" id="addRule"
+                  data-i18n-title="addRule" data-i18n-label="addRule">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+          </button>
+        </div>
         <div class="row">
           <!-- Hidden when IT manages BC Buddy: the team's rules come from the shared file. -->
           <button type="button" class="btn btn--icon" id="loadSamples"
@@ -201,7 +212,6 @@
             </svg>
             <span data-i18n="loadSamples">Load samples</span>
           </button>
-          <button type="button" class="btn btn--primary" id="addRule" data-i18n="addRule">Add rule</button>
         </div>
       </div>
       <p class="muted small" data-i18n="rulesIntro">Which environment gets which colour. The first matching rule wins.</p>
@@ -221,9 +231,12 @@
 
     <section>
       <div class="section-head">
-        <h2 data-i18n="stylesHeading">Styles</h2>
-        <div class="row">
-          <button type="button" class="btn" id="addStyle" data-i18n="addStyle">Add style</button>
+        <div class="section-title">
+          <h2 data-i18n="stylesHeading">Styles</h2>
+          <button type="button" class="icon-btn icon-btn--add" id="addStyle"
+                  data-i18n-title="addStyle" data-i18n-label="addStyle">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+          </button>
         </div>
       </div>
       <p class="muted small" data-i18n="stylesIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>

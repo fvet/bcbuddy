@@ -48,11 +48,11 @@ Change or delete them like any other rule. [More about the samples](matching.md#
 
 Rather make your own? Then:
 
-1. Click **Add rule** and type a name, such as `PRODUCTION`.
+1. Click **+** next to **Rules** and type a name, such as `PRODUCTION`.
 2. Under **Conditions**, choose **Environment** and **equals**, and type
    `Production`.
 3. Pick a colour: green, for example.
-4. Click **Add rule** again for your test environment: name `SANDBOX`,
+4. Click **+** again for your test environment: name `SANDBOX`,
    **Environment** **equals** `Sandbox`, in red.
 
 <figure markdown>

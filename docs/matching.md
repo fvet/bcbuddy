@@ -51,7 +51,7 @@ environment belongs above a rule for "anything called Production".
 ## Start from the samples { #samples }
 
 No rules yet, or not sure where to start? Click **Load samples** next to
-**Add rule**. You get four rules of your own:
+**Rules**. You get four rules of your own:
 
 | Rule | Colour | Fits when |
 |---|---|---|
