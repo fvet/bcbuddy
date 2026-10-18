@@ -1618,8 +1618,8 @@ function assertSamples() {
   }
   check('samples: the empty message points at it', empty.textContent,
     message('emptyRulesSamples', ['addRule', 'loadSamples', 'emptyRulesImport']));
-  check('samples: its three actions are links',
-    links(), ['addRule', 'loadSamples', 'emptyRulesImport'].map(function (k) { return chrome.i18n.getMessage(k); }));
+  check('samples: its three actions are links, Load samples first',
+    links(), ['loadSamples', 'addRule', 'emptyRulesImport'].map(function (k) { return chrome.i18n.getMessage(k); }));
   button.click();
   return wait(500).then(function () {
     check('samples: four own rules added', names(), ['Production', 'UAT', 'Development', 'Master Data']);

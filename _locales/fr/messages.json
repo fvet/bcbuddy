@@ -18,7 +18,7 @@
   "addRule": { "message": "Ajouter une règle" },
   "rulesIntro": { "message": "Quel environnement reçoit quelle couleur. La première règle qui correspond l'emporte." },
   "emptyRules": { "message": "Aucune règle pour l'instant. Cliquez sur $1 ou $2." },
-  "emptyRulesSamples": { "message": "Aucune règle pour l'instant. Cliquez sur $1 ou $2, ou $3." },
+  "emptyRulesSamples": { "message": "Aucune règle pour l'instant. Cliquez sur $2 ou $1, ou $3." },
   "emptyRulesImport": { "message": "importez une configuration" },
   "loadSamples": { "message": "Charger les exemples" },
   "loadSamplesTitle": { "message": "Ajoute des règles toutes prêtes pour Production, UAT, Development et Master Data. Les règles que vous avez déjà restent telles quelles." },

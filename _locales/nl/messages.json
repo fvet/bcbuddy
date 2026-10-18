@@ -18,7 +18,7 @@
   "addRule": { "message": "Regel toevoegen" },
   "rulesIntro": { "message": "Welke omgeving krijgt welke kleur. De eerste regel die past, wint." },
   "emptyRules": { "message": "Nog geen regels. Klik op $1 of $2." },
-  "emptyRulesSamples": { "message": "Nog geen regels. Klik op $1 of $2, of $3." },
+  "emptyRulesSamples": { "message": "Nog geen regels. Klik op $2 of $1, of $3." },
   "emptyRulesImport": { "message": "importeer een configuratie" },
   "loadSamples": { "message": "Voorbeelden laden" },
   "loadSamplesTitle": { "message": "Voegt kant-en-klare regels toe voor Production, UAT, Development en Master Data. Regels die je al hebt, blijven zoals ze zijn." },
