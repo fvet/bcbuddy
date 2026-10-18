@@ -164,8 +164,10 @@ A style can show any of these:
 
 ![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
 
-The preview at the top shows the result while you change it. The text colour
-is *Automatic*: white or black, whichever reads best on the colour.
+The preview at the top shows the result while you change it, in the colour
+and name of the rule you clicked last, or else of the rule that fits the
+address under **Test**. The text colour is *Automatic*: white or black,
+whichever reads best on the colour.
 
 In every text you can use these placeholders: `{name}` (the rule),
 `{environment}` or `{env}`, `{company}` and `{title}` (the original tab
@@ -305,7 +307,8 @@ More on the website: [Troubleshooting](https://fvet.github.io/bcbuddy/troublesho
 ## 🌍 Languages
 
 BC Buddy is in English, Dutch and French, and follows the language of your browser.
-The texts you type yourself in a rule or style appear exactly as you type
+To use another one, pick it under the globe at the top right of the BC Buddy
+settings. Business Central keeps its own language. The texts you type yourself in a rule or style appear exactly as you type
 them. Would you like it in your own language? See
 [TRANSLATING.md](TRANSLATING.md).
 

@@ -710,8 +710,10 @@ section; `gearmenu.js` inserts `#bcb-gear-section` right after it, above
   switch of its own: when BC Buddy is off, this link is the quickest way back.
 - **Opening the options.** A content script cannot call
   `chrome.runtime.openOptionsPage()`, so the link sends `bcb:open-options` to
-  the service worker, which accepts it from a content script; messages that
-  change something, such as `bcb:sync`, must come from an extension page. The link ignores clicks and
+  the service worker, which accepts it from a content script, as it does
+  `bcb:messages` (the texts of the language picked on the options page, from
+  our own `_locales/`, which a content script cannot read itself); messages
+  that change something, such as `bcb:sync`, must come from an extension page. The link ignores clicks and
   keys with `isTrusted` false, so the BC page itself cannot open the options.
 
 On-prem has no Microsoft 365 shell; there the `body` observer never finds a

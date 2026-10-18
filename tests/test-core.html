@@ -1830,6 +1830,49 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     return container;
   }
 
+  /**
+   * The language picked on the options page. On a test page i18n.js is not in
+   * an extension context, so it asks the "service worker" (this sendMessage).
+   */
+  function languageOverride() {
+    var send = chrome.runtime.sendMessage;
+    var asked = [];
+    chrome.runtime.sendMessage = function (message) {
+      asked.push(message);
+      return Promise.resolve({ newRuleName: 'Nouvelle règle', errHttp: 'HTTP $1 ($2) $$', bad: 7 });
+    };
+    function restore() {
+      chrome.runtime.sendMessage = send;
+      delete STORE[BCBuddy.LANGUAGE_KEY];
+      return BCBuddy.loadLanguage();
+    }
+    check('language: unknown choice means browser', BCBuddy.normalizeLanguage('de'), '');
+    check('language: known choice kept', BCBuddy.normalizeLanguage('fr'), 'fr');
+    STORE[BCBuddy.LANGUAGE_KEY] = 'en';
+    return BCBuddy.loadLanguage().then(function (lang) {
+      check('language: same as the browser loads nothing', lang + '|' + asked.length, '|0');
+      STORE[BCBuddy.LANGUAGE_KEY] = '<script>';
+      return BCBuddy.loadLanguage();
+    }).then(function (lang) {
+      check('language: a stored value off the list is ignored', lang + '|' + asked.length, '|0');
+      STORE[BCBuddy.LANGUAGE_KEY] = 'fr';
+      return BCBuddy.loadLanguage();
+    }).then(function (lang) {
+      check('language: override loaded', lang, 'fr');
+      check('language: asked the worker for fr', asked[0] && asked[0].type + ':' + asked[0].lang, 'bcb:messages:fr');
+      check('language: t() uses the override', BCBuddy.t('newRuleName'), 'Nouvelle règle');
+      check('language: substitutions and $$', BCBuddy.t('errHttp', [404, 'Not Found']), 'HTTP 404 (Not Found) $');
+      check('language: missing key falls back to Chrome', BCBuddy.t('rulesHeading'), chrome.i18n.getMessage('rulesHeading'));
+      check('language: non-string value dropped', BCBuddy.t('bad'), 'bad');
+      check('language: current language', BCBuddy.currentLanguage(), 'fr');
+      return restore();
+    }).then(function (lang) {
+      check('language: back to the browser', lang + '|' + BCBuddy.t('newRuleName'), '|' + chrome.i18n.getMessage('newRuleName'));
+    }, function (err) {
+      return restore().then(function () { throw err; });
+    });
+  }
+
   function gearDom() {
     var G = BCBuddy.GearMenu;
     function tick() { return new Promise(function (resolve) { setTimeout(resolve, 0); }); }
@@ -2537,6 +2580,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
           results.push('FAIL  many rules DOM: ' + err.message);
         }).then(navigationDom).then(null, function (err) {
           results.push('FAIL  navigation DOM: ' + err.message);
+        }).then(languageOverride).then(null, function (err) {
+          results.push('FAIL  language override: ' + err.message);
         }).then(restoreSeed).then(function () {
           var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
           document.getElementById('results').textContent =

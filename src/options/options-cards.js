@@ -5,6 +5,9 @@
   'use strict';
   var BCBuddy = root.BCBuddy || (root.BCBuddy = {});
 
+  // A style preview with no rule to borrow from: close to BC's own teal.
+  var NEUTRAL = '#038387';
+
   BCBuddy.OptionsCards = {
     install: function (page) {
       var state = page.state;
@@ -158,11 +161,11 @@
         var isStyle = card.dataset.kind === 'style';
         var readOnly = !!card.dataset.readonly;
 
-        // A style has no colour of its own: the preview borrows from the first rule
-        // that uses it, otherwise a neutral one.
+        // A style has no colour of its own: the preview borrows one (sampleRule).
         var shown = isStyle ? item : BCBuddy.resolveRule(item, page.stylesFor(readOnly));
-        var color = isStyle ? page.styleSampleColor(item) : item.color;
-        var textColor = !isStyle && item.textColor !== 'auto' ? item.textColor : BCBuddy.idealText(color);
+        var source = isStyle ? page.sampleRule() : item;
+        var color = source ? source.color : NEUTRAL;
+        var textColor = source && source.textColor !== 'auto' ? source.textColor : BCBuddy.idealText(color);
 
         card.style.setProperty('--rule-color', color);
         card.classList.toggle('rule--disabled', item.enabled === false);
@@ -221,15 +224,15 @@
         }
 
         // Ribbon
+        // Placeholders are filled in as a BC tab would for the borrowed rule.
+        var extras = { name: source ? source.name : item.name, title: t('previewTitle') };
         var ribbon = card.querySelector('[data-preview-ribbon]');
         var brand = card.querySelector('[data-preview-brand]');
         var originalBrand = 'Dynamics 365 Business Central';
         if (shown.ribbon.enabled) {
           ribbon.style.background = color;
           ribbon.style.color = textColor;
-          brand.textContent = BCBuddy.renderTidy(shown.ribbon.text, ctx, {
-            name: item.name, title: t('previewTitle')
-          }) || originalBrand;
+          brand.textContent = BCBuddy.renderTidy(shown.ribbon.text, ctx, extras) || originalBrand;
         } else {
           ribbon.style.background = '';
           ribbon.style.color = '';
@@ -249,7 +252,21 @@
         if (shown.banner.enabled) {
           banner.style.background = BCBuddy.toRgba(color, shown.banner.opacity);
           banner.style.color = textColor;
-          banner.textContent = shown.banner.text || '{name}';
+          banner.textContent = BCBuddy.renderTidy(shown.banner.text || '{name}', ctx, extras);
+        }
+
+        // Favicon: drawn only when it would look different.
+        var favicon = card.querySelector('[data-preview-favicon]');
+        if (shown.favicon.enabled) {
+          // The same letters as a BC tab: the rule's own, else its name.
+          var label = ((source ? (source.favicon && source.favicon.text) || source.name : item.name) || '').trim();
+          var signature = color + '|' + label;
+          if (favicon.dataset.signature !== signature) {
+            favicon.dataset.signature = signature;
+            var href = BCBuddy.drawFavicon(color, label);
+            if (href) favicon.src = href;
+            else favicon.removeAttribute('src');
+          }
         }
 
         // A style is independent of conditions, so the ribbon is always shown.
@@ -271,13 +288,55 @@
         return kind + ':' + (readOnly ? 'shared:' : 'own:') + item.id;
       };
 
-      /** Colour for a style preview: from the first rule that uses it. */
-      page.styleSampleColor = function (style) {
-        var user = null;
-        state.settings.rules.concat(state.settings.hosted.rules).forEach(function (rule) {
-          if (!user && rule.styleId === style.id) user = rule;
-        });
-        return user ? user.color : BCBuddy.PALETTE[8];
+      /**
+       * The rule whose colour and name the style previews show: the one last
+       * clicked, else the one the test URL gets, else none (a neutral colour).
+       */
+      page.sampleRule = function () {
+        return page.pickedRule() || page.matchedRule();
+      };
+
+      /** Same order as a BC tab and markWinner: own rules, then shared ones. */
+      page.matchedRule = function () {
+        var all = state.settings.rules.concat(state.settings.hosted.rules);
+        for (var i = 0; i < all.length; i++) {
+          if (BCBuddy.matchRule(all[i], state.ctx)) return all[i];
+        }
+        return null;
+      };
+
+      /**
+       * The rule last clicked, null once it is gone. An own and a shared rule
+       * can share an id, so which list it came from is kept too.
+       */
+      page.pickedRule = function () {
+        var picked = state.previewRule;
+        if (!picked) return null;
+        var list = picked.shared ? state.settings.hosted.rules : state.settings.rules;
+        return BCBuddy.findById(list, picked.id) || null;
+      };
+
+      page.pickRule = function (card) {
+        if (!card || card.dataset.kind !== 'rule') return;
+        var shared = !!card.dataset.readonly;
+        var list = shared ? state.settings.hosted.rules : state.settings.rules;
+        var rule = list[Number(card.dataset.index)];
+        if (!rule) return;
+        var picked = state.previewRule;
+        if (picked && picked.id === rule.id && picked.shared === shared) return;
+        state.previewRule = { id: rule.id, shared: shared };
+        page.refreshStylePreviews();
+      };
+
+      /** Redraws the style previews in place, so no style card loses focus. */
+      page.refreshStylePreviews = function () {
+        [[el.styleList, state.settings.styles], [el.hostedStyleList, state.settings.hosted.styles]]
+          .forEach(function (pair) {
+            pair[0].querySelectorAll('.rule').forEach(function (card) {
+              var style = pair[1][Number(card.dataset.index)];
+              if (style) page.updateCard(card, style);
+            });
+          });
       };
 
 
@@ -325,7 +384,7 @@
         page.renderRules();
         page.renderStyles();
         page.renderParsed();
-        page.setStatus(t('copiedToOwn', 1) + (copiedStyle ? t('copiedStyles', 1) : ''));
+        page.setSamplesStatus(t('copiedToOwn', 1) + (copiedStyle ? t('copiedStyles', 1) : ''), 'ok');
       };
 
       page.onStyleAction = function (action, index) {
@@ -336,7 +395,7 @@
           // At least one must remain, otherwise "follows the only style" means
           // nothing.
           if (state.settings.styles.length < 2) {
-            page.setStatus(t('lastStyle'), true);
+            page.setStylesStatus(t('lastStyle'), 'error');
             return;
           }
           var used = page.styleUsage(style);
@@ -421,6 +480,7 @@
         var button = event.target.closest('[data-action]');
         var card = event.target.closest('.rule');
         if (!card) return;
+        page.pickRule(card);
 
         // A click on the header expands or collapses the rule, unless you click a
         // control in that header.

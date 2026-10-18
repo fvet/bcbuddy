@@ -12,6 +12,8 @@
     "description": "One-line summary under the title on the options page."
   },
   "extensionActive": { "message": "Extension active" },
+  "languageLabel": { "message": "Language" },
+  "languageTitle": { "message": "The language of BC Buddy. Business Central keeps its own." },
   "saveFailed": {
     "message": "Saving failed: $1",
     "description": "Shown when the settings could not be stored. $1 is the error message from the browser."
@@ -428,7 +430,6 @@
     "message": " Also copied $1 style(s).",
     "description": "Appended to copiedToOwn, which is why it starts with a space. $1 is a number of styles."
   },
-  "stylePreviewNote": { "message": "Sample colour; every rule keeps its own." },
   "styleLabel": {
     "message": "Style",
     "description": "Label on the field that picks a style for a rule, see stylesHeading."

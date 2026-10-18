@@ -13,6 +13,9 @@ more.
 <figcaption>The preview at the top shows the result while you change the style.</figcaption>
 </figure>
 
+The preview uses the colour and name of the rule you clicked last. Until you
+click one, it uses the rule that fits the address under **Test**.
+
 ## What a style can show
 
 Tick the ones you want:

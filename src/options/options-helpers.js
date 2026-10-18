@@ -143,6 +143,12 @@
         el.hostedStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
       };
 
+      // Under the styles, on the right of the docs link.
+      page.setStylesStatus = function (text, kind) {
+        el.stylesStatus.textContent = text;
+        el.stylesStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
+      };
+
       // One line under both buttons: the last import or export speaks.
       page.setTransferStatus = function (text, kind) {
         el.transferStatus.textContent = text;

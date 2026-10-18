@@ -27,6 +27,19 @@
     </div>
     <div class="topbar__actions">
       <span class="status" id="status" role="status" aria-live="polite"></span>
+      <!-- Starts on the language Chrome picked; a choice here overrules it. The
+           names stay in their own language. -->
+      <label class="language" data-i18n-title="languageTitle">
+        <svg class="language__icon" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.2"/>
+          <path d="M1.8 8h12.4M8 1.8c1.7 1.8 2.5 3.9 2.5 6.2S9.7 12.4 8 14.2C6.3 12.4 5.5 10.3 5.5 8S6.3 3.6 8 1.8z"/>
+        </svg>
+        <select id="language" data-i18n-label="languageLabel" aria-label="Language">
+          <option value="en" lang="en">English</option>
+          <option value="nl" lang="nl">Nederlands</option>
+          <option value="fr" lang="fr">Français</option>
+        </select>
+      </label>
     </div>
   </header>
 
@@ -162,7 +175,7 @@
           <input type="checkbox" class="toggle" id="noAnimationsEnabled">
         </label>
       </div>
-      <div class="webclient-foot">
+      <div class="section-foot">
         <p class="muted small"><a href="https://fvet.github.io/bcbuddy/web-client/"
            target="_blank" rel="noopener noreferrer" data-i18n="webClientMore">More about these settings</a></p>
         <p class="sync-status" id="resetStatus"></p>
@@ -249,8 +262,11 @@
         <div id="hostedStyleList" class="rules rules--readonly"></div>
       </div>
       <p class="empty" id="emptyStyles" data-i18n="emptyStyles" hidden>No styles yet. Add one to reuse the same appearance across several rules.</p>
-      <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#environments"
-         target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and styles</a></p>
+      <div class="section-foot">
+        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#environments"
+           target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and styles</a></p>
+        <p class="sync-status" id="stylesStatus"></p>
+      </div>
     </section>
 
     </div>
@@ -437,6 +453,10 @@
 
           <div class="option">
             <span class="option__name" data-i18n="faviconToggle" data-i18n-title="faviconHint">Replace the favicon</span>
+            <div class="option__body">
+              <!-- The icon a BC tab gets, drawn by the same code (drawFavicon). -->
+              <img class="preview__favicon" data-preview-favicon alt="" width="24" height="24">
+            </div>
             <input type="checkbox" class="toggle" data-path="favicon.enabled" data-i18n-label="faviconToggle">
           </div>
 
@@ -468,8 +488,6 @@
             <span class="preview__banner" data-preview-banner></span>
           </div>
         </div>
-
-        <p class="muted small" data-i18n="stylePreviewNote">Sample colour; every rule keeps its own.</p>
 
         <!-- No heading: a style card has this one section only. A rule card
              has two, so there Conditions and Colour keep theirs. -->

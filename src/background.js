@@ -7,6 +7,10 @@ importScripts('/src/lib/i18n.js', '/src/lib/match.js', '/src/lib/settings.js');
 var BCBuddy = self.BCBuddy;
 var ALARM_SYNC = 'bcb-sync';
 
+// The language someone picked on the options page, for the error messages
+// this worker writes. Reloaded when the choice changes.
+var languageReady = BCBuddy.loadLanguage();
+
 // A shared file that never answers must not leave the options page on
 // "Synchronising..." with no way out.
 var FETCH_TIMEOUT_MS = 15000;
@@ -79,6 +83,7 @@ chrome.storage.onChanged.addListener(function (changes, area) {
     enforcePolicy();
     return;
   }
+  if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY]) languageReady = BCBuddy.loadLanguage();
   if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
   var before = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].oldValue).hosted;
   var after = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue).hosted;
@@ -108,9 +113,15 @@ chrome.commands.onCommand.addListener(function (command, tab) {
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
-  // The two messages a content script may send: Open in a new tab, and the
+  // The three messages a content script may send: Open in a new tab, the
   // Settings link in BC's gear menu (gearmenu.js), which can only ask for our
-  // own options page.
+  // own options page, and the texts of the language picked on the options
+  // page, which are our own packaged files (see i18n.js).
+  if (message.type === 'bcb:messages') {
+    if (!sender || sender.id !== chrome.runtime.id) return;
+    BCBuddy.readMessages(message.lang).then(sendResponse);
+    return true; // async response
+  }
   if (message.type === 'bcb:open-tab') {
     openTab(message, sender);
     return;
@@ -257,7 +268,10 @@ function oversized() {
  */
 function syncHosted(options) {
   options = options || {};
-  return BCBuddy.loadSettings().then(function (settings) {
+  // Wait for the picked language: the errors below end up on the options page.
+  return languageReady.then(function () {
+    return BCBuddy.loadSettings();
+  }).then(function (settings) {
     if (!settings.hosted.url) return { ok: false, error: BCBuddy.t('errNoHostedUrl') };
     // If the shared configuration is off, only a manual sync runs.
     if (!options.force && !settings.hosted.active) {

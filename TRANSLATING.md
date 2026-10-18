@@ -115,10 +115,14 @@ up to date, they are the only context a translator gets.
    `matchNo`), swapped placeholders and false friends all surface as a diff you
    can read in English. This is the closest thing to a correctness check
    available to somebody who does not speak the language.
-4. **Look at the options page in the new locale.** French runs some 15–20%
+4. **Add it to the language picker.** The new folder name goes in `LANGUAGES`
+   in `src/lib/i18n.js` and as an `<option>` under `<select id="language">` in
+   `src/options/options.html`, named in its own language. The tests fail until
+   both list every folder.
+5. **Look at the options page in the new locale.** French runs some 15–20%
    longer than English and German around 35%. Truncated buttons and wrapped
    labels are visible without reading a word.
-5. **Get one native sign-off.** Everything above lands on "very probably right";
+6. **Get one native sign-off.** Everything above lands on "very probably right";
    only a speaker gets to "correct". Make it a twenty-minute job: a pull request
    with English and the translation side by side, the glossary rows, and the
    back-translation diff already resolved.
