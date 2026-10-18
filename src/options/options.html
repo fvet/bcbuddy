@@ -175,10 +175,12 @@
 
       <div class="card tester">
         <div class="field">
-          <label for="testUrl" data-i18n="testUrlLabel">URL of a Business Central page</label>
+          <!-- The label is the placeholder, to save a line; aria-label keeps it
+               once the field is filled in. -->
           <div class="row">
             <input type="text" id="testUrl" spellcheck="false"
-                   placeholder="https://businesscentral.dynamics.com/{tenant}/Sandbox?company=CRONUS%20BE&amp;page=1">
+                   data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
+                   placeholder="URL of a Business Central page">
             <button type="button" class="btn" id="useCurrentTab"
                     data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
           </div>

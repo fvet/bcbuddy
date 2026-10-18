@@ -154,7 +154,9 @@
     ].filter(function (pair) { return pair[1]; });
 
     page.el.parsed.textContent = '';
-    if (!pairs.length) {
+    // An empty field has nothing to recognise yet: say nothing.
+    var typed = String(page.state.testUrl || '').trim() !== '';
+    if (!pairs.length && typed) {
       var empty = document.createElement('div');
       empty.className = 'muted';
       empty.textContent = t('nothingRecognised');

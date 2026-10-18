@@ -686,9 +686,12 @@ function assertOptions() {
   check('options: Test URL, then Rules above Layouts', envHeads,
     [chrome.i18n.getMessage('testUrlHeading'), chrome.i18n.getMessage('rulesHeading'),
       chrome.i18n.getMessage('layoutsHeading')]);
-  check('options: test URL field labelled inside its card',
-    document.querySelector('label[for="testUrl"]').closest('.card'),
-    document.getElementById('testUrl').closest('.card'));
+  // No label line above the field: the label is the placeholder, and stays the
+  // field's name once it is filled in.
+  check('options: test URL label sits in the field',
+    [document.querySelector('label[for="testUrl"]'), document.getElementById('testUrl').placeholder,
+      document.getElementById('testUrl').getAttribute('aria-label')],
+    [null, chrome.i18n.getMessage('testUrlLabel'), chrome.i18n.getMessage('testUrlLabel')]);
   // the rule switch shows its state itself; the label is for screen readers
   var ruleSwitch = first.querySelector('input[data-path="enabled"]');
   check('options: rule switch has no On text', ruleSwitch.closest('label').textContent.trim(), '');
@@ -1201,6 +1204,8 @@ function assertParsedUrl() {
   setUrl('niet-een-url');
   check('URL: message when nothing recognised',
     parsed.textContent, chrome.i18n.getMessage('nothingRecognised'));
+  setUrl('  ');
+  check('URL: no message while the field is empty', parsed.textContent, '');
 
   setUrl('https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE');
   check('URL: all four fields on full BC URL',

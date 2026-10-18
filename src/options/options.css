@@ -422,6 +422,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   margin: 0;
   font-size: 12.5px;
 }
+.parsed:empty { display: none; }
 .parsed div { display: flex; gap: 6px; align-items: baseline; }
 .parsed dt { color: var(--muted); }
 .parsed dd { margin: 0; font-weight: 600; }
