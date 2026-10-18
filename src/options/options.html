@@ -192,8 +192,13 @@
         <h2 data-i18n="rulesHeading">Rules</h2>
         <div class="row">
           <!-- Hidden when IT manages BC Buddy: the team's rules come from the shared file. -->
-          <button type="button" class="btn" id="loadSamples" data-i18n="loadSamples"
-                  data-i18n-title="loadSamplesTitle" hidden>Load samples</button>
+          <button type="button" class="btn btn--icon" id="loadSamples"
+                  data-i18n-title="loadSamplesTitle" hidden>
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M11.9 1.5v2.6H9.3"/>
+            </svg>
+            <span data-i18n="loadSamples">Load samples</span>
+          </button>
           <button type="button" class="btn btn--primary" id="addRule" data-i18n="addRule">Add rule</button>
         </div>
       </div>

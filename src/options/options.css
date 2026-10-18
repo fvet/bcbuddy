@@ -354,6 +354,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .btn--small { align-self: flex-start; padding: 5px 10px; font-size: 12.5px; }
 /* An icon in front of the label, at the height of a plain .btn. */
 .btn--icon { display: inline-flex; align-items: center; gap: 6px; }
+.btn--icon[hidden] { display: none; }
 .btn--icon .btn__icon { width: 14px; height: 14px; }
 /* A wide button with an icon, for an action that is the whole card. */
 .btn--tile {
