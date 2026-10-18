@@ -41,7 +41,12 @@ Most companies have a *Production* environment, where postings are real, and
 one or more test environments, often called *Sandbox*. They look exactly alike.
 BC Buddy gives each its own colour, so you always know where you are.
 
-On the settings page, go to **Environments**:
+On the settings page, go to **Environments** and click **Load samples**. You
+get four rules: **Master Data** in yellow, **Production** in green, **UAT** in
+red for anything called test, QA or sandbox, and **Development** in blue.
+Change or delete them like any other rule. [More about the samples](matching.md#samples).
+
+Rather make your own? Then:
 
 1. Click **Add rule** and type a name, such as `PRODUCTION`.
 2. Under **Conditions**, choose **Environment** and **equals**, and type
@@ -51,7 +56,7 @@ On the settings page, go to **Environments**:
    **Environment** **equals** `Sandbox`, in red.
 
 <figure markdown>
-![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](assets/screenshot-3-1280x800.png)
+![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](assets/screenshot-3-1280x800.png)
 <figcaption>The rules list, with one rule opened.</figcaption>
 </figure>
 
@@ -62,7 +67,7 @@ and a coloured frame runs around the window.
 
     Open **Environments** while your Business Central tab is open. At the top,
     BC Buddy shows the name of the environment and the company it reads from
-    that tab. A green tick on a rule means it fits that tab.
+    that tab. The rule that tab gets has a border all round in its colour.
 
 Does your team already use BC Buddy? Ask whether there is a shared file: then
 you get everyone's colours in one go. See
@@ -72,4 +77,4 @@ you get everyone's colours in one go. See
 
 - [Web client](web-client.md): what each improvement does, and how to set it.
 - [Rules](matching.md): a colour per customer or per company.
-- [Layouts](layouts.md): a banner, your own text, a marked browser tab.
+- [Styles](styles.md): a banner, your own text, a marked browser tab.

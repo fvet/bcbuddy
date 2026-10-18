@@ -106,7 +106,7 @@
         // be the one destructive action that goes through on a single click.
         if (!confirm(t('clearSharedConfirm', [hosted.rules.length]))) return;
         hosted.rules = [];
-        hosted.layouts = [];
+        hosted.styles = [];
         // Starting over means the file's Web client defaults count as new again.
         hosted.webClient = {};
         hosted.lastHash = '';
@@ -118,7 +118,7 @@
 
         page.save();
         page.renderHosted();
-        page.renderLayouts();
+        page.renderStyles();
         page.renderParsed();
         page.setHostedStatus(t('sharedCleared'), 'ok');
       };
@@ -134,7 +134,7 @@
             page.applyImport(String(reader.result), file.name);
             el.importFile.value = '';
           };
-          reader.onerror = function () { page.setImportStatus(t('importReadFailed'), 'error'); };
+          reader.onerror = function () { page.setTransferStatus(t('importReadFailed'), 'error'); };
           reader.readAsText(file);
         });
 
@@ -149,8 +149,49 @@
           a.click();
           a.remove();
           setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
-          page.setExportStatus(t('exportDone', data.rules.length), 'ok');
+          page.setTransferStatus(t('exportDone', data.rules.length), 'ok');
         });
+
+        el.loadSamples.addEventListener('click', page.loadSamples);
+      };
+
+      /**
+       * Adds the sample rules from the file packaged with the extension: no
+       * network, and the same file the site offers as a shared example. They
+       * become own rules; rules you already have are left alone.
+       */
+      page.loadSamples = function () {
+        // Checked again on the click: a policy may have arrived since the page
+        // was drawn.
+        Promise.all([BCBuddy.readPolicy(), page.readInstallType()]).then(function (results) {
+          state.policyUrl = BCBuddy.policyUrl(results[0]);
+          state.installType = results[1];
+          if (!page.samplesAllowed()) {
+            page.renderEmptyState();
+            return null;
+          }
+          return fetch(chrome.runtime.getURL(BCBuddy.SAMPLES_PATH)).then(function (response) {
+            if (!response.ok) throw new Error(String(response.status));
+            return response.text();
+          });
+        }).then(function (text) {
+          if (text === null) return;
+          var stats = BCBuddy.addSamples(state.settings, BCBuddy.parseImport(text));
+          if (stats.added) {
+            page.save();
+            page.renderStyles();
+            page.renderRules(); // rule dropdowns now include the sample style
+            page.renderParsed();
+          }
+          page.setSamplesStatus(stats.added ? t('samplesAdded', [stats.added]) : t('samplesNone'), 'ok');
+        }).catch(function (err) {
+          page.setSamplesStatus(t('samplesFailed', [String(err && err.message || err)]), 'error');
+        });
+      };
+
+      page.setSamplesStatus = function (text, kind) {
+        el.samplesStatus.textContent = text;
+        el.samplesStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
       };
 
       page.applyImport = function (text, source) {
@@ -158,12 +199,12 @@
         try {
           parsed = BCBuddy.parseImport(text);
         } catch (e) {
-          page.setImportStatus(t('importFailed', e.message), 'error');
+          page.setTransferStatus(t('importFailed', e.message), 'error');
           return;
         }
-        // Layouts first, so rules can point at something that already exists.
-        var mergedLayouts = BCBuddy.mergeLayouts(state.settings.layouts, parsed.layouts);
-        state.settings.layouts = mergedLayouts.layouts;
+        // Styles first, so rules can point at something that already exists.
+        var mergedStyles = BCBuddy.mergeStyles(state.settings.styles, parsed.styles);
+        state.settings.styles = mergedStyles.styles;
 
         var merged = BCBuddy.mergeRules(state.settings.rules, parsed.rules);
         state.settings.rules = merged.rules;
@@ -171,20 +212,20 @@
         var webClientChanged = BCBuddy.applyWebClient(state.settings, parsed.webClient);
         page.save();
         page.renderRules();
-        page.renderLayouts();
+        page.renderStyles();
         page.renderParsed();
         page.renderWebClient();
 
         var stats = merged.stats;
-        var layoutStats = mergedLayouts.stats;
+        var styleStats = mergedStyles.stats;
         var rules = page.counts([[stats.overwritten, 'importOverwritten'],
           [stats.added, 'importAdded'], [stats.kept, 'importKept']]);
-        var layouts = page.counts([[layoutStats.overwritten, 'importOverwritten'],
-          [layoutStats.added, 'importAdded']]);
+        var styles = page.counts([[styleStats.overwritten, 'importOverwritten'],
+          [styleStats.added, 'importAdded']]);
 
-        page.setImportStatus(
+        page.setTransferStatus(
           t('importDone', [parsed.rules.length, page.shorten(source), rules || t('importNone')]) +
-          (layouts ? t('importLayouts', [layouts]) : '') +
+          (styles ? t('importStyles', [styles]) : '') +
           (webClientChanged ? t('importWebClient', [webClientChanged]) : ''), 'ok');
       };
 

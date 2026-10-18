@@ -52,8 +52,8 @@ theme:
 extra_css:
   - assets/extra.css
 
-# Screenshots and the example configuration live outside docs/; this adds them
-# to the build without keeping a second copy.
+# Screenshots (store/ and marketing/screenshots/) and the example configuration
+# live outside docs/; this adds them to the build without keeping a second copy.
 hooks:
   - tools/mkdocs_assets.py
 
@@ -71,6 +71,9 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.highlight
   - pymdownx.superfences
+  # "With BC Buddy" / "Without" screenshots on the Web client page.
+  - pymdownx.tabbed:
+      alternate_style: true
   # Lets docs/privacy.md include the PRIVACY.md that ships with the repository,
   # so the policy on the site and the one in the repository cannot disagree.
   - pymdownx.snippets:
@@ -83,7 +86,7 @@ nav:
   - Web client: web-client.md
   - Environment colours:
       - Rules: matching.md
-      - Layouts: layouts.md
+      - Styles: styles.md
   - Sharing with your team:
       - Team file: sharing.md
       - Install with Intune: intune.md

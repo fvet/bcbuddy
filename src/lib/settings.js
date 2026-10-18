@@ -100,6 +100,19 @@
     return value == null ? (fallback || '') : String(value).trim();
   }
 
+  /**
+   * The first `count` characters as people see them. slice() counts UTF-16
+   * units, so it cuts an emoji, a flag or a letter with an accent in half and
+   * leaves a broken character behind.
+   */
+  function leading(text, count) {
+    var s = String(text == null ? '' : text);
+    var parts = root.Intl && Intl.Segmenter
+      ? Array.from(new Intl.Segmenter().segment(s), function (part) { return part.segment; })
+      : Array.from(s);
+    return parts.slice(0, count).join('');
+  }
+
   function normalizeCondition(c) {
     c = c || {};
     var fields = BCBuddy.FIELDS.map(function (f) { return f.value; });
@@ -112,11 +125,11 @@
     };
   }
 
-  // Display settings live on layouts. Colour and favicon letters stay on the rule.
+  // Display settings live on styles. Colour and favicon letters stay on the rule.
   var DISPLAY_KEYS = ['border', 'banner', 'ribbon', 'title', 'favicon'];
 
   // Fixed id, so normalize() always yields the same result.
-  var DEFAULT_LAYOUT_ID = 'default';
+  var DEFAULT_STYLE_ID = 'default';
 
   /**
    * 0 = automatic. The old number field let people save 1 to 8 px, which
@@ -158,7 +171,7 @@
       },
       favicon: {
         enabled: bool(favicon.enabled, false),
-        text: str(favicon.text, '').slice(0, 2) // two characters fit on a favicon
+        text: leading(str(favicon.text, ''), 2) // two characters fit on a favicon
       }
     };
   }
@@ -176,29 +189,40 @@
       conditions: conditions,
       color: BCBuddy.toHex(r.color || PALETTE[0]),
       textColor: r.textColor === 'auto' || !r.textColor ? 'auto' : BCBuddy.toHex(r.textColor),
-      // Each rule picks its own layout; appearance comes from that layout.
-      layoutId: str(r.layoutId),
-      favicon: { text: str(favicon.text, '').slice(0, 2) }
+      // Each rule picks its own style; appearance comes from that style.
+      styleId: str(r.styleId || r.layoutId),
+      favicon: { text: leading(str(favicon.text, ''), 2) }
     };
   }
 
-  function normalizeLayout(l) {
+  function normalizeStyle(l) {
     l = l || {};
-    var layout = {
+    var style = {
       id: str(l.id) || uid(),
-      name: str(l.name, BCBuddy.t('newLayoutName'))
+      name: str(l.name, BCBuddy.t('newStyleName'))
     };
     var display = normalizeDisplay(l);
-    DISPLAY_KEYS.forEach(function (key) { layout[key] = display[key]; });
-    // Favicon letters belong to the rule, not the layout.
-    layout.favicon.text = '';
-    return layout;
+    DISPLAY_KEYS.forEach(function (key) { style[key] = display[key]; });
+    // Favicon letters belong to the rule, not the style.
+    style.favicon.text = '';
+    return style;
   }
 
-  function newLayout(patch) {
-    var layout = normalizeLayout(patch || {});
-    layout.id = uid();
-    return layout;
+  function newStyle(patch) {
+    var style = normalizeStyle(patch || {});
+    style.id = uid();
+    return style;
+  }
+
+  /**
+   * The styles in stored settings or a file. Styles were called layouts
+   * before, so `layouts` (and `layoutId` on a rule) still reads; only the new
+   * names are written.
+   */
+  function stylesOf(o) {
+    if (!o) return [];
+    if (Array.isArray(o.styles)) return o.styles;
+    return Array.isArray(o.layouts) ? o.layouts : [];
   }
 
   function findById(list, id) {
@@ -210,31 +234,31 @@
   }
 
   /**
-   * The layout that applies to this rule: the one pointed at, otherwise the
+   * The style that applies to this rule: the one pointed at, otherwise the
    * first in the set. That way every rule always has one.
    */
-  function effectiveLayout(rule, layouts, autoLayouts) {
+  function effectiveStyle(rule, styles, autoStyles) {
     if (!rule) return null;
-    if (rule.layoutId) {
-      var chosen = findById(layouts || [], rule.layoutId);
+    if (rule.styleId) {
+      var chosen = findById(styles || [], rule.styleId);
       if (chosen) return chosen;
     }
 
     // Without a (valid) choice only the own set counts: a shared rule must not
-    // silently pick up the reader's layout.
-    var auto = autoLayouts === undefined ? (layouts || []) : autoLayouts;
+    // silently pick up the reader's style.
+    var auto = autoStyles === undefined ? (styles || []) : autoStyles;
     return auto.length ? auto[0] : null;
   }
 
   /**
    * Returns the rule as it should be drawn: display comes from the chosen
-   * layout. Name, conditions, colour and favicon letters stay on the rule.
-   * Without a layout the defaults are used, so drawing never crashes.
+   * style. Name, conditions, colour and favicon letters stay on the rule.
+   * Without a style the defaults are used, so drawing never crashes.
    */
-  function resolveRule(rule, layouts, autoLayouts) {
+  function resolveRule(rule, styles, autoStyles) {
     if (!rule) return rule;
-    var layout = effectiveLayout(rule, layouts, autoLayouts);
-    var display = normalizeDisplay(layout);
+    var style = effectiveStyle(rule, styles, autoStyles);
+    var display = normalizeDisplay(style);
     var resolved = {};
     Object.keys(rule).forEach(function (key) {
       if (DISPLAY_KEYS.indexOf(key) === -1) resolved[key] = rule[key];
@@ -242,7 +266,7 @@
     DISPLAY_KEYS.forEach(function (key) { resolved[key] = display[key]; });
     resolved.favicon = {
       enabled: display.favicon.enabled,
-      text: str((rule.favicon && rule.favicon.text) || '', '').slice(0, 2)
+      text: leading(str((rule.favicon && rule.favicon.text) || '', ''), 2)
     };
     return resolved;
   }
@@ -275,23 +299,23 @@
   }
 
   /**
-   * Appearance lives in layouts, so every rule points at one. A configuration
-   * without any layouts gets a Default, so there is always something to point
-   * at. Each rule keeps its own layoutId.
+   * Appearance lives in styles, so every rule points at one. A configuration
+   * without any styles gets a Default, so there is always something to point
+   * at. Each rule keeps its own styleId.
    */
-  function withDefaultLayout(layouts, rules) {
-    if (!layouts.length) {
-      var fresh = normalizeLayout({});
-      fresh.id = DEFAULT_LAYOUT_ID;
-      fresh.name = BCBuddy.t('defaultLayoutName');
-      layouts.push(fresh);
+  function withDefaultStyle(styles, rules) {
+    if (!styles.length) {
+      var fresh = normalizeStyle({});
+      fresh.id = DEFAULT_STYLE_ID;
+      fresh.name = BCBuddy.t('defaultStyleName');
+      styles.push(fresh);
     }
 
-    // A rule without a valid layout follows the first; a valid layoutId is kept.
+    // A rule without a valid style follows the first; a valid styleId is kept.
     rules.forEach(function (rule) {
-      if (!findById(layouts, rule.layoutId)) rule.layoutId = layouts[0].id;
+      if (!findById(styles, rule.styleId)) rule.styleId = styles[0].id;
     });
-    return layouts;
+    return styles;
   }
 
   // The settings of the Web client panel. They travel in an export as
@@ -372,9 +396,9 @@
     var hosted = s.hosted || {};
     var webClient = normalizeWebClient(s);
     var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
-    var layouts = (Array.isArray(s.layouts) ? s.layouts : []).map(normalizeLayout);
+    var styles = stylesOf(s).map(normalizeStyle);
     var hostedRules = (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule);
-    var hostedLayouts = (Array.isArray(hosted.layouts) ? hosted.layouts : []).map(normalizeLayout);
+    var hostedStyles = stylesOf(hosted).map(normalizeStyle);
 
     var result = {
       version: SCHEMA_VERSION,
@@ -382,14 +406,14 @@
     };
     WEB_CLIENT_KEYS.forEach(function (key) { result[key] = webClient[key]; });
     result.rules = rules;
-    result.layouts = withDefaultLayout(layouts, rules);
+    result.styles = withDefaultStyle(styles, rules);
     result.hosted = {
       url: str(hosted.url),
       active: normalizeActive(hosted),
       rules: hostedRules,
-      layouts: (hostedRules.length || hostedLayouts.length)
-        ? withDefaultLayout(hostedLayouts, hostedRules)
-        : hostedLayouts,
+      styles: (hostedRules.length || hostedStyles.length)
+        ? withDefaultStyle(hostedStyles, hostedRules)
+        : hostedStyles,
       // What the shared file said about the Web client last time, so a sync
       // only passes on what changed; see applySharedWebClient().
       webClient: readWebClient(hosted.webClient) || {},
@@ -405,15 +429,15 @@
 
   /**
    * Effective rules: own rules first, then the shared ones (first match wins),
-   * each with its layout already applied. Shared rules look at the shared
-   * layouts first, so a shared file stands on its own.
+   * each with its style already applied. Shared rules look at the shared
+   * styles first, so a shared file stands on its own.
    */
   function effectiveRules(settings) {
     var s = normalize(settings);
-    var own = s.rules.map(function (rule) { return resolveRule(rule, s.layouts); });
-    var sharedLayouts = s.hosted.layouts.concat(s.layouts);
+    var own = s.rules.map(function (rule) { return resolveRule(rule, s.styles); });
+    var sharedStyles = s.hosted.styles.concat(s.styles);
     var shared = s.hosted.rules.map(function (rule) {
-      return resolveRule(rule, sharedLayouts, s.hosted.layouts);
+      return resolveRule(rule, sharedStyles, s.hosted.styles);
     });
     return own.concat(shared);
   }
@@ -498,7 +522,7 @@
       version: SCHEMA_VERSION,
       name: str(name),
       exportedAt: new Date().toISOString(),
-      layouts: s.layouts,
+      styles: s.styles,
       rules: s.rules,
       webClient: webClient
     };
@@ -516,14 +540,14 @@
       throw new Error(BCBuddy.t('errInvalidJson', e.message));
     }
     var rules = null;
-    var layouts = [];
+    var styles = [];
     var name = '';
     var webClient = null;
     if (Array.isArray(data)) {
       rules = data;
     } else if (data && Array.isArray(data.rules)) {
       rules = data.rules;
-      layouts = Array.isArray(data.layouts) ? data.layouts : [];
+      styles = stylesOf(data);
       name = str(data.name);
       webClient = readWebClient(data.webClient);
     }
@@ -533,15 +557,15 @@
     }
 
     var normalizedRules = rules.map(normalizeRule);
-    var normalizedLayouts = layouts.map(normalizeLayout);
-    // A file with layouts has its rules pointed at them here. A rules-only file
+    var normalizedStyles = styles.map(normalizeStyle);
+    // A file with styles has its rules pointed at them here. A rules-only file
     // derives nothing: after the merge, normalize() assigns the importer's own
-    // first layout.
-    if (normalizedLayouts.length) withDefaultLayout(normalizedLayouts, normalizedRules);
+    // first style.
+    if (normalizedStyles.length) withDefaultStyle(normalizedStyles, normalizedRules);
 
     return {
       rules: normalizedRules,
-      layouts: normalizedLayouts,
+      styles: normalizedStyles,
       webClient: webClient,
       name: name
     };
@@ -576,6 +600,31 @@
     });
     settings.hosted.webClient = incoming || {};
     return applyWebClient(settings, news);
+  }
+
+  /**
+   * What Reset to defaults goes back to: the app's own defaults, with what the
+   * shared file says on top while the shared configuration is on. A file that
+   * names only some settings leaves the rest at the app's defaults. Uses what
+   * the last sync stored, so it works offline. Returns every Web client key.
+   */
+  function webClientDefaults(settings) {
+    var defaults = normalizeWebClient({});
+    var hosted = settings && settings.hosted;
+    var shared = hosted && hosted.active ? readWebClient(hosted.webClient) : null;
+    WEB_CLIENT_KEYS.forEach(function (key) {
+      if (shared && shared[key]) defaults[key] = shared[key];
+    });
+    return defaults;
+  }
+
+  /** The current Web client settings, as a copy (e.g. to undo a reset). */
+  function webClientOf(settings) {
+    var copy = {};
+    WEB_CLIENT_KEYS.forEach(function (key) {
+      copy[key] = JSON.parse(JSON.stringify(settings[key]));
+    });
+    return copy;
   }
 
   /**
@@ -628,9 +677,71 @@
     return { rules: merged.items, stats: merged.stats };
   }
 
-  function mergeLayouts(current, incoming) {
-    var merged = mergeItems(current, incoming, normalizeLayout);
-    return { layouts: merged.items, stats: merged.stats };
+  function mergeStyles(current, incoming) {
+    var merged = mergeItems(current, incoming, normalizeStyle);
+    return { styles: merged.items, stats: merged.stats };
+  }
+
+  /** The item in `items` with the same id, otherwise the same name, or null. */
+  function findSame(items, item) {
+    var name = item.name.trim().toLowerCase();
+    return items.filter(function (other) { return other.id === item.id; })[0] ||
+      (name && items.filter(function (other) {
+        return other.name.trim().toLowerCase() === name;
+      })[0]) || null;
+  }
+
+  /**
+   * Adds the sample rules (parsed with parseImport) to `settings` as own
+   * rules. Unlike an import nothing is overwritten: a sample whose id or name
+   * you already use is skipped, and a sample style you already have by name
+   * is not added again; the sample rules then point at yours. Returns how
+   * many rules were added and skipped.
+   *
+   * A sample you deleted comes back where it was among the samples you kept:
+   * before the next sample in the file you still have, otherwise after the
+   * previous one. Samples you have none of go after your own rules.
+   */
+  function addSamples(settings, samples) {
+    var rules = settings.rules.slice();
+    var styles = settings.styles.slice();
+    var styleIds = {};
+    var stats = { added: 0, skipped: 0 };
+
+    samples.styles.forEach(function (style) {
+      var mine = findSame(styles, style);
+      styleIds[style.id] = mine ? mine.id : style.id;
+      if (!mine) styles.push(style);
+    });
+    var at = -1; // where the next sample goes: after the last one placed
+    samples.rules.forEach(function (sample, index) {
+      var mine = findSame(rules, sample);
+      if (mine) {
+        at = rules.indexOf(mine) + 1;
+        stats.skipped++;
+        return;
+      }
+      if (at < 0) {
+        // No earlier sample yet: just before the first later one you have.
+        var next = null;
+        for (var i = index + 1; i < samples.rules.length && !next; i++) {
+          next = findSame(rules, samples.rules[i]);
+        }
+        at = next ? rules.indexOf(next) : rules.length;
+      }
+      var rule = normalizeRule(sample);
+      if (styleIds[rule.styleId]) rule.styleId = styleIds[rule.styleId];
+      rules.splice(at, 0, rule);
+      at++;
+      stats.added++;
+    });
+
+    // Only bring the styles along when a rule came with them.
+    if (stats.added) {
+      settings.rules = rules;
+      settings.styles = withDefaultStyle(styles, rules);
+    }
+    return stats;
   }
 
   /** Stable, short hash to tell whether a shared file has changed. */
@@ -748,16 +859,17 @@
   BCBuddy.applyPolicy = applyPolicy;
   BCBuddy.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;
   BCBuddy.uid = uid;
+  BCBuddy.leading = leading;
   BCBuddy.newRule = newRule;
-  BCBuddy.newLayout = newLayout;
+  BCBuddy.newStyle = newStyle;
   BCBuddy.draftFromContext = draftFromContext;
   BCBuddy.normalizeRule = normalizeRule;
-  BCBuddy.normalizeLayout = normalizeLayout;
+  BCBuddy.normalizeStyle = normalizeStyle;
   BCBuddy.resolveRule = resolveRule;
-  BCBuddy.effectiveLayout = effectiveLayout;
+  BCBuddy.effectiveStyle = effectiveStyle;
   BCBuddy.findById = findById;
   BCBuddy.DISPLAY_KEYS = DISPLAY_KEYS;
-  BCBuddy.DEFAULT_LAYOUT_ID = DEFAULT_LAYOUT_ID;
+  BCBuddy.DEFAULT_STYLE_ID = DEFAULT_STYLE_ID;
   BCBuddy.normalize = normalize;
   BCBuddy.effectiveRules = effectiveRules;
   BCBuddy.maximizeOn = maximizeOn;
@@ -774,9 +886,15 @@
   BCBuddy.toExport = toExport;
   BCBuddy.parseImport = parseImport;
   BCBuddy.mergeRules = mergeRules;
-  BCBuddy.mergeLayouts = mergeLayouts;
+  BCBuddy.mergeStyles = mergeStyles;
+  BCBuddy.addSamples = addSamples;
+  // Packaged with the extension and the same file as the shared example on
+  // the site, so there is one copy of the samples.
+  BCBuddy.SAMPLES_PATH = 'examples/bc-buddy.json';
   BCBuddy.applyWebClient = applyWebClient;
   BCBuddy.applySharedWebClient = applySharedWebClient;
+  BCBuddy.webClientDefaults = webClientDefaults;
+  BCBuddy.webClientOf = webClientOf;
   BCBuddy.hash = hash;
   BCBuddy.toRawUrl = toRawUrl;
   BCBuddy.resolveHostedUrl = resolveHostedUrl;

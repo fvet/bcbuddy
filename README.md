@@ -29,9 +29,9 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
 2. **Open Business Central**, or reload a tab where it was already open. The
    web client improvements below are already working.
 3. **Give your environments a colour.** On the settings page, go to
-   **Environments**, click **Add rule**, name it `PRODUCTION`, set the
-   condition **Environment** **equals** `Production` and pick green. Add a
-   second rule for `Sandbox` in red.
+   **Environments** and click **Load samples**: Production turns green, test
+   environments red. Or click **Add rule**, name it `PRODUCTION`, set the
+   condition **Environment** **equals** `Production` and pick green.
 
 Not sure what your environment is called? Open **Environments** while a
 Business Central tab is open: BC Buddy reads that tab and shows its
@@ -55,6 +55,11 @@ the settings page.
 | **Striped rows** | Every other row in a list a light grey | Off |
 | **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
+**Reset to defaults**, above the list, puts every switch and slider back to
+how BC Buddy starts out. When your team shares a file, the button reads
+**Reset to your team's defaults** and takes the team's choices from that file.
+Clicked by mistake? **Undo** sits right next to the message.
+
 What each one does, in detail:
 [Web client](https://fvet.github.io/bcbuddy/web-client/) on the website.
 
@@ -73,10 +78,10 @@ You set this up with two lists under **Environments**:
 
 - A **rule** says *which* environment gets *which colour*: a name, one or more
   conditions, a colour, and the letters on the tab icon.
-- A **layout** says *what* the marking looks like. Several rules can share one.
-  The *Default* layout colours the bar at the top and draws a frame.
+- A **style** says *what* the marking looks like. Several rules can share one.
+  The *Default* style colours the bar at the top and draws a frame.
 
-![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](store/screenshot-3-1280x800.png)
+![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](store/screenshot-3-1280x800.png)
 
 ### Rules
 
@@ -85,6 +90,10 @@ A condition looks at the web address of the page: **Environment** **equals**
 several conditions applies only when all of them fit. To give several
 environments the same colour, list them with commas: **Environment**
 **contains** `DEV, UAT, QA`.
+
+An address without an environment, such as
+`businesscentral.dynamics.com/contoso.com`, opens your default environment:
+BC Buddy reads it as **Production**.
 
 The first rule that fits wins, so put specific rules (one customer's
 production) above general ones (anything called Production).
@@ -120,9 +129,28 @@ your own server.
 
 </details>
 
-### Layouts
+### Samples
 
-A layout can show any of these:
+No rules yet, or not sure where to start? Click **Load samples** next to
+**Add rule**. You get four rules of your own, to change or delete like any
+other:
+
+| Rule | Colour | Fits when |
+|---|---|---|
+| **Master Data** | yellow | **Company** **contains** `masterdata, master data, template` |
+| **Production** | green | **Environment** **contains** `production` |
+| **UAT** | red | **Environment** **contains** `uat, test, qa, sandbox` |
+| **Development** | blue | **Environment** **contains** `dev` |
+
+Master Data comes first, so a master data company shows yellow even in
+production. Rules you already have stay as they are: a sample with the same name is
+skipped. Deleted a sample? Click **Load samples** again and it comes back in
+its old place. When your IT department installed BC Buddy or set a shared file,
+the button is not there: your colours come from them.
+
+### Styles
+
+A style can show any of these:
 
 - **Ribbon**: the bar at the top of Business Central, in the colour of the
   rule, with a text of your own.
@@ -134,7 +162,7 @@ A layout can show any of these:
   `[TEST] Company Information`.
 - **Favicon**: a coloured tab icon with one or two letters.
 
-![The Default layout in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
+![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
 
 The preview at the top shows the result while you change it. The text colour
 is *Automatic*: white or black, whichever reads best on the colour.
@@ -156,22 +184,24 @@ place. The **X** next to *Shared rules* stops using the file.
 
 **Publishing a file:**
 
-1. Click **Export**. That saves `bc-buddy.json`, with your rules, layouts and
+1. Click **Export to file**. That saves `bc-buddy.json`, with your rules, styles and
    **Web client** settings.
 2. Put it somewhere everyone can open it over `https://`, such as a repository.
    An ordinary `github.com/.../blob/...` link works. Only use an address you
    control: the file decides what BC Buddy colours.
 3. Give your team the address. To try it out first, use
    `https://fvet.github.io/bcbuddy/examples/bc-buddy.json`, the same file as
-   [`examples/bc-buddy.json`](examples/bc-buddy.json).
+   [`examples/bc-buddy.json`](examples/bc-buddy.json), with the rules that
+   **Load samples** adds.
 
 The **Web client** settings in a shared file are a starting point. Each one is
 applied on the first sync, and after that only when the team changes it in the
 file, so a colleague who switches something off keeps it off. To share only
 some of them, delete the others from the `webClient` part of the file; without
-that part, everyone keeps their own.
+that part, everyone keeps their own. **Reset to your team's defaults** under
+**Web client** brings a colleague back to what the file says.
 
-**Import / export > Choose file** loads a file once: rules you already have are
+**Import / export > Import from file** loads a file once: rules you already have are
 overwritten, new rules are added, rules that are not in the file stay, and the
 **Web client** settings in the file replace yours.
 
@@ -258,8 +288,8 @@ Code) opens a whole page, not a dropdown. A list with two short columns needs
 no extra width.
 
 **Nothing is coloured.** Open **Environments** with your Business Central tab
-still open. A green tick shows which rules fit that tab; no tick means none of
-your conditions fits it.
+still open. The rule that tab gets has a border all round in its colour; no
+such border means none of your rules fits it.
 
 **The bar at the top keeps its usual colour.** BC Buddy finds that bar by its
 text, *Dynamics 365 Business Central*. Where it reads differently, the frame,
@@ -275,7 +305,7 @@ More on the website: [Troubleshooting](https://fvet.github.io/bcbuddy/troublesho
 ## 🌍 Languages
 
 BC Buddy is in English, Dutch and French, and follows the language of your browser.
-The texts you type yourself in a rule or layout appear exactly as you type
+The texts you type yourself in a rule or style appear exactly as you type
 them. Would you like it in your own language? See
 [TRANSLATING.md](TRANSLATING.md).
 

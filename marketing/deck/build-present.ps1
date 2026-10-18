@@ -35,6 +35,9 @@ $assets = @{
     '994a6c3781cb1d5a15bc719c069b2eae' = '../screenshots/crop-with-week-numbers.png'
     'd70a63132784cd3481ea19db750c0746' = '../screenshots/crop-without-current-line.png'
     '15dcc4b67044a519f2901594d453e1e9' = '../screenshots/crop-with-current-line.png'
+    '713db8844a4ea6c0053779dccff5edf8' = '../screenshots/crop-with-keyboard-shortcuts.png'
+    '10bf7cb2b2055cc5fc817e54da4517b1' = '../screenshots/crop-without-striped-rows.png'
+    'f3cc093f6f6c883fc0262f3678ec9d81' = '../screenshots/crop-with-striped-rows.png'
     'f45f098d2f97fa1261c3c5c82610bc54' = '../screenshots/without-env-colours.jpg'
     '34b09d6a87dde8d87ecdfd226505e1fc' = '../screenshots/with-env-colours.jpg'
 }

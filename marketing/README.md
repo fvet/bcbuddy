@@ -5,6 +5,13 @@ presentations and for announcing BC Buddy on LinkedIn. Nothing in this folder
 goes into the extension package: `tools/build-package.ps1` only takes
 `manifest.json`, `src`, `_locales` and the icons.
 
+The website uses the same screenshots: `tools/mkdocs_assets.py` serves
+`screenshots/` as `assets/screenshots/`, and `docs/web-client.md` shows the
+crops (and the full maximize shots) in "With BC Buddy" / "Without BC Buddy"
+tabs. A re-shoot under the same file name updates the deck (after uploading
+the asset) and the site (at the next release) at once. Renaming or removing a
+file breaks the site build until the page is updated, which is on purpose.
+
 - `screenshots/without-*.jpg` and `screenshots/with-*.jpg`: full Business
   Central screens, 1512×794, before and after.
 - `screenshots/crop-*.png`: the part of each screen the slides show.
@@ -15,7 +22,8 @@ goes into the extension package: `tools/build-package.ps1` only takes
 
 This is the recipe for Claude Code with Claude in Chrome. Ask Claude to
 "recreate the marketing material" and it follows these steps. When a feature is
-added, add a row to the shot list and a slide to the deck.
+added, add a row to the shot list, a slide to the deck and the tabs to its
+section in `docs/web-client.md`.
 
 ### Before you start
 
@@ -67,8 +75,11 @@ Check the result before using it: the top bar should show only
 | `with-week-numbers` | Same | on |
 | `without-current-line` | Sales order 101001 Adatum (several lines), click the **Description** of line 3; type nothing, leave with Escape | off |
 | `with-current-line` | Same | on |
+| `with-keyboard-shortcuts` | Sales order 101001, click the **Description** of line 3, then the keyboard icon in the top bar. Close the panel with **×** afterwards. No "without" shot: the slide shows only the panel | on, **Keyboard shortcuts** switched on |
+| `without-striped-rows` | Sales Orders list (page 9305); Customers has too few rows | off |
+| `with-striped-rows` | Same | on, **Striped rows** switched on |
 | `without-env-colours` | Customers opened as `…/{tenant}/Production?company=CRONUS%20BE&page=22` | off |
-| `with-env-colours` | Same address, rule **PRODUCTION**: **Environment** equals `Production`, green, *Default* layout with a corner banner | on |
+| `with-env-colours` | Same address, rule **PRODUCTION**: **Environment** equals `Production`, green, *Default* style with a corner banner | on |
 
 Order of work, to switch BC Buddy as few times as possible: first every
 "with" shot plus copy values and maximize (BC Buddy on), then the maintainer
@@ -84,6 +95,13 @@ Areas (x0, y0, x1, y1 on the 1512×794 screenshot): copy values 40, 140, 620,
 current line 100, 590, 1045, 794, then keep only the first 525 px (Type to
 Description; the columns further right have red error marks in CRONUS) ·
 pin action bar: cropped from the JPEG at 90, 55, size 910 × 185.
+Keyboard shortcuts and striped rows were taken later in a 1568×735 window:
+keyboard shortcuts 1000, 0, 1560, 645 (the top bar icon and the panel) ·
+striped rows 45, 135, 1085, 700. Zoom at full scale: `scale` below 1 also
+shrinks the PNG it saves.
+
+The tooltip of a button (where BC shows an action's shortcut) is the
+browser's own and never shows in a screenshot.
 
 The copy-values and current-line slides add an orange ring or frame over the
 screenshot (a pinned `<div>` on the slide) to point at the icon and the line;
@@ -121,11 +139,11 @@ BC Buddy's own tint is a soft 6 % teal, too faint to see on a projector.
 
 ### The deck
 
-Eleven slides: cover, architecture (UI / AL / SQL and how each one is
+Thirteen slides: cover, architecture (UI / AL / SQL and how each one is
 customised), why it's safe, then the web client improvements in the order of
 `docs/web-client.md` (copy values, maximize pages, pin the action bar,
-dropdown size, week numbers, highlight the current line), environment colours,
-getting started.
+dropdown size, week numbers, highlight the current line, keyboard shortcuts,
+striped rows), environment colours, getting started.
 
 **To present:** open `deck/present.html` in Chrome or Edge (double-click it
 in Explorer) and press **F** for full screen. Next slide: →, ↓, Page Down,
@@ -168,5 +186,8 @@ by asset URL. For a new screenshot, upload it (`asset: true`) and replace the
 | weeks | `/_blob/994a6c3781cb1d5a15bc719c069b2eae` | `crop-with-week-numbers.png` |
 | line | `/_blob/d70a63132784cd3481ea19db750c0746` | `crop-without-current-line.png` |
 | line | `/_blob/15dcc4b67044a519f2901594d453e1e9` | `crop-with-current-line.png` |
+| shortcuts | `/_blob/713db8844a4ea6c0053779dccff5edf8` | `crop-with-keyboard-shortcuts.png` |
+| stripes | `/_blob/10bf7cb2b2055cc5fc817e54da4517b1` | `crop-without-striped-rows.png` |
+| stripes | `/_blob/f3cc093f6f6c883fc0262f3678ec9d81` | `crop-with-striped-rows.png` |
 | envcolours | `/_blob/f45f098d2f97fa1261c3c5c82610bc54` | `without-env-colours.jpg` |
 | envcolours | `/_blob/34b09d6a87dde8d87ecdfd226505e1fc` | `with-env-colours.jpg` |

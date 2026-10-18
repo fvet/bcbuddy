@@ -25,7 +25,7 @@ Production et bac à sable se ressemblent comme deux gouttes d'eau. Plus avec BC
 • Une bannière, ou un bandeau dans un angle
 • Un titre d'onglet marqué et une icône colorée, pour trouver le bon onglet parmi dix autres
 
-Choisissez une couleur par environnement, par société ou par client. Les deux premières se configurent en une minute.
+Choisissez une couleur par environnement, par société ou par client. Ou partez d'exemples tout prêts, en un clic.
 
 👥 Une seule configuration pour toute l'équipe
 

@@ -75,8 +75,9 @@ anything looks wrong while it is on, switch it off.
 ### Nothing is coloured
 
 Open **Environments** with your Business Central tab still open. At the top,
-BC Buddy shows what it reads from that tab, and a green tick on each rule
-that fits. No tick anywhere means none of your rules fits that tab: compare
+BC Buddy shows what it reads from that tab, and the rule that tab gets has a
+border all round in its colour. No such border means none of your rules fits
+that tab: compare
 the environment and company it shows with the conditions of your rule.
 
 ### The wrong colour shows

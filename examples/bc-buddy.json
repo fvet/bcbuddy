@@ -1,9 +1,9 @@
 {
   "app": "bc-buddy",
   "version": 2,
-  "name": "",
-  "exportedAt": "2026-08-24T11:46:33.267Z",
-  "layouts": [
+  "name": "BC Buddy samples",
+  "exportedAt": "2026-10-17T00:00:00.000Z",
+  "styles": [
     {
       "id": "default",
       "name": "Default",
@@ -34,75 +34,75 @@
   ],
   "rules": [
     {
-      "id": "6b77974b-29ad-4446-8f06-d658062d5d07",
-      "name": "Test",
+      "id": "sample-master-data",
+      "name": "Master Data",
       "enabled": true,
       "conditions": [
         {
-          "field": "environment",
-          "op": "equals",
-          "value": "Test"
+          "field": "company",
+          "op": "contains",
+          "value": "masterdata, master data, template"
         }
       ],
-      "color": "#c4314b",
+      "color": "#eaa300",
       "textColor": "auto",
-      "layoutId": "default",
+      "styleId": "default",
       "favicon": {
-        "text": ""
+        "text": "M"
       }
     },
     {
-      "id": "93630a20-5865-4255-bc41-d0d478dc8c33",
+      "id": "sample-production",
       "name": "Production",
       "enabled": true,
       "conditions": [
         {
           "field": "environment",
-          "op": "equals",
-          "value": "Production"
+          "op": "contains",
+          "value": "production"
         }
       ],
       "color": "#107c10",
-      "textColor": "#ffffff",
-      "layoutId": "default",
+      "textColor": "auto",
+      "styleId": "default",
       "favicon": {
-        "text": ""
+        "text": "P"
       }
     },
     {
-      "id": "ede14334-dc8d-4f90-b65f-0ffec7ba2f86",
-      "name": "Sandbox",
+      "id": "sample-uat",
+      "name": "UAT",
       "enabled": true,
       "conditions": [
         {
           "field": "environment",
-          "op": "equals",
-          "value": "Sandbox"
+          "op": "contains",
+          "value": "uat, test, qa, sandbox"
         }
       ],
-      "color": "#d83b01",
-      "textColor": "#ffffff",
-      "layoutId": "default",
+      "color": "#c4314b",
+      "textColor": "auto",
+      "styleId": "default",
       "favicon": {
-        "text": ""
+        "text": "U"
       }
     },
     {
-      "id": "109ac190-edf9-4bcd-bd09-ba51ce5295c2",
-      "name": "QA",
+      "id": "sample-development",
+      "name": "Development",
       "enabled": true,
       "conditions": [
         {
           "field": "environment",
-          "op": "equals",
-          "value": "QA"
+          "op": "contains",
+          "value": "dev"
         }
       ],
-      "color": "#00b294",
-      "textColor": "#ffffff",
-      "layoutId": "default",
+      "color": "#0f6cbd",
+      "textColor": "auto",
+      "styleId": "default",
       "favicon": {
-        "text": ""
+        "text": "D"
       }
     }
   ],

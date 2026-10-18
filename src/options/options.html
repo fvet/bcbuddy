@@ -74,6 +74,15 @@
     <section>
       <div class="section-head">
         <h2 data-i18n="webClientHeading">Web client</h2>
+        <div class="row">
+          <!-- The label says where the defaults come from; see renderWebClient(). -->
+          <button type="button" class="btn btn--icon" id="resetWebClient" data-i18n-title="resetWebClientTitle">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M11.9 1.5v2.6H9.3"/>
+            </svg>
+            <span id="resetWebClientLabel" data-i18n="resetWebClient">Reset to defaults</span>
+          </button>
+        </div>
       </div>
       <!-- One list: a name per setting, the control on the right. The
            explanation is the row's tooltip, and the docs link below has the
@@ -111,12 +120,10 @@
             <label class="slider">
               <span data-i18n="dropdownWidth">Width</span>
               <input type="range" id="dropdownWidth" min="1" max="5" step="1">
-              <output id="dropdownWidthValue" for="dropdownWidth"></output>
             </label>
             <label class="slider">
               <span data-i18n="dropdownHeight">Height</span>
               <input type="range" id="dropdownHeight" min="1" max="5" step="1">
-              <output id="dropdownHeightValue" for="dropdownHeight"></output>
             </label>
           </span>
         </div>
@@ -151,8 +158,11 @@
           <input type="checkbox" class="toggle" id="noAnimationsEnabled">
         </label>
       </div>
-      <p class="muted small"><a href="https://fvet.github.io/bcbuddy/web-client/"
-         target="_blank" rel="noopener noreferrer" data-i18n="webClientMore">More about these settings</a></p>
+      <div class="webclient-foot">
+        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/web-client/"
+           target="_blank" rel="noopener noreferrer" data-i18n="webClientMore">More about these settings</a></p>
+        <p class="sync-status" id="resetStatus"></p>
+      </div>
     </section>
     </div>
 
@@ -161,14 +171,16 @@
       <div class="section-head">
         <h2 data-i18n="testUrlHeading">Test URL</h2>
       </div>
-      <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and layouts below.</p>
+      <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and styles below.</p>
 
       <div class="card tester">
         <div class="field">
-          <label for="testUrl" data-i18n="testUrlLabel">URL of a Business Central page</label>
+          <!-- The label is the placeholder, to save a line; aria-label keeps it
+               once the field is filled in. -->
           <div class="row">
             <input type="text" id="testUrl" spellcheck="false"
-                   placeholder="https://businesscentral.dynamics.com/{tenant}/Sandbox?company=CRONUS%20BE&amp;page=1">
+                   data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
+                   placeholder="URL of a Business Central page">
             <button type="button" class="btn" id="useCurrentTab"
                     data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
           </div>
@@ -181,6 +193,14 @@
       <div class="section-head">
         <h2 data-i18n="rulesHeading">Rules</h2>
         <div class="row">
+          <!-- Hidden when IT manages BC Buddy: the team's rules come from the shared file. -->
+          <button type="button" class="btn btn--icon" id="loadSamples"
+                  data-i18n-title="loadSamplesTitle" hidden>
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M11.9 1.5v2.6H9.3"/>
+            </svg>
+            <span data-i18n="loadSamples">Load samples</span>
+          </button>
           <button type="button" class="btn btn--primary" id="addRule" data-i18n="addRule">Add rule</button>
         </div>
       </div>
@@ -194,24 +214,26 @@
         </div>
         <div id="hostedList" class="rules rules--readonly"></div>
       </div>
-      <p class="empty" id="emptyRules" data-i18n="emptyRules" hidden>No rules yet. Click Add rule or import a configuration.</p>
+      <!-- Filled by renderEmptyState(): the words name actions and are links. -->
+      <p class="empty" id="emptyRules" hidden></p>
+      <p class="sync-status" id="samplesStatus"></p>
     </section>
 
     <section>
       <div class="section-head">
-        <h2 data-i18n="layoutsHeading">Layouts</h2>
+        <h2 data-i18n="stylesHeading">Styles</h2>
         <div class="row">
-          <button type="button" class="btn" id="addLayout" data-i18n="addLayout">Add layout</button>
+          <button type="button" class="btn" id="addStyle" data-i18n="addStyle">Add style</button>
         </div>
       </div>
-      <p class="muted small" data-i18n="layoutsIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>
+      <p class="muted small" data-i18n="stylesIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>
       <div class="rules">
-        <div id="layoutList" class="rules"></div>
-        <div id="hostedLayoutList" class="rules rules--readonly"></div>
+        <div id="styleList" class="rules"></div>
+        <div id="hostedStyleList" class="rules rules--readonly"></div>
       </div>
-      <p class="empty" id="emptyLayouts" data-i18n="emptyLayouts" hidden>No layouts yet. Add one to reuse the same appearance across several rules.</p>
+      <p class="empty" id="emptyStyles" data-i18n="emptyStyles" hidden>No styles yet. Add one to reuse the same appearance across several rules.</p>
       <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#environments"
-         target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and layouts</a></p>
+         target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and styles</a></p>
     </section>
 
     </div>
@@ -241,24 +263,28 @@
       <div class="section-head">
         <h2 data-i18n="importExportHeading">Import / export</h2>
       </div>
-      <!-- Same list as the Web client panel; the full explanation is the
-           row's tooltip. -->
-      <div class="card card--list">
-        <div class="setting" data-i18n-title="importIntro">
-          <span class="setting__text">
-            <span class="setting__name" data-i18n="importHeading">Import</span>
-            <span class="sync-status" id="importStatus"></span>
-          </span>
-          <input type="file" id="importFile" accept="application/json,.json" hidden>
-          <button type="button" class="btn" id="importFileBtn" data-i18n="chooseFile">Choose file...</button>
+      <p class="muted small" data-i18n="importExportIntro">Move your own rules, styles and Web client settings in one file.</p>
+
+      <!-- Two equal buttons; what an import does is on the page, not in a
+           tooltip, because it overwrites things. -->
+      <div class="card">
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <div class="transfer">
+          <button type="button" class="btn btn--tile" id="importFileBtn">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 10.5V2M4.8 5.2 8 2l3.2 3.2M2.5 10.5v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2"/>
+            </svg>
+            <span data-i18n="importButton">Import from file...</span>
+          </button>
+          <button type="button" class="btn btn--tile" id="exportDownload">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 2v8.5M4.8 7.3 8 10.5l3.2-3.2M2.5 10.5v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2"/>
+            </svg>
+            <span data-i18n="exportButton">Export to file</span>
+          </button>
         </div>
-        <div class="setting" data-i18n-title="exportIntro">
-          <span class="setting__text">
-            <span class="setting__name" data-i18n="exportHeading">Export</span>
-            <span class="sync-status" id="exportStatus"></span>
-          </span>
-          <button type="button" class="btn" id="exportDownload" data-i18n="exportButton">Export</button>
-        </div>
+        <p class="note" data-i18n="importNote">Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client settings in the file replace yours. The shared configuration is not touched.</p>
+        <p class="sync-status" id="transferStatus"></p>
       </div>
     </section>
 
@@ -297,16 +323,16 @@
   <template id="ruleTemplate">
     <article class="rule">
       <div class="rule__head">
-        <!-- The same triangle as on a layout: a click expands or collapses the
+        <!-- The same triangle as on a style: a click expands or collapses the
              rule, a drag moves it. The colour swatch beside it does the same. -->
         <button type="button" class="icon-btn rule__toggle rule__grip" data-action="toggle" data-grip
                 aria-expanded="false" data-i18n-title="toggleOrDrag">&#9654;</button>
         <span class="rule__swatch rule__grip" data-swatch data-grip aria-hidden="true"
               data-i18n-title="toggleOrDrag"></span>
         <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="ruleNamePlaceholder">
-        <!-- The glyph is decorative; role+aria-label carry the state instead,
-             so it is not a tick that only sighted users can read. -->
-        <span class="match" data-match role="img"></span>
+        <!-- The rule that wins has a border all round (.rule--wins); this says
+             the same to a screen reader. -->
+        <span class="sr-only" data-match></span>
         <div class="rule__tools">
           <label class="switch switch--compact" data-i18n-title="ruleActiveTitle">
             <input type="checkbox" class="toggle" data-path="enabled" data-i18n-label="ruleActiveTitle">
@@ -342,9 +368,9 @@
                 <option value="#000000" data-i18n="textBlack">Black</option>
               </select>
             </label>
-            <label class="field field--layout">
-              <span data-i18n="layoutLabel">Layout</span>
-              <select data-path="layoutId" data-layout-picker></select>
+            <label class="field field--style">
+              <span data-i18n="styleLabel">Style</span>
+              <select data-path="styleId" data-style-picker></select>
             </label>
             <label class="field field--narrow" data-favicon-letters hidden>
               <span data-i18n="faviconLetters">Letters</span>
@@ -430,15 +456,15 @@
     </div>
   </template>
 
-  <template id="layoutTemplate">
-    <article class="rule rule--layout">
+  <template id="styleTemplate">
+    <article class="rule rule--style">
       <div class="rule__head">
         <button type="button" class="icon-btn rule__toggle" data-action="toggle"
                 aria-expanded="false" data-i18n-title="toggleDetails">&#9654;</button>
-        <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="layoutNamePlaceholder">
+        <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="styleNamePlaceholder">
         <div class="rule__tools">
           <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
-          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteLayout">&#10005;</button>
+          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteStyle">&#10005;</button>
         </div>
       </div>
 
@@ -453,9 +479,9 @@
           </div>
         </div>
 
-        <p class="muted small" data-i18n="layoutPreviewNote">Sample colour; every rule keeps its own.</p>
+        <p class="muted small" data-i18n="stylePreviewNote">Sample colour; every rule keeps its own.</p>
 
-        <!-- No heading: a layout card has this one section only. A rule card
+        <!-- No heading: a style card has this one section only. A rule card
              has two, so there Conditions and Colour keep theirs. -->
         <div class="rule__section">
           <div data-display></div>

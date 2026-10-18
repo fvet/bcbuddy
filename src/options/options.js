@@ -14,6 +14,9 @@
       // The shared file's address when IT set it by browser policy; the field
       // is locked then.
       policyUrl: '',
+      // How BC Buddy was installed (chrome.management); 'admin' when IT
+      // pushed it. Empty until known, and then the samples stay hidden.
+      installType: '',
       testUrl: '',
       panel: 'webclient',
       ctx: null,
@@ -41,6 +44,9 @@
 
   page.renderAll = function () {
     page.el.globalEnabled.checked = page.state.settings.enabled;
+    // Settings changed under us (or the page just opened): an undo from
+    // before would now put back something else.
+    page.setResetStatus('');
     page.renderWebClient();
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
@@ -60,6 +66,52 @@
     page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
     page.renderDropdown();
+    var team = page.teamDefaults();
+    page.el.resetWebClientLabel.textContent = t(team ? 'resetWebClientTeam' : 'resetWebClient');
+    page.el.resetWebClient.title = t(team ? 'resetWebClientTeamTitle' : 'resetWebClientTitle');
+  };
+
+  /** True when Reset to defaults takes values from the shared file. */
+  page.teamDefaults = function () {
+    var hosted = page.state.settings.hosted;
+    return hosted.active && Object.keys(hosted.webClient || {}).length > 0;
+  };
+
+  /**
+   * Puts the Web client settings back to the defaults (see
+   * BCBuddy.webClientDefaults) and offers to undo it. The master switch is not
+   * part of it, as it is not part of an export.
+   */
+  page.resetWebClient = function () {
+    var settings = page.state.settings;
+    var before = BCBuddy.webClientOf(settings);
+    var changed = BCBuddy.applyWebClient(settings, BCBuddy.webClientDefaults(settings));
+    if (!changed) {
+      page.setResetStatus(t('resetWebClientNone'), 'ok');
+      return;
+    }
+    page.save();
+    page.renderWebClient();
+    page.setResetStatus(t('resetWebClientDone', [changed]), 'ok', function () {
+      BCBuddy.applyWebClient(page.state.settings, before);
+      page.save();
+      page.renderWebClient();
+      page.setResetStatus(t('resetWebClientUndone'), 'ok');
+    });
+  };
+
+  /** The line under the Web client card; with `undo`, an Undo link after the text. */
+  page.setResetStatus = function (text, kind, undo) {
+    var status = page.el.resetStatus;
+    status.textContent = text;
+    status.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
+    if (!undo) return;
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'sync-status__action';
+    button.textContent = t('undo');
+    button.addEventListener('click', undo);
+    status.appendChild(button);
   };
 
   page.renderDropdown = function () {
@@ -67,8 +119,14 @@
     var Dropdowns = BCBuddy.Dropdowns;
     page.el.dropdownWidth.value = dropdown.width;
     page.el.dropdownHeight.value = dropdown.height;
-    page.el.dropdownWidthValue.textContent = page.dropdownLabel(Dropdowns.WIDTH_FACTORS, dropdown.width);
-    page.el.dropdownHeightValue.textContent = page.dropdownLabel(Dropdowns.HEIGHT_FACTORS, dropdown.height);
+    // No value beside the track: the slider's tooltip and what a screen
+    // reader announces say how big the list gets.
+    [[page.el.dropdownWidth, Dropdowns.WIDTH_FACTORS, dropdown.width],
+      [page.el.dropdownHeight, Dropdowns.HEIGHT_FACTORS, dropdown.height]].forEach(function (slider) {
+      var label = page.dropdownLabel(slider[1], slider[2]);
+      slider[0].title = label;
+      slider[0].setAttribute('aria-valuetext', label);
+    });
   };
 
   /** A step says how much bigger than BC standard it is, rather than pixels. */
@@ -82,7 +140,7 @@
     page.renderParsed();
     page.renderRules();
     page.renderHosted();
-    page.renderLayouts();
+    page.renderStyles();
   };
 
   page.renderParsed = function () {
@@ -96,7 +154,9 @@
     ].filter(function (pair) { return pair[1]; });
 
     page.el.parsed.textContent = '';
-    if (!pairs.length) {
+    // An empty field has nothing to recognise yet: say nothing.
+    var typed = String(page.state.testUrl || '').trim() !== '';
+    if (!pairs.length && typed) {
       var empty = document.createElement('div');
       empty.className = 'muted';
       empty.textContent = t('nothingRecognised');
@@ -123,6 +183,32 @@
       page.el.ruleList.appendChild(page.createCard(rule, index, { kind: 'rule', readOnly: false }));
     });
     page.renderEmptyState();
+    page.markWinner();
+  };
+
+  /**
+   * The rule a BC tab at the test URL gets has its colour all round
+   * (.rule--wins), so it stands out from rules that come later. Same order as
+   * in the tab: own rules first, then the shared ones.
+   */
+  page.markWinner = function () {
+    var settings = page.state.settings;
+    var ctx = page.state.ctx;
+    var found = false;
+    [[page.el.ruleList, settings.rules], [page.el.hostedList, settings.hosted.rules]].forEach(function (pair) {
+      var winner = -1;
+      if (!found) {
+        for (var i = 0; i < pair[1].length; i++) {
+          if (BCBuddy.matchRule(pair[1][i], ctx)) { winner = i; found = true; break; }
+        }
+      }
+      pair[0].querySelectorAll('.rule').forEach(function (card) {
+        var wins = Number(card.dataset.index) === winner;
+        card.classList.toggle('rule--wins', wins);
+        var label = card.querySelector('[data-match]');
+        if (label) label.textContent = wins ? t('matchYes') : '';
+      });
+    });
   };
 
   page.renderHosted = function () {
@@ -133,35 +219,94 @@
     });
     page.el.sharedHead.hidden = !hosted.length;
     page.renderEmptyState();
+    page.markWinner();
     page.renderHostedStatus();
   };
 
-  page.renderLayouts = function () {
-    page.el.layoutList.textContent = '';
-    page.state.settings.layouts.forEach(function (layout, index) {
-      page.el.layoutList.appendChild(page.createCard(layout, index, { kind: 'layout', readOnly: false }));
+  page.renderStyles = function () {
+    page.el.styleList.textContent = '';
+    page.state.settings.styles.forEach(function (style, index) {
+      page.el.styleList.appendChild(page.createCard(style, index, { kind: 'style', readOnly: false }));
     });
 
-    page.el.hostedLayoutList.textContent = '';
-    page.state.settings.hosted.layouts.forEach(function (layout, index) {
-      page.el.hostedLayoutList.appendChild(page.createCard(layout, index, { kind: 'layout', readOnly: true }));
+    page.el.hostedStyleList.textContent = '';
+    page.state.settings.hosted.styles.forEach(function (style, index) {
+      page.el.hostedStyleList.appendChild(page.createCard(style, index, { kind: 'style', readOnly: true }));
     });
 
-    page.el.emptyLayouts.hidden = page.state.settings.layouts.length > 0 ||
-      page.state.settings.hosted.layouts.length > 0;
+    page.el.emptyStyles.hidden = page.state.settings.styles.length > 0 ||
+      page.state.settings.hosted.styles.length > 0;
   };
 
   page.renderEmptyState = function () {
+    var samples = page.samplesAllowed();
     page.el.emptyRules.hidden = page.state.settings.rules.length > 0 ||
       page.state.settings.hosted.rules.length > 0;
+    page.el.loadSamples.hidden = !samples;
+    page.renderEmptyText(samples);
   };
 
-  /** Layout a new rule gets: Default, otherwise the first one. */
-  page.defaultLayoutId = function () {
-    var layouts = page.state.settings.layouts;
-    var preferred = BCBuddy.findById(layouts, BCBuddy.DEFAULT_LAYOUT_ID);
+  /**
+   * "Click Add rule, Load samples or import a configuration", with each of
+   * those a link that does it. The placeholders are numbered, so a
+   * translation can put them in any order; control characters stand in for
+   * them while the text is split, as no translation contains one.
+   */
+  page.renderEmptyText = function (samples) {
+    var el = page.el;
+    var links = [[t('addRule'), function () { el.addRule.click(); }]];
+    if (samples) links.push([t('loadSamples'), function () { el.loadSamples.click(); }]);
+    links.push([t('emptyRulesImport'), function () {
+      // The import result shows under the button there, so go along.
+      goToPanel('settings');
+      el.importFile.click();
+    }]);
+    var marks = links.map(function (link, index) { return String.fromCharCode(1 + index); });
+    var text = t(samples ? 'emptyRulesSamples' : 'emptyRules', marks);
+    el.emptyRules.textContent = '';
+    text.split(/([\u0001-\u0003])/).forEach(function (part) {
+      var link = part.length === 1 && links[part.charCodeAt(0) - 1];
+      if (!link) {
+        if (part) el.emptyRules.appendChild(document.createTextNode(part));
+        return;
+      }
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'empty__action';
+      button.textContent = link[0];
+      button.addEventListener('click', link[1]);
+      el.emptyRules.appendChild(button);
+    });
+  };
+
+  /**
+   * The samples are for people who set BC Buddy up themselves. Where IT
+   * installed it or set the shared file, the team's rules come from there,
+   * and own rules from a sample would be checked before them. Fails closed:
+   * an install type we do not know hides them too.
+   */
+  page.samplesAllowed = function () {
+    var type = page.state.installType;
+    return !page.state.policyUrl && (type === 'normal' || type === 'development');
+  };
+
+  /** Resolves to how BC Buddy was installed, or '' when that cannot be told. */
+  page.readInstallType = function () {
+    return Promise.resolve().then(function () {
+      return chrome.management.getSelf();
+    }).then(function (info) {
+      return String(info && info.installType || '');
+    }, function () {
+      return '';
+    });
+  };
+
+  /** Style a new rule gets: Default, otherwise the first one. */
+  page.defaultStyleId = function () {
+    var styles = page.state.settings.styles;
+    var preferred = BCBuddy.findById(styles, BCBuddy.DEFAULT_STYLE_ID);
     if (preferred) return preferred.id;
-    return layouts.length ? layouts[0].id : '';
+    return styles.length ? styles[0].id : '';
   };
 
   /**
@@ -225,15 +370,15 @@
     BCBuddy.applyI18n();
     [
       'status', 'globalEnabled', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
-      'addRule', 'hostedUrl', 'syncNow',
-      'hostedStatus', 'hostedList', 'importFile', 'importFileBtn', 'importStatus',
-      'exportDownload', 'exportStatus',
-      'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
+      'addRule', 'loadSamples', 'samplesStatus', 'hostedUrl', 'syncNow',
+      'hostedStatus', 'hostedList', 'importFile', 'importFileBtn',
+      'exportDownload', 'transferStatus',
+      'addStyle', 'styleList', 'hostedStyleList', 'emptyStyles',
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
-      'stripeRowsEnabled',
-      'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
+      'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
+      'dropdownWidth', 'dropdownHeight'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
@@ -242,10 +387,12 @@
       takeOpenPanel(),
       BCBuddy.readPolicy(),
       // A tab that is gone or locked must not keep the page from opening.
-      chrome.tabs.query({}).catch(function () { return []; })
+      chrome.tabs.query({}).catch(function () { return []; }),
+      page.readInstallType()
     ]).then(function (results) {
       state.settings = results[0];
       state.policyUrl = BCBuddy.policyUrl(results[3]);
+      state.installType = results[5];
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
       // An open BC tab beats the remembered URL, so the previews show the
@@ -356,6 +503,12 @@
       });
     });
 
+    el.resetWebClient.addEventListener('click', page.resetWebClient);
+    // Changing a setting by hand after a reset: undoing would throw that away.
+    el.resetWebClient.closest('section').querySelector('.card').addEventListener('change', function () {
+      page.setResetStatus('');
+    });
+
     el.testUrl.addEventListener('input', function () {
       state.testUrl = el.testUrl.value;
       page.saveUi();
@@ -385,7 +538,7 @@
         name: draft.name,
         color: BCBuddy.PALETTE[state.settings.rules.length % BCBuddy.PALETTE.length],
         conditions: draft.conditions,
-        layoutId: page.defaultLayoutId()
+        styleId: page.defaultStyleId()
       });
       state.settings.rules.push(rule);
       state.expanded[page.expandKey('rule', rule, false)] = true; // a new rule starts expanded
@@ -400,14 +553,14 @@
       }
     });
 
-    el.addLayout.addEventListener('click', function () {
-      var layout = BCBuddy.newLayout({ name: t('newLayoutName') });
-      state.settings.layouts.push(layout);
-      state.expanded[page.expandKey('layout', layout, false)] = true;
+    el.addStyle.addEventListener('click', function () {
+      var style = BCBuddy.newStyle({ name: t('newStyleName') });
+      state.settings.styles.push(style);
+      state.expanded[page.expandKey('style', style, false)] = true;
       page.save();
-      page.renderLayouts();
-      page.renderRules(); // rule dropdowns now include the new layout
-      var cards = el.layoutList.querySelectorAll('.rule');
+      page.renderStyles();
+      page.renderRules(); // rule dropdowns now include the new style
+      var cards = el.styleList.querySelectorAll('.rule');
       var last = cards[cards.length - 1];
       if (last) {
         last.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -415,14 +568,14 @@
       }
     });
 
-    [el.ruleList, el.layoutList].forEach(function (list) {
+    [el.ruleList, el.styleList].forEach(function (list) {
       list.addEventListener('input', page.onRuleInput);
       list.addEventListener('change', page.onRuleInput);
       list.addEventListener('click', page.onRuleClick);
     });
-    // Shared rules and layouts are read-only, but can still be expanded.
+    // Shared rules and styles are read-only, but can still be expanded.
     el.hostedList.addEventListener('click', page.onRuleClick);
-    el.hostedLayoutList.addEventListener('click', page.onRuleClick);
+    el.hostedStyleList.addEventListener('click', page.onRuleClick);
 
     el.clearShared.addEventListener('click', page.clearSharedRules);
 

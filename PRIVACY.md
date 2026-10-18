@@ -12,7 +12,7 @@ tracking of any kind.
 Everything BC Buddy knows lives in `chrome.storage.local`, on your own machine:
 
 - your rules (name, conditions, colours, favicon letters),
-- your layouts (ribbon, frame, banner, tab title, favicon settings),
+- your styles (ribbon, frame, banner, tab title, favicon settings),
 - your web client preferences (whether pages are maximized, and the dropdown
   size steps),
 - the URL of a shared configuration file, if you configured one, plus the

@@ -60,7 +60,7 @@ day. Take them from one of these, in order of effort:
 | Sales lines | sales lines | verkoopregels | lignes vente | Business Central UI |
 | Journal | journal | dagboek | feuille | Business Central UI |
 | Notifications | Notifications | Berichten | Notifications | Business Central UI |
-| Layout (this extension's) | Layout | Layout | Style | Not a Business Central term; French avoids *présentation*, which is a report layout there |
+| Style (this extension's) | Style | Stijl | Style | A saved set of appearance settings; not a Business Central report layout (*présentation* in French) |
 | Business Central | Business Central | Business Central | Business Central | Product name, never translated |
 | BC Buddy | BC Buddy | BC Buddy | BC Buddy | Product name, never translated |
 | URL | Url | Url | URL | Unchanged in most languages |
@@ -95,18 +95,18 @@ up to date, they are the only context a translator gets.
 |---|---|---|
 | `ribbonToggle`, `ribbonText` | The Office / Business Central ribbon toolbar | The bar at the very top of the Business Central client, the one with the product name, in the rule's colour |
 | `posTopRight`, `posBottomLeft`, … | The Office / Business Central ribbon toolbar | A diagonal coloured strip across a corner of the page |
-| `layoutsHeading`, `layoutLabel`, … | A Business Central report layout | This extension's own saved set of appearance settings |
+| `stylesHeading`, `styleLabel`, … | A Business Central report layout, or the style BC gives a field | This extension's own saved set of appearance settings |
 | `tokenName`, `tokenCompany`, … | A security or access token | A placeholder such as `{name}` that the user types into a text |
 | `titleToggle`, `titleText` | The title of the Business Central page | The title of the browser tab |
 | `opContains`, `opEquals`, … | Standalone buttons | Words in the middle of a sentence, hence lowercase |
-| `defaultLayoutName` | The setting "default" | A name in a list, the way somebody would name a layout |
+| `defaultStyleName` | The setting "default" | A name in a list, the way somebody would name a style |
 
 ## Working process
 
 1. **Fill the glossary column first**, from Business Central itself. Everything
    downstream then has one right answer to work from.
 2. **Translate the whole file in one go**, not string by string — a translator
-   who sees `deleteRule`, `deleteLayout` and `deleteConfirm` together keeps them
+   who sees `deleteRule`, `deleteStyle` and `deleteConfirm` together keeps them
    consistent. Hand over the English file *including its `description` fields*
    plus the glossary and the false friends table.
 3. **Back-translate to verify.** Have a second, independent pass translate the
@@ -137,7 +137,7 @@ leave a way to report a bad string.
 
 ## What is not translated
 
-- **What users type themselves** — rule names, banner texts, layout names. The
+- **What users type themselves** — rule names, banner texts, style names. The
   extension shows those back exactly as entered.
 - **Keys in `bc-buddy.json`** — the shared configuration format is English on
   both sides of the wire.

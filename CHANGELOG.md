@@ -13,6 +13,13 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Added
 
+- **Reset to defaults** under **Web client** puts every switch and slider back
+  to how BC Buddy starts out, or to your team's choices when you use a shared
+  file. **Undo** takes it back.
+- **Load samples** under **Environments** adds four ready-made rules of your
+  own: Master Data in yellow, Production in green, UAT in red and Development
+  in blue. Rules you already have stay as they are. Not shown when your IT
+  department installed BC Buddy or set a shared file.
 - **Several values in one condition**: **contains** and **does not contain**
   take a list separated by commas, so one rule can cover several
   environments, for example **Environment** **contains** `DEV, UAT, QA`.
@@ -22,6 +29,15 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Environments** now fills in **Test URL** from your open Business Central
   tab as soon as you open it, so the green ticks show right away which rules
   fit that tab.
+
+### Fixed
+
+- A rule on **Company** now fits a company with a `+` in its name, such as
+  `R+D Solutions`. BC Buddy used to read the `+` as a space.
+- An address without an environment, such as
+  `businesscentral.dynamics.com/contoso.com`, opens your default environment,
+  and BC Buddy now reads it as **Production**. Rules on Production used to miss
+  it.
 
 <!-- --8<-- [start:released] -->
 

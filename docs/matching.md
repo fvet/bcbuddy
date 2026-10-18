@@ -8,8 +8,8 @@ Each rule has:
 - a **name**, such as `PRODUCTION` or the name of a customer;
 - one or more **conditions**, which say when the rule applies;
 - a **colour**;
-- a **layout**, which decides what the marking looks like: the coloured bar,
-  a frame, a banner. See [Layouts](layouts.md).
+- a **style**, which decides what the marking looks like: the coloured bar,
+  a frame, a banner. See [Styles](styles.md).
 
 ## Conditions
 
@@ -27,11 +27,16 @@ A rule with more than one condition applies only when all of them fit. To give
 one company in production its own colour, use **Environment** **equals**
 `Production` and **Company** **equals** `CRONUS BE` in the same rule.
 
+An address without an environment, such as
+`businesscentral.dynamics.com/contoso.com`, opens your default environment.
+BC Buddy reads it as **Production**, so your Production rule covers it too.
+
 !!! tip "Check a rule before you rely on it"
 
     Open **Environments** while a Business Central tab is open: **Test URL**
     at the top already holds that tab's address. BC Buddy shows the
-    environment and company it reads, and a green tick on each rule that fits.
+    environment and company it reads, and the rule that wins has a border all
+    round in its colour.
     Opened another tab since? Click **From open tab**, or paste the address of
     a Business Central page into **Test URL**.
 
@@ -42,6 +47,33 @@ fits. Drag a rule up or down to change the order.
 
 So put specific rules above general ones: a rule for one customer's production
 environment belongs above a rule for "anything called Production".
+
+## Start from the samples { #samples }
+
+No rules yet, or not sure where to start? Click **Load samples** next to
+**Add rule**. You get four rules of your own:
+
+| Rule | Colour | Fits when |
+|---|---|---|
+| **Master Data** | yellow | **Company** **contains** `masterdata, master data, template` |
+| **Production** | green | **Environment** **contains** `production` |
+| **UAT** | red | **Environment** **contains** `uat, test, qa, sandbox` |
+| **Development** | blue | **Environment** **contains** `dev` |
+
+They are ordinary rules: change the colours, the names or the conditions, drag
+them into another order, or delete the ones you do not need. Master Data comes
+first, so a master data company shows yellow even in production.
+
+Rules you already have stay as they are. A sample with the same name as one of
+your rules is skipped, so clicking **Load samples** twice adds nothing.
+Deleted a sample? Click **Load samples** again and it comes back in its old
+place.
+
+!!! note "No Load samples button?"
+
+    Then your IT department installed BC Buddy or set a shared file for your
+    team. Your colours come from there, and rules of your own would be checked
+    before theirs, so the samples are left out.
 
 ## For advanced use
 

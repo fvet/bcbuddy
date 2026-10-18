@@ -26,8 +26,8 @@ no **X**.
 
 ## Publishing a file for your team
 
-1. Set up your rules and layouts and click **Export** under **Settings**. That
-   saves `bc-buddy.json`, with your rules, your layouts and your **Web client**
+1. Set up your rules and styles and click **Export to file** under **Settings**. That
+   saves `bc-buddy.json`, with your rules, your styles and your **Web client**
    settings.
 2. Put that file somewhere everyone can open it with an address starting with
    `https://`, such as a GitHub repository. An ordinary GitHub page link works;
@@ -39,7 +39,8 @@ no **X**.
     The file decides what BC Buddy colours. Keep it somewhere only you or your
     team can change, not on a public place anyone can edit.
 
-To see how it works before you publish your own, try this example file:
+To see how it works before you publish your own, try this example file. It has
+the same rules that [**Load samples**](matching.md#samples) adds:
 
 ```
 https://fvet.github.io/bcbuddy/examples/bc-buddy.json
@@ -55,13 +56,16 @@ an order:
   colleague who switches something off keeps it off.
 - To share only some of them, delete the others from the `webClient` part of
   the file. Without that part, everyone keeps their own.
+- **Reset to your team's defaults** under **Web client** brings a colleague
+  back to what the file says. Settings the file leaves out go back to how BC
+  Buddy starts out.
 
 The **Extension active** switch is never shared.
 
 ## Importing a file once
 
 To load a file once, without daily updates, use **Import / export** →
-**Choose file** under **Settings**:
+**Import from file** under **Settings**:
 
 - rules you already have are overwritten,
 - new rules are added,

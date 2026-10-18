@@ -1,5 +1,5 @@
 /*
- * BC Buddy - options page rule and layout cards.
+ * BC Buddy - options page rule and style cards.
  */
 (function (root) {
   'use strict';
@@ -11,27 +11,27 @@
       var el = page.el;
       var t = page.t;
 
-      /** Layouts a card can pick from: shared cards see both sets. */
-      page.layoutsFor = function (readOnly) {
+      /** Styles a card can pick from: shared cards see both sets. */
+      page.stylesFor = function (readOnly) {
         return readOnly
-          ? state.settings.hosted.layouts.concat(state.settings.layouts)
-          : state.settings.layouts;
+          ? state.settings.hosted.styles.concat(state.settings.styles)
+          : state.settings.styles;
       };
 
-      /** How many rules reference this layout. */
-      page.layoutUsage = function (layout) {
+      /** How many rules reference this style. */
+      page.styleUsage = function (style) {
         return state.settings.rules.concat(state.settings.hosted.rules)
-          .filter(function (rule) { return rule.layoutId === layout.id; }).length;
+          .filter(function (rule) { return rule.styleId === style.id; }).length;
       };
 
       /**
-       * Builds a card for a rule or a layout. Both share the display block from
+       * Builds a card for a rule or a style. Both share the display block from
        * displayTemplate so those settings are described in one place only.
        */
       page.createCard = function (item, index, options) {
         var kind = options.kind;
         var readOnly = options.readOnly;
-        var templateId = kind === 'layout' ? 'layoutTemplate' : 'ruleTemplate';
+        var templateId = kind === 'style' ? 'styleTemplate' : 'ruleTemplate';
         var card = document.getElementById(templateId).content.firstElementChild.cloneNode(true);
         card.dataset.kind = kind;
         card.dataset.index = String(index);
@@ -39,7 +39,7 @@
         card.dataset.expandKey = page.expandKey(kind, item, readOnly);
         page.setExpanded(card, !!state.expanded[card.dataset.expandKey]);
 
-        if (kind === 'layout') {
+        if (kind === 'style') {
           card.querySelector('[data-display]')
             .appendChild(document.getElementById('displayTemplate').content.firstElementChild.cloneNode(true));
         }
@@ -55,7 +55,7 @@
 
         // After the fields: the dropdown decides what is selected, even when the
         // rule has no explicit choice yet.
-        if (kind === 'rule') page.fillLayoutPicker(card, item, readOnly);
+        if (kind === 'rule') page.fillStylePicker(card, item, readOnly);
 
         BCBuddy.applyI18n(card);
         card.querySelectorAll('[data-token-line]').forEach(function (line) {
@@ -100,21 +100,21 @@
         return card;
       };
 
-      page.fillLayoutPicker = function (card, rule, readOnly) {
-        var select = card.querySelector('[data-layout-picker]');
+      page.fillStylePicker = function (card, rule, readOnly) {
+        var select = card.querySelector('[data-style-picker]');
         if (!select) return;
-        var layouts = page.layoutsFor(readOnly);
+        var styles = page.stylesFor(readOnly);
 
         select.textContent = '';
-        layouts.forEach(function (layout) {
+        styles.forEach(function (style) {
           var option = document.createElement('option');
-          option.value = layout.id;
-          option.textContent = layout.name;
+          option.value = style.id;
+          option.textContent = style.name;
           select.appendChild(option);
         });
 
         // Set the value only now: the options did not exist above.
-        var auto = BCBuddy.effectiveLayout(rule, layouts);
+        var auto = BCBuddy.effectiveStyle(rule, styles);
         if (auto) select.value = auto.id;
       };
 
@@ -155,14 +155,14 @@
       /** Updates a card's colour, badge and preview without redrawing the card. */
       page.updateCard = function (card, item) {
         var ctx = state.ctx;
-        var isLayout = card.dataset.kind === 'layout';
+        var isStyle = card.dataset.kind === 'style';
         var readOnly = !!card.dataset.readonly;
 
-        // A layout has no colour of its own: the preview borrows from the first rule
+        // A style has no colour of its own: the preview borrows from the first rule
         // that uses it, otherwise a neutral one.
-        var shown = isLayout ? item : BCBuddy.resolveRule(item, page.layoutsFor(readOnly));
-        var color = isLayout ? page.layoutSampleColor(item) : item.color;
-        var textColor = !isLayout && item.textColor !== 'auto' ? item.textColor : BCBuddy.idealText(color);
+        var shown = isStyle ? item : BCBuddy.resolveRule(item, page.stylesFor(readOnly));
+        var color = isStyle ? page.styleSampleColor(item) : item.color;
+        var textColor = !isStyle && item.textColor !== 'auto' ? item.textColor : BCBuddy.idealText(color);
 
         card.style.setProperty('--rule-color', color);
         card.classList.toggle('rule--disabled', item.enabled === false);
@@ -173,15 +173,9 @@
           button.setAttribute('aria-pressed', button.dataset.color === color ? 'true' : 'false');
         });
 
-        var matched = isLayout ? true : BCBuddy.matchRule(item, ctx);
-        var badge = card.querySelector('[data-match]');
-        if (badge) {
-          var matchLabel = t(matched ? 'matchYes' : 'matchNo');
-          badge.textContent = matched ? '\u2713' : '\u25CB';
-          badge.className = 'match ' + (matched ? 'match--yes' : 'match--no');
-          badge.title = matchLabel;
-          badge.setAttribute('aria-label', matchLabel);
-        }
+        var matched = isStyle ? true : BCBuddy.matchRule(item, ctx);
+        // A change to one rule can change which rule wins.
+        if (!isStyle) page.markWinner();
         var preview = card.querySelector('[data-preview]');
         if (preview) preview.classList.toggle('preview--nomatch', !matched);
 
@@ -218,10 +212,10 @@
           }
         });
 
-        // Favicon letters belong to the rule, and only when the layout draws them.
-        // A rule card has no other preview: that lives on the layout, where display
+        // Favicon letters belong to the rule, and only when the style draws them.
+        // A rule card has no other preview: that lives on the style, where display
         // settings are edited too.
-        if (!isLayout) {
+        if (!isStyle) {
           card.querySelector('[data-favicon-letters]').hidden = !shown.favicon.enabled;
           return;
         }
@@ -258,7 +252,7 @@
           banner.textContent = shown.banner.text || '{name}';
         }
 
-        // A layout is independent of conditions, so the ribbon is always shown.
+        // A style is independent of conditions, so the ribbon is always shown.
         ribbon.hidden = false;
         card.querySelector('[data-preview-page]').textContent = t('previewPageBc');
 
@@ -277,11 +271,11 @@
         return kind + ':' + (readOnly ? 'shared:' : 'own:') + item.id;
       };
 
-      /** Colour for a layout preview: from the first rule that uses it. */
-      page.layoutSampleColor = function (layout) {
+      /** Colour for a style preview: from the first rule that uses it. */
+      page.styleSampleColor = function (style) {
         var user = null;
         state.settings.rules.concat(state.settings.hosted.rules).forEach(function (rule) {
-          if (!user && rule.layoutId === layout.id) user = rule;
+          if (!user && rule.styleId === style.id) user = rule;
         });
         return user ? user.color : BCBuddy.PALETTE[8];
       };
@@ -305,7 +299,7 @@
       };
 
       /**
-       * Turns a shared rule into an own copy. Its layout comes along, otherwise the
+       * Turns a shared rule into an own copy. Its style comes along, otherwise the
        * copy would look different from the original.
        */
       page.copySharedRule = function (index) {
@@ -314,14 +308,14 @@
 
         var copy = BCBuddy.newRule(source);
         copy.name = source.name;
-        copy.layoutId = source.layoutId;
+        copy.styleId = source.styleId;
 
-        var copiedLayout = false;
-        if (copy.layoutId && !BCBuddy.findById(state.settings.layouts, copy.layoutId)) {
-          var layout = BCBuddy.findById(state.settings.hosted.layouts, copy.layoutId);
-          if (layout) {
-            state.settings.layouts.push(BCBuddy.normalizeLayout(layout));
-            copiedLayout = true;
+        var copiedStyle = false;
+        if (copy.styleId && !BCBuddy.findById(state.settings.styles, copy.styleId)) {
+          var style = BCBuddy.findById(state.settings.hosted.styles, copy.styleId);
+          if (style) {
+            state.settings.styles.push(BCBuddy.normalizeStyle(style));
+            copiedStyle = true;
           }
         }
 
@@ -329,50 +323,50 @@
         state.expanded[page.expandKey('rule', copy, false)] = true;
         page.save();
         page.renderRules();
-        page.renderLayouts();
+        page.renderStyles();
         page.renderParsed();
-        page.setStatus(t('copiedToOwn', 1) + (copiedLayout ? t('copiedLayouts', 1) : ''));
+        page.setStatus(t('copiedToOwn', 1) + (copiedStyle ? t('copiedStyles', 1) : ''));
       };
 
-      page.onLayoutAction = function (action, index) {
-        var layout = state.settings.layouts[index];
-        if (!layout) return;
+      page.onStyleAction = function (action, index) {
+        var style = state.settings.styles[index];
+        if (!style) return;
 
         if (action === 'delete') {
-          // At least one must remain, otherwise "follows the only layout" means
+          // At least one must remain, otherwise "follows the only style" means
           // nothing.
-          if (state.settings.layouts.length < 2) {
-            page.setStatus(t('lastLayout'), true);
+          if (state.settings.styles.length < 2) {
+            page.setStatus(t('lastStyle'), true);
             return;
           }
-          var used = page.layoutUsage(layout);
-          if (!confirm(t('deleteLayoutConfirm', [layout.name, used]))) return;
+          var used = page.styleUsage(style);
+          if (!confirm(t('deleteStyleConfirm', [style.name, used]))) return;
           // Rules keep their own settings, which were never overwritten.
           state.settings.rules.forEach(function (rule) {
-            if (rule.layoutId === layout.id) rule.layoutId = '';
+            if (rule.styleId === style.id) rule.styleId = '';
           });
-          state.settings.layouts.splice(index, 1);
+          state.settings.styles.splice(index, 1);
         } else if (action === 'duplicate') {
-          var copy = BCBuddy.newLayout(layout);
-          copy.name = t('copySuffix', layout.name);
-          state.settings.layouts.splice(index + 1, 0, copy);
-          state.expanded[page.expandKey('layout', copy, false)] = true;
+          var copy = BCBuddy.newStyle(style);
+          copy.name = t('copySuffix', style.name);
+          state.settings.styles.splice(index + 1, 0, copy);
+          state.expanded[page.expandKey('style', copy, false)] = true;
         } else {
           return;
         }
 
         page.save();
-        page.renderLayouts();
+        page.renderStyles();
         page.renderRules();
         page.renderHosted();
         page.renderParsed();
       };
 
-      /** The rule or layout this card belongs to. */
+      /** The rule or style this card belongs to. */
       page.cardTarget = function (card) {
         var index = Number(card.dataset.index);
-        return card.dataset.kind === 'layout'
-          ? state.settings.layouts[index]
+        return card.dataset.kind === 'style'
+          ? state.settings.styles[index]
           : state.settings.rules[index];
       };
 
@@ -409,18 +403,18 @@
         page.renderParsed();
         page.save();
 
-        // A layout change affects every rule that uses it; redraw those cards while
-        // the layout card stays put so focus does not jump.
-        if (card.dataset.kind === 'layout') {
+        // A style change affects every rule that uses it; redraw those cards while
+        // the style card stays put so focus does not jump.
+        if (card.dataset.kind === 'style') {
           page.renderRules();
           page.renderHosted();
           return;
         }
 
-        // Conversely the layout card depends on rules: how many are linked and which
+        // Conversely the style card depends on rules: how many are linked and which
         // colour the preview borrows.
         var path = pathInput && pathInput.dataset.path;
-        if (path === 'layoutId' || path === 'color') page.renderLayouts();
+        if (path === 'styleId' || path === 'color') page.renderStyles();
       };
 
       page.onRuleClick = function (event) {
@@ -446,8 +440,8 @@
           }
           return;
         }
-        if (card.dataset.kind === 'layout') {
-          page.onLayoutAction(button.dataset.action, index);
+        if (card.dataset.kind === 'style') {
+          page.onStyleAction(button.dataset.action, index);
           return;
         }
         var rule = state.settings.rules[index];
