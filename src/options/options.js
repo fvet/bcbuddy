@@ -213,8 +213,41 @@
     var samples = page.samplesAllowed();
     page.el.emptyRules.hidden = page.state.settings.rules.length > 0 ||
       page.state.settings.hosted.rules.length > 0;
-    page.el.emptyRules.textContent = t(samples ? 'emptyRulesSamples' : 'emptyRules');
     page.el.loadSamples.hidden = !samples;
+    page.renderEmptyText(samples);
+  };
+
+  /**
+   * "Click Add rule, Load samples or import a configuration", with each of
+   * those a link that does it. The placeholders are numbered, so a
+   * translation can put them in any order; control characters stand in for
+   * them while the text is split, as no translation contains one.
+   */
+  page.renderEmptyText = function (samples) {
+    var el = page.el;
+    var links = [[t('addRule'), function () { el.addRule.click(); }]];
+    if (samples) links.push([t('loadSamples'), function () { el.loadSamples.click(); }]);
+    links.push([t('emptyRulesImport'), function () {
+      // The import result shows under the button there, so go along.
+      goToPanel('settings');
+      el.importFile.click();
+    }]);
+    var marks = links.map(function (link, index) { return String.fromCharCode(1 + index); });
+    var text = t(samples ? 'emptyRulesSamples' : 'emptyRules', marks);
+    el.emptyRules.textContent = '';
+    text.split(/([\u0001-\u0003])/).forEach(function (part) {
+      var link = part.length === 1 && links[part.charCodeAt(0) - 1];
+      if (!link) {
+        if (part) el.emptyRules.appendChild(document.createTextNode(part));
+        return;
+      }
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'empty__action';
+      button.textContent = link[0];
+      button.addEventListener('click', link[1]);
+      el.emptyRules.appendChild(button);
+    });
   };
 
   /**

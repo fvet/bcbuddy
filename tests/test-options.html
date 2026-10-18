@@ -1604,8 +1604,17 @@ function assertSamples() {
   }
 
   truthy('samples: button shown for an install of your own', !button.hidden);
+  function message(key, linkKeys) {
+    return chrome.i18n.getMessage(key, linkKeys.map(function (k) { return chrome.i18n.getMessage(k); }));
+  }
+  function links() {
+    return Array.prototype.map.call(empty.querySelectorAll('button.empty__action'),
+      function (b) { return b.textContent; });
+  }
   check('samples: the empty message points at it', empty.textContent,
-    chrome.i18n.getMessage('emptyRulesSamples'));
+    message('emptyRulesSamples', ['addRule', 'loadSamples', 'emptyRulesImport']));
+  check('samples: its three actions are links',
+    links(), ['addRule', 'loadSamples', 'emptyRulesImport'].map(function (k) { return chrome.i18n.getMessage(k); }));
   button.click();
   return wait(500).then(function () {
     check('samples: four own rules added', names(), ['Production', 'UAT', 'Development', 'Master Data']);
@@ -1638,8 +1647,30 @@ function assertSamples() {
     check('samples: nothing added when IT installed BC Buddy', names(), []);
     truthy('samples: and the button hides', button.hidden);
     check('samples: the empty message does not mention it', empty.textContent,
-      chrome.i18n.getMessage('emptyRules'));
+      message('emptyRules', ['addRule', 'emptyRulesImport']));
+    check('samples: and has two links left',
+      links(), ['addRule', 'emptyRulesImport'].map(function (k) { return chrome.i18n.getMessage(k); }));
+
+    // The import link goes to the import button's panel and opens the picker.
+    var picker = document.getElementById('importFile');
+    var opened = 0;
+    picker.click = function () { opened++; };
+    empty.querySelectorAll('button.empty__action')[1].click();
+    delete picker.click;
+    check('empty: import link opens the file picker', opened, 1);
+    truthy('empty: on the panel where its result shows',
+      !document.querySelector('.panel[data-panel="settings"]').hidden);
+    document.querySelector('.nav__item[data-panel="environments"]').click();
+
+    empty.querySelector('button.empty__action').click();
+    return wait(400);
+  }).then(function () {
+    check('empty: Add rule link adds a rule', document.querySelectorAll('#ruleList .rule').length, 1);
+    truthy('empty: and the message goes', empty.hidden);
     INSTALL_TYPE = 'normal';
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.rules = [];
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
   });
 }
 
