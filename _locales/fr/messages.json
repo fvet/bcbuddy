@@ -21,7 +21,7 @@
   "emptyRulesSamples": { "message": "Aucune règle pour l'instant. Cliquez sur $2 ou $1, ou $3." },
   "emptyRulesImport": { "message": "importez une configuration" },
   "loadSamples": { "message": "Charger les exemples" },
-  "loadSamplesTitle": { "message": "Ajoute des règles toutes prêtes pour Production, UAT, Development et Master Data. Les règles que vous avez déjà restent telles quelles." },
+  "loadSamplesTitle": { "message": "Ajoute des règles toutes prêtes pour Master Data, Production, UAT et Development. Les règles que vous avez déjà restent telles quelles." },
   "samplesAdded": { "message": "$1 règle(s) d'exemple ajoutée(s). Modifiez-les comme vos propres règles." },
   "samplesNone": { "message": "Les exemples sont déjà dans vos règles." },
   "samplesFailed": { "message": "Impossible de charger les exemples\u00a0: $1" },

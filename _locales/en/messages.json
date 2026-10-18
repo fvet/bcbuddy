@@ -57,7 +57,7 @@
     "description": "Link text inside emptyRules and emptyRulesSamples; opens the file picker for an import."
   },
   "loadSamples": { "message": "Load samples" },
-  "loadSamplesTitle": { "message": "Add ready-made rules for Production, UAT, Development and Master Data. Rules you already have stay as they are." },
+  "loadSamplesTitle": { "message": "Add ready-made rules for Master Data, Production, UAT and Development. Rules you already have stay as they are." },
   "samplesAdded": {
     "message": "$1 sample rule(s) added. Change them like any rule of your own.",
     "description": "$1 is a number of rules."

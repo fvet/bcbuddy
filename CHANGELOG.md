@@ -17,8 +17,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   to how BC Buddy starts out, or to your team's choices when you use a shared
   file. **Undo** takes it back.
 - **Load samples** under **Environments** adds four ready-made rules of your
-  own: Production in green, UAT in red, Development in blue and Master Data in
-  yellow. Rules you already have stay as they are. Not shown when your IT
+  own: Master Data in yellow, Production in green, UAT in red and Development
+  in blue. Rules you already have stay as they are. Not shown when your IT
   department installed BC Buddy or set a shared file.
 - **Several values in one condition**: **contains** and **does not contain**
   take a list separated by commas, so one rule can cover several

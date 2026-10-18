@@ -21,7 +21,7 @@
   "emptyRulesSamples": { "message": "Nog geen regels. Klik op $2 of $1, of $3." },
   "emptyRulesImport": { "message": "importeer een configuratie" },
   "loadSamples": { "message": "Voorbeelden laden" },
-  "loadSamplesTitle": { "message": "Voegt kant-en-klare regels toe voor Production, UAT, Development en Master Data. Regels die je al hebt, blijven zoals ze zijn." },
+  "loadSamplesTitle": { "message": "Voegt kant-en-klare regels toe voor Master Data, Production, UAT en Development. Regels die je al hebt, blijven zoals ze zijn." },
   "samplesAdded": { "message": "$1 voorbeeldregel(s) toegevoegd. Pas ze aan zoals elke eigen regel." },
   "samplesNone": { "message": "De voorbeelden staan al in je regels." },
   "samplesFailed": { "message": "Kon de voorbeelden niet laden: $1" },

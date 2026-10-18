@@ -1622,9 +1622,11 @@ function assertSamples() {
     links(), ['loadSamples', 'addRule', 'emptyRulesImport'].map(function (k) { return chrome.i18n.getMessage(k); }));
   button.click();
   return wait(500).then(function () {
-    check('samples: four own rules added', names(), ['Production', 'UAT', 'Development', 'Master Data']);
+    check('samples: four own rules added', names(), ['Master Data', 'Production', 'UAT', 'Development']);
     check('samples: and saved', STORE.settings.rules.map(function (r) { return r.id; }),
-      ['sample-production', 'sample-uat', 'sample-development', 'sample-master-data']);
+      ['sample-master-data', 'sample-production', 'sample-uat', 'sample-development']);
+    check('samples: one favicon letter each', STORE.settings.rules.map(function (r) { return r.favicon.text; }),
+      ['M', 'P', 'U', 'D']);
     check('samples: no shared rules come from it', STORE.settings.hosted.rules.length, 0);
     check('samples: status says how many', status.textContent,
       chrome.i18n.getMessage('samplesAdded', ['4']));

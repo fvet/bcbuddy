@@ -1334,9 +1334,9 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     xhr.send();
     return xhr.responseText;
   })());
-  check('samples: four rules, Production first',
+  check('samples: four rules, Master Data first',
     samples.rules.map(function (r) { return r.name; }),
-    ['Production', 'UAT', 'Development', 'Master Data']);
+    ['Master Data', 'Production', 'UAT', 'Development']);
   var SAMPLE_BC = 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/';
   function sampleFor(path) {
     var rule = BCBuddy.findRule(samples.rules, BCBuddy.parseUrl(SAMPLE_BC + path));
@@ -1354,8 +1354,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     ['Other?company=MasterData', 'Other?company=Master%20Data', 'Other?company=CRONUS%20Template',
       'Other?company=CRONUS'].map(sampleFor),
     ['Master Data', 'Master Data', 'Master Data', null]);
-  check('samples: Production wins over a master data company',
-    sampleFor('Production?company=Master%20Data'), 'Production');
+  check('samples: a master data company wins over Production',
+    sampleFor('Production?company=Master%20Data'), 'Master Data');
 
   var withMine = BCBuddy.normalize({
     rules: [{ id: 'own', name: ' production ', color: '#0f6cbd', layoutId: 'mine',
@@ -1364,11 +1364,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   });
   check('samples: a name you already use is skipped',
     BCBuddy.addSamples(withMine, samples), { added: 3, skipped: 1 });
-  check('samples: added after your own rules',
+  // Your production counts as the Production sample, so Master Data goes
+  // before it, as in the file.
+  check('samples: around the one you already have, in file order',
     withMine.rules.map(function (r) { return r.name; }),
-    ['production', 'UAT', 'Development', 'Master Data']);
+    ['Master Data', 'production', 'UAT', 'Development']);
   check('samples: your rule is left alone',
-    [withMine.rules[0].id, withMine.rules[0].color], ['own', '#0f6cbd']);
+    [withMine.rules[1].id, withMine.rules[1].color], ['own', '#0f6cbd']);
   check('samples: your Default layout is kept, not added again',
     withMine.layouts.map(function (l) { return [l.id, l.border.width]; }), [['mine', 5]]);
   check('samples: and the samples point at it',

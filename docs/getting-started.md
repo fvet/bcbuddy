@@ -42,8 +42,8 @@ one or more test environments, often called *Sandbox*. They look exactly alike.
 BC Buddy gives each its own colour, so you always know where you are.
 
 On the settings page, go to **Environments** and click **Load samples**. You
-get four rules: **Production** in green, **UAT** in red for anything called
-test, QA or sandbox, **Development** in blue, and **Master Data** in yellow.
+get four rules: **Master Data** in yellow, **Production** in green, **UAT** in
+red for anything called test, QA or sandbox, and **Development** in blue.
 Change or delete them like any other rule. [More about the samples](matching.md#samples).
 
 Rather make your own? Then:
