@@ -55,7 +55,7 @@ the settings page.
 | **Striped rows** | Every other row in a list a light grey | Off |
 | **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
-**Reset to defaults**, under the list, puts every switch and slider back to
+**Reset to defaults**, above the list, puts every switch and slider back to
 how BC Buddy starts out. When your team shares a file, the button reads
 **Reset to your team's defaults** and takes the team's choices from that file.
 Clicked by mistake? **Undo** sits right next to the message.

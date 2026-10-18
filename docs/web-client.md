@@ -21,7 +21,7 @@ page, so you can turn off whatever you do not like.
 A change takes effect in Business Central straight away. The **Extension
 active** switch at the top of the settings page pauses all of BC Buddy at once.
 
-Changed too much? **Reset to defaults**, under the list, puts every switch and
+Changed too much? **Reset to defaults**, above the list, puts every switch and
 slider back to how BC Buddy starts out. **Undo**, right next to the message,
 takes it back. When your team shares a file, the button reads **Reset to your
 team's defaults** and takes the team's choices from that file; see
@@ -94,8 +94,8 @@ number on a sales line, gets more room. There are two sliders:
 - **Height**: shows more rows at once, up to about ten instead of five. It
   starts at the tallest step.
 
-With both sliders all the way left, at *BC standard*, the list keeps Business
-Central's own size.
+With both sliders all the way left, the list keeps Business Central's own size.
+Point at a slider to see how big the list gets.
 
 === "With BC Buddy"
 

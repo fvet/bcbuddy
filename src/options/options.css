@@ -220,10 +220,9 @@ label.setting { cursor: pointer; }
 .setting--wrap { flex-wrap: wrap; }
 .setting__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .setting__name { font-weight: 600; }
-.setting__sliders { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.setting__sliders { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 20px; margin-left: auto; }
 .slider { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
 .slider input[type="range"] { width: 110px; }
-.slider output { min-width: 7.5em; color: var(--text); }
 
 footer { padding-top: 8px; border-top: 1px solid var(--border); }
 footer code { margin-right: 2px; }
@@ -353,6 +352,9 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
    its grey background and the dark text becomes unreadable. */
 .btn--primary:hover { background: var(--accent); color: var(--accent-text); filter: brightness(1.08); }
 .btn--small { align-self: flex-start; padding: 5px 10px; font-size: 12.5px; }
+/* An icon in front of the label, at the height of a plain .btn. */
+.btn--icon { display: inline-flex; align-items: center; gap: 6px; }
+.btn--icon .btn__icon { width: 14px; height: 14px; }
 /* A wide button with an icon, for an action that is the whole card. */
 .btn--tile {
   display: flex;
@@ -714,6 +716,9 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   text-decoration: underline;
   cursor: pointer;
 }
-/* Under the Web client card: the docs link left, Reset to defaults right. */
+/* Docs link on the left, the reset message on the right of the same line. */
+.webclient-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; }
+.webclient-foot > p { margin: 0; }
+.webclient-foot > .sync-status { margin-left: auto; text-align: right; }
 .card > .sync-status:empty,
 section > .sync-status:empty { display: none; }

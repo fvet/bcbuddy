@@ -67,7 +67,7 @@
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
     page.renderDropdown();
     var team = page.teamDefaults();
-    page.el.resetWebClient.textContent = t(team ? 'resetWebClientTeam' : 'resetWebClient');
+    page.el.resetWebClientLabel.textContent = t(team ? 'resetWebClientTeam' : 'resetWebClient');
     page.el.resetWebClient.title = t(team ? 'resetWebClientTeamTitle' : 'resetWebClientTitle');
   };
 
@@ -119,8 +119,14 @@
     var Dropdowns = BCBuddy.Dropdowns;
     page.el.dropdownWidth.value = dropdown.width;
     page.el.dropdownHeight.value = dropdown.height;
-    page.el.dropdownWidthValue.textContent = page.dropdownLabel(Dropdowns.WIDTH_FACTORS, dropdown.width);
-    page.el.dropdownHeightValue.textContent = page.dropdownLabel(Dropdowns.HEIGHT_FACTORS, dropdown.height);
+    // No value beside the track: the slider's tooltip and what a screen
+    // reader announces say how big the list gets.
+    [[page.el.dropdownWidth, Dropdowns.WIDTH_FACTORS, dropdown.width],
+      [page.el.dropdownHeight, Dropdowns.HEIGHT_FACTORS, dropdown.height]].forEach(function (slider) {
+      var label = page.dropdownLabel(slider[1], slider[2]);
+      slider[0].title = label;
+      slider[0].setAttribute('aria-valuetext', label);
+    });
   };
 
   /** A step says how much bigger than BC standard it is, rather than pixels. */
@@ -309,8 +315,8 @@
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
-      'stripeRowsEnabled', 'resetWebClient', 'resetStatus',
-      'dropdownWidth', 'dropdownHeight', 'dropdownWidthValue', 'dropdownHeightValue'
+      'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
+      'dropdownWidth', 'dropdownHeight'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     Promise.all([
