@@ -62,7 +62,8 @@ No rules yet, or not sure where to start? Click **Load samples** next to
 
 They are ordinary rules: change the colours, the names or the conditions, drag
 them into another order, or delete the ones you do not need. Master Data comes
-first, so a master data company shows yellow even in production.
+first, so a master data company shows yellow even in production. They use the
+[*Full* style](styles.md); pick *Subtle* on a rule for a quieter marking.
 
 Rules you already have stay as they are. A sample with the same name as one of
 your rules is skipped, so clicking **Load samples** twice adds nothing.

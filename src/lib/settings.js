@@ -695,8 +695,9 @@
    * Adds the sample rules (parsed with parseImport) to `settings` as own
    * rules. Unlike an import nothing is overwritten: a sample whose id or name
    * you already use is skipped, and a sample style you already have by name
-   * is not added again; the sample rules then point at yours. Returns how
-   * many rules were added and skipped.
+   * is not added again; the sample rules then point at yours. A bare Default
+   * no rule uses yet gives way to the sample styles. Returns how many rules
+   * were added and skipped.
    *
    * A sample you deleted comes back where it was among the samples you kept:
    * before the next sample in the file you still have, otherwise after the
@@ -704,7 +705,8 @@
    */
   function addSamples(settings, samples) {
     var rules = settings.rules.slice();
-    var styles = settings.styles.slice();
+    // Nothing set up yet: the sample styles replace the bare Default.
+    var styles = untouched(settings) ? [] : settings.styles.slice();
     var styleIds = {};
     var stats = { added: 0, skipped: 0 };
 
@@ -742,6 +744,23 @@
       settings.styles = withDefaultStyle(styles, rules);
     }
     return stats;
+  }
+
+  /**
+   * A first install starts with the sample styles (parsed with parseImport)
+   * instead of the bare Default. Only while nothing is set up yet: no own
+   * rules and only that Default. Returns true when the styles were replaced.
+   */
+  function seedStyles(settings, samples) {
+    if (!untouched(settings) || !samples.styles.length) return false;
+    settings.styles = samples.styles.slice();
+    return true;
+  }
+
+  /** No own rules and only the Default that normalize() adds. */
+  function untouched(settings) {
+    var styles = settings.styles;
+    return !settings.rules.length && styles.length === 1 && styles[0].id === DEFAULT_STYLE_ID;
   }
 
   /** Stable, short hash to tell whether a shared file has changed. */
@@ -888,6 +907,7 @@
   BCBuddy.mergeRules = mergeRules;
   BCBuddy.mergeStyles = mergeStyles;
   BCBuddy.addSamples = addSamples;
+  BCBuddy.seedStyles = seedStyles;
   // Packaged with the extension and the same file as the shared example on
   // the site, so there is one copy of the samples.
   BCBuddy.SAMPLES_PATH = 'examples/bc-buddy.json';

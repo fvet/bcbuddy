@@ -87,7 +87,10 @@ travel in an export and in the shared file as `webClient`; the master switch
 
 `normalize()` always ensures every rule points at a valid style: a
 configuration with no styles gets a Default, and a rule whose `styleId` names
-nothing follows the first style in the set. Display fields on a rule object are
+nothing follows the first style in the set. A first install replaces that bare
+Default with the styles in `examples/bc-buddy.json` (*Full* and *Subtle*):
+`seedStyles()`, called from `onInstalled` in `background.js`. **Load samples**
+does the same while nothing is set up yet. Display fields on a rule object are
 dropped. Hosted (shared) rules go through the same path.
 
 There is no migration path from an older shape. The extension had no public
@@ -959,8 +962,8 @@ powershell -ExecutionPolicy Bypass -File tools/build-package.ps1
 
 That puts `dist/bcbuddy-<version>.zip` in place with only what the extension
 needs: manifest, `managed_schema.json`, `src`, `_locales`, the PNG icons and
-`examples/bc-buddy.json`, which **Load samples** on the options page reads with
-`chrome.runtime.getURL` (no network). Tests, the other examples, the SVG
+`examples/bc-buddy.json`, which **Load samples** on the options page and the
+first install in `background.js` read with `chrome.runtime.getURL` (no network). Tests, the other examples, the SVG
 sources and these tools stay behind. The script checks that `manifest.json` ends
 up in the root of the ZIP, which is the usual silent upload rejection.
 

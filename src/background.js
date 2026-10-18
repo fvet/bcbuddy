@@ -24,12 +24,29 @@ chrome.runtime.onInstalled.addListener(function (details) {
   enforcePolicy().then(function () {
     scheduleSync();
     if (details.reason === 'install') {
-      welcome();
+      seedStyles().then(welcome);
     } else {
       syncHosted({ reason: 'install' });
     }
   });
 });
+
+/**
+ * A first install starts with the styles from the packaged samples file, the
+ * same file Load samples reads. Never fails: without them BC Buddy keeps its
+ * built-in Default.
+ */
+function seedStyles() {
+  return fetch(chrome.runtime.getURL(BCBuddy.SAMPLES_PATH)).then(function (response) {
+    if (!response.ok) throw new Error(String(response.status));
+    return response.text();
+  }).then(function (text) {
+    var samples = BCBuddy.parseImport(text);
+    return BCBuddy.loadSettings().then(function (settings) {
+      if (BCBuddy.seedStyles(settings, samples)) return BCBuddy.saveSettings(settings);
+    });
+  }).catch(function () {});
+}
 
 /**
  * A first install opens the options page, unless IT installed BC Buddy by

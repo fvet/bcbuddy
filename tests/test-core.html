@@ -1360,7 +1360,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   var withMine = BCBuddy.normalize({
     rules: [{ id: 'own', name: ' production ', color: '#0f6cbd', styleId: 'mine',
       conditions: [{ field: 'environment', op: 'equals', value: 'PRD' }] }],
-    styles: [{ id: 'mine', name: 'Default', border: { width: 5 } }]
+    styles: [{ id: 'mine', name: 'Full', border: { width: 5 } }]
   });
   check('samples: a name you already use is skipped',
     BCBuddy.addSamples(withMine, samples), { added: 3, skipped: 1 });
@@ -1371,8 +1371,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     ['Master Data', 'production', 'UAT', 'Development']);
   check('samples: your rule is left alone',
     [withMine.rules[1].id, withMine.rules[1].color], ['own', '#0f6cbd']);
-  check('samples: your Default style is kept, not added again',
-    withMine.styles.map(function (l) { return [l.id, l.border.width]; }), [['mine', 5]]);
+  check('samples: your Full style is kept, not added again; Subtle is added',
+    withMine.styles.map(function (l) { return [l.id, l.border.width]; }), [['mine', 5], ['subtle', 3]]);
   check('samples: and the samples point at it',
     withMine.rules.map(function (r) { return r.styleId; }), ['mine', 'mine', 'mine', 'mine']);
   check('samples: loading again adds nothing',
@@ -1401,8 +1401,34 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   BCBuddy.addSamples(deleted, samples);
   check('samples: the last one goes after the samples, not after your rules',
     sampleNames(deleted), inFile.concat(['Shop']));
-  check('samples: on the Default style',
-    [fresh.styles.length, fresh.rules[0].styleId], [1, BCBuddy.DEFAULT_STYLE_ID]);
+  check('samples: Full and Subtle replace the untouched Default, rules on Full',
+    [fresh.styles.map(function (l) { return l.id; }), fresh.rules[0].styleId],
+    [['full', 'subtle'], 'full']);
+  var keepDefault = BCBuddy.normalize({ styles: [{ id: BCBuddy.DEFAULT_STYLE_ID, name: 'Default' }],
+    rules: [{ id: 'mine', name: 'Shop', conditions: [{ field: 'url', op: 'contains', value: 'shop' }] }] });
+  BCBuddy.addSamples(keepDefault, samples);
+  check('samples: a Default your rules use stays',
+    keepDefault.styles.map(function (l) { return l.id; }), [BCBuddy.DEFAULT_STYLE_ID, 'full', 'subtle']);
+
+  // A first install starts with the sample styles
+  check('samples: the styles are Full and Subtle',
+    samples.styles.map(function (l) { return [l.id, l.name]; }), [['full', 'Full'], ['subtle', 'Subtle']]);
+  check('samples: Full shows everything',
+    BCBuddy.DISPLAY_KEYS.map(function (key) { return samples.styles[0][key].enabled; }),
+    [true, true, true, true, true]);
+  check('samples: Subtle colours the ribbon only, with BC\'s own text',
+    BCBuddy.DISPLAY_KEYS.map(function (key) { return samples.styles[1][key].enabled; })
+      .concat([samples.styles[1].ribbon.text]),
+    [false, false, true, false, false, '']);
+  check('samples: every rule on Full',
+    samples.rules.map(function (r) { return r.styleId; }), ['full', 'full', 'full', 'full']);
+  var installed = BCBuddy.normalize({});
+  check('seed: a fresh install gets the sample styles',
+    [BCBuddy.seedStyles(installed, samples), installed.styles.map(function (l) { return l.id; })],
+    [true, ['full', 'subtle']]);
+  check('seed: survives normalize', BCBuddy.normalize(installed).styles.length, 2);
+  check('seed: not twice', BCBuddy.seedStyles(installed, samples), false);
+  check('seed: not over settings someone already has', BCBuddy.seedStyles(withMine, samples), false);
 
   // styles travel along in import and export
   var withStyleExported = BCBuddy.toExport(BCBuddy.normalize({ rules: [linkedRule], styles: [style] }));

@@ -79,7 +79,8 @@ You set this up with two lists under **Environments**:
 - A **rule** says *which* environment gets *which colour*: a name, one or more
   conditions, a colour, and the letters on the tab icon.
 - A **style** says *what* the marking looks like. Several rules can share one.
-  The *Default* style colours the bar at the top and draws a frame.
+  You start with two: *Full* shows every marking, *Subtle* only colours the
+  bar at the top.
 
 ![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](store/screenshot-3-1280x800.png)
 
@@ -143,7 +144,8 @@ other:
 | **Development** | blue | **Environment** **contains** `dev` |
 
 Master Data comes first, so a master data company shows yellow even in
-production. Rules you already have stay as they are: a sample with the same name is
+production. They use the *Full* style; pick *Subtle* on a rule for a quieter
+marking. Rules you already have stay as they are: a sample with the same name is
 skipped. Deleted a sample? Click **Load samples** again and it comes back in
 its old place. When your IT department installed BC Buddy or set a shared file,
 the button is not there: your colours come from them.
