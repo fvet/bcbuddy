@@ -102,6 +102,9 @@
     shortcuts: null,
     // Handle of the BC Buddy section in BC's gear menu, while it is attached.
     gearMenu: null,
+    // The language picked on the options page has been looked up (see
+    // applyLanguage()).
+    language: false,
     // MutationObserver that reapplies ribbon inline styles if Dark Reader
     // overrides them. Disconnected whenever the ribbon is released.
     ribbonGuard: null,
@@ -234,6 +237,9 @@
 
     try {
       chrome.storage.onChanged.addListener(function (changes, area) {
+        if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY] && state.language) {
+          BCBuddy.loadLanguage().then(relabel);
+        }
         if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
         state.settings = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
         clearAll();
@@ -411,6 +417,7 @@
     applyListLook();
     applyNoAnimations();
     applyHideNotifications();
+    applyLanguage();
     applyCopyValues();
     applyNewTab();
     applyWeekNumbers();
@@ -768,7 +775,7 @@
 
     if (existing && existing.getAttribute('data-bcb-favicon') === signature) return;
 
-    var href = drawFavicon(rule.color, label);
+    var href = BCBuddy.drawFavicon(rule.color, label);
     if (!href) return;
 
     var link = existing || document.createElement('link');
@@ -795,46 +802,6 @@
       links[i].rel = links[i].getAttribute('data-bcb-was-rel');
       links[i].removeAttribute('data-bcb-was-rel');
     }
-  }
-
-  function drawFavicon(color, label) {
-    try {
-      var size = 32;
-      var canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      var ctx2d = canvas.getContext('2d');
-      if (!ctx2d) return null;
-
-      ctx2d.fillStyle = color;
-      roundRect(ctx2d, 0, 0, size, size, 6);
-      ctx2d.fill();
-
-      // Letters keep their accents (\p{M}), and two letters are counted as you
-      // see them, not in UTF-16 units.
-      var initials = BCBuddy.leading(label.replace(/[^\p{L}\p{M}\p{N}]/gu, ''), 2).toUpperCase();
-      if (initials) {
-        ctx2d.fillStyle = BCBuddy.idealText(color);
-        var single = BCBuddy.leading(initials, 1) === initials;
-        ctx2d.font = 'bold ' + (single ? 22 : 17) + 'px "Segoe UI", Arial, sans-serif';
-        ctx2d.textAlign = 'center';
-        ctx2d.textBaseline = 'middle';
-        ctx2d.fillText(initials, size / 2, size / 2 + 1);
-      }
-      return canvas.toDataURL('image/png');
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function roundRect(ctx2d, x, y, w, h, r) {
-    ctx2d.beginPath();
-    ctx2d.moveTo(x + r, y);
-    ctx2d.arcTo(x + w, y, x + w, y + h, r);
-    ctx2d.arcTo(x + w, y + h, x, y + h, r);
-    ctx2d.arcTo(x, y + h, x, y, r);
-    ctx2d.arcTo(x, y, x + w, y, r);
-    ctx2d.closePath();
   }
 
   /* ------------------------------------------------------------- maximize */
@@ -942,6 +909,32 @@
     if (on === root.hasAttribute(NO_BELL_ATTR)) return;
     if (on) root.setAttribute(NO_BELL_ATTR, '');
     else root.removeAttribute(NO_BELL_ATTR);
+  }
+
+  /* ------------------------------------------------------------- language */
+
+  /**
+   * Only the web client tweaks put text on a page, so only there do we look
+   * up the language picked on the options page: once per page, not in every
+   * frame of every site. Until it arrives the texts are in the browser's
+   * language; then the tweaks with text are attached again.
+   */
+  function applyLanguage() {
+    if (state.language) return;
+    if (!state.webClient && !(IS_TOP && isWebClientTarget(state.href))) return;
+    state.language = true;
+    BCBuddy.loadLanguage().then(function (lang) {
+      if (lang) relabel();
+    });
+  }
+
+  /** Detaches the tweaks that show our texts, so apply() attaches them anew. */
+  function relabel() {
+    if (state.copyValues) state.copyValues.detach();
+    if (state.gearMenu) state.gearMenu.detach();
+    if (state.shortcuts) state.shortcuts.detach();
+    state.copyValues = state.gearMenu = state.shortcuts = null;
+    apply();
   }
 
   /* ---------------------------------------------------------- copy values */

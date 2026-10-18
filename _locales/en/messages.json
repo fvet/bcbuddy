@@ -12,11 +12,13 @@
     "description": "One-line summary under the title on the options page."
   },
   "extensionActive": { "message": "Extension active" },
+  "languageLabel": { "message": "Language" },
+  "languageTitle": { "message": "The language of BC Buddy. Business Central keeps its own." },
   "saveFailed": {
     "message": "Saving failed: $1",
     "description": "Shown when the settings could not be stored. $1 is the error message from the browser."
   },
-  "testUrlHeading": { "message": "Test URL" },
+  "testUrlHeading": { "message": "Test" },
   "testUrlIntro": {
     "message": "Drives the previews of the rules and styles below.",
     "description": "One line under the Test URL heading."
@@ -57,12 +59,16 @@
     "description": "Link text inside emptyRules and emptyRulesSamples; opens the file picker for an import."
   },
   "loadSamples": { "message": "Load samples" },
-  "loadSamplesTitle": { "message": "Add ready-made rules for Master Data, Production, UAT and Development. Rules you already have stay as they are." },
+  "loadSamplesTitle": { "message": "Add ready-made rules for Master Data, Production, UAT and Development, and the styles Full and Subtle. Rules and styles you already have stay as they are." },
   "samplesAdded": {
     "message": "$1 sample rule(s) added. Change them like any rule of your own.",
     "description": "$1 is a number of rules."
   },
-  "samplesNone": { "message": "The samples are already in your rules." },
+  "samplesStylesAdded": {
+    "message": "$1 sample style(s) added. Pick one on a rule to use it.",
+    "description": "$1 is a number of styles. Shown when the sample rules were already there and only their styles were missing."
+  },
+  "samplesNone": { "message": "The sample rules and styles are already there." },
   "samplesFailed": {
     "message": "Could not load the samples: $1",
     "description": "$1 is the reason."
@@ -428,7 +434,6 @@
     "message": " Also copied $1 style(s).",
     "description": "Appended to copiedToOwn, which is why it starts with a space. $1 is a number of styles."
   },
-  "stylePreviewNote": { "message": "Sample colour; every rule keeps its own." },
   "styleLabel": {
     "message": "Style",
     "description": "Label on the field that picks a style for a rule, see stylesHeading."
@@ -561,7 +566,10 @@
     "message": "Environments",
     "description": "Navigation item leading to the rules, one per Business Central environment."
   },
-  "navAbout": { "message": "About" },
+  "navHelp": {
+    "message": "Help",
+    "description": "Last item in the options page navigation. It opens the BC Buddy documentation website in a new tab."
+  },
   "navSettings": { "message": "Settings" },
   "shortcutsToggle": {
     "message": "Keyboard shortcuts",
@@ -728,21 +736,18 @@
     "message": "Default",
     "description": "The name of the style that is there from the start. A name somebody sees in a list, not the word standard as a setting."
   },
+  "fullStyleName": {
+    "message": "Full",
+    "description": "Name of a ready-made style that shows every marking: bar at the top, frame, banner, tab title and tab icon. A name in a list, given once when the style is added; renaming it later is up to the user."
+  },
+  "subtleStyleName": {
+    "message": "Subtle",
+    "description": "Name of a ready-made style that only colours the bar at the top: a quiet marking, the opposite of fullStyleName. A name in a list, given once when the style is added."
+  },
   "lastStyle": {
     "message": "The last style cannot be removed: there must always be one.",
     "description": "Shown when somebody tries to delete the only style left."
   },
-  "aboutIntro": {
-    "message": "It also gives every environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.",
-    "description": "Second paragraph in the About panel, after the web client one. Production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
-  },
-  "aboutIntroMaximize": {
-    "message": "BC Buddy makes the Business Central web client easier to work in: copy any value with one click, pages open in wide layout with the action bar pinned, tile pages switch to list view, dropdowns get more space, the date picker shows week numbers and the line you are on stands out.",
-    "description": "First paragraph in the About panel, describing the web client improvements. Dropdown and date picker are Business Central terms: use the words the Business Central UI uses in this language."
-  },
-  "aboutContact": { "message": "Contact" },
-  "aboutDocs": { "message": "Documentation" },
-  "aboutSource": { "message": "Source code" },
   "clearShared": {
     "message": "Clear shared rules and stop updating",
     "description": "Button that throws away the shared rules and stops the daily update."

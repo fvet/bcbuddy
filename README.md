@@ -30,7 +30,7 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
    web client improvements below are already working.
 3. **Give your environments a colour.** On the settings page, go to
    **Environments** and click **Load samples**: Production turns green, test
-   environments red. Or click **Add rule**, name it `PRODUCTION`, set the
+   environments red. Or click **+** next to **Rules**, name it `PRODUCTION`, set the
    condition **Environment** **equals** `Production` and pick green.
 
 Not sure what your environment is called? Open **Environments** while a
@@ -79,7 +79,9 @@ You set this up with two lists under **Environments**:
 - A **rule** says *which* environment gets *which colour*: a name, one or more
   conditions, a colour, and the letters on the tab icon.
 - A **style** says *what* the marking looks like. Several rules can share one.
-  The *Default* style colours the bar at the top and draws a frame.
+  You start with two: *Full* shows every marking, *Subtle* only colours the
+  bar at the top. In Dutch they are *Volledig* and *Subtiel*, in French
+  *Complet* and *Discret*.
 
 ![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](store/screenshot-3-1280x800.png)
 
@@ -132,7 +134,7 @@ your own server.
 ### Samples
 
 No rules yet, or not sure where to start? Click **Load samples** next to
-**Add rule**. You get four rules of your own, to change or delete like any
+**Rules**. You get four rules of your own, to change or delete like any
 other:
 
 | Rule | Colour | Fits when |
@@ -143,9 +145,10 @@ other:
 | **Development** | blue | **Environment** **contains** `dev` |
 
 Master Data comes first, so a master data company shows yellow even in
-production. Rules you already have stay as they are: a sample with the same name is
+production. They use the *Full* style; pick *Subtle* on a rule for a quieter
+marking. Rules you already have stay as they are: a sample with the same name is
 skipped. Deleted a sample? Click **Load samples** again and it comes back in
-its old place. When your IT department installed BC Buddy or set a shared file,
+its old place, and so does a missing *Full* or *Subtle* style. When your IT department installed BC Buddy or set a shared file,
 the button is not there: your colours come from them.
 
 ### Styles
@@ -164,8 +167,10 @@ A style can show any of these:
 
 ![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
 
-The preview at the top shows the result while you change it. The text colour
-is *Automatic*: white or black, whichever reads best on the colour.
+The preview at the top shows the result while you change it, in the colour
+and name of the rule you clicked last, or else of the rule that fits the
+address under **Test**. The text colour is *Automatic*: white or black,
+whichever reads best on the colour.
 
 In every text you can use these placeholders: `{name}` (the rule),
 `{environment}` or `{env}`, `{company}` and `{title}` (the original tab
@@ -305,7 +310,8 @@ More on the website: [Troubleshooting](https://fvet.github.io/bcbuddy/troublesho
 ## 🌍 Languages
 
 BC Buddy is in English, Dutch and French, and follows the language of your browser.
-The texts you type yourself in a rule or style appear exactly as you type
+To use another one, pick it under the globe at the top right of the BC Buddy
+settings. Business Central keeps its own language. The texts you type yourself in a rule or style appear exactly as you type
 them. Would you like it in your own language? See
 [TRANSLATING.md](TRANSLATING.md).
 

@@ -342,7 +342,7 @@ function messageText(locale, key) {
 }
 
 function assertMessages() {
-  var sources = FILES.concat(['src/options/options.html', 'manifest.json']);
+  var sources = FILES.concat(['src/lib/i18n.js', 'src/options/options.html', 'manifest.json']);
   return localeFolders().then(function (codes) {
     return Promise.all([
       fetch(ROOT + 'manifest.json').then(function (r) { return r.json(); }),
@@ -366,6 +366,16 @@ function assertMessages() {
     truthy('i18n: more than one language', locales.length > 1);
     truthy('i18n: the default locale (' + fallback + ') is one of them', !!base);
     if (!base) return;
+
+    // A new folder needs a place in the language picker too, and in the list
+    // i18n.js checks a stored choice against.
+    var codes = locales.map(function (l) { return l.code; }).sort();
+    var listed = /var LANGUAGES = \[([^\]]*)\]/.exec(source);
+    check('i18n: i18n.js knows every language', listed ? (listed[1].match(/[a-z_A-Z]+/g) || []).sort() : null, codes);
+    var picker = /<select id="language"[\s\S]*?<\/select>/.exec(source);
+    var offered = picker ? (picker[0].match(/value="[^"]+"/g) || [])
+      .map(function (v) { return v.slice(7, -1); }).sort() : null;
+    check('i18n: the language picker offers every language', offered, codes);
 
     check('i18n: every locale folder is a name the Web Store accepts',
       locales.map(function (l) { return l.code; })
@@ -558,9 +568,12 @@ function assertOptions() {
   check('options: name filled in', first.querySelector('.rule__name').value, 'TEST');
   check('options: color field filled in', first.querySelector('input[type="color"][data-path="color"]').value, '#bc0000');
   check('options: no preview on a rule anymore', first.querySelector('[data-preview]'), null);
+  // With no rule clicked, a style preview borrows the rule the test URL gets.
   check('options: ribbon preview text lives on the style',
     styleOne.querySelector('[data-preview-brand]').textContent,
-    'Dynamics 365 Business Central - Sandbox - CRONUS BE (Standaard)');
+    'Dynamics 365 Business Central - Sandbox - CRONUS BE (TEST)');
+  check('options: style preview takes the matching rule colour',
+    styleOne.querySelector('[data-preview-frame]').style.borderColor, 'rgb(188, 0, 0)');
   check('options: the rule that wins has its colour all round',
     [first.classList.contains('rule--wins'), cards[1].classList.contains('rule--wins')], [true, false]);
   check('options: the ring is in the rule colour',
@@ -574,6 +587,33 @@ function assertOptions() {
     first.querySelector('[data-match]').textContent, chrome.i18n.getMessage('matchYes'));
   check('a11y: the others say nothing',
     cards[1].querySelector('[data-match]').textContent, '');
+
+  // No rule matches: the style preview turns neutral and shows the style name.
+  testUrl.value = 'https://example.com/';
+  testUrl.dispatchEvent(new Event('input'));
+  styleOne = document.querySelectorAll('#styleList .rule')[0];
+  check('options: style preview is neutral when no rule matches',
+    [styleOne.querySelector('[data-preview-frame]').style.borderColor,
+      styleOne.querySelector('[data-preview-brand]').textContent.indexOf('(Standaard)') !== -1],
+    ['rgb(3, 131, 135)', true]);
+  testUrl.value = 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
+    'Sandbox?company=CRONUS%20BE&page=1';
+  testUrl.dispatchEvent(new Event('input'));
+
+  // A click on a rule lends its colour and name to every style preview,
+  // even when another rule wins for the test URL.
+  cards = document.querySelectorAll('#ruleList .rule');
+  first = cards[0];
+  cards[1].querySelector('.rule__name').click();
+  styleOne = document.querySelectorAll('#styleList .rule')[0];
+  check('options: a clicked rule colours the style preview',
+    [styleOne.querySelector('[data-preview-frame]').style.borderColor,
+      styleOne.querySelector('[data-preview-brand]').textContent.indexOf('(PROD)') !== -1],
+    ['rgb(16, 124, 16)', true]);
+  check('options: so does the shared style preview',
+    document.querySelector('#hostedStyleList [data-preview-frame]').style.borderColor, 'rgb(16, 124, 16)');
+  check('options: a click does not change which rule wins',
+    first.classList.contains('rule--wins'), true);
   check('a11y: a filled condition announces whether it matches',
     first.querySelector('[data-cond-match]').getAttribute('aria-label'),
     chrome.i18n.getMessage('conditionMatches'));
@@ -892,10 +932,39 @@ function assertOptions() {
   var ribbonInput = styleOne.querySelector('input[data-path="ribbon.text"]');
   ribbonInput.value = '{name} op {environment}';
   ribbonInput.dispatchEvent(new Event('input', { bubbles: true }));
+  // {name} is the rule last clicked: the shared one, expanded above.
   check('options: style preview follows edited text',
-    styleOne.querySelector('[data-preview-brand]').textContent, 'Standaard op Sandbox');
+    styleOne.querySelector('[data-preview-brand]').textContent, 'GEDEELD op Sandbox');
   ribbonInput.value = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
   ribbonInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+  // The banner fills in its placeholders too, as a BC tab would.
+  var bannerOn = styleOne.querySelector('input[data-path="banner.enabled"]');
+  var bannerText = styleOne.querySelector('input[data-path="banner.text"]');
+  bannerOn.checked = true;
+  bannerOn.dispatchEvent(new Event('change', { bubbles: true }));
+  bannerText.value = '{name} - {environment}';
+  bannerText.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: style preview banner fills in placeholders',
+    styleOne.querySelector('[data-preview-banner]').textContent, 'GEDEELD - Sandbox');
+  bannerText.value = '{name}';
+  bannerText.dispatchEvent(new Event('input', { bubbles: true }));
+  bannerOn.checked = false;
+  bannerOn.dispatchEvent(new Event('change', { bubbles: true }));
+
+  // With the favicon on, its row shows the icon a BC tab gets.
+  var faviconOn = styleOne.querySelector('input[data-path="favicon.enabled"]');
+  var faviconImg = styleOne.querySelector('[data-preview-favicon]');
+  faviconOn.checked = true;
+  faviconOn.dispatchEvent(new Event('change', { bubbles: true }));
+  check('options: favicon preview drawn for the borrowed rule',
+    [faviconImg.getAttribute('src') === BCBuddy.drawFavicon('#0f6cbd', 'GEDEELD'),
+      faviconImg.dataset.signature, styleOne.querySelector('.option--off [data-preview-favicon]')],
+    [true, '#0f6cbd|GEDEELD', null]);
+  faviconOn.checked = false;
+  faviconOn.dispatchEvent(new Event('change', { bubbles: true }));
+  truthy('options: favicon preview hidden while the switch is off',
+    !!styleOne.querySelector('.option--off [data-preview-favicon]'));
   first = document.querySelectorAll('#ruleList .rule')[0]; // the cards were redrawn
 
   // pick a color from the palette
@@ -1269,9 +1338,9 @@ function assertNav() {
     document.querySelector('.topbar__actions #globalEnabled'), null);
   check('nav: master toggle is a switch not checkbox',
     getComputedStyle(document.getElementById('globalEnabled')).width, '34px');
-  check('nav: four sections',
-    Array.prototype.map.call(items, function (b) { return b.dataset.panel; }),
-    ['webclient', 'environments', 'settings', 'about']);
+  check('nav: three sections and a help link',
+    Array.prototype.map.call(items, function (b) { return b.dataset.panel || b.getAttribute('href'); }),
+    ['webclient', 'environments', 'settings', 'https://fvet.github.io/bcbuddy/']);
   check('nav: each section has an icon',
     Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 4);
   check('nav: environments is open',
@@ -1289,23 +1358,19 @@ function assertNav() {
   check('nav: clicked section marked', items[2].getAttribute('aria-current'), 'page');
   truthy('nav: choice remembered', STORE.ui && STORE.ui.panel === 'settings');
 
+  check('nav: no About panel any more',
+    document.querySelector('.panel[data-panel="about"]'), null);
+  check('nav: help is a link, not a section', items[3].tagName, 'A');
+  check('nav: help is called Help',
+    items[3].textContent.trim(), chrome.i18n.getMessage('navHelp'));
+  check('nav: help opens in a new tab', items[3].getAttribute('target'), '_blank');
+  check('nav: help gives the site no opener',
+    items[3].getAttribute('rel'), 'noopener noreferrer');
+  // The click would open the site; the panel must not change because of it.
+  items[3].addEventListener('click', function (e) { e.preventDefault(); }, { once: true });
   items[3].click();
-  var about = document.querySelector('.panel[data-panel="about"]');
-  truthy('nav: about section no longer called Help',
-    items[3].textContent.trim() === chrome.i18n.getMessage('navAbout'));
-  truthy('nav: and explains what the extension does',
-    about.querySelector('[data-i18n="aboutIntro"]').textContent.length > 60);
-  check('nav: with the web client paragraph first',
-    about.querySelector('.card p').getAttribute('data-i18n'), 'aboutIntroMaximize');
-  check('nav: with email address',
-    about.querySelector('a[href^="mailto:"]').getAttribute('href'),
-    'mailto:frederic.vercaemst@outlook.com');
-  check('nav: and link to github',
-    about.querySelector('a[href^="https://github.com"]').getAttribute('href'),
-    'https://github.com/fvet/bcbuddy');
-  check('nav: and link to the documentation site',
-    about.querySelector('a[href^="https://fvet.github.io"]').getAttribute('href'),
-    'https://fvet.github.io/bcbuddy/');
+  check('nav: help leaves the open section alone', items[2].getAttribute('aria-current'), 'page');
+  truthy('nav: help does not change the remembered section', STORE.ui.panel === 'settings');
 
   items[1].click(); // back to environments; the rest of the test works with the rules
   return Promise.resolve();
@@ -1379,6 +1444,23 @@ function assertStyles() {
     check('rule: picker selects first style',
       document.querySelectorAll('#ruleList .rule')[0]
         .querySelector('[data-style-picker]').value, 'lay-1');
+
+    // The last style cannot go, and that message leaves once a second is back
+    var status = document.getElementById('stylesStatus');
+    var confirmed = window.confirm;
+    window.confirm = function () { return true; };
+    document.querySelectorAll('#styleList .rule')[1]
+      .querySelector('[data-action="delete"]').click();
+    document.querySelectorAll('#styleList .rule')[0]
+      .querySelector('[data-action="delete"]').click();
+    window.confirm = confirmed;
+    check('style: the last one stays, and says why',
+      [document.querySelectorAll('#styleList .rule').length, status.textContent],
+      [1, chrome.i18n.getMessage('lastStyle')]);
+    document.getElementById('addStyle').click();
+    check('style: the message goes once there are two again',
+      [document.querySelectorAll('#styleList .rule').length, status.textContent], [2, '']);
+    return wait(400);
   });
 }
 
@@ -1628,6 +1710,10 @@ function assertSamples() {
     check('samples: one favicon letter each', STORE.settings.rules.map(function (r) { return r.favicon.text; }),
       ['M', 'P', 'U', 'D']);
     check('samples: no shared rules come from it', STORE.settings.hosted.rules.length, 0);
+    check('samples: Full and Subtle come along, rules on Full',
+      [STORE.settings.styles.slice(-2).map(function (l) { return l.id; }),
+        STORE.settings.rules.map(function (r) { return r.styleId; })],
+      [['full', 'subtle'], ['full', 'full', 'full', 'full']]);
     check('samples: status says how many', status.textContent,
       chrome.i18n.getMessage('samplesAdded', ['4']));
     truthy('samples: the empty message is gone', empty.hidden);

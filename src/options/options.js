@@ -209,6 +209,8 @@
         if (label) label.textContent = wins ? t('matchYes') : '';
       });
     });
+    // Without a clicked rule, the style previews show the winner's colour.
+    page.refreshStylePreviews();
   };
 
   page.renderHosted = function () {
@@ -236,6 +238,13 @@
 
     page.el.emptyStyles.hidden = page.state.settings.styles.length > 0 ||
       page.state.settings.hosted.styles.length > 0;
+
+    // "The last style cannot go" no longer holds once there is a second one,
+    // however it got there: Add style, Load samples, an import.
+    if (page.state.settings.styles.length > 1 &&
+        page.el.stylesStatus.textContent === t('lastStyle')) {
+      page.setStylesStatus('', '');
+    }
   };
 
   page.renderEmptyState = function () {
@@ -363,14 +372,15 @@
   var state = page.state;
   var el = page.el;
 
-  init();
+  // The language picked in the header has to be in before the first text.
+  BCBuddy.loadLanguage().then(init);
 
   function init() {
     document.title = t('optionsTitle');
     BCBuddy.applyI18n();
     [
       'status', 'globalEnabled', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
-      'addRule', 'loadSamples', 'samplesStatus', 'hostedUrl', 'syncNow',
+      'addRule', 'loadSamples', 'samplesStatus', 'stylesStatus', 'language', 'hostedUrl', 'syncNow',
       'hostedStatus', 'hostedList', 'importFile', 'importFileBtn',
       'exportDownload', 'transferStatus',
       'addStyle', 'styleList', 'hostedStyleList', 'emptyStyles',
@@ -380,6 +390,8 @@
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
       'dropdownWidth', 'dropdownHeight'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
+
+    bindLanguage();
 
     Promise.all([
       BCBuddy.loadSettings(),
@@ -439,6 +451,32 @@
       if (BCBuddy.hash(incoming) === state.lastWriteHash) return;
       state.settings = incoming;
       page.renderAll();
+    });
+  }
+
+  /* -------------------------------------------------------------- language */
+
+  /**
+   * The picker in the header. Until someone picks, it shows the language
+   * Chrome chose from the browser's, and nothing is stored, so BC Buddy keeps
+   * following the browser. A new choice reloads the page, which is the
+   * simplest way to redraw every text; another options page that is open
+   * follows through the storage event.
+   */
+  function bindLanguage() {
+    var key = BCBuddy.LANGUAGE_KEY;
+    chrome.storage.local.get(key).then(function (stored) {
+      el.language.value = BCBuddy.normalizeLanguage(stored && stored[key]) || BCBuddy.currentLanguage();
+    });
+    el.language.addEventListener('change', function () {
+      var lang = BCBuddy.normalizeLanguage(el.language.value);
+      if (!lang) return;
+      BCBuddy.saveLanguage(lang).then(function () { location.reload(); });
+    });
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area !== 'local' || !changes[key]) return;
+      var lang = BCBuddy.normalizeLanguage(changes[key].newValue) || BCBuddy.currentLanguage();
+      if (lang !== el.language.value) location.reload();
     });
   }
 
@@ -576,6 +614,10 @@
     // Shared rules and styles are read-only, but can still be expanded.
     el.hostedList.addEventListener('click', page.onRuleClick);
     el.hostedStyleList.addEventListener('click', page.onRuleClick);
+    // Tabbing into a rule shows the styles in its colour, as a click does.
+    [el.ruleList, el.hostedList].forEach(function (list) {
+      list.addEventListener('focusin', function (event) { page.pickRule(event.target.closest('.rule')); });
+    });
 
     el.clearShared.addEventListener('click', page.clearSharedRules);
 
@@ -686,7 +728,8 @@
    * page reopens where you left off.
    */
   function bindNav() {
-    document.querySelectorAll('.nav__item').forEach(function (button) {
+    // Only the sections: Help is a plain link to the documentation site.
+    document.querySelectorAll('.nav__item[data-panel]').forEach(function (button) {
       button.addEventListener('click', function () {
         goToPanel(button.dataset.panel);
       });

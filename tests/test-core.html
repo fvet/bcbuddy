@@ -1360,10 +1360,10 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   var withMine = BCBuddy.normalize({
     rules: [{ id: 'own', name: ' production ', color: '#0f6cbd', styleId: 'mine',
       conditions: [{ field: 'environment', op: 'equals', value: 'PRD' }] }],
-    styles: [{ id: 'mine', name: 'Default', border: { width: 5 } }]
+    styles: [{ id: 'mine', name: 'Full', border: { width: 5 } }]
   });
   check('samples: a name you already use is skipped',
-    BCBuddy.addSamples(withMine, samples), { added: 3, skipped: 1 });
+    BCBuddy.addSamples(withMine, samples), { added: 3, skipped: 1, styles: 1 });
   // Your production counts as the Production sample, so Master Data goes
   // before it, as in the file.
   check('samples: around the one you already have, in file order',
@@ -1371,15 +1371,15 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     ['Master Data', 'production', 'UAT', 'Development']);
   check('samples: your rule is left alone',
     [withMine.rules[1].id, withMine.rules[1].color], ['own', '#0f6cbd']);
-  check('samples: your Default style is kept, not added again',
-    withMine.styles.map(function (l) { return [l.id, l.border.width]; }), [['mine', 5]]);
+  check('samples: your Full style is kept, not added again; Subtle is added',
+    withMine.styles.map(function (l) { return [l.id, l.border.width]; }), [['mine', 5], ['subtle', 3]]);
   check('samples: and the samples point at it',
     withMine.rules.map(function (r) { return r.styleId; }), ['mine', 'mine', 'mine', 'mine']);
   check('samples: loading again adds nothing',
-    [BCBuddy.addSamples(withMine, samples), withMine.rules.length], [{ added: 0, skipped: 4 }, 4]);
+    [BCBuddy.addSamples(withMine, samples), withMine.rules.length], [{ added: 0, skipped: 4, styles: 0 }, 4]);
   var fresh = BCBuddy.normalize({});
   check('samples: a fresh install gets all four',
-    BCBuddy.addSamples(fresh, samples), { added: 4, skipped: 0 });
+    BCBuddy.addSamples(fresh, samples), { added: 4, skipped: 0, styles: 2 });
 
   // A deleted sample comes back in its place, whatever order the file has.
   function sampleNames(settings) { return settings.rules.map(function (r) { return r.name; }); }
@@ -1401,8 +1401,51 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   BCBuddy.addSamples(deleted, samples);
   check('samples: the last one goes after the samples, not after your rules',
     sampleNames(deleted), inFile.concat(['Shop']));
-  check('samples: on the Default style',
-    [fresh.styles.length, fresh.rules[0].styleId], [1, BCBuddy.DEFAULT_STYLE_ID]);
+  check('samples: Full and Subtle replace the untouched Default, rules on Full',
+    [fresh.styles.map(function (l) { return l.id; }), fresh.rules[0].styleId],
+    [['full', 'subtle'], 'full']);
+  var keepDefault = BCBuddy.normalize({ styles: [{ id: BCBuddy.DEFAULT_STYLE_ID, name: 'Default' }],
+    rules: [{ id: 'mine', name: 'Shop', conditions: [{ field: 'url', op: 'contains', value: 'shop' }] }] });
+  BCBuddy.addSamples(keepDefault, samples);
+  check('samples: a Default your rules use stays',
+    keepDefault.styles.map(function (l) { return l.id; }), [BCBuddy.DEFAULT_STYLE_ID, 'full', 'subtle']);
+
+  // Loaded the samples before they came with styles: the styles still come
+  var before = BCBuddy.normalize({ rules: samples.rules.map(function (r) {
+    var old = JSON.parse(JSON.stringify(r));
+    old.styleId = BCBuddy.DEFAULT_STYLE_ID;
+    return old;
+  }) });
+  check('samples: missing styles come even when every rule is skipped',
+    [BCBuddy.addSamples(before, samples), before.styles.map(function (l) { return l.id; })],
+    [{ added: 0, skipped: 4, styles: 2 }, [BCBuddy.DEFAULT_STYLE_ID, 'full', 'subtle']]);
+  check('samples: and your rules keep the style they had',
+    before.rules.map(function (r) { return r.styleId; }),
+    [0, 1, 2, 3].map(function () { return BCBuddy.DEFAULT_STYLE_ID; }));
+
+  // A first install starts with the sample styles
+  check('samples: the styles are Full and Subtle',
+    samples.styles.map(function (l) { return [l.id, l.name]; }), [['full', 'Full'], ['subtle', 'Subtle']]);
+  check('samples: Full shows everything',
+    BCBuddy.DISPLAY_KEYS.map(function (key) { return samples.styles[0][key].enabled; }),
+    [true, true, true, true, true]);
+  check('samples: Subtle colours the ribbon only, with BC\'s own text',
+    BCBuddy.DISPLAY_KEYS.map(function (key) { return samples.styles[1][key].enabled; })
+      .concat([samples.styles[1].ribbon.text]),
+    [false, false, true, false, false, '']);
+  check('samples: named in the browser language',
+    BCBuddy.localizeSamples(BCBuddy.parseImport(JSON.stringify(BCBuddy.toExport(
+      { rules: [], styles: samples.styles })))).styles.map(function (l) { return l.name; }),
+    [chrome.i18n.getMessage('fullStyleName'), chrome.i18n.getMessage('subtleStyleName')]);
+  check('samples: every rule on Full',
+    samples.rules.map(function (r) { return r.styleId; }), ['full', 'full', 'full', 'full']);
+  var installed = BCBuddy.normalize({});
+  check('seed: a fresh install gets the sample styles',
+    [BCBuddy.seedStyles(installed, samples), installed.styles.map(function (l) { return l.id; })],
+    [true, ['full', 'subtle']]);
+  check('seed: survives normalize', BCBuddy.normalize(installed).styles.length, 2);
+  check('seed: not twice', BCBuddy.seedStyles(installed, samples), false);
+  check('seed: not over settings someone already has', BCBuddy.seedStyles(withMine, samples), false);
 
   // styles travel along in import and export
   var withStyleExported = BCBuddy.toExport(BCBuddy.normalize({ rules: [linkedRule], styles: [style] }));
@@ -1828,6 +1871,56 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       '<div aria-label="Microsoft 365"><div id="o365sectionexpandlink" role="button">View all</div></div></div>' +
       '</div></div></div></div></div></div>';
     return container;
+  }
+
+  /**
+   * The language picked on the options page. On a test page i18n.js is not in
+   * an extension context, so it asks the "service worker" (this sendMessage).
+   */
+  function languageOverride() {
+    var send = chrome.runtime.sendMessage;
+    var asked = [];
+    chrome.runtime.sendMessage = function (message) {
+      asked.push(message);
+      return Promise.resolve({ newRuleName: 'Nouvelle règle', errHttp: 'HTTP $1 ($2) $$', bad: 7,
+        fullStyleName: 'Complet' });
+    };
+    function restore() {
+      chrome.runtime.sendMessage = send;
+      delete STORE[BCBuddy.LANGUAGE_KEY];
+      return BCBuddy.loadLanguage();
+    }
+    check('language: unknown choice means browser', BCBuddy.normalizeLanguage('de'), '');
+    check('language: known choice kept', BCBuddy.normalizeLanguage('fr'), 'fr');
+    STORE[BCBuddy.LANGUAGE_KEY] = 'en';
+    return BCBuddy.loadLanguage().then(function (lang) {
+      check('language: same as the browser loads nothing', lang + '|' + asked.length, '|0');
+      STORE[BCBuddy.LANGUAGE_KEY] = '<script>';
+      return BCBuddy.loadLanguage();
+    }).then(function (lang) {
+      check('language: a stored value off the list is ignored', lang + '|' + asked.length, '|0');
+      STORE[BCBuddy.LANGUAGE_KEY] = 'fr';
+      return BCBuddy.loadLanguage();
+    }).then(function (lang) {
+      check('language: override loaded', lang, 'fr');
+      check('language: asked the worker for fr', asked[0] && asked[0].type + ':' + asked[0].lang, 'bcb:messages:fr');
+      check('language: t() uses the override', BCBuddy.t('newRuleName'), 'Nouvelle règle');
+      check('language: substitutions and $$', BCBuddy.t('errHttp', [404, 'Not Found']), 'HTTP 404 (Not Found) $');
+      check('language: missing key falls back to Chrome', BCBuddy.t('rulesHeading'), chrome.i18n.getMessage('rulesHeading'));
+      check('language: non-string value dropped', BCBuddy.t('bad'), 'bad');
+      check('language: current language', BCBuddy.currentLanguage(), 'fr');
+      var named = BCBuddy.localizeSamples({ rules: [], styles: [
+        BCBuddy.normalizeStyle({ id: 'full', name: 'Full' }),
+        BCBuddy.normalizeStyle({ id: 'mine', name: 'Full' }),
+        BCBuddy.normalizeStyle({ id: '__proto__', name: 'Odd' })] });
+      check('language: sample styles named in the chosen language, others left alone',
+        named.styles.map(function (l) { return l.name; }), ['Complet', 'Full', 'Odd']);
+      return restore();
+    }).then(function (lang) {
+      check('language: back to the browser', lang + '|' + BCBuddy.t('newRuleName'), '|' + chrome.i18n.getMessage('newRuleName'));
+    }, function (err) {
+      return restore().then(function () { throw err; });
+    });
   }
 
   function gearDom() {
@@ -2537,6 +2630,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
           results.push('FAIL  many rules DOM: ' + err.message);
         }).then(navigationDom).then(null, function (err) {
           results.push('FAIL  navigation DOM: ' + err.message);
+        }).then(languageOverride).then(null, function (err) {
+          results.push('FAIL  language override: ' + err.message);
         }).then(restoreSeed).then(function () {
           var failed = results.filter(function (line) { return line.indexOf('FAIL') === 0; });
           document.getElementById('results').textContent =

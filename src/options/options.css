@@ -17,6 +17,20 @@
   --brand-mark: #505c6d;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 12px rgba(16, 24, 40, .05);
+  /* A black header, like the documentation site's: the grey and the cyan of
+     the logo stay legible on it, and it sets the page off from the browser. */
+  --topbar-bg: #000000;
+  --topbar-border: #000000;
+  --topbar-text: #ffffff;
+  --topbar-muted: #b4bbc5;
+  --topbar-mark: #a7adb6;
+  --topbar-ok: #6ccb5f;
+  --topbar-danger: #ff8a99;
+  --topbar-control: rgba(255, 255, 255, .28);
+  /* The select's list is drawn by the system, light or dark at its own
+     choice: give the options the page's colours, not the header's. */
+  --topbar-option-bg: #ffffff;
+  --topbar-option-text: #1b1e23;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -31,6 +45,16 @@
     --accent-text: #0b1220;
     --brand-mark: #a7adb6;
     --shadow: none;
+    --topbar-bg: var(--surface);
+    --topbar-border: var(--border);
+    --topbar-text: var(--text);
+    --topbar-muted: var(--muted);
+    --topbar-mark: var(--brand-mark);
+    --topbar-ok: var(--ok);
+    --topbar-danger: var(--danger);
+    --topbar-control: var(--border);
+    --topbar-option-bg: var(--surface);
+    --topbar-option-text: var(--text);
   }
 }
 
@@ -76,13 +100,35 @@ a { color: var(--accent); }
   gap: 16px;
   flex-wrap: wrap;
   padding: 14px 24px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--topbar-border);
+  /* Dark in both themes, so native controls in it are too. */
+  color-scheme: dark;
+  --text: var(--topbar-text);
+  --muted: var(--topbar-muted);
+  --brand-mark: var(--topbar-mark);
+  --ok: var(--topbar-ok);
+  --danger: var(--topbar-danger);
+  color: var(--text);
 }
 
 .topbar__brand { display: flex; align-items: center; gap: 12px; }
 .topbar__brand p { margin: 2px 0 0; font-size: 12.5px; }
 .topbar__actions { display: flex; align-items: center; gap: 16px; }
+
+/* The language picker: a globe and a quiet select, not a form field. */
+.language { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.language__icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.3; }
+.language select {
+  width: auto;
+  background: transparent;
+  color: var(--text);
+  border-color: var(--topbar-control);
+  padding: 5px 8px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.language option { background: var(--topbar-option-bg); color: var(--topbar-option-text); }
 
 /* The brand: BC with the cut-out the dot sits against. That dot takes the
    colour of the rule that matches the test URL (see options.js). */
@@ -128,6 +174,7 @@ a { color: var(--accent); }
   font: inherit;
   font-size: 13.5px;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
 .nav__item:hover { background: var(--surface-2); color: var(--text); }
@@ -162,6 +209,8 @@ a { color: var(--accent); }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* Help leaves the page: a small arrow on the right says so. */
+.nav__external { width: 12px; height: 12px; margin-left: auto; opacity: .7; }
 
 .panel { display: flex; flex-direction: column; gap: 26px; }
 .panel[hidden] { display: none; }
@@ -194,6 +243,8 @@ section { display: flex; flex-direction: column; gap: 10px; }
 }
 .section-head h2 { white-space: nowrap; }
 .section-head .row { width: auto; margin-left: auto; }
+/* A heading with its add (+) button right beside it. */
+.section-title { display: flex; align-items: center; gap: 4px; }
 
 .card {
   background: var(--surface);
@@ -401,7 +452,11 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 }
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .icon-btn--danger:hover { background: rgba(196, 49, 75, .12); color: var(--danger); }
-
+/* Add (+) beside a section heading: in the accent colour, so it still reads
+   as the section's main action without a label. */
+.icon-btn--add { display: inline-flex; padding: 4px; color: var(--accent); }
+.icon-btn--add:hover { color: var(--accent); }
+.icon-btn--add .btn__icon { width: 18px; height: 18px; stroke-width: 1.6; }
 .grid { display: flex; flex-wrap: wrap; gap: 12px; }
 .grid--two > * { flex: 1 1 320px; }
 /* Top-align so Colour (short swatch) shares a baseline with Text colour / Style. */
@@ -673,6 +728,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 /* The preview has its own background (a BC page), separate from the page
    theme; text on it follows that background, not the tokens. */
 .preview__page { color: #6b7280; font-size: 12px; }
+.preview__favicon { display: block; width: 24px; height: 24px; }
 
 @media (prefers-color-scheme: dark) {
   .preview__frame { background: #2b2f36; }
@@ -724,9 +780,11 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   text-decoration: underline;
   cursor: pointer;
 }
-/* Docs link on the left, the reset message on the right of the same line. */
-.webclient-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; }
-.webclient-foot > p { margin: 0; }
-.webclient-foot > .sync-status { margin-left: auto; text-align: right; }
+/* Docs link on the left, the section's message on the right of the same line. */
+.section-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; }
+.section-foot > p { margin: 0; }
+.section-foot > .sync-status { margin-left: auto; text-align: right; }
+/* Feedback on the rules sits on the right, like the other sections. */
+#samplesStatus { text-align: right; }
 .card > .sync-status:empty,
 section > .sync-status:empty { display: none; }

@@ -2,13 +2,40 @@
   "app": "bc-buddy",
   "version": 2,
   "name": "BC Buddy samples",
-  "exportedAt": "2026-10-17T00:00:00.000Z",
+  "exportedAt": "2026-10-18T00:00:00.000Z",
   "styles": [
     {
-      "id": "default",
-      "name": "Default",
+      "id": "full",
+      "name": "Full",
       "border": {
         "enabled": true,
+        "width": 3
+      },
+      "banner": {
+        "enabled": true,
+        "position": "bottom-left",
+        "text": "{name}",
+        "fontSize": 0,
+        "opacity": 0.5
+      },
+      "ribbon": {
+        "enabled": true,
+        "text": "Dynamics 365 Business Central - {company} ({environment})"
+      },
+      "title": {
+        "enabled": true,
+        "text": "[{name}] {title}"
+      },
+      "favicon": {
+        "enabled": true,
+        "text": ""
+      }
+    },
+    {
+      "id": "subtle",
+      "name": "Subtle",
+      "border": {
+        "enabled": false,
         "width": 3
       },
       "banner": {
@@ -20,7 +47,7 @@
       },
       "ribbon": {
         "enabled": true,
-        "text": "Dynamics 365 Business Central - {company} ({environment})"
+        "text": ""
       },
       "title": {
         "enabled": false,
@@ -46,7 +73,7 @@
       ],
       "color": "#eaa300",
       "textColor": "auto",
-      "styleId": "default",
+      "styleId": "full",
       "favicon": {
         "text": "M"
       }
@@ -64,7 +91,7 @@
       ],
       "color": "#107c10",
       "textColor": "auto",
-      "styleId": "default",
+      "styleId": "full",
       "favicon": {
         "text": "P"
       }
@@ -82,7 +109,7 @@
       ],
       "color": "#c4314b",
       "textColor": "auto",
-      "styleId": "default",
+      "styleId": "full",
       "favicon": {
         "text": "U"
       }
@@ -100,7 +127,7 @@
       ],
       "color": "#0f6cbd",
       "textColor": "auto",
-      "styleId": "default",
+      "styleId": "full",
       "favicon": {
         "text": "D"
       }

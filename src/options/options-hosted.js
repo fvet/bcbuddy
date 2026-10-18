@@ -176,14 +176,18 @@
           });
         }).then(function (text) {
           if (text === null) return;
-          var stats = BCBuddy.addSamples(state.settings, BCBuddy.parseImport(text));
-          if (stats.added) {
+          var samples = BCBuddy.localizeSamples(BCBuddy.parseImport(text));
+          var stats = BCBuddy.addSamples(state.settings, samples);
+          if (stats.added || stats.styles) {
             page.save();
             page.renderStyles();
             page.renderRules(); // rule dropdowns now include the sample style
             page.renderParsed();
           }
-          page.setSamplesStatus(stats.added ? t('samplesAdded', [stats.added]) : t('samplesNone'), 'ok');
+          var status = stats.added ? t('samplesAdded', [stats.added])
+            : stats.styles ? t('samplesStylesAdded', [stats.styles])
+            : t('samplesNone');
+          page.setSamplesStatus(status, 'ok');
         }).catch(function (err) {
           page.setSamplesStatus(t('samplesFailed', [String(err && err.message || err)]), 'error');
         });

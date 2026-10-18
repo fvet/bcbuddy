@@ -695,8 +695,9 @@
    * Adds the sample rules (parsed with parseImport) to `settings` as own
    * rules. Unlike an import nothing is overwritten: a sample whose id or name
    * you already use is skipped, and a sample style you already have by name
-   * is not added again; the sample rules then point at yours. Returns how
-   * many rules were added and skipped.
+   * is not added again; the sample rules then point at yours. A bare Default
+   * no rule uses yet gives way to the sample styles. Returns how many rules
+   * were added and skipped, and how many styles were added.
    *
    * A sample you deleted comes back where it was among the samples you kept:
    * before the next sample in the file you still have, otherwise after the
@@ -704,14 +705,17 @@
    */
   function addSamples(settings, samples) {
     var rules = settings.rules.slice();
-    var styles = settings.styles.slice();
+    // Nothing set up yet: the sample styles replace the bare Default.
+    var styles = untouched(settings) ? [] : settings.styles.slice();
     var styleIds = {};
-    var stats = { added: 0, skipped: 0 };
+    var stats = { added: 0, skipped: 0, styles: 0 };
 
     samples.styles.forEach(function (style) {
       var mine = findSame(styles, style);
       styleIds[style.id] = mine ? mine.id : style.id;
-      if (!mine) styles.push(style);
+      if (mine) return;
+      styles.push(style);
+      stats.styles++;
     });
     var at = -1; // where the next sample goes: after the last one placed
     samples.rules.forEach(function (sample, index) {
@@ -736,12 +740,46 @@
       stats.added++;
     });
 
-    // Only bring the styles along when a rule came with them.
-    if (stats.added) {
-      settings.rules = rules;
-      settings.styles = withDefaultStyle(styles, rules);
-    }
+    // A sample style you lack comes along even when every rule is skipped, so
+    // someone who loaded the samples before the styles existed gets them too.
+    if (stats.added) settings.rules = rules;
+    if (stats.added || stats.styles) settings.styles = withDefaultStyle(styles, settings.rules);
     return stats;
+  }
+
+  // The packaged sample styles by id, with the message that names them.
+  var SAMPLE_STYLE_NAMES = { full: 'fullStyleName', subtle: 'subtleStyleName' };
+
+  /**
+   * Names the packaged sample styles in the language BC Buddy is in, so
+   * someone who installs it in Dutch gets Volledig and Subtiel. Only for the
+   * packaged samples file: a shared or imported file keeps its own names.
+   */
+  function localizeSamples(samples) {
+    samples.styles.forEach(function (style) {
+      if (!Object.prototype.hasOwnProperty.call(SAMPLE_STYLE_NAMES, style.id)) return;
+      var key = SAMPLE_STYLE_NAMES[style.id];
+      var name = BCBuddy.t(key);
+      if (name && name !== key) style.name = name;
+    });
+    return samples;
+  }
+
+  /**
+   * A first install starts with the sample styles (parsed with parseImport)
+   * instead of the bare Default. Only while nothing is set up yet: no own
+   * rules and only that Default. Returns true when the styles were replaced.
+   */
+  function seedStyles(settings, samples) {
+    if (!untouched(settings) || !samples.styles.length) return false;
+    settings.styles = samples.styles.slice();
+    return true;
+  }
+
+  /** No own rules and only the Default that normalize() adds. */
+  function untouched(settings) {
+    var styles = settings.styles;
+    return !settings.rules.length && styles.length === 1 && styles[0].id === DEFAULT_STYLE_ID;
   }
 
   /** Stable, short hash to tell whether a shared file has changed. */
@@ -888,6 +926,8 @@
   BCBuddy.mergeRules = mergeRules;
   BCBuddy.mergeStyles = mergeStyles;
   BCBuddy.addSamples = addSamples;
+  BCBuddy.seedStyles = seedStyles;
+  BCBuddy.localizeSamples = localizeSamples;
   // Packaged with the extension and the same file as the shared example on
   // the site, so there is one copy of the samples.
   BCBuddy.SAMPLES_PATH = 'examples/bc-buddy.json';

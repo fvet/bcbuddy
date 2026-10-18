@@ -3,15 +3,23 @@
 A **style** decides what a marking looks like: the coloured bar at the top, a
 frame, a banner. The colour itself comes from the rule.
 
-Several rules can share one style, so you set it up once. Every new rule gets
-the style called *Default*, which colours the bar at the top and draws a frame
-around the window. That is enough for most people; change it only if you want
-more.
+Several rules can share one style, so you set it up once. You start with two:
+
+- *Full* shows everything below: the bar at the top, a frame, a banner in the
+  bottom-left corner, the tab title and the tab icon. New rules get this one.
+- *Subtle* only colours the bar at the top and leaves its text as it is.
+
+Pick one on each rule, change them, or add your own. They are named in the
+language you install BC Buddy in: *Volledig* and *Subtiel* in Dutch, *Complet*
+and *Discret* in French.
 
 <figure markdown>
 ![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](assets/screenshot-2-1280x800.png)
 <figcaption>The preview at the top shows the result while you change the style.</figcaption>
 </figure>
+
+The preview uses the colour and name of the rule you clicked last. Until you
+click one, it uses the rule that fits the address under **Test**.
 
 ## What a style can show
 

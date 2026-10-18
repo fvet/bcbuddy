@@ -13,12 +13,16 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Added
 
+- **Choose the language** of BC Buddy with the globe at the top right of its
+  settings: English, Nederlands or Français, whatever language your browser
+  is in. Until you choose, it follows your browser.
 - **Reset to defaults** under **Web client** puts every switch and slider back
   to how BC Buddy starts out, or to your team's choices when you use a shared
   file. **Undo** takes it back.
 - **Load samples** under **Environments** adds four ready-made rules of your
   own: Master Data in yellow, Production in green, UAT in red and Development
-  in blue. Rules you already have stay as they are. Not shown when your IT
+  in blue, with the styles *Full* and *Subtle*. Rules you already have stay
+  as they are. Not shown when your IT
   department installed BC Buddy or set a shared file.
 - **Several values in one condition**: **contains** and **does not contain**
   take a list separated by commas, so one rule can cover several
