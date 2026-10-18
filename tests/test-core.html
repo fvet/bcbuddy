@@ -1363,7 +1363,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     styles: [{ id: 'mine', name: 'Full', border: { width: 5 } }]
   });
   check('samples: a name you already use is skipped',
-    BCBuddy.addSamples(withMine, samples), { added: 3, skipped: 1 });
+    BCBuddy.addSamples(withMine, samples), { added: 3, skipped: 1, styles: 1 });
   // Your production counts as the Production sample, so Master Data goes
   // before it, as in the file.
   check('samples: around the one you already have, in file order',
@@ -1376,10 +1376,10 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('samples: and the samples point at it',
     withMine.rules.map(function (r) { return r.styleId; }), ['mine', 'mine', 'mine', 'mine']);
   check('samples: loading again adds nothing',
-    [BCBuddy.addSamples(withMine, samples), withMine.rules.length], [{ added: 0, skipped: 4 }, 4]);
+    [BCBuddy.addSamples(withMine, samples), withMine.rules.length], [{ added: 0, skipped: 4, styles: 0 }, 4]);
   var fresh = BCBuddy.normalize({});
   check('samples: a fresh install gets all four',
-    BCBuddy.addSamples(fresh, samples), { added: 4, skipped: 0 });
+    BCBuddy.addSamples(fresh, samples), { added: 4, skipped: 0, styles: 2 });
 
   // A deleted sample comes back in its place, whatever order the file has.
   function sampleNames(settings) { return settings.rules.map(function (r) { return r.name; }); }
@@ -1409,6 +1409,19 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   BCBuddy.addSamples(keepDefault, samples);
   check('samples: a Default your rules use stays',
     keepDefault.styles.map(function (l) { return l.id; }), [BCBuddy.DEFAULT_STYLE_ID, 'full', 'subtle']);
+
+  // Loaded the samples before they came with styles: the styles still come
+  var before = BCBuddy.normalize({ rules: samples.rules.map(function (r) {
+    var old = JSON.parse(JSON.stringify(r));
+    old.styleId = BCBuddy.DEFAULT_STYLE_ID;
+    return old;
+  }) });
+  check('samples: missing styles come even when every rule is skipped',
+    [BCBuddy.addSamples(before, samples), before.styles.map(function (l) { return l.id; })],
+    [{ added: 0, skipped: 4, styles: 2 }, [BCBuddy.DEFAULT_STYLE_ID, 'full', 'subtle']]);
+  check('samples: and your rules keep the style they had',
+    before.rules.map(function (r) { return r.styleId; }),
+    [0, 1, 2, 3].map(function () { return BCBuddy.DEFAULT_STYLE_ID; }));
 
   // A first install starts with the sample styles
   check('samples: the styles are Full and Subtle',

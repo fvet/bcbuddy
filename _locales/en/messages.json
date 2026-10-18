@@ -59,12 +59,16 @@
     "description": "Link text inside emptyRules and emptyRulesSamples; opens the file picker for an import."
   },
   "loadSamples": { "message": "Load samples" },
-  "loadSamplesTitle": { "message": "Add ready-made rules for Master Data, Production, UAT and Development. Rules you already have stay as they are." },
+  "loadSamplesTitle": { "message": "Add ready-made rules for Master Data, Production, UAT and Development, and the styles Full and Subtle. Rules and styles you already have stay as they are." },
   "samplesAdded": {
     "message": "$1 sample rule(s) added. Change them like any rule of your own.",
     "description": "$1 is a number of rules."
   },
-  "samplesNone": { "message": "The samples are already in your rules." },
+  "samplesStylesAdded": {
+    "message": "$1 sample style(s) added. Pick one on a rule to use it.",
+    "description": "$1 is a number of styles. Shown when the sample rules were already there and only their styles were missing."
+  },
+  "samplesNone": { "message": "The sample rules and styles are already there." },
   "samplesFailed": {
     "message": "Could not load the samples: $1",
     "description": "$1 is the reason."

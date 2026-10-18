@@ -697,7 +697,7 @@
    * you already use is skipped, and a sample style you already have by name
    * is not added again; the sample rules then point at yours. A bare Default
    * no rule uses yet gives way to the sample styles. Returns how many rules
-   * were added and skipped.
+   * were added and skipped, and how many styles were added.
    *
    * A sample you deleted comes back where it was among the samples you kept:
    * before the next sample in the file you still have, otherwise after the
@@ -708,12 +708,14 @@
     // Nothing set up yet: the sample styles replace the bare Default.
     var styles = untouched(settings) ? [] : settings.styles.slice();
     var styleIds = {};
-    var stats = { added: 0, skipped: 0 };
+    var stats = { added: 0, skipped: 0, styles: 0 };
 
     samples.styles.forEach(function (style) {
       var mine = findSame(styles, style);
       styleIds[style.id] = mine ? mine.id : style.id;
-      if (!mine) styles.push(style);
+      if (mine) return;
+      styles.push(style);
+      stats.styles++;
     });
     var at = -1; // where the next sample goes: after the last one placed
     samples.rules.forEach(function (sample, index) {
@@ -738,11 +740,10 @@
       stats.added++;
     });
 
-    // Only bring the styles along when a rule came with them.
-    if (stats.added) {
-      settings.rules = rules;
-      settings.styles = withDefaultStyle(styles, rules);
-    }
+    // A sample style you lack comes along even when every rule is skipped, so
+    // someone who loaded the samples before the styles existed gets them too.
+    if (stats.added) settings.rules = rules;
+    if (stats.added || stats.styles) settings.styles = withDefaultStyle(styles, settings.rules);
     return stats;
   }
 

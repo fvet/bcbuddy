@@ -147,7 +147,7 @@ Master Data comes first, so a master data company shows yellow even in
 production. They use the *Full* style; pick *Subtle* on a rule for a quieter
 marking. Rules you already have stay as they are: a sample with the same name is
 skipped. Deleted a sample? Click **Load samples** again and it comes back in
-its old place. When your IT department installed BC Buddy or set a shared file,
+its old place, and so does a missing *Full* or *Subtle* style. When your IT department installed BC Buddy or set a shared file,
 the button is not there: your colours come from them.
 
 ### Styles

@@ -1693,6 +1693,10 @@ function assertSamples() {
     check('samples: one favicon letter each', STORE.settings.rules.map(function (r) { return r.favicon.text; }),
       ['M', 'P', 'U', 'D']);
     check('samples: no shared rules come from it', STORE.settings.hosted.rules.length, 0);
+    check('samples: Full and Subtle come along, rules on Full',
+      [STORE.settings.styles.slice(-2).map(function (l) { return l.id; }),
+        STORE.settings.rules.map(function (r) { return r.styleId; })],
+      [['full', 'subtle'], ['full', 'full', 'full', 'full']]);
     check('samples: status says how many', status.textContent,
       chrome.i18n.getMessage('samplesAdded', ['4']));
     truthy('samples: the empty message is gone', empty.hidden);
