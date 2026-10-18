@@ -79,7 +79,7 @@ Check the result before using it: the top bar should show only
 | `without-striped-rows` | Sales Orders list (page 9305); Customers has too few rows | off |
 | `with-striped-rows` | Same | on, **Striped rows** switched on |
 | `without-env-colours` | Customers opened as `…/{tenant}/Production?company=CRONUS%20BE&page=22` | off |
-| `with-env-colours` | Same address, rule **PRODUCTION**: **Environment** equals `Production`, green, *Default* layout with a corner banner | on |
+| `with-env-colours` | Same address, rule **PRODUCTION**: **Environment** equals `Production`, green, *Default* style with a corner banner | on |
 
 Order of work, to switch BC Buddy as few times as possible: first every
 "with" shot plus copy values and maximize (BC Buddy on), then the maintainer

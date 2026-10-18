@@ -140,7 +140,7 @@
     page.renderParsed();
     page.renderRules();
     page.renderHosted();
-    page.renderLayouts();
+    page.renderStyles();
   };
 
   page.renderParsed = function () {
@@ -223,19 +223,19 @@
     page.renderHostedStatus();
   };
 
-  page.renderLayouts = function () {
-    page.el.layoutList.textContent = '';
-    page.state.settings.layouts.forEach(function (layout, index) {
-      page.el.layoutList.appendChild(page.createCard(layout, index, { kind: 'layout', readOnly: false }));
+  page.renderStyles = function () {
+    page.el.styleList.textContent = '';
+    page.state.settings.styles.forEach(function (style, index) {
+      page.el.styleList.appendChild(page.createCard(style, index, { kind: 'style', readOnly: false }));
     });
 
-    page.el.hostedLayoutList.textContent = '';
-    page.state.settings.hosted.layouts.forEach(function (layout, index) {
-      page.el.hostedLayoutList.appendChild(page.createCard(layout, index, { kind: 'layout', readOnly: true }));
+    page.el.hostedStyleList.textContent = '';
+    page.state.settings.hosted.styles.forEach(function (style, index) {
+      page.el.hostedStyleList.appendChild(page.createCard(style, index, { kind: 'style', readOnly: true }));
     });
 
-    page.el.emptyLayouts.hidden = page.state.settings.layouts.length > 0 ||
-      page.state.settings.hosted.layouts.length > 0;
+    page.el.emptyStyles.hidden = page.state.settings.styles.length > 0 ||
+      page.state.settings.hosted.styles.length > 0;
   };
 
   page.renderEmptyState = function () {
@@ -301,12 +301,12 @@
     });
   };
 
-  /** Layout a new rule gets: Default, otherwise the first one. */
-  page.defaultLayoutId = function () {
-    var layouts = page.state.settings.layouts;
-    var preferred = BCBuddy.findById(layouts, BCBuddy.DEFAULT_LAYOUT_ID);
+  /** Style a new rule gets: Default, otherwise the first one. */
+  page.defaultStyleId = function () {
+    var styles = page.state.settings.styles;
+    var preferred = BCBuddy.findById(styles, BCBuddy.DEFAULT_STYLE_ID);
     if (preferred) return preferred.id;
-    return layouts.length ? layouts[0].id : '';
+    return styles.length ? styles[0].id : '';
   };
 
   /**
@@ -373,7 +373,7 @@
       'addRule', 'loadSamples', 'samplesStatus', 'hostedUrl', 'syncNow',
       'hostedStatus', 'hostedList', 'importFile', 'importFileBtn',
       'exportDownload', 'transferStatus',
-      'addLayout', 'layoutList', 'hostedLayoutList', 'emptyLayouts',
+      'addStyle', 'styleList', 'hostedStyleList', 'emptyStyles',
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
@@ -538,7 +538,7 @@
         name: draft.name,
         color: BCBuddy.PALETTE[state.settings.rules.length % BCBuddy.PALETTE.length],
         conditions: draft.conditions,
-        layoutId: page.defaultLayoutId()
+        styleId: page.defaultStyleId()
       });
       state.settings.rules.push(rule);
       state.expanded[page.expandKey('rule', rule, false)] = true; // a new rule starts expanded
@@ -553,14 +553,14 @@
       }
     });
 
-    el.addLayout.addEventListener('click', function () {
-      var layout = BCBuddy.newLayout({ name: t('newLayoutName') });
-      state.settings.layouts.push(layout);
-      state.expanded[page.expandKey('layout', layout, false)] = true;
+    el.addStyle.addEventListener('click', function () {
+      var style = BCBuddy.newStyle({ name: t('newStyleName') });
+      state.settings.styles.push(style);
+      state.expanded[page.expandKey('style', style, false)] = true;
       page.save();
-      page.renderLayouts();
-      page.renderRules(); // rule dropdowns now include the new layout
-      var cards = el.layoutList.querySelectorAll('.rule');
+      page.renderStyles();
+      page.renderRules(); // rule dropdowns now include the new style
+      var cards = el.styleList.querySelectorAll('.rule');
       var last = cards[cards.length - 1];
       if (last) {
         last.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -568,14 +568,14 @@
       }
     });
 
-    [el.ruleList, el.layoutList].forEach(function (list) {
+    [el.ruleList, el.styleList].forEach(function (list) {
       list.addEventListener('input', page.onRuleInput);
       list.addEventListener('change', page.onRuleInput);
       list.addEventListener('click', page.onRuleClick);
     });
-    // Shared rules and layouts are read-only, but can still be expanded.
+    // Shared rules and styles are read-only, but can still be expanded.
     el.hostedList.addEventListener('click', page.onRuleClick);
-    el.hostedLayoutList.addEventListener('click', page.onRuleClick);
+    el.hostedStyleList.addEventListener('click', page.onRuleClick);
 
     el.clearShared.addEventListener('click', page.clearSharedRules);
 

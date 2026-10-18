@@ -272,7 +272,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width
 .field--narrow { flex: 0 1 150px; }
 /* The colour block is as wide as the palette, so text colour stays beside it. */
 .field--colour { flex: 0 0 auto; max-width: 100%; }
-.field--layout { flex: 0 1 190px; }
+.field--style { flex: 0 1 190px; }
 /* Same mute as a rule that is off (.rule--disabled). */
 .field--inactive { opacity: .6; }
 
@@ -404,7 +404,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 
 .grid { display: flex; flex-wrap: wrap; gap: 12px; }
 .grid--two > * { flex: 1 1 320px; }
-/* Top-align so Colour (short swatch) shares a baseline with Text colour / Layout. */
+/* Top-align so Colour (short swatch) shares a baseline with Text colour / Style. */
 .grid--style { align-items: start; }
 /* The Colour heading stands in for that field's label: same height, so the
    palette lines up with the selects beside it. */
@@ -483,9 +483,9 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 
 .rule__body { display: flex; flex-direction: column; gap: 14px; }
 
-/* A layout card has no colour of its own, so no coloured edge either. */
-.rule--layout { border-left-color: var(--border); }
-.rule--layout .rule__name { flex: 1 1 220px; }
+/* A style card has no colour of its own, so no coloured edge either. */
+.rule--style { border-left-color: var(--border); }
+.rule--style .rule__name { flex: 1 1 220px; }
 .display { display: flex; flex-direction: column; }
 [data-display][hidden] { display: none; }
 .rule--collapsed .rule__body { display: none; }
@@ -543,7 +543,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .dot-indicator--on { background: var(--ok); }
 .dot-indicator--off { background: var(--danger); }
 
-/* A part of a layout (ribbon, frame, ...), as one row like the Web client
+/* A part of a style (ribbon, frame, ...), as one row like the Web client
    settings: its name, its fields with the caption beside them, and its switch
    on the right. While it is off only the name and the switch remain. What a
    part does is the tooltip on its name. */
@@ -580,7 +580,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .option__body input[type="range"] { width: 90px; }
 .option__body select { width: auto; }
 
-/* The tokens the texts on a layout can use, on one line below its parts. */
+/* The tokens the texts on a style can use, on one line below its parts. */
 .tokens {
   display: flex;
   flex-wrap: wrap;

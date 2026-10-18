@@ -86,7 +86,7 @@ nav:
   - Web client: web-client.md
   - Environment colours:
       - Rules: matching.md
-      - Layouts: layouts.md
+      - Styles: styles.md
   - Sharing with your team:
       - Team file: sharing.md
       - Install with Intune: intune.md

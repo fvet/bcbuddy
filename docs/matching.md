@@ -8,8 +8,8 @@ Each rule has:
 - a **name**, such as `PRODUCTION` or the name of a customer;
 - one or more **conditions**, which say when the rule applies;
 - a **colour**;
-- a **layout**, which decides what the marking looks like: the coloured bar,
-  a frame, a banner. See [Layouts](layouts.md).
+- a **style**, which decides what the marking looks like: the coloured bar,
+  a frame, a banner. See [Styles](styles.md).
 
 ## Conditions
 

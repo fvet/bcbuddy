@@ -171,7 +171,7 @@
       <div class="section-head">
         <h2 data-i18n="testUrlHeading">Test URL</h2>
       </div>
-      <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and layouts below.</p>
+      <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and styles below.</p>
 
       <div class="card tester">
         <div class="field">
@@ -221,19 +221,19 @@
 
     <section>
       <div class="section-head">
-        <h2 data-i18n="layoutsHeading">Layouts</h2>
+        <h2 data-i18n="stylesHeading">Styles</h2>
         <div class="row">
-          <button type="button" class="btn" id="addLayout" data-i18n="addLayout">Add layout</button>
+          <button type="button" class="btn" id="addStyle" data-i18n="addStyle">Add style</button>
         </div>
       </div>
-      <p class="muted small" data-i18n="layoutsIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>
+      <p class="muted small" data-i18n="stylesIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>
       <div class="rules">
-        <div id="layoutList" class="rules"></div>
-        <div id="hostedLayoutList" class="rules rules--readonly"></div>
+        <div id="styleList" class="rules"></div>
+        <div id="hostedStyleList" class="rules rules--readonly"></div>
       </div>
-      <p class="empty" id="emptyLayouts" data-i18n="emptyLayouts" hidden>No layouts yet. Add one to reuse the same appearance across several rules.</p>
+      <p class="empty" id="emptyStyles" data-i18n="emptyStyles" hidden>No styles yet. Add one to reuse the same appearance across several rules.</p>
       <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#environments"
-         target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and layouts</a></p>
+         target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and styles</a></p>
     </section>
 
     </div>
@@ -263,7 +263,7 @@
       <div class="section-head">
         <h2 data-i18n="importExportHeading">Import / export</h2>
       </div>
-      <p class="muted small" data-i18n="importExportIntro">Move your own rules, layouts and Web client settings in one file.</p>
+      <p class="muted small" data-i18n="importExportIntro">Move your own rules, styles and Web client settings in one file.</p>
 
       <!-- Two equal buttons; what an import does is on the page, not in a
            tooltip, because it overwrites things. -->
@@ -323,7 +323,7 @@
   <template id="ruleTemplate">
     <article class="rule">
       <div class="rule__head">
-        <!-- The same triangle as on a layout: a click expands or collapses the
+        <!-- The same triangle as on a style: a click expands or collapses the
              rule, a drag moves it. The colour swatch beside it does the same. -->
         <button type="button" class="icon-btn rule__toggle rule__grip" data-action="toggle" data-grip
                 aria-expanded="false" data-i18n-title="toggleOrDrag">&#9654;</button>
@@ -368,9 +368,9 @@
                 <option value="#000000" data-i18n="textBlack">Black</option>
               </select>
             </label>
-            <label class="field field--layout">
-              <span data-i18n="layoutLabel">Layout</span>
-              <select data-path="layoutId" data-layout-picker></select>
+            <label class="field field--style">
+              <span data-i18n="styleLabel">Style</span>
+              <select data-path="styleId" data-style-picker></select>
             </label>
             <label class="field field--narrow" data-favicon-letters hidden>
               <span data-i18n="faviconLetters">Letters</span>
@@ -456,15 +456,15 @@
     </div>
   </template>
 
-  <template id="layoutTemplate">
-    <article class="rule rule--layout">
+  <template id="styleTemplate">
+    <article class="rule rule--style">
       <div class="rule__head">
         <button type="button" class="icon-btn rule__toggle" data-action="toggle"
                 aria-expanded="false" data-i18n-title="toggleDetails">&#9654;</button>
-        <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="layoutNamePlaceholder">
+        <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="styleNamePlaceholder">
         <div class="rule__tools">
           <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
-          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteLayout">&#10005;</button>
+          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteStyle">&#10005;</button>
         </div>
       </div>
 
@@ -479,9 +479,9 @@
           </div>
         </div>
 
-        <p class="muted small" data-i18n="layoutPreviewNote">Sample colour; every rule keeps its own.</p>
+        <p class="muted small" data-i18n="stylePreviewNote">Sample colour; every rule keeps its own.</p>
 
-        <!-- No heading: a layout card has this one section only. A rule card
+        <!-- No heading: a style card has this one section only. A rule card
              has two, so there Conditions and Colour keep theirs. -->
         <div class="rule__section">
           <div data-display></div>

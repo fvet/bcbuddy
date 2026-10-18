@@ -3,7 +3,7 @@
   "version": 2,
   "name": "BC Buddy samples",
   "exportedAt": "2026-10-17T00:00:00.000Z",
-  "layouts": [
+  "styles": [
     {
       "id": "default",
       "name": "Default",
@@ -46,7 +46,7 @@
       ],
       "color": "#eaa300",
       "textColor": "auto",
-      "layoutId": "default",
+      "styleId": "default",
       "favicon": {
         "text": "M"
       }
@@ -64,7 +64,7 @@
       ],
       "color": "#107c10",
       "textColor": "auto",
-      "layoutId": "default",
+      "styleId": "default",
       "favicon": {
         "text": "P"
       }
@@ -82,7 +82,7 @@
       ],
       "color": "#c4314b",
       "textColor": "auto",
-      "layoutId": "default",
+      "styleId": "default",
       "favicon": {
         "text": "U"
       }
@@ -100,7 +100,7 @@
       ],
       "color": "#0f6cbd",
       "textColor": "auto",
-      "layoutId": "default",
+      "styleId": "default",
       "favicon": {
         "text": "D"
       }

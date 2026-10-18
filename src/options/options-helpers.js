@@ -12,7 +12,7 @@
       var TRIMMED_TYPES = page.TRIMMED_TYPES;
 
       /**
-       * The tokens every text on a layout can use, on one line below its
+       * The tokens every text on a style can use, on one line below its
        * parts. The codes speak for themselves, so the line has no label.
        */
       page.tokenLine = function () {

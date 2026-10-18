@@ -56,7 +56,7 @@ Rather make your own? Then:
    **Environment** **equals** `Sandbox`, in red.
 
 <figure markdown>
-![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](assets/screenshot-3-1280x800.png)
+![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](assets/screenshot-3-1280x800.png)
 <figcaption>The rules list, with one rule opened.</figcaption>
 </figure>
 
@@ -77,4 +77,4 @@ you get everyone's colours in one go. See
 
 - [Web client](web-client.md): what each improvement does, and how to set it.
 - [Rules](matching.md): a colour per customer or per company.
-- [Layouts](layouts.md): a banner, your own text, a marked browser tab.
+- [Styles](styles.md): a banner, your own text, a marked browser tab.

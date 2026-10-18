@@ -78,10 +78,10 @@ You set this up with two lists under **Environments**:
 
 - A **rule** says *which* environment gets *which colour*: a name, one or more
   conditions, a colour, and the letters on the tab icon.
-- A **layout** says *what* the marking looks like. Several rules can share one.
-  The *Default* layout colours the bar at the top and draws a frame.
+- A **style** says *what* the marking looks like. Several rules can share one.
+  The *Default* style colours the bar at the top and draws a frame.
 
-![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](store/screenshot-3-1280x800.png)
+![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](store/screenshot-3-1280x800.png)
 
 ### Rules
 
@@ -148,9 +148,9 @@ skipped. Deleted a sample? Click **Load samples** again and it comes back in
 its old place. When your IT department installed BC Buddy or set a shared file,
 the button is not there: your colours come from them.
 
-### Layouts
+### Styles
 
-A layout can show any of these:
+A style can show any of these:
 
 - **Ribbon**: the bar at the top of Business Central, in the colour of the
   rule, with a text of your own.
@@ -162,7 +162,7 @@ A layout can show any of these:
   `[TEST] Company Information`.
 - **Favicon**: a coloured tab icon with one or two letters.
 
-![The Default layout in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
+![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
 
 The preview at the top shows the result while you change it. The text colour
 is *Automatic*: white or black, whichever reads best on the colour.
@@ -184,7 +184,7 @@ place. The **X** next to *Shared rules* stops using the file.
 
 **Publishing a file:**
 
-1. Click **Export to file**. That saves `bc-buddy.json`, with your rules, layouts and
+1. Click **Export to file**. That saves `bc-buddy.json`, with your rules, styles and
    **Web client** settings.
 2. Put it somewhere everyone can open it over `https://`, such as a repository.
    An ordinary `github.com/.../blob/...` link works. Only use an address you
@@ -305,7 +305,7 @@ More on the website: [Troubleshooting](https://fvet.github.io/bcbuddy/troublesho
 ## 🌍 Languages
 
 BC Buddy is in English, Dutch and French, and follows the language of your browser.
-The texts you type yourself in a rule or layout appear exactly as you type
+The texts you type yourself in a rule or style appear exactly as you type
 them. Would you like it in your own language? See
 [TRANSLATING.md](TRANSLATING.md).
 

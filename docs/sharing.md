@@ -26,8 +26,8 @@ no **X**.
 
 ## Publishing a file for your team
 
-1. Set up your rules and layouts and click **Export to file** under **Settings**. That
-   saves `bc-buddy.json`, with your rules, your layouts and your **Web client**
+1. Set up your rules and styles and click **Export to file** under **Settings**. That
+   saves `bc-buddy.json`, with your rules, your styles and your **Web client**
    settings.
 2. Put that file somewhere everyone can open it with an address starting with
    `https://`, such as a GitHub repository. An ordinary GitHub page link works;

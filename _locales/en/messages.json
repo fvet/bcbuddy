@@ -18,7 +18,7 @@
   },
   "testUrlHeading": { "message": "Test URL" },
   "testUrlIntro": {
-    "message": "Drives the previews of the rules and layouts below.",
+    "message": "Drives the previews of the rules and styles below.",
     "description": "One line under the Test URL heading."
   },
   "testUrlLabel": { "message": "URL of a Business Central page" },
@@ -112,7 +112,7 @@
   },
   "unknownDate": { "message": "unknown" },
   "importExportHeading": { "message": "Import / export" },
-  "importExportIntro": { "message": "Move your own rules, layouts and Web client settings in one file." },
+  "importExportIntro": { "message": "Move your own rules, styles and Web client settings in one file." },
   "importButton": { "message": "Import from file..." },
   "importNote": {
     "message": "Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client settings in the file replace yours. The shared configuration is not touched.",
@@ -168,7 +168,7 @@
   "newRuleName": { "message": "New rule" },
   "copySuffix": {
     "message": "$1 (copy)",
-    "description": "Name of a duplicated rule or layout. $1 is the name of the original."
+    "description": "Name of a duplicated rule or style. $1 is the name of the original."
   },
   "previewPageBc": {
     "message": "Business Central page",
@@ -260,23 +260,23 @@
   },
   "ribbonHint": {
     "message": "BC\u0027s top bar in the rule\u0027s colour",
-    "description": "Tooltip on Ribbon on a layout. BC is short for Business Central and stays as it is."
+    "description": "Tooltip on Ribbon on a style. BC is short for Business Central and stays as it is."
   },
   "borderHint": {
     "message": "A coloured border around the window",
-    "description": "Tooltip on Frame on a layout."
+    "description": "Tooltip on Frame on a style."
   },
   "bannerHint": {
     "message": "A bar or corner ribbon with text",
-    "description": "Tooltip on Banner on a layout: a bar along the bottom, or a diagonal strip across a corner."
+    "description": "Tooltip on Banner on a style: a bar along the bottom, or a diagonal strip across a corner."
   },
   "titleHint": {
     "message": "Text in the browser tab",
-    "description": "Tooltip on Tab title on a layout."
+    "description": "Tooltip on Tab title on a style."
   },
   "faviconHint": {
     "message": "Coloured tab icon with letters",
-    "description": "Tooltip on Replace the favicon on a layout."
+    "description": "Tooltip on Replace the favicon on a style."
   },
   "borderToggle": {
     "message": "Frame",
@@ -398,46 +398,46 @@
     "message": "This file belongs to another application ($1).",
     "description": "$1 is the name of the application the file says it belongs to."
   },
-  "importLayouts": {
-    "message": " Layouts: $1.",
-    "description": "Appended to importDone, which is why it starts with a space. $1 is a number of layouts, see layoutsHeading."
+  "importStyles": {
+    "message": " Styles: $1.",
+    "description": "Appended to importDone, which is why it starts with a space. $1 is a number of styles, see stylesHeading."
   },
   "importWebClient": {
     "message": " Web client: $1 setting(s) changed.",
     "description": "Appended to importDone, which is why it starts with a space. $1 is how many switches or sliders on the Web client panel (see webClientHeading) the file changed."
   },
-  "emptyLayouts": { "message": "No layouts yet. Add one to reuse the same appearance across several rules." },
-  "layoutsIntro": {
+  "emptyStyles": { "message": "No styles yet. Add one to reuse the same appearance across several rules." },
+  "stylesIntro": {
     "message": "What a marker looks like: ribbon, frame, banner, tab title and favicon.",
-    "description": "Explains what a layout holds, see layoutsHeading."
+    "description": "Explains what a style holds, see stylesHeading."
   },
-  "deleteLayout": { "message": "Delete layout" },
-  "deleteLayoutConfirm": {
-    "message": "Delete layout \"$1\"? $2 rule(s) will fall back to their own settings.",
-    "description": "$1 is the name of the layout, $2 a number of rules that were using it."
+  "deleteStyle": { "message": "Delete style" },
+  "deleteStyleConfirm": {
+    "message": "Delete style \"$1\"? $2 rule(s) will fall back to their own settings.",
+    "description": "$1 is the name of the style, $2 a number of rules that were using it."
   },
-  "layoutsHeading": {
-    "message": "Layouts",
-    "description": "A layout here is this extension\u0027s own idea: a saved set of appearance settings that several rules can share. It is not a Business Central report layout."
+  "stylesHeading": {
+    "message": "Styles",
+    "description": "A style here is this extension\u0027s own idea: a saved set of appearance settings that several rules can share. It is not a Business Central report layout, nor the style Business Central gives a field (such as Favorable or Unfavorable)."
   },
-  "newLayoutName": {
-    "message": "New layout",
-    "description": "The name a freshly added layout gets, see layoutsHeading."
+  "newStyleName": {
+    "message": "New style",
+    "description": "The name a freshly added style gets, see stylesHeading."
   },
-  "copiedLayouts": {
-    "message": " Also copied $1 layout(s).",
-    "description": "Appended to copiedToOwn, which is why it starts with a space. $1 is a number of layouts."
+  "copiedStyles": {
+    "message": " Also copied $1 style(s).",
+    "description": "Appended to copiedToOwn, which is why it starts with a space. $1 is a number of styles."
   },
-  "layoutPreviewNote": { "message": "Sample colour; every rule keeps its own." },
-  "layoutLabel": {
-    "message": "Layout",
-    "description": "Label on the field that picks a layout for a rule, see layoutsHeading."
+  "stylePreviewNote": { "message": "Sample colour; every rule keeps its own." },
+  "styleLabel": {
+    "message": "Style",
+    "description": "Label on the field that picks a style for a rule, see stylesHeading."
   },
-  "layoutNamePlaceholder": {
+  "styleNamePlaceholder": {
     "message": "Name (e.g. Default)",
-    "description": "Placeholder in the name field of a layout. Default is an example of what somebody might call one."
+    "description": "Placeholder in the name field of a style. Default is an example of what somebody might call one."
   },
-  "addLayout": { "message": "Add layout" },
+  "addStyle": { "message": "Add style" },
   "navWebClient": {
     "message": "Web client",
     "description": "Navigation item leading to the panel with tweaks to the Business Central web client itself (maximize, dropdown size, current line). Use the term the Business Central documentation uses for the web client in this language."
@@ -550,8 +550,8 @@
   "resetWebClientUndone": { "message": "Your settings are back as they were." },
   "undo": { "message": "Undo" },
   "environmentsMore": {
-    "message": "More about rules and layouts",
-    "description": "Link under the Environments panel to the documentation page that explains rules and layouts."
+    "message": "More about rules and styles",
+    "description": "Link under the Environments panel to the documentation page that explains rules and styles."
   },
   "dropdownStandard": {
     "message": "BC standard",
@@ -724,13 +724,13 @@
     "description": "Link under the BC Buddy heading in Business Central's gear menu (Settings pane). Opens the options page."
   },
   "navSections": { "message": "Sections" },
-  "defaultLayoutName": {
+  "defaultStyleName": {
     "message": "Default",
-    "description": "The name of the layout that is there from the start. A name somebody sees in a list, not the word standard as a setting."
+    "description": "The name of the style that is there from the start. A name somebody sees in a list, not the word standard as a setting."
   },
-  "lastLayout": {
-    "message": "The last layout cannot be removed: there must always be one.",
-    "description": "Shown when somebody tries to delete the only layout left."
+  "lastStyle": {
+    "message": "The last style cannot be removed: there must always be one.",
+    "description": "Shown when somebody tries to delete the only style left."
   },
   "aboutIntro": {
     "message": "It also gives every environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.",

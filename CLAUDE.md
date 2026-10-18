@@ -22,7 +22,7 @@ behaviour change usually touches both. Check the counterpart in the same commit:
 | Getting started | `docs/getting-started.md` |
 | Web client | `docs/web-client.md` |
 | Environment colours · Rules | `docs/matching.md` |
-| Environment colours · Layouts | `docs/layouts.md` |
+| Environment colours · Styles | `docs/styles.md` |
 | Sharing settings with your team | `docs/sharing.md`, `docs/intune.md` |
 | Troubleshooting | `docs/troubleshooting.md` |
 | Installing | `docs/index.md` |

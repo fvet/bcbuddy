@@ -50,16 +50,16 @@ Stored settings use schema version 2 (`SCHEMA_VERSION` in `settings.js`).
 Exports carry `"app": "bc-buddy"` and `"version": 2`.
 
 - A **rule** holds identity and matching: `id`, `name`, `enabled`,
-  `conditions`, `color`, `textColor`, `layoutId`, and `favicon.text` (at most
+  `conditions`, `color`, `textColor`, `styleId`, and `favicon.text` (at most
   two letters). Appearance fields no longer live on the rule.
-- A **layout** holds appearance: `border`, `banner`, `ribbon`, `title`, and
-  `favicon.enabled`. Favicon letters stay on the rule; layouts keep
+- A **style** holds appearance: `border`, `banner`, `ribbon`, `title`, and
+  `favicon.enabled`. Favicon letters stay on the rule; styles keep
   `favicon.text` empty.
-- `resolveRule()` merges them for drawing: appearance from the chosen layout,
-  letters from the rule. Without a layout it falls back to the defaults, so
+- `resolveRule()` merges them for drawing: appearance from the chosen style,
+  letters from the rule. Without a style it falls back to the defaults, so
   drawing never crashes.
 
-Beside rules and layouts sit the settings for the **Web client** panel,
+Beside rules and styles sit the settings for the **Web client** panel,
 listed in `WEB_CLIENT_KEYS` and normalised by `normalizeWebClient()`. They
 travel in an export and in the shared file as `webClient`; the master switch
 `enabled` does not:
@@ -85,9 +85,9 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `shortcuts.enabled` — the keyboard icon in BC's top bar and its panel, on
   by default.
 
-`normalize()` always ensures every rule points at a valid layout: a
-configuration with no layouts gets a Default, and a rule whose `layoutId` names
-nothing follows the first layout in the set. Display fields on a rule object are
+`normalize()` always ensures every rule points at a valid style: a
+configuration with no styles gets a Default, and a rule whose `styleId` names
+nothing follows the first style in the set. Display fields on a rule object are
 dropped. Hosted (shared) rules go through the same path.
 
 There is no migration path from an older shape. The extension had no public
@@ -372,16 +372,20 @@ so a pattern runs once per page, not on every pass of `apply()`.
 ## 📄 Import format
 
 The extension reads only its own format: an object with a `rules` array and
-optionally a `layouts` array (as the export produces), or a bare array of rules.
+optionally a `styles` array (as the export produces), or a bare array of rules.
 A file naming a different `app` is rejected.
 
-A file with no layouts derives none: after the merge, `normalize()` points its
-rules at the importer's own first layout. Display fields on a rule in the file
-are ignored — appearance only travels in a `layouts` array.
+Styles were called layouts before. A file or stored setting with a `layouts`
+array, or a rule with a `layoutId`, still reads the same (`stylesOf()` in
+`settings.js`); only `styles` and `styleId` are ever written.
 
-Importing merges both lists (layouts first, then rules): same id (else same
+A file with no styles derives none: after the merge, `normalize()` points its
+rules at the importer's own first style. Display fields on a rule in the file
+are ignored — appearance only travels in a `styles` array.
+
+Importing merges both lists (styles first, then rules): same id (else same
 name) overwrites in place, new items are added, items missing from the file are
-left alone. Layouts go first so rules can point at something that already
+left alone. Styles go first so rules can point at something that already
 exists.
 
 An optional `webClient` object carries the Web client settings, shaped as they

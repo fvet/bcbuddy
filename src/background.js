@@ -223,7 +223,7 @@ function fetchHosted(url) {
       return {
         ok: true,
         rules: parsed.rules,
-        layouts: parsed.layouts,
+        styles: parsed.styles,
         webClient: parsed.webClient,
         name: parsed.name,
         hash: BCBuddy.hash(text),
@@ -250,7 +250,7 @@ function oversized() {
 }
 
 /**
- * Fetches the shared configuration and stores its rules and layouts under
+ * Fetches the shared configuration and stores its rules and styles under
  * 'hosted'. Own rules are left alone; they take priority when matching. The
  * file's Web client settings are defaults: only the ones that changed in the
  * file since the last sync are passed on (see applySharedWebClient()).
@@ -269,7 +269,7 @@ function syncHosted(options) {
       // is updated every day, until you clear it or empty the URL.
       settings.hosted.active = true;
       settings.hosted.rules = result.rules;
-      settings.hosted.layouts = result.layouts;
+      settings.hosted.styles = result.styles;
       BCBuddy.applySharedWebClient(settings, result.webClient);
       settings.hosted.sourceName = result.name;
       settings.hosted.lastHash = result.hash;

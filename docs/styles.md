@@ -1,19 +1,19 @@
-# Layouts
+# Styles
 
-A **layout** decides what a marking looks like: the coloured bar at the top, a
+A **style** decides what a marking looks like: the coloured bar at the top, a
 frame, a banner. The colour itself comes from the rule.
 
-Several rules can share one layout, so you set it up once. Every new rule gets
-the layout called *Default*, which colours the bar at the top and draws a frame
+Several rules can share one style, so you set it up once. Every new rule gets
+the style called *Default*, which colours the bar at the top and draws a frame
 around the window. That is enough for most people; change it only if you want
 more.
 
 <figure markdown>
-![The Default layout in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](assets/screenshot-2-1280x800.png)
-<figcaption>The preview at the top shows the result while you change the layout.</figcaption>
+![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](assets/screenshot-2-1280x800.png)
+<figcaption>The preview at the top shows the result while you change the style.</figcaption>
 </figure>
 
-## What a layout can show
+## What a style can show
 
 Tick the ones you want:
 
