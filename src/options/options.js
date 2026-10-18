@@ -238,6 +238,13 @@
 
     page.el.emptyStyles.hidden = page.state.settings.styles.length > 0 ||
       page.state.settings.hosted.styles.length > 0;
+
+    // "The last style cannot go" no longer holds once there is a second one,
+    // however it got there: Add style, Load samples, an import.
+    if (page.state.settings.styles.length > 1 &&
+        page.el.stylesStatus.textContent === t('lastStyle')) {
+      page.setStylesStatus('', '');
+    }
   };
 
   page.renderEmptyState = function () {

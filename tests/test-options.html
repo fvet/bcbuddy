@@ -1444,6 +1444,23 @@ function assertStyles() {
     check('rule: picker selects first style',
       document.querySelectorAll('#ruleList .rule')[0]
         .querySelector('[data-style-picker]').value, 'lay-1');
+
+    // The last style cannot go, and that message leaves once a second is back
+    var status = document.getElementById('stylesStatus');
+    var confirmed = window.confirm;
+    window.confirm = function () { return true; };
+    document.querySelectorAll('#styleList .rule')[1]
+      .querySelector('[data-action="delete"]').click();
+    document.querySelectorAll('#styleList .rule')[0]
+      .querySelector('[data-action="delete"]').click();
+    window.confirm = confirmed;
+    check('style: the last one stays, and says why',
+      [document.querySelectorAll('#styleList .rule').length, status.textContent],
+      [1, chrome.i18n.getMessage('lastStyle')]);
+    document.getElementById('addStyle').click();
+    check('style: the message goes once there are two again',
+      [document.querySelectorAll('#styleList .rule').length, status.textContent], [2, '']);
+    return wait(400);
   });
 }
 
