@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.15 — 2026-10-18
+
 ### Added
 
 - **Choose the language** of BC Buddy with the globe at the top right of its
@@ -42,8 +46,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   `businesscentral.dynamics.com/contoso.com`, opens your default environment,
   and BC Buddy now reads it as **Production**. Rules on Production used to miss
   it.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.14 — 2026-10-17
 
