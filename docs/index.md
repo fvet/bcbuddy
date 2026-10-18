@@ -61,5 +61,7 @@ Setting up your first two colours takes a minute:
 - **Free and open source** under the
   [MIT licence](https://github.com/fvet/bcbuddy/blob/main/LICENSE), also for
   use at work.
+- **A question, an idea or a problem?** Tell us at
+  [github.com/fvet/bcbuddy/issues](https://github.com/fvet/bcbuddy/issues).
 
 [Get started](getting-started.md){ .md-button .md-button--primary }
