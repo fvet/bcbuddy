@@ -568,7 +568,7 @@ function assertOptions() {
   check('options: name filled in', first.querySelector('.rule__name').value, 'TEST');
   check('options: color field filled in', first.querySelector('input[type="color"][data-path="color"]').value, '#bc0000');
   check('options: no preview on a rule anymore', first.querySelector('[data-preview]'), null);
-  // With no rule clicked, a style preview borrows the rule the test URL gets.
+  // A style preview borrows the rule the test URL gets.
   check('options: ribbon preview text lives on the style',
     styleOne.querySelector('[data-preview-brand]').textContent,
     'Dynamics 365 Business Central - Sandbox - CRONUS BE (TEST)');
@@ -600,18 +600,19 @@ function assertOptions() {
     'Sandbox?company=CRONUS%20BE&page=1';
   testUrl.dispatchEvent(new Event('input'));
 
-  // A click on a rule lends its colour and name to every style preview,
-  // even when another rule wins for the test URL.
+  // A click on another rule leaves the style previews in the colour of the
+  // rule the test URL gets: only that one colours them.
   cards = document.querySelectorAll('#ruleList .rule');
   first = cards[0];
   cards[1].querySelector('.rule__name').click();
+  cards[1].querySelector('.rule__name').dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
   styleOne = document.querySelectorAll('#styleList .rule')[0];
-  check('options: a clicked rule colours the style preview',
+  check('options: a clicked rule does not colour the style preview',
     [styleOne.querySelector('[data-preview-frame]').style.borderColor,
-      styleOne.querySelector('[data-preview-brand]').textContent.indexOf('(PROD)') !== -1],
-    ['rgb(16, 124, 16)', true]);
-  check('options: so does the shared style preview',
-    document.querySelector('#hostedStyleList [data-preview-frame]').style.borderColor, 'rgb(16, 124, 16)');
+      styleOne.querySelector('[data-preview-brand]').textContent.indexOf('(TEST)') !== -1],
+    ['rgb(188, 0, 0)', true]);
+  check('options: nor the shared style preview',
+    document.querySelector('#hostedStyleList [data-preview-frame]').style.borderColor, 'rgb(188, 0, 0)');
   check('options: a click does not change which rule wins',
     first.classList.contains('rule--wins'), true);
   check('a11y: a filled condition announces whether it matches',
@@ -818,6 +819,18 @@ function assertOptions() {
   check('options: an automatic size shows the bottom step', sizeProbe.value, '1');
   steps.setControlValue(sizeProbe, 16);
   check('options: a saved size between steps shows the nearest', sizeProbe.value, '3');
+  // the preview follows the slider while it moves: half size in a corner ribbon
+  var sizeBefore = fontSize.value;
+  var previewBanner = styleOne.querySelector('[data-preview-banner]');
+  fontSize.value = '5';
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: the size slider resizes the preview banner', previewBanner.style.fontSize, '11px');
+  fontSize.value = '1';
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: automatic size leaves the preview at its own size', previewBanner.style.fontSize, '');
+  fontSize.value = sizeBefore;
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  first = document.querySelectorAll('#ruleList .rule')[0]; // a style change redraws the rules
   check('options: the banner position has no caption, only an aria-label',
     [posSelect.closest('label'), posSelect.getAttribute('aria-label')],
     [null, chrome.i18n.getMessage('bannerPosition')]);
@@ -932,9 +945,9 @@ function assertOptions() {
   var ribbonInput = styleOne.querySelector('input[data-path="ribbon.text"]');
   ribbonInput.value = '{name} op {environment}';
   ribbonInput.dispatchEvent(new Event('input', { bubbles: true }));
-  // {name} is the rule last clicked: the shared one, expanded above.
+  // {name} is the rule the test URL gets.
   check('options: style preview follows edited text',
-    styleOne.querySelector('[data-preview-brand]').textContent, 'GEDEELD op Sandbox');
+    styleOne.querySelector('[data-preview-brand]').textContent, 'TEST op Sandbox');
   ribbonInput.value = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
   ribbonInput.dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -946,7 +959,7 @@ function assertOptions() {
   bannerText.value = '{name} - {environment}';
   bannerText.dispatchEvent(new Event('input', { bubbles: true }));
   check('options: style preview banner fills in placeholders',
-    styleOne.querySelector('[data-preview-banner]').textContent, 'GEDEELD - Sandbox');
+    styleOne.querySelector('[data-preview-banner]').textContent, 'TEST - Sandbox');
   bannerText.value = '{name}';
   bannerText.dispatchEvent(new Event('input', { bubbles: true }));
   bannerOn.checked = false;
@@ -958,9 +971,9 @@ function assertOptions() {
   faviconOn.checked = true;
   faviconOn.dispatchEvent(new Event('change', { bubbles: true }));
   check('options: favicon preview drawn for the borrowed rule',
-    [faviconImg.getAttribute('src') === BCBuddy.drawFavicon('#0f6cbd', 'GEDEELD'),
+    [faviconImg.getAttribute('src') === BCBuddy.drawFavicon('#bc0000', 'TEST'),
       faviconImg.dataset.signature, styleOne.querySelector('.option--off [data-preview-favicon]')],
-    [true, '#0f6cbd|GEDEELD', null]);
+    [true, '#bc0000|TEST', null]);
   faviconOn.checked = false;
   faviconOn.dispatchEvent(new Event('change', { bubbles: true }));
   truthy('options: favicon preview hidden while the switch is off',
@@ -1072,6 +1085,33 @@ function assertOptions() {
   var card0 = document.querySelectorAll('#ruleList .rule')[0];
   card0.querySelector('[data-action="add-condition"]').click();
   check('options: condition added', card0.querySelectorAll('.condition').length, 2);
+  card0.querySelector('[data-action="add-condition"]').click();
+  check('options: + adds no second empty condition', card0.querySelectorAll('.condition').length, 2);
+  check('options: + goes to the empty condition instead',
+    document.activeElement, card0.querySelectorAll('.condition')[1].querySelector('[data-cond="value"]'));
+
+  // the same condition twice is flagged, and + goes there too
+  var condRows = card0.querySelectorAll('.condition');
+  ['field', 'op'].forEach(function (name) {
+    var select = condRows[1].querySelector('[data-cond="' + name + '"]');
+    select.value = condRows[0].querySelector('[data-cond="' + name + '"]').value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  var repeatValue = condRows[1].querySelector('[data-cond="value"]');
+  repeatValue.value = ' ' + condRows[0].querySelector('[data-cond="value"]').value.toUpperCase() + ' ';
+  repeatValue.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: a repeated condition is flagged',
+    [repeatValue.getAttribute('aria-invalid'), repeatValue.title],
+    ['true', chrome.i18n.getMessage('conditionRepeated')]);
+  check('options: the first of the two is not',
+    condRows[0].querySelector('[data-cond="value"]').getAttribute('aria-invalid'), null);
+  repeatValue.blur();
+  card0.querySelector('[data-action="add-condition"]').click();
+  check('options: + adds nothing while a condition repeats',
+    [card0.querySelectorAll('.condition').length, document.activeElement], [2, repeatValue]);
+  repeatValue.value = '';
+  repeatValue.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: emptied, it is no longer flagged', repeatValue.getAttribute('aria-invalid'), null);
 
   check('options: no replace vs add choice',
     document.querySelector('input[name="importMode"]'), null);

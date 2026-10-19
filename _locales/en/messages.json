@@ -160,7 +160,7 @@
   },
   "ruleActiveTitle": { "message": "Rule active" },
   "toggleDetails": { "message": "Show or hide details" },
-  "toggleOrDrag": { "message": "Click to show or hide details, drag to reorder (or arrow up/down)" },
+  "toggleOrDrag": { "message": "Click to show or hide details, drag to reorder" },
   "duplicate": { "message": "Duplicate" },
   "deleteRule": { "message": "Delete" },
   "deleteConfirm": {
@@ -186,6 +186,7 @@
   },
   "conditionsHeading": { "message": "Conditions" },
   "addCondition": { "message": "Add condition" },
+  "conditionRepeated": { "message": "This condition is already in the rule above, so it adds nothing." },
   "removeCondition": { "message": "Remove condition" },
   "conditionValuePlaceholder": {
     "message": "e.g. Sandbox, CRONUS BE or a full URL",
@@ -349,6 +350,7 @@
     "message": "Letters",
     "description": "The one or two letters drawn on that tab icon."
   },
+  "faviconLettersHint": { "message": "The one or two letters on the coloured icon in the browser tab, so you can tell this environment apart among your tabs. Left empty, the icon shows the first two letters of the rule name." },
   "tokenName": {
     "message": "name of the rule",
     "description": "Explains the {name} token. A token here is a placeholder the user types into a text, such as {name}, and the extension fills in; nothing to do with a security token. Lowercase: it is read after the token itself."

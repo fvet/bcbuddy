@@ -209,7 +209,7 @@
         if (label) label.textContent = wins ? t('matchYes') : '';
       });
     });
-    // Without a clicked rule, the style previews show the winner's colour.
+    // The style previews show the winner's colour.
     page.refreshStylePreviews();
   };
 
@@ -614,10 +614,6 @@
     // Shared rules and styles are read-only, but can still be expanded.
     el.hostedList.addEventListener('click', page.onRuleClick);
     el.hostedStyleList.addEventListener('click', page.onRuleClick);
-    // Tabbing into a rule shows the styles in its colour, as a click does.
-    [el.ruleList, el.hostedList].forEach(function (list) {
-      list.addEventListener('focusin', function (event) { page.pickRule(event.target.closest('.rule')); });
-    });
 
     el.clearShared.addEventListener('click', page.clearSharedRules);
 
