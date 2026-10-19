@@ -119,6 +119,7 @@
   "titleText": { "message": "Titre" },
   "faviconToggle": { "message": "Remplacer le favicon" },
   "faviconLetters": { "message": "Lettres" },
+  "faviconLettersHint": { "message": "La ou les deux lettres sur l'icône colorée de l'onglet du navigateur, pour repérer cet environnement parmi vos onglets. Vide, l'icône affiche les deux premières lettres du nom de la règle." },
   "tokenName": { "message": "nom de la règle" },
   "tokenEnvironment": { "message": "environnement" },
   "tokenCompany": { "message": "société" },

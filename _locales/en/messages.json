@@ -350,6 +350,7 @@
     "message": "Letters",
     "description": "The one or two letters drawn on that tab icon."
   },
+  "faviconLettersHint": { "message": "The one or two letters on the coloured icon in the browser tab, so you can tell this environment apart among your tabs. Left empty, the icon shows the first two letters of the rule name." },
   "tokenName": {
     "message": "name of the rule",
     "description": "Explains the {name} token. A token here is a placeholder the user types into a text, such as {name}, and the extension fills in; nothing to do with a security token. Lowercase: it is read after the token itself."
