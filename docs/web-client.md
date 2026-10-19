@@ -45,6 +45,9 @@ select before because it is a link. The icon briefly turns into a tick.
 On a card, fields that are a link get the icon too, such as **Balance (LCY)**.
 A field you can type in gets no icon: select its text and press Ctrl+C as usual.
 
+The **Page Inspection** pane (Ctrl+Alt+F1) has the icon too: on **Page**, on
+**Table**, and on the value of each field under **Table Fields**.
+
 ## Maximize pages
 
 Every page opens in wide layout, so you see more fields and columns without

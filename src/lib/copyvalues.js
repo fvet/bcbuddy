@@ -1,10 +1,11 @@
 /*
  * BC Buddy - copy values.
  *
- * Rest the mouse on a read-only value in a list or a FactBox, or on a
- * read-only field with a link on a card, and a small copy icon appears in the
- * cell; clicking it puts the value on the clipboard, as BC shows it. Editable
- * fields, check boxes and empty cells get nothing.
+ * Rest the mouse on a read-only value in a list, a FactBox or the Page
+ * Inspection pane, or on a read-only field with a link on a card, and a small
+ * copy icon appears in the cell; clicking it puts the value on the
+ * clipboard, as BC shows it. Editable fields, check boxes and empty cells get
+ * nothing.
  *
  * A hover feature has to know what is under the pointer, so this keeps the
  * one document-wide pointer listener BC Buddy has, and keeps it cheap: it only
@@ -38,10 +39,18 @@
   // cell (td), a FactBox or a card field (div), is a .stringcontrol-read.value
   // inside an .edit-container-read; an editable one is an input or a select,
   // with no such value.
-  var CELL_SEL = '.edit-container-read';
   var VALUE_SEL = '.stringcontrol-read.value';
-  // In lists and FactBoxes every read-only value counts.
-  var LIST_SEL = 'table.ms-nav-grid-data-table, .ms-nav-layout-factbox-content-area';
+  // The Page Inspection pane (Ctrl+Alt+F1; BC 27 on-prem, 2026-10-19). Its
+  // Page and Table boxes are read-only values like the ones above; each
+  // table field is a tile (.brick-container) whose second line is the value
+  // and whose right side is BC's own ... menu.
+  var INSPECTOR_SEL = '.designer.inspector';
+  var BRICK_SEL = INSPECTOR_SEL + ' .brick-container';
+  var BRICK_VALUE_SEL = '.brick-field-1';
+  var BRICK_MENU_SEL = '.brick-context-menu';
+  var CELL_SEL = '.edit-container-read, ' + BRICK_SEL;
+  // In lists, FactBoxes and Page Inspection every read-only value counts.
+  var LIST_SEL = 'table.ms-nav-grid-data-table, .ms-nav-layout-factbox-content-area, ' + INSPECTOR_SEL;
   // On a card (a FastTab), only a read-only value that is a link, such as
   // Balance (LCY): text you can select with the mouse gets no icon there.
   var CARD_SEL = '.collapsibleTab';
@@ -58,11 +67,16 @@
 
   /**
    * The value element of a cell that gets the icon, or null. The cell must be
-   * read-only and show something, in a list or a FactBox, or be a link on a
-   * card.
+   * read-only and show something, in a list, a FactBox or Page Inspection, or
+   * be a link on a card.
    */
   function valueOf(cell) {
-    if (!cell || !cell.classList || !cell.classList.contains('edit-container-read')) return null;
+    if (!cell || !cell.classList) return null;
+    if (cell.classList.contains('brick-container')) {
+      var field = cell.closest(INSPECTOR_SEL) && cell.querySelector(BRICK_VALUE_SEL);
+      return field && !field.classList.contains('empty') && textOf(field) ? field : null;
+    }
+    if (!cell.classList.contains('edit-container-read')) return null;
     if (cell.classList.contains('empty') || cell.classList.contains('ms-nav-hidden')) return null;
     var value = cell.querySelector(VALUE_SEL);
     if (!value || value.classList.contains('empty') || value.classList.contains('empty-anchor-link')) return null;
@@ -80,6 +94,19 @@
    */
   function textOf(value) {
     return (value.textContent || '').trim();
+  }
+
+  /**
+   * The box the icon is placed in. A Page Inspection tile: the part left of
+   * BC's ... menu, at the height of the value line. Anything else: the cell.
+   */
+  function boxOf(cell, value) {
+    var rect = cell.getBoundingClientRect();
+    if (!cell.classList.contains('brick-container')) return rect;
+    var menu = cell.querySelector(BRICK_MENU_SEL);
+    var line = value.getBoundingClientRect();
+    var right = menu ? menu.getBoundingClientRect().left : rect.right;
+    return { left: rect.left, right: right, width: right - rect.left, top: line.top, height: line.height };
   }
 
   /** The cell's free side: right-aligned values (amounts) get the icon left. */
@@ -205,7 +232,7 @@
       pending = null;
       var value = cell && cell.isConnected && valueOf(cell);
       if (!value || !doc.body) return;
-      var rect = cell.getBoundingClientRect();
+      var rect = boxOf(cell, value);
       // A cell too narrow to keep the value readable next to the icon.
       // FactBox rows are about as tall as the icon, so height is no limit.
       if (rect.width < SIZE * 3) return;
@@ -288,6 +315,7 @@
     valueOf: valueOf,
     textOf: textOf,
     sideOf: sideOf,
+    boxOf: boxOf,
     place: place,
     textRect: textRect,
     attach: attach

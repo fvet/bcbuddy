@@ -2004,7 +2004,22 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     '<div class="edit-container edit-container-read" data-k="loose" style="width:240px"><a class="stringcontrol-read value" href="#">elsewhere</a></div>' +
     '<div class="spa-lookup"><table class="ms-nav-grid-data-table" style="width:300px"><tbody><tr>' +
     '<td class="edit-container edit-container-read" role="gridcell" data-k="lookup" style="width:120px"><span class="stringcontrol-read value">BE</span></td>' +
-    '</tr></tbody></table></div>';
+    '</tr></tbody></table></div>' +
+    // Page Inspection (BC 27 on-prem, 2026-10-19): the Page box, and two
+    // field tiles with BC's ... menu on their right.
+    '<div class="designer inspector" style="width:320px"><form class="ms-nav-root-form ms-nav-listform"><div class="collapsibleTab">' +
+    '<div class="ms-nav-edit-control-container" controlname="PageInfo"><div class="edit-container edit-container-read" data-k="inspage" style="width:300px"><span class="stringcontrol-read value" role="textbox" aria-readonly="true">Customer List (22, List)</span></div></div>' +
+    '</div><ul class="content">' +
+    '<li class="brick-wide"><div class="brick-container" data-k="insfield" style="display:flex;width:300px"><div class="brick-content" style="flex:1"><div class="brick-text">' +
+    '<div class="brick-field brick-field-0">No. (1, Code[20], PK)</div>' +
+    '<div><div class="brick-field brick-field-1" role="button" data-k="insvalue">00000021</div><div class="empty brick-field brick-field-2"></div></div>' +
+    '<div><div class="brick-field brick-field-3">Base Application</div></div>' +
+    '</div></div><div class="brick-context-menu" data-k="insmenu" style="width:38px"><a class="ms-list-itemLink" role="button" href="#">&#8942;</a></div></div></li>' +
+    '<li class="brick-wide"><div class="brick-container" data-k="insblank" style="display:flex;width:300px"><div class="brick-content" style="flex:1"><div class="brick-text">' +
+    '<div class="brick-field brick-field-0">Name 2 (4, Text[50])</div><div><div class="brick-field brick-field-1" role="button"> </div></div>' +
+    '</div></div><div class="brick-context-menu" style="width:38px"></div></div></li>' +
+    '</ul></form></div>' +
+    '<div class="brick-container" data-k="brick" style="width:300px"><div class="brick-field brick-field-1">Tile elsewhere</div></div>';
 
   // keyboard shortcuts: an open panel follows BC to the next page. Pages are
   // sibling .spa-view elements; the one below stays rendered, so its
@@ -2079,11 +2094,19 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
 
     check('copy values: which cells get the icon',
       ['menu', 'link', 'text', 'amount', 'empty', 'emptylink', 'bool', 'hidden', 'edit', 'factbox',
-        'cardlink', 'card', 'cardedit', 'loose', 'lookup']
+        'cardlink', 'card', 'cardedit', 'loose', 'lookup', 'inspage', 'insfield', 'insblank', 'brick']
         .map(function (k) { return k + ':' + !!C.valueOf(cell(k)); }),
       ['menu:false', 'link:true', 'text:true', 'amount:true', 'empty:false', 'emptylink:false', 'bool:false',
         'hidden:false', 'edit:false', 'factbox:true',
-        'cardlink:true', 'card:false', 'cardedit:false', 'loose:false', 'lookup:false']);
+        'cardlink:true', 'card:false', 'cardedit:false', 'loose:false', 'lookup:false',
+        'inspage:true', 'insfield:true', 'insblank:false', 'brick:false']);
+    check('copy values: a Page Inspection field copies its value, not its name',
+      C.textOf(C.valueOf(cell('insfield'))), '00000021');
+    var tile = C.boxOf(cell('insfield'), cell('insvalue'));
+    var line = cell('insvalue').getBoundingClientRect();
+    check('copy values: on a Page Inspection field, left of the ... menu, on the value line',
+      [tile.right, tile.top, tile.height],
+      [cell('insmenu').getBoundingClientRect().left, line.top, line.height]);
     check('copy values: a link copies its text, not its title', C.textOf(C.valueOf(cell('link'))), '10000');
     check('copy values: a cut-off value is copied whole, trimmed',
       C.textOf(C.valueOf(cell('text'))), 'Adatum Corporation 2111111111111321 31313');

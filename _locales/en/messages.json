@@ -500,7 +500,7 @@
   },
   "copyValuesToggle": {
     "message": "Copy values",
-    "description": "Label on the on/off switch that shows a copy icon on read-only values in Business Central lists and FactBoxes, and on read-only links on cards."
+    "description": "Label on the on/off switch that shows a copy icon on read-only values in Business Central lists, FactBoxes and the Page Inspection pane, and on read-only links on cards."
   },
   "copyValuesIntro": {
     "message": "Rest the mouse on a value in a list or a FactBox, or on a link on a card, and click the icon to copy it, as shown.",
