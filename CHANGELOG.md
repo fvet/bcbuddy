@@ -11,6 +11,11 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Changed
+
+- **Copy values** now also works in the **Page Inspection** pane
+  (Ctrl+Alt+F1): copy the page, the table, or the value of any table field.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.15 — 2026-10-18
