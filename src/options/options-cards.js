@@ -311,11 +311,11 @@
       };
 
       /**
-       * The rule whose colour and name the style previews show: the one last
-       * clicked, else the one the test URL gets, else none (a neutral colour).
+       * The rule whose colour and name the style previews show: the one the
+       * test URL gets, else none (BC's own teal).
        */
       page.sampleRule = function () {
-        return page.pickedRule() || page.matchedRule();
+        return page.matchedRule();
       };
 
       /** Same order as a BC tab and markWinner: own rules, then shared ones. */
@@ -325,29 +325,6 @@
           if (BCBuddy.matchRule(all[i], state.ctx)) return all[i];
         }
         return null;
-      };
-
-      /**
-       * The rule last clicked, null once it is gone. An own and a shared rule
-       * can share an id, so which list it came from is kept too.
-       */
-      page.pickedRule = function () {
-        var picked = state.previewRule;
-        if (!picked) return null;
-        var list = picked.shared ? state.settings.hosted.rules : state.settings.rules;
-        return BCBuddy.findById(list, picked.id) || null;
-      };
-
-      page.pickRule = function (card) {
-        if (!card || card.dataset.kind !== 'rule') return;
-        var shared = !!card.dataset.readonly;
-        var list = shared ? state.settings.hosted.rules : state.settings.rules;
-        var rule = list[Number(card.dataset.index)];
-        if (!rule) return;
-        var picked = state.previewRule;
-        if (picked && picked.id === rule.id && picked.shared === shared) return;
-        state.previewRule = { id: rule.id, shared: shared };
-        page.refreshStylePreviews();
       };
 
       /** Redraws the style previews in place, so no style card loses focus. */
@@ -502,7 +479,6 @@
         var button = event.target.closest('[data-action]');
         var card = event.target.closest('.rule');
         if (!card) return;
-        page.pickRule(card);
 
         // A click on the header expands or collapses the rule, unless you click a
         // control in that header.

@@ -18,8 +18,8 @@ and *Discret* in French.
 <figcaption>The preview at the top shows the result while you change the style.</figcaption>
 </figure>
 
-The preview uses the colour and name of the rule you clicked last. Until you
-click one, it uses the rule that fits the address under **Test**.
+The preview uses the colour and name of the rule that fits the address under
+**Test**. When no rule fits, it shows Business Central's own colour.
 
 ## What a style can show
 
