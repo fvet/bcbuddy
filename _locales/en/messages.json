@@ -160,7 +160,7 @@
   },
   "ruleActiveTitle": { "message": "Rule active" },
   "toggleDetails": { "message": "Show or hide details" },
-  "toggleOrDrag": { "message": "Click to show or hide details, drag to reorder (or arrow up/down)" },
+  "toggleOrDrag": { "message": "Click to show or hide details, drag to reorder" },
   "duplicate": { "message": "Duplicate" },
   "deleteRule": { "message": "Delete" },
   "deleteConfirm": {
@@ -186,6 +186,7 @@
   },
   "conditionsHeading": { "message": "Conditions" },
   "addCondition": { "message": "Add condition" },
+  "conditionRepeated": { "message": "This condition is already in the rule above, so it adds nothing." },
   "removeCondition": { "message": "Remove condition" },
   "conditionValuePlaceholder": {
     "message": "e.g. Sandbox, CRONUS BE or a full URL",

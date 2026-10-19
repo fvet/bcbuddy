@@ -350,10 +350,14 @@
 
       <div class="rule__body" data-body>
         <div class="rule__section">
-          <h4 data-i18n="conditionsHeading">Conditions</h4>
+          <div class="section-title">
+            <h4 data-i18n="conditionsHeading">Conditions</h4>
+            <button type="button" class="icon-btn icon-btn--add" data-action="add-condition"
+                    data-i18n-title="addCondition" data-i18n-label="addCondition">
+              <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+            </button>
+          </div>
           <div class="conditions" data-conditions></div>
-          <button type="button" class="btn btn--small" data-action="add-condition"
-                  data-i18n="addCondition">Add condition</button>
         </div>
 
         <!-- No section heading: Colour is the heading, on the same line as the

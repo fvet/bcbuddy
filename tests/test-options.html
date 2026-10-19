@@ -818,6 +818,18 @@ function assertOptions() {
   check('options: an automatic size shows the bottom step', sizeProbe.value, '1');
   steps.setControlValue(sizeProbe, 16);
   check('options: a saved size between steps shows the nearest', sizeProbe.value, '3');
+  // the preview follows the slider while it moves: half size in a corner ribbon
+  var sizeBefore = fontSize.value;
+  var previewBanner = styleOne.querySelector('[data-preview-banner]');
+  fontSize.value = '5';
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: the size slider resizes the preview banner', previewBanner.style.fontSize, '11px');
+  fontSize.value = '1';
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: automatic size leaves the preview at its own size', previewBanner.style.fontSize, '');
+  fontSize.value = sizeBefore;
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  first = document.querySelectorAll('#ruleList .rule')[0]; // a style change redraws the rules
   check('options: the banner position has no caption, only an aria-label',
     [posSelect.closest('label'), posSelect.getAttribute('aria-label')],
     [null, chrome.i18n.getMessage('bannerPosition')]);
@@ -1072,6 +1084,33 @@ function assertOptions() {
   var card0 = document.querySelectorAll('#ruleList .rule')[0];
   card0.querySelector('[data-action="add-condition"]').click();
   check('options: condition added', card0.querySelectorAll('.condition').length, 2);
+  card0.querySelector('[data-action="add-condition"]').click();
+  check('options: + adds no second empty condition', card0.querySelectorAll('.condition').length, 2);
+  check('options: + goes to the empty condition instead',
+    document.activeElement, card0.querySelectorAll('.condition')[1].querySelector('[data-cond="value"]'));
+
+  // the same condition twice is flagged, and + goes there too
+  var condRows = card0.querySelectorAll('.condition');
+  ['field', 'op'].forEach(function (name) {
+    var select = condRows[1].querySelector('[data-cond="' + name + '"]');
+    select.value = condRows[0].querySelector('[data-cond="' + name + '"]').value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  var repeatValue = condRows[1].querySelector('[data-cond="value"]');
+  repeatValue.value = ' ' + condRows[0].querySelector('[data-cond="value"]').value.toUpperCase() + ' ';
+  repeatValue.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: a repeated condition is flagged',
+    [repeatValue.getAttribute('aria-invalid'), repeatValue.title],
+    ['true', chrome.i18n.getMessage('conditionRepeated')]);
+  check('options: the first of the two is not',
+    condRows[0].querySelector('[data-cond="value"]').getAttribute('aria-invalid'), null);
+  repeatValue.blur();
+  card0.querySelector('[data-action="add-condition"]').click();
+  check('options: + adds nothing while a condition repeats',
+    [card0.querySelectorAll('.condition').length, document.activeElement], [2, repeatValue]);
+  repeatValue.value = '';
+  repeatValue.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: emptied, it is no longer flagged', repeatValue.getAttribute('aria-invalid'), null);
 
   check('options: no replace vs add choice',
     document.querySelector('input[name="importMode"]'), null);

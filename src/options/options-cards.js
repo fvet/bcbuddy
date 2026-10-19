@@ -134,6 +134,21 @@
         });
       };
 
+      /** The value as matching sees it: RegEx exactly, the rest without case. */
+      function conditionKey(cond) {
+        var value = String(cond.value || '').trim();
+        return cond.field + '|' + cond.op + '|' + (cond.op === 'regex' ? value : value.toLowerCase());
+      }
+
+      /** True when an earlier condition of the rule says the same thing. */
+      page.repeatsCondition = function (conditions, index) {
+        var key = conditionKey(conditions[index]);
+        for (var i = 0; i < index; i++) {
+          if (conditionKey(conditions[i]) === key) return true;
+        }
+        return false;
+      };
+
       page.renderPalette = function (card, rule, readOnly) {
         var host = card.querySelector('[data-palette]');
         // The colour picker is already in the palette in the template; set it aside
@@ -194,8 +209,10 @@
             ? BCBuddy.regexProblem(String(cond.value).trim(), String(ctx[cond.field] || '').length)
             : '';
           if (problem) condLabel = t(problem === 'invalid' ? 'regexInvalid' : 'regexTooHeavy');
+          var repeated = hasValue && page.repeatsCondition(item.conditions, Number(row.dataset.index));
+          if (repeated) condLabel = t('conditionRepeated');
           var valueInput = row.querySelector('[data-cond="value"]');
-          if (problem) {
+          if (problem || repeated) {
             valueInput.setAttribute('aria-invalid', 'true');
             valueInput.title = condLabel;
           } else if (valueInput.hasAttribute('aria-invalid')) {
@@ -253,6 +270,11 @@
           banner.style.background = BCBuddy.toRgba(color, shown.banner.opacity);
           banner.style.color = textColor;
           banner.textContent = BCBuddy.renderTidy(shown.banner.text || '{name}', ctx, extras);
+          // A fixed size is scaled like the rest of the preview (the bar to
+          // about 0.85, the corner ribbon to about 0.5); automatic keeps the CSS size.
+          var scale = shown.banner.position === 'bottom' ? 0.85 : 0.5;
+          banner.style.fontSize = shown.banner.fontSize > 0
+            ? Math.round(shown.banner.fontSize * scale * 2) / 2 + 'px' : '';
         }
 
         // Favicon: drawn only when it would look different.
@@ -524,10 +546,24 @@
             page.renderRules();
             return;
           case 'add-condition':
-            rule.conditions.push({ field: 'url', op: 'contains', value: '' });
-            page.renderConditions(card, rule);
-            page.updateCard(card, rule);
-            page.save();
+            // One empty condition at a time: while one waits for a value, or
+            // repeats an earlier one, + goes there.
+            var empty = -1;
+            rule.conditions.forEach(function (cond, i) {
+              if (empty === -1 && (!String(cond.value || '').trim() || page.repeatsCondition(rule.conditions, i))) {
+                empty = i;
+              }
+            });
+            if (empty === -1) {
+              rule.conditions.push({ field: 'url', op: 'contains', value: '' });
+              empty = rule.conditions.length - 1;
+              page.renderConditions(card, rule);
+              page.updateCard(card, rule);
+              page.save();
+            }
+            var emptyRow = card.querySelectorAll('.condition')[empty];
+            var emptyValue = emptyRow && emptyRow.querySelector('[data-cond="value"]');
+            if (emptyValue) emptyValue.focus();
             return;
           case 'remove-condition':
             var row = button.closest('.condition');

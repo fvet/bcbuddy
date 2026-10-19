@@ -457,6 +457,12 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .icon-btn--add { display: inline-flex; padding: 4px; color: var(--accent); }
 .icon-btn--add:hover { color: var(--accent); }
 .icon-btn--add .btn__icon { width: 18px; height: 18px; stroke-width: 1.6; }
+/* The same + beside a small card heading (Conditions): smaller, and the
+   heading's bottom margin moves to the row so the + does not add height. */
+.rule__section > .section-title { margin-bottom: 8px; }
+.rule__section > .section-title h4 { margin: 0; }
+.rule__section > .section-title .icon-btn--add { padding: 0 2px; }
+.rule__section > .section-title .icon-btn--add .btn__icon { width: 14px; height: 14px; }
 .grid { display: flex; flex-wrap: wrap; gap: 12px; }
 .grid--two > * { flex: 1 1 320px; }
 /* Top-align so Colour (short swatch) shares a baseline with Text colour / Style. */
