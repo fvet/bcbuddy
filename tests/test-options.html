@@ -763,8 +763,8 @@ function assertOptions() {
   truthy('options: sync re-enabled with https',
     !document.getElementById('syncNow').disabled);
 
-  check('options: subtitle no longer says "Environment marker"',
-    document.querySelector('.topbar__brand p').textContent.trim(), chrome.i18n.getMessage('tagline'));
+  check('options: header has the name only, no tagline',
+    document.querySelector('.topbar__brand p'), null);
   truthy('options: raw link help removed',
     document.getElementById('app').textContent.indexOf('raw-variant') === -1);
   truthy('options: help no longer refers to list above',

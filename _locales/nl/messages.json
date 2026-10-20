@@ -1,7 +1,6 @@
 {
   "extDescription": { "message": "Kopiëren met een klik, brede pagina's, grotere keuzelijsten en een kleur per omgeving: nooit meer per ongeluk in productie boeken." },
   "optionsTitle": { "message": "BC Buddy - opties" },
-  "tagline": { "message": "Maak de Business Central-webclient makkelijker in gebruik en geef elke omgeving een eigen kleur." },
   "extensionActive": { "message": "Extensie actief" },
   "languageLabel": { "message": "Taal" },
   "languageTitle": { "message": "De taal van BC Buddy. Business Central houdt zijn eigen taal." },
