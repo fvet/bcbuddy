@@ -164,6 +164,9 @@
     },
     "shortcuts": {
       "enabled": true
+    },
+    "hideFactBox": {
+      "enabled": false
     }
   }
 }

@@ -69,6 +69,8 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `maximize.enabled` — wide layout and list view, on by default.
 - `pinActionBar.enabled` — pin the action bar of a page that opens with it
   floating, on by default.
+- `hideFactBox.enabled` — collapse the FactBox pane on a page nobody set it
+  on yet, off by default. Shares Maximize's once-per-page pass.
 - `highlightRow.enabled` — the current-line tint, on by default.
 - `stripeRows.enabled` — every other list row a see-through grey, off by
   default. Keyed on BC's `aria-rowindex`, since BC reuses its `<tr>`

@@ -38,6 +38,16 @@
         };
       }
     },
+    // The FactBox pane, kept in the same layout as wide. BC writes every field
+    // of it at each change, so a page someone widened has this one too.
+    factbox: {
+      field: 'AsideAreaRightExpanded',
+      key: function (h) {
+        return function (key) {
+          return key.indexOf(':Layout:' + h + '-') !== -1 && key.indexOf(':TaskDialog:Layout:') === -1;
+        };
+      }
+    },
     // A maximized task dialog, such as Select from full list.
     dialog: {
       field: 'PageLayoutExpanded',

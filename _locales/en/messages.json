@@ -462,6 +462,14 @@
     "message": "Pin the action bar",
     "description": "Label on the on/off switch for the pin action bar feature. Use Business Central's own wording for its 'Pin action bar' button in this language."
   },
+  "hideFactBoxIntro": {
+    "message": "Closes the FactBox pane on the right on pages you open for the first time. Open it again on a page and it stays open there.",
+    "description": "Explains the hide FactBox pane switch. Tooltip on its row in the Web client panel. FactBox is the Business Central term for the pane on the right: use the word the Business Central UI uses in this language."
+  },
+  "hideFactBoxToggle": {
+    "message": "Hide the FactBox pane",
+    "description": "Label on the on/off switch that closes the FactBox pane on pages where nobody opened or closed it yet. Use Business Central's own word for the FactBox pane in this language."
+  },
   "dropdownHeading": {
     "message": "Dropdown size",
     "description": "Heading of the setting that gives the list opening under a lookup field (the dropdown) more room."

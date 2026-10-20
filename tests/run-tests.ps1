@@ -58,9 +58,11 @@ foreach ($suite in $suites) {
 
     # A fixed window: headless Chrome's default size differs per machine, and a
     # layout check that passes at 1280 pixels here failed at 800 on CI.
+    # Virtual time, so the waits cost nothing real; the options suite needs
+    # about 21 s of it, and a budget it outgrows leaves it on "running...".
     & $browser --headless=new --disable-gpu --no-sandbox --allow-file-access-from-files `
         --window-size=800,600 `
-        --user-data-dir="$work\profile" --virtual-time-budget=20000 --dump-dom $url |
+        --user-data-dir="$work\profile" --virtual-time-budget=40000 --dump-dom $url |
         Out-File -FilePath $dumpFile -Encoding utf8
 
     $dom = Get-Content $dumpFile -Raw

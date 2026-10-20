@@ -11,6 +11,13 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Hide the FactBox pane**: a page you open for the first time shows without
+  the pane of extra details on the right, so the page gets the room. Open it on
+  a page and it stays open there. Off until you switch it on under **Web
+  client**.
+
 ### Fixed
 
 - In a wider **dropdown**, the column headers now line up with the rows

@@ -47,6 +47,16 @@ Click a question to see the answer.
     pin at the right end of the action bar once, and Business Central keeps the
     page pinned from then on.
 
+??? faq "The FactBox pane stays open on a page"
+
+    **Hide the FactBox pane** starts off; switch it on under **Web client** on
+    the settings page. It then only closes the pane on a page you open for the
+    first time in this browser. Business Central stores the pane together with
+    wide layout, so a page you used before, also one **Maximize pages** made
+    wide, keeps its pane. Close the pane once on that page, with the **i**
+    button at the top right or Alt+F2, and Business Central keeps it closed
+    from then on.
+
 ??? faq "A dropdown keeps its usual size"
 
     A field with a **…** button, such as City or Post Code, opens a whole page

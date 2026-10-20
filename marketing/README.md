@@ -78,6 +78,8 @@ Check the result before using it: the top bar should show only
 | `with-keyboard-shortcuts` | Sales order 101001, click the **Description** of line 3, then the keyboard icon in the top bar. Close the panel with **×** afterwards. No "without" shot: the slide shows only the panel | on, **Keyboard shortcuts** switched on |
 | `without-striped-rows` | Sales Orders list (page 9305); Customers has too few rows | off |
 | `with-striped-rows` | Same | on, **Striped rows** switched on |
+| `crop-without-hide-factbox` | Customer card 20000, FactBox pane open (BC's own **i** button, top right) | on |
+| `crop-with-hide-factbox` | Same card, pane closed with the **i** button: the same click BC Buddy makes on a page nobody set. Open it again afterwards | on |
 | `without-env-colours` | Customers opened as `…/{tenant}/Production?company=CRONUS%20BE&page=22` | off |
 | `with-env-colours` | Same address, rule **PRODUCTION**: **Environment** equals `Production`, green, *Default* style with a corner banner | on |
 
@@ -97,7 +99,9 @@ Description; the columns further right have red error marks in CRONUS) ·
 pin action bar: cropped from the JPEG at 90, 55, size 910 × 185.
 Keyboard shortcuts and striped rows were taken later in a 1568×735 window:
 keyboard shortcuts 1000, 0, 1560, 645 (the top bar icon and the panel) ·
-striped rows 45, 135, 1085, 700. Zoom at full scale: `scale` below 1 also
+striped rows 45, 135, 1085, 700. Hide the FactBox pane was taken in an
+894×848 window, cropped to the page under the top bar: 60, 60, 834, 660 (this
+also leaves out an environment-colour frame or banner). Zoom at full scale: `scale` below 1 also
 shrinks the PNG it saves.
 
 The tooltip of a button (where BC shows an action's shortcut) is the
@@ -139,11 +143,11 @@ BC Buddy's own tint is a soft 6 % teal, too faint to see on a projector.
 
 ### The deck
 
-Thirteen slides: cover, architecture (UI / AL / SQL and how each one is
+Fourteen slides: cover, architecture (UI / AL / SQL and how each one is
 customised), why it's safe, then the web client improvements in the order of
 `docs/web-client.md` (copy values, maximize pages, pin the action bar,
 dropdown size, week numbers, highlight the current line, keyboard shortcuts,
-striped rows), environment colours, getting started.
+striped rows, hide the FactBox pane), environment colours, getting started.
 
 **To present:** open `deck/present.html` in Chrome or Edge (double-click it
 in Explorer) and press **F** for full screen. Next slide: →, ↓, Page Down,
@@ -189,5 +193,7 @@ by asset URL. For a new screenshot, upload it (`asset: true`) and replace the
 | shortcuts | `/_blob/713db8844a4ea6c0053779dccff5edf8` | `crop-with-keyboard-shortcuts.png` |
 | stripes | `/_blob/10bf7cb2b2055cc5fc817e54da4517b1` | `crop-without-striped-rows.png` |
 | stripes | `/_blob/f3cc093f6f6c883fc0262f3678ec9d81` | `crop-with-striped-rows.png` |
+| factbox | `/_blob/bdef8623d9456cae2883fedd94f0fec5` | `crop-without-hide-factbox.png` |
+| factbox | `/_blob/a6b12f951802a3baa0926db313607a65` | `crop-with-hide-factbox.png` |
 | envcolours | `/_blob/f45f098d2f97fa1261c3c5c82610bc54` | `without-env-colours.jpg` |
 | envcolours | `/_blob/34b09d6a87dde8d87ecdfd226505e1fc` | `with-env-colours.jpg` |
