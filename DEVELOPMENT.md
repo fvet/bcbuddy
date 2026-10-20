@@ -647,17 +647,21 @@ left menu:
   dark background). The options page uses the file only as a mask and the
   website sets its own colour, so this value does not show there.
 
-**Tile and colours.** The icon sits on a tile in the cyan of the logo's sphere,
-`#00B7C3`. That cyan reaches only 2.4:1 on white, too pale for thin lines, so
-the lines take a darker shade on light backgrounds:
+**Tile and colours.** The icon sits on a tile in a tint of the cyan of the
+logo's sphere, `#00B7C3`, with its lines in the accent: the teal that the
+options page uses for toggles, buttons, sliders and links, and the website for
+its links. The sphere's own cyan reaches only 2.4:1 on white, too pale for thin
+lines or text, so the accent is a darker shade on light backgrounds:
 
-| | Lines | Tile | Tile border |
+| | Accent (lines) | Tile | Tile border |
 |---|---|---|---|
-| Light | `#00838C` | `#E3F6F8` | `#BFE8EC` |
+| Light | `#007A83` | `#E3F6F8` | `#BFE8EC` |
 | Dark | `#3CC8D1` | `#00B7C3` at 14% | `#00B7C3` at 32% |
 
-They are the `--icon-*` tokens in `options.css` (a 28 px tile with an 18 px
-icon) and the `--bcb-icon-*` tokens in `docs/assets/extra.css`.
+On the options page these are `--accent` and the `--icon-*` tokens in
+`options.css` (a 28 px tile with an 18 px icon); on the website
+`--md-typeset-a-color` and the `--bcb-icon-*` tokens in
+`docs/assets/extra.css`. Change the accent in both files together.
 
 **Adding one for a new setting:**
 

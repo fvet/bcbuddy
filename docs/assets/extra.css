@@ -16,11 +16,11 @@
    --md-typeset-a-color with !important for the slate scheme, so an override of
    equal or even higher specificity loses without it. */
 [data-md-color-scheme='default'] {
-  --md-typeset-a-color: #00808a !important;
+  --md-typeset-a-color: #007a83 !important;
 }
 
 [data-md-color-scheme='slate'] {
-  --md-typeset-a-color: #2ad3de !important;
+  --md-typeset-a-color: #3cc8d1 !important;
 }
 
 /* Home page ------------------------------------------------------------- */
@@ -171,13 +171,11 @@
    fill on .twemoji svg is undone so only the shaded parts are filled. Rules:
    the Setting icons section of DEVELOPMENT.md. */
 :root {
-  --bcb-icon-fg: #00838c;
   --bcb-icon-bg: #e3f6f8;
   --bcb-icon-border: #bfe8ec;
 }
 
 [data-md-color-scheme='slate'] {
-  --bcb-icon-fg: #3cc8d1;
   --bcb-icon-bg: rgba(0, 183, 195, 0.14);
   --bcb-icon-border: rgba(0, 183, 195, 0.32);
 }
@@ -194,7 +192,8 @@
   background: var(--bcb-icon-bg);
   border: 1px solid var(--bcb-icon-border);
   border-radius: 0.4rem;
-  color: var(--bcb-icon-fg);
+  /* The link colour, set per scheme above on body, not on :root. */
+  color: var(--md-typeset-a-color);
   display: inline-flex;
   grid-row: 1 / span 2;
   height: 1.8rem;
