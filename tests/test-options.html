@@ -172,7 +172,7 @@ function report() {
 
 /* ---- syntax check of all script files ----------------------------------- */
 var FILES = [
-  'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/lib/bcstate.js',
+  'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/lib/panes.js', 'src/lib/bcstate.js',
   'src/lib/maximize.js', 'src/lib/actionbar.js', 'src/lib/copyvalues.js', 'src/lib/newtab.js',
   'src/lib/weeknumbers.js', 'src/lib/gearmenu.js', 'src/lib/shortcuts.js',
   'src/content/content.js',
@@ -1171,6 +1171,9 @@ function assertWebClient() {
     copyRow.closest('.card').querySelector('.setting').contains(copyRow), true);
   check('web client: open in a new tab is beta and has no switch',
     document.getElementById('newTabEnabled'), null);
+  var panes = document.getElementById('resizePanesEnabled');
+  check('web client: resize panes switch lives in the panel', panes.closest('.panel'), panel);
+  check('web client: resize panes switch is on by default', panes.checked, true);
   var weeks = document.getElementById('weekNumbersEnabled');
   check('web client: week numbers switch lives in the panel', weeks.closest('.panel'), panel);
   check('web client: week numbers switch is on by default', weeks.checked, true);
@@ -1241,6 +1244,14 @@ function assertWebClient() {
     return wait(400);
   }).then(function () {
     check('web client: and the copy values switch turns back on', STORE.settings.copyValues, { enabled: true });
+    panes.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: resize panes switch is saved', STORE.settings.resizePanes, { enabled: false });
+    panes.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the resize panes switch turns back on', STORE.settings.resizePanes, { enabled: true });
     weeks.click();
     return wait(400);
   }).then(function () {

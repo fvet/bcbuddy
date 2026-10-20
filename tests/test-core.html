@@ -98,6 +98,7 @@ window.chrome = {
 <script src="../src/lib/match.js"></script>
 <script src="../src/lib/settings.js"></script>
 <script src="../src/lib/dropdowns.js"></script>
+<script src="../src/lib/panes.js"></script>
 <script src="../src/lib/bcstate.js"></script>
 <script src="../src/lib/maximize.js"></script>
 <script src="../src/lib/actionbar.js"></script>
@@ -493,6 +494,62 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.copyValuesOn(BCBuddy.normalize({ copyValues: { enabled: false } })), false);
   check('copy values: off when the extension is off',
     BCBuddy.copyValuesOn(BCBuddy.normalize({ enabled: false, copyValues: { enabled: true } })), false);
+  // and so do the drag handles on the side panes
+  check('resize panes: on by default', BCBuddy.resizePanesOn(BCBuddy.normalize(null)), true);
+  check('resize panes: off with its own toggle',
+    BCBuddy.resizePanesOn(BCBuddy.normalize({ resizePanes: { enabled: false } })), false);
+  check('resize panes: off when the extension is off',
+    BCBuddy.resizePanesOn(BCBuddy.normalize({ enabled: false, resizePanes: { enabled: true } })), false);
+  (function () {
+    var P = BCBuddy.Panes;
+    check('resize panes: a width is kept in bounds and whole',
+      [P.widthOf(500.4), P.widthOf(10), P.widthOf(1e9), P.widthOf('x'), P.widthOf(-5), P.widthOf(null)],
+      [500, P.MIN, P.MAX, 0, 0, 0]);
+    check('resize panes: only known kinds are kept from storage',
+      P.normalizeWidths({ inspect: 600, side: 'wide', design: 20, evil: 900 }),
+      { inspect: 600, design: P.MIN });
+    check('resize panes: anything but an object reads as none',
+      [P.normalizeWidths(null), P.normalizeWidths([500]), P.normalizeWidths('500')], [{}, {}, {}]);
+
+    var host = document.createElement('div');
+    host.innerHTML =
+      '<div class="designer inspector"><div class="pane-content">' +
+      '<div class="designer-design-pane expanded" data-k="ins"></div></div></div>' +
+      '<div class="designer personalization"><div class="pane-content">' +
+      '<div class="designer-design-pane expanded" data-k="pers"></div>' +
+      '<div class="designer-design-pane" data-k="closed"></div></div></div>' +
+      '<div style="--panel-width: 340px" data-k="nested"></div>';
+    document.body.appendChild(host);
+    var help = document.createElement('div');
+    help.style.setProperty('--panel-width', '340px');
+    document.body.appendChild(help);
+    function k(name) { return host.querySelector('[data-k="' + name + '"]'); }
+    check('resize panes: which elements are panes, and of which kind',
+      [P.kindOf(k('ins')), P.kindOf(k('pers')), P.kindOf(k('closed')), P.kindOf(k('nested')), P.kindOf(help),
+        P.kindOf(document.body), P.kindOf(null)],
+      ['inspect', 'design', '', '', 'side', '', '']);
+
+    var saved = [];
+    var handle = P.attach(document, {
+      get: function () { return new Promise(function () {}); },
+      set: function (o) { saved.push(o); return Promise.resolve(); }
+    });
+    var html = document.documentElement;
+    check('resize panes: the handles show while attached', html.hasAttribute('data-bcb-panes'), true);
+    var rect = help.getBoundingClientRect();
+    help.dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true, cancelable: true, button: 0, clientX: rect.left + 1, clientY: rect.top + 1
+    }));
+    check('resize panes: a press the page fires starts no drag',
+      [html.hasAttribute('data-bcb-pane-drag'), saved.length], [false, 0]);
+    handle.detach();
+    check('resize panes: and nothing is left on <html> once detached',
+      [html.hasAttribute('data-bcb-panes'), html.hasAttribute('data-bcb-pane-side'),
+        html.style.getPropertyValue('--bcb-pane-side')], [false, false, '']);
+    host.remove();
+    help.remove();
+  })();
+
   // and so do week numbers in the date picker
   check('week numbers: on by default', BCBuddy.weekNumbersOn(BCBuddy.normalize(null)), true);
   check('week numbers: off with its own toggle',

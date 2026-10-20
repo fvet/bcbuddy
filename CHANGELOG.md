@@ -11,6 +11,13 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Resize panes**: drag the left edge of **Help**, **Copilot**, **Page
+  Inspection** or the **Personalize** field list to make it wider or narrower.
+  BC Buddy remembers the width; double-click the edge to go back to Business
+  Central's own width.
+
 ### Changed
 
 - **Copy values** now also works in the **Page Inspection** pane

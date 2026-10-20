@@ -48,6 +48,7 @@ the settings page.
 | **Maximize pages** | Every page in wide layout, tile pages as a list | On |
 | **Pin the action bar** | Every page opens with the row of actions under its tabs pinned | On |
 | **Dropdown size** | The list under a field as wide as its columns need, and taller if you like | On |
+| **Resize panes** | Drag Help, Copilot, Page Inspection and the Personalization field list wider or narrower | On |
 | **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
 | **Highlight the current line** | The line you are on in a journal or order stands out | On |
 | **Hide the notifications icon** | No bell in the top bar | On |
@@ -278,6 +279,11 @@ or pick list view once, and Business Central remembers that instead.
 page nobody set yet. Click the pin at the right end of the action bar once, and
 Business Central keeps it pinned from then on.
 
+**A pane will not get wider.** Only Help, Copilot, Page Inspection and the
+Personalize field list get the handle; the FactBox pane has Business Central's
+own. Point at the very left edge until the pointer turns into a double arrow.
+Double-click the edge for Business Central's own width again.
+
 **No keyboard icon in the top bar.** **Keyboard shortcuts** starts off; switch
 it on under **Web client**, and reload the tab. Business Central on your own server
 has no room for the icon; set a key for the panel at
@@ -334,3 +340,13 @@ repository or an unpacked `bcbuddy-*.zip` from the
 MIT — the full text is in [LICENSE](LICENSE). Use it, change it and pass it on,
 inside a company as well; the copyright notice and the licence text have to
 travel with it.
+
+## ⚖️ Disclaimer
+
+BC Buddy is an independent open-source project. It is not affiliated with,
+endorsed by or supported by Microsoft. Microsoft, Dynamics 365 and Business
+Central are trademarks of the Microsoft group of companies.
+
+BC Buddy is provided as is, without warranty of any kind, and its authors are
+not liable for any damage that comes from using it. The full terms are in
+[LICENSE](LICENSE).

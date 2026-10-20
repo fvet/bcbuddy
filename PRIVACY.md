@@ -15,6 +15,7 @@ Everything BC Buddy knows lives in `chrome.storage.local`, on your own machine:
 - your styles (ribbon, frame, banner, tab title, favicon settings),
 - your web client preferences (whether pages are maximized, and the dropdown
   size steps),
+- the widths you dragged Business Central's side panes to,
 - the URL of a shared configuration file, if you configured one, plus the
   rules it returned and the timestamp of the last synchronisation.
 

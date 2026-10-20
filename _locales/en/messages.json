@@ -498,6 +498,14 @@
     "message": "Pages, dialogs, FastTabs and panes appear at once instead of sliding or fading in. Progress indicators keep moving.",
     "description": "Explains the turn off animations switch. Tooltip on its row in the Web client panel. FastTab is the Business Central term for a collapsible section on a page: use the word the Business Central UI uses in this language."
   },
+  "resizePanesToggle": {
+    "message": "Resize panes",
+    "description": "Label on the on/off switch that lets you drag the left edge of the Help, Copilot, Page Inspection and Personalization panes in Business Central to make them wider or narrower."
+  },
+  "resizePanesIntro": {
+    "message": "Drag the left edge of Help, Copilot, Page Inspection or the Personalization field list to make it wider or narrower. Double-click the edge for the standard width again. The width is remembered.",
+    "description": "Explains the resize panes switch. Tooltip on its row in the Web client panel. Help, Copilot, Page Inspection and Personalization are Business Central names: use the words the Business Central UI uses in this language."
+  },
   "copyValuesToggle": {
     "message": "Copy values",
     "description": "Label on the on/off switch that shows a copy icon on read-only values in Business Central lists, FactBoxes and the Page Inspection pane, and on read-only links on cards."

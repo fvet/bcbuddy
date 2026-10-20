@@ -10,6 +10,7 @@ Free. Works the moment you install it.
 • Every page full width, with the action bar pinned
 • Lists instead of tiles
 • Dropdowns that show all their columns: no more scrolling sideways
+• Help, Copilot and Page Inspection as wide as you drag them
 • Week numbers in the date picker
 • The line you are on stands out in journals and orders
 • No notifications bell in your way
@@ -39,3 +40,5 @@ No account. No server. No tracking.
 ✓ Chrome and Edge
 ✓ English, Dutch and French
 ✓ Free and open source
+
+BC Buddy is an independent project, not affiliated with or endorsed by Microsoft. Microsoft, Dynamics 365 and Business Central are trademarks of the Microsoft group of companies.

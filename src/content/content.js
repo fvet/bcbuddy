@@ -92,6 +92,8 @@
     // Dropdown sizer handle, and the settings it was started with ('' = off).
     dropdowns: null,
     dropdownKey: '',
+    // Drag handles on BC's side panes (panes.js), while the switch is on.
+    panes: null,
     // Copy icon handle while the switch is on.
     copyValues: null,
     // Ctrl+click and middle-click handler (newtab.js, beta).
@@ -413,6 +415,7 @@
     applyMaximize();
     applyPinActionBar();
     applyDropdowns();
+    applyPanes();
     applyHighlightRow();
     applyListLook();
     applyNoAnimations();
@@ -1013,6 +1016,22 @@
     if (state.dropdowns) state.dropdowns.detach();
     state.dropdowns = want ? BCBuddy.Dropdowns.attach(document, settings.dropdown) : null;
     state.dropdownKey = key;
+  }
+
+  /* ---------------------------------------------------------------- panes */
+
+  /**
+   * Drag handles on the left edge of Help, Copilot, Page Inspection and the
+   * Personalization field list; see panes.js. In every frame: Page Inspection
+   * is in the top window, Help in the client frame. One pointerdown listener,
+   * attached once and left alone until the switch changes, so this costs one
+   * comparison per apply().
+   */
+  function applyPanes() {
+    var want = BCBuddy.resizePanesOn(state.settings) && state.webClient;
+    if (want === !!state.panes) return;
+    if (state.panes) state.panes.detach();
+    state.panes = want ? BCBuddy.Panes.attach(document) : null;
   }
 
   /* ------------------------------------------------------------ gear menu */
