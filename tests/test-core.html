@@ -1116,6 +1116,27 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   })()), true);
   check('dropdown: travels in an export under webClient',
     BCBuddy.toExport(def).webClient.dropdown, { width: 5, height: 5 });
+  (function () {
+    var container = document.createElement('div');
+    container.className = 'spa-container';
+    document.body.appendChild(container);
+    var sizer = D.attach(document, { width: 3, height: 2 });
+    var list = document.createElement('div');
+    list.className = 'spa-view spa-lookup';
+    list.innerHTML = '<form class="ms-nav-lookupform"><div><table class="ms-nav-grid-header-table">' +
+      '<thead><tr><th></th><th style="width:15ex">No.</th><th style="width:30ex">Name</th></tr></thead>' +
+      '</table></div></form>';
+    container.appendChild(list);
+    setTimeout(function () {
+      var gutter = list.style.getPropertyValue('--bcb-dropdown-gutter');
+      check('dropdown: a sized dropdown gets room for the scrollbar, in px',
+        [list.hasAttribute(D.MARK), /^\d+px$/.test(gutter)], [true, true]);
+      sizer.detach();
+      check('dropdown: detach takes that room away again',
+        [list.hasAttribute(D.MARK), list.style.getPropertyValue('--bcb-dropdown-gutter')], [false, '']);
+      container.remove();
+    }, 0);
+  })();
 
   // maximize: a BC page stack as the BC28 web client builds it. The page you
   // came from stays in the DOM, inert, under the page on screen.
