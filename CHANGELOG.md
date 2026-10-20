@@ -17,6 +17,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   the pane of extra details on the right, so the page gets the room. Open it on
   a page and it stays open there. Off until you switch it on under **Web
   client**.
+- **Dark mode** for the BC Buddy settings: the moon button at the top right
+  switches the page to dark, the sun back to light. Until you click it, the
+  page follows Windows.
 
 ### Fixed
 

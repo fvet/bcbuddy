@@ -7,9 +7,20 @@
     "message": "BC Buddy - options",
     "description": "Title of the options page. BC Buddy is a product name and stays as it is."
   },
-  "extensionActive": { "message": "Extension active" },
+  "extensionActive": {
+    "message": "Active",
+    "description": "Label of the switch that turns BC Buddy on or off, at the bottom of the options menu. Keep it to one short word."
+  },
   "languageLabel": { "message": "Language" },
   "languageTitle": { "message": "The language of BC Buddy. Business Central keeps its own." },
+  "themeLabel": {
+    "message": "Dark mode",
+    "description": "Accessible name of the sun/moon button in the options header. It is a toggle: pressed means the page is dark."
+  },
+  "themeTitle": {
+    "message": "Light or dark mode for this page. Business Central keeps its own.",
+    "description": "Tooltip on the sun/moon button in the options header."
+  },
   "saveFailed": {
     "message": "Saving failed: $1",
     "description": "Shown when the settings could not be stored. $1 is the error message from the browser."
@@ -446,25 +457,41 @@
     "description": "Navigation item leading to the panel with tweaks to the Business Central web client itself (maximize, dropdown size, current line). Use the term the Business Central documentation uses for the web client in this language."
   },
   "webClientHeading": { "message": "Web client" },
-  "maximizeIntro": {
-    "message": "Automatically expands every Business Central page to wide layout and switches tile pages to list view. A page you set back yourself stays that way.",
-    "description": "Explains what the maximize feature does. Tooltip on its row in the Web client panel."
+  "webClientIntro": {
+    "message": "Small fixes for the Business Central screens you use every day.",
+    "description": "One line under the Web client heading in the options."
+  },
+  "webClientStandard": {
+    "message": "Works straight away",
+    "description": "Heading above the Web client switches that are on from the start."
+  },
+  "webClientExtras": {
+    "message": "Extras",
+    "description": "Heading above the Web client switches that start off, for people who want more."
+  },
+  "webClientCount": {
+    "message": "$1 switched on",
+    "description": "$1 is the number of Web client switches that are on. Read out after the Web client menu item, which shows the number in a small badge."
+  },
+  "maximizeDesc": {
+    "message": "Every page opens in wide layout; tile pages open as a list.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "maximizeToggle": {
     "message": "Maximize pages",
     "description": "Label on the on/off switch for the maximize feature."
   },
-  "pinActionBarIntro": {
-    "message": "Pins the action bar under a page's tabs the first time the page opens. Unpin it on a page and that page stays unpinned.",
-    "description": "Explains the pin action bar feature. Tooltip on its row in the Web client panel. 'Action bar' and 'pin' are the terms Business Central itself uses for the row of actions and its pin button."
+  "pinActionBarDesc": {
+    "message": "The actions under a page's tabs stay in view.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "pinActionBarToggle": {
     "message": "Pin the action bar",
     "description": "Label on the on/off switch for the pin action bar feature. Use Business Central's own wording for its 'Pin action bar' button in this language."
   },
-  "hideFactBoxIntro": {
-    "message": "Closes the FactBox pane on the right on pages you open for the first time. Open it again on a page and it stays open there.",
-    "description": "Explains the hide FactBox pane switch. Tooltip on its row in the Web client panel. FactBox is the Business Central term for the pane on the right: use the word the Business Central UI uses in this language."
+  "hideFactBoxDesc": {
+    "message": "Closes the FactBox pane on pages you open for the first time.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "hideFactBoxToggle": {
     "message": "Hide the FactBox pane",
@@ -474,49 +501,49 @@
     "message": "Dropdown size",
     "description": "Heading of the setting that gives the list opening under a lookup field (the dropdown) more room."
   },
-  "dropdownIntro": {
-    "message": "Gives the list that opens under a field more room. The width follows the columns, up to the maximum set here.",
-    "description": "Explains the dropdown size sliders. Tooltip on their row in the Web client panel. BC is short for Business Central and stays as it is."
+  "dropdownDesc": {
+    "message": "More room for the list that opens under a field.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "highlightRowToggle": {
     "message": "Highlight the current line",
     "description": "Label on the on/off switch that tints the line you are on in editable lists. Line is the Business Central term for a row on a document or journal (sales line, journal line)."
   },
-  "highlightRowIntro": {
-    "message": "Gives the line you are on a light tint in editable lists, such as sales lines and journals.",
-    "description": "Explains the current line highlight. Tooltip on its row in the Web client panel. Sales lines and journals are Business Central terms: use the words the Business Central UI uses in this language."
+  "highlightRowDesc": {
+    "message": "A light tint on the line you are on in sales lines and journals.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "stripeRowsToggle": {
     "message": "Striped rows",
     "description": "Label on the on/off switch that gives every other row in a list a light grey, so the eye stays on the right line."
   },
-  "stripeRowsIntro": {
-    "message": "Gives every other row in a list a light grey, so you stay on the right line in a wide list.",
-    "description": "Explains striped rows. Tooltip on its row in the Web client panel."
+  "stripeRowsDesc": {
+    "message": "Every other row in a list gets a light grey, so you stay on the right line.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "noAnimationsToggle": {
     "message": "Turn off animations",
     "description": "Label on the on/off switch that makes Business Central pages, FastTabs and panes appear at once instead of sliding or fading in."
   },
-  "noAnimationsIntro": {
-    "message": "Pages, dialogs, FastTabs and panes appear at once instead of sliding or fading in. Progress indicators keep moving.",
-    "description": "Explains the turn off animations switch. Tooltip on its row in the Web client panel. FastTab is the Business Central term for a collapsible section on a page: use the word the Business Central UI uses in this language."
+  "noAnimationsDesc": {
+    "message": "Pages and panes appear at once instead of sliding in.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "resizePanesToggle": {
     "message": "Resize panes",
     "description": "Label on the on/off switch that lets you drag the left edge of the Help, Copilot, Page Inspection and Personalization panes in Business Central to make them wider or narrower."
   },
-  "resizePanesIntro": {
-    "message": "Drag the left edge of Help, Copilot, Page Inspection or the Personalization field list to make it wider or narrower. Double-click the edge for the standard width again. The width is remembered.",
-    "description": "Explains the resize panes switch. Tooltip on its row in the Web client panel. Help, Copilot, Page Inspection and Personalization are Business Central names: use the words the Business Central UI uses in this language."
+  "resizePanesDesc": {
+    "message": "Drag the edge of Help, Copilot or Page Inspection to make it wider.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "copyValuesToggle": {
     "message": "Copy values",
     "description": "Label on the on/off switch that shows a copy icon on read-only values in Business Central lists, FactBoxes and the Page Inspection pane, and on read-only links on cards."
   },
-  "copyValuesIntro": {
-    "message": "Rest the mouse on a value in a list or a FactBox, or on a link on a card, and click the icon to copy it, as shown.",
-    "description": "Explains the copy values switch. Tooltip on its row in the Web client panel. FactBox is the Business Central term for the pane on the right: use the word the Business Central UI uses in this language."
+  "copyValuesDesc": {
+    "message": "Rest the mouse on a value and click the icon to copy it.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "copyValue": {
     "message": "Copy value",
@@ -530,17 +557,17 @@
     "message": "Week numbers in the date picker",
     "description": "Label on the on/off switch that shows the week number in front of each week in the Business Central date picker (the calendar that opens from a date field)."
   },
-  "weekNumbersIntro": {
-    "message": "Turns on Business Central's own week numbers in the calendar of a date field. Press Shift+Home in the calendar to turn them off or on again; Business Central remembers it.",
-    "description": "Explains the week numbers switch. Tooltip on its row in the Web client panel."
+  "weekNumbersDesc": {
+    "message": "The calendar of a date field shows week numbers.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "hideNotificationsToggle": {
     "message": "Hide the notifications icon",
     "description": "Label on the on/off switch that hides the bell icon in the Business Central top bar. Notifications is what Business Central calls the pane that bell opens: use the word the Business Central UI uses in this language."
   },
-  "hideNotificationsIntro": {
-    "message": "Hides the bell at the top right of Business Central that opens Notifications.",
-    "description": "Explains the hide notifications switch. Tooltip on its row in the Web client panel. Notifications is the Business Central pane the bell opens: use the word the Business Central UI uses in this language."
+  "hideNotificationsDesc": {
+    "message": "Hides the bell at the top right of Business Central.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "dropdownWidth": {
     "message": "Width",
@@ -589,9 +616,9 @@
     "message": "Keyboard shortcuts",
     "description": "Label on the on/off switch that adds a keyboard icon to the top bar of Business Central, which shows the keyboard shortcuts."
   },
-  "shortcutsIntro": {
-    "message": "Adds a keyboard icon to the top bar of Business Central. It shows the keyboard shortcuts that work where you are, and the ones of the page itself.",
-    "description": "Explains the keyboard shortcuts switch. Tooltip on its row in the Web client panel."
+  "shortcutsDesc": {
+    "message": "A keyboard icon in the top bar lists the shortcuts that work where you are.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "commandShortcuts": {
     "message": "Show the keyboard shortcuts for this Business Central page",

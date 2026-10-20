@@ -58,8 +58,8 @@ Setting up your first two colours takes a minute:
 - **Chrome and Edge**, version 111 or newer, with Business Central online or
   on your own server.
 - **In English, Dutch and French**, following the language of your browser.
-  To choose another one, use the globe at the top right of the BC Buddy
-  settings.
+  To choose another one, use the language list at the top right of the BC
+  Buddy settings.
 - **Free and open source** under the
   [MIT licence](https://github.com/fvet/bcbuddy/blob/main/LICENSE), also for
   use at work.

@@ -9,8 +9,8 @@ Click a question to see the answer.
     Reload the Business Central tab (press F5). Tabs that were open before you
     installed BC Buddy do not see it until they reload.
 
-    Still nothing? Open the BC Buddy settings page and check that **Extension
-    active**, at the top, is on.
+    Still nothing? Open the BC Buddy settings page and check that **Active**,
+    below the menu on the left, is on.
 
 ??? faq "No BC Buddy in the gear menu"
 

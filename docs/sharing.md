@@ -60,7 +60,7 @@ an order:
   back to what the file says. Settings the file leaves out go back to how BC
   Buddy starts out.
 
-The **Extension active** switch is never shared.
+The **Active** switch, which turns BC Buddy on or off, is never shared.
 
 ## Importing a file once
 
