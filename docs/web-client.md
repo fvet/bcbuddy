@@ -5,30 +5,12 @@ is nothing to set up: most of it is on from the moment you install it. Each
 improvement has its own switch under **Web client** on the BC Buddy settings
 page, so you can turn off whatever you do not like.
 
-| Improvement | What you get in Business Central | Starts |
-|---|---|---|
-| [Copy values](#copy-values) | A copy icon on any value in a list or FactBox | On |
-| [Maximize pages](#maximize-pages) | Every page uses the full width of your screen | On |
-| [Pin the action bar](#pin-the-action-bar) | The row of actions under a page's tabs is pinned | On |
-| [Dropdown size](#dropdown-size) | The list under a field shows all its columns | On |
-| [Resize panes](#resize-panes) | Make Help, Copilot or Page Inspection wider by dragging its edge | On |
-| [Week numbers in the date picker](#week-numbers-in-the-date-picker) | Business Central's own week numbers in the calendar of a date field | On |
-| [Highlight the current line](#highlight-the-current-line) | The line you are on in a journal or order stands out | On |
-| [Hide the notifications icon](#hide-the-notifications-icon) | No bell at the top right | On |
-| [Keyboard shortcuts](#keyboard-shortcuts) | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
-| [Striped rows](#striped-rows) | Every other row in a list a light grey | Off |
-| [Turn off animations](#turn-off-animations) | Pages and dialogs appear at once | Off |
+Click an improvement to read more.
 
-A change takes effect in Business Central straight away. The **Extension
-active** switch at the top of the settings page pauses all of BC Buddy at once.
+<details class="faq" id="copy-values" markdown>
+<summary>Copy values<span class="bcb-summary-text">A copy icon on any value in a list or FactBox</span></summary>
 
-Changed too much? **Reset to defaults**, above the list, puts every switch and
-slider back to how BC Buddy starts out. **Undo**, right next to the message,
-takes it back. When your team shares a file, the button reads **Reset to your
-team's defaults** and takes the team's choices from that file; see
-[Team file](sharing.md#web-client-settings-in-the-file).
-
-## Copy values
+<p class="bcb-starts bcb-starts--on">On from the start</p>
 
 Rest the mouse on a value in a list or a FactBox for a moment, and a small copy
 icon appears next to it. Click it and the value is copied, exactly as Business
@@ -49,7 +31,12 @@ A field you can type in gets no icon: select its text and press Ctrl+C as usual.
 The **Page Inspection** pane (Ctrl+Alt+F1) has the icon too: on **Page**, on
 **Table**, and on the value of each field under **Table Fields**.
 
-## Maximize pages
+</details>
+
+<details class="faq" id="maximize-pages" markdown>
+<summary>Maximize pages<span class="bcb-summary-text">Every page uses the full width of your screen</span></summary>
+
+<p class="bcb-starts bcb-starts--on">On from the start</p>
 
 Every page opens in wide layout, so you see more fields and columns without
 scrolling. Pages that show tiles switch to a list.
@@ -66,7 +53,12 @@ BC Buddy only changes a page the first time it opens. Business Central
 remembers per page how you left it, in your browser, so a page you switch back
 to narrow or to tiles yourself stays that way, also the next time you open it.
 
-## Pin the action bar
+</details>
+
+<details class="faq" id="pin-the-action-bar" markdown>
+<summary>Pin the action bar<span class="bcb-summary-text">The row of actions under a page's tabs is pinned</span></summary>
+
+<p class="bcb-starts bcb-starts--on">On from the start</p>
 
 The row of actions under a page's tabs, such as **Start** or **Prepare**, has a
 pin at its right end. Business Central remembers per page whether you pinned
@@ -88,7 +80,12 @@ Switching **Maximize pages** or **Pin the action bar** off does not undo what
 they already did: Business Central remembers those pages. Set a page back by
 hand if you want it different.
 
-## Dropdown size
+</details>
+
+<details class="faq" id="dropdown-size" markdown>
+<summary>Dropdown size<span class="bcb-summary-text">The list under a field shows all its columns</span></summary>
+
+<p class="bcb-starts bcb-starts--on">On from the start</p>
 
 The list that opens under a field, such as Country/Region Code or the item
 number on a sales line, gets more room. There are two sliders:
@@ -109,7 +106,12 @@ Point at a slider to see how big the list gets.
 
     ![The same list at Business Central's own size: only No. and Description fit, with a scroll bar to reach the other columns](assets/screenshots/crop-without-dropdown.png){ loading=lazy }
 
-## Resize panes
+</details>
+
+<details class="faq" id="resize-panes" markdown>
+<summary>Resize panes<span class="bcb-summary-text">Make Help, Copilot or Page Inspection wider by dragging its edge</span></summary>
+
+<p class="bcb-starts bcb-starts--on">On from the start</p>
 
 Business Central opens some panes on the right at a fixed width: **Help**,
 **Copilot**, **Page Inspection** (Ctrl+Alt+F1) and the field list of
@@ -126,7 +128,12 @@ tab. To go back to Business Central's own width, double-click the edge.
 The pane always leaves some room for the page next to it, so in a small
 window it stops growing before it covers the page.
 
-## Week numbers in the date picker
+</details>
+
+<details class="faq" id="week-numbers-in-the-date-picker" markdown>
+<summary>Week numbers in the date picker<span class="bcb-summary-text">Business Central's own week numbers in the calendar of a date field</span></summary>
+
+<p class="bcb-starts bcb-starts--on">On from the start</p>
 
 The calendar that opens from a date field shows the week number in front of
 each week. These are Business Central's own week numbers: Business Central has
@@ -148,7 +155,12 @@ Business Central counts the weeks as the **Region** in **My Settings** says.
 With Dutch, for example, weeks start on Monday and week 1 is the week with the
 first Thursday of the year.
 
-## Highlight the current line
+</details>
+
+<details class="faq" id="highlight-the-current-line" markdown>
+<summary>Highlight the current line<span class="bcb-summary-text">The line you are on in a journal or order stands out</span></summary>
+
+<p class="bcb-starts bcb-starts--on">On from the start</p>
 
 On the lines of a sales order or in a journal, Business Central shows the line
 you are on with only a small arrow at the far left. With this on, the whole line
@@ -162,12 +174,22 @@ gets a light tint, so you do not lose your place on a wide line.
 
     ![The same lines where only a small arrow at the far left shows which line the cursor is on](assets/screenshots/crop-without-current-line.png){ loading=lazy }
 
-## Hide the notifications icon
+</details>
+
+<details class="faq" id="hide-the-notifications-icon" markdown>
+<summary>Hide the notifications icon<span class="bcb-summary-text">No bell at the top right</span></summary>
+
+<p class="bcb-starts bcb-starts--on">On from the start</p>
 
 The bell at the top right of Business Central is hidden. Switch this off to get
 it back.
 
-## Keyboard shortcuts
+</details>
+
+<details class="faq" id="keyboard-shortcuts" markdown>
+<summary>Keyboard shortcuts<span class="bcb-summary-text">A keyboard icon in the top bar that shows the shortcuts for where you are</span></summary>
+
+<p class="bcb-starts">Off until you switch it on</p>
 
 BC Buddy adds a keyboard icon to the top bar of Business Central, next to the
 question mark. Click it to see the shortcuts that work where you are:
@@ -192,9 +214,7 @@ the bottom opens Microsoft's full list of shortcuts.
 Actions in a menu you have not opened yet are not listed: Business Central only
 builds those when you open the menu.
 
-This one is off until you switch it on.
-
-<details>
+<details markdown>
 <summary>Opening it with a key, or on Business Central on your own server</summary>
 
 You can give the panel a key of your own. In Chrome, go to
@@ -207,7 +227,12 @@ without the icon. There this key is the way to open the panel.
 
 </details>
 
-## Striped rows
+</details>
+
+<details class="faq" id="striped-rows" markdown>
+<summary>Striped rows<span class="bcb-summary-text">Every other row in a list a light grey</span></summary>
+
+<p class="bcb-starts">Off until you switch it on</p>
 
 Every other row in a list gets a light grey, so your eye stays on the right
 line when you read across a wide list such as **General Ledger Entries**. The
@@ -221,15 +246,29 @@ line you are on and the lines you select keep Business Central's own colours.
 
     ![The same Sales Orders list with all rows white](assets/screenshots/crop-without-striped-rows.png){ loading=lazy }
 
-This one is off until you switch it on.
+</details>
 
-## Turn off animations
+<details class="faq" id="turn-off-animations" markdown>
+<summary>Turn off animations<span class="bcb-summary-text">Pages and dialogs appear at once</span></summary>
+
+<p class="bcb-starts">Off until you switch it on</p>
 
 Business Central slides or fades in pages, dialogs and FastTabs, so opening a
 card or a dialog takes a moment each time. With this on they appear at once.
 Progress indicators keep moving, so you can still see when Business Central is
 busy.
 
-This one is off until you switch it on.
+</details>
+
+## Switching them on and off
+
+A change takes effect in Business Central straight away. The **Extension
+active** switch at the top of the settings page pauses all of BC Buddy at once.
+
+Changed too much? **Reset to defaults**, above the list, puts every switch and
+slider back to how BC Buddy starts out. **Undo**, right next to the message,
+takes it back. When your team shares a file, the button reads **Reset to your
+team's defaults** and takes the team's choices from that file; see
+[Team file](sharing.md#web-client-settings-in-the-file).
 
 Something not working as described? See [Troubleshooting](troubleshooting.md).
