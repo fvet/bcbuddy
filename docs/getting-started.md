@@ -58,8 +58,8 @@ Rather make your own? Then:
    **Environment** **equals** `Sandbox`, in red.
 
 <figure markdown>
-![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](assets/screenshot-3-1280x800.png)
-<figcaption>The rules list, with one rule opened.</figcaption>
+![The Environments page with the four sample rules: Master Data in yellow, Production in green, UAT in red and Development in blue. Production has a green border all round because it is the rule the open Business Central tab gets. Below them, the Default style with its preview](assets/screenshot-6-environments-1280x800.png)
+<figcaption>The sample rules. The one your open tab gets has a border all round.</figcaption>
 </figure>
 
 Now switch to your Business Central tab: the bar at the top shows your colour

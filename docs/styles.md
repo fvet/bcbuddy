@@ -14,7 +14,7 @@ language you install BC Buddy in: *Volledig* and *Subtiel* in Dutch, *Complet*
 and *Discret* in French.
 
 <figure markdown>
-![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](assets/screenshot-2-1280x800.png)
+![The Full style on the Environments page, with a live preview in green for CRONUS BE (Production) at the top and below it the settings for ribbon, frame, banner, tab title and favicon, each with its own switch](assets/screenshot-7-styles-1280x800.png)
 <figcaption>The preview at the top shows the result while you change the style.</figcaption>
 </figure>
 

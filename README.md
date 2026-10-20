@@ -70,10 +70,10 @@ A test environment and the real one look exactly alike. BC Buddy colours the
 bar at the top of Business Central, with your own text:
 
 ```
-Dynamics 365 Business Central - CRONUS BE (Sandbox)
+Dynamics 365 Business Central - CRONUS BE (Production)
 ```
 
-![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](store/screenshot-1-1280x800.png)
+![The Sales Orders list in Business Central with a green bar reading "CRONUS BE (Production)", a green frame around the window and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts panel is open on the right](store/screenshot-4-sales-orders-1280x800.png)
 
 You set this up with two lists under **Environments**:
 
@@ -84,7 +84,7 @@ You set this up with two lists under **Environments**:
   bar at the top. In Dutch they are *Volledig* and *Subtiel*, in French
   *Complet* and *Discret*.
 
-![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, style and favicon letters](store/screenshot-3-1280x800.png)
+![The Environments page with the four sample rules: Master Data in yellow, Production in green, UAT in red and Development in blue. Production has a green border all round because it is the rule the open Business Central tab gets. Below them, the Default style with its preview](store/screenshot-6-environments-1280x800.png)
 
 ### Rules
 
@@ -166,7 +166,7 @@ A style can show any of these:
   `[TEST] Company Information`.
 - **Favicon**: a coloured tab icon with one or two letters.
 
-![The Default style in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
+![The Full style on the Environments page, with a live preview in green for CRONUS BE (Production) at the top and below it the settings for ribbon, frame, banner, tab title and favicon, each with its own switch](store/screenshot-7-styles-1280x800.png)
 
 The preview at the top shows the result while you change it, in the colour
 and name of the rule that fits the address under **Test**, or in Business
