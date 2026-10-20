@@ -8,7 +8,7 @@ page, so you can turn off whatever you do not like.
 Click an improvement to read more.
 
 <details class="faq" id="copy-values" markdown>
-<summary>Copy values<span class="bcb-summary-text">A copy icon on any value in a list or FactBox</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-copy-values:</span>Copy values<span class="bcb-summary-text">A copy icon on any value in a list or FactBox</span></summary>
 
 <p class="bcb-starts bcb-starts--on">On from the start</p>
 
@@ -34,7 +34,7 @@ The **Page Inspection** pane (Ctrl+Alt+F1) has the icon too: on **Page**, on
 </details>
 
 <details class="faq" id="maximize-pages" markdown>
-<summary>Maximize pages<span class="bcb-summary-text">Every page uses the full width of your screen</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-maximize:</span>Maximize pages<span class="bcb-summary-text">Every page uses the full width of your screen</span></summary>
 
 <p class="bcb-starts bcb-starts--on">On from the start</p>
 
@@ -56,7 +56,7 @@ to narrow or to tiles yourself stays that way, also the next time you open it.
 </details>
 
 <details class="faq" id="pin-the-action-bar" markdown>
-<summary>Pin the action bar<span class="bcb-summary-text">The row of actions under a page's tabs is pinned</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-pin-action-bar:</span>Pin the action bar<span class="bcb-summary-text">The row of actions under a page's tabs is pinned</span></summary>
 
 <p class="bcb-starts bcb-starts--on">On from the start</p>
 
@@ -83,7 +83,7 @@ hand if you want it different.
 </details>
 
 <details class="faq" id="dropdown-size" markdown>
-<summary>Dropdown size<span class="bcb-summary-text">The list under a field shows all its columns</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-dropdown:</span>Dropdown size<span class="bcb-summary-text">The list under a field shows all its columns</span></summary>
 
 <p class="bcb-starts bcb-starts--on">On from the start</p>
 
@@ -109,7 +109,7 @@ Point at a slider to see how big the list gets.
 </details>
 
 <details class="faq" id="resize-panes" markdown>
-<summary>Resize panes<span class="bcb-summary-text">Make Help, Copilot or Page Inspection wider by dragging its edge</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-resize-panes:</span>Resize panes<span class="bcb-summary-text">Make Help, Copilot or Page Inspection wider by dragging its edge</span></summary>
 
 <p class="bcb-starts bcb-starts--on">On from the start</p>
 
@@ -131,7 +131,7 @@ window it stops growing before it covers the page.
 </details>
 
 <details class="faq" id="week-numbers-in-the-date-picker" markdown>
-<summary>Week numbers in the date picker<span class="bcb-summary-text">Business Central's own week numbers in the calendar of a date field</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-week-numbers:</span>Week numbers in the date picker<span class="bcb-summary-text">Business Central's own week numbers in the calendar of a date field</span></summary>
 
 <p class="bcb-starts bcb-starts--on">On from the start</p>
 
@@ -158,7 +158,7 @@ first Thursday of the year.
 </details>
 
 <details class="faq" id="highlight-the-current-line" markdown>
-<summary>Highlight the current line<span class="bcb-summary-text">The line you are on in a journal or order stands out</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-highlight-row:</span>Highlight the current line<span class="bcb-summary-text">The line you are on in a journal or order stands out</span></summary>
 
 <p class="bcb-starts bcb-starts--on">On from the start</p>
 
@@ -177,7 +177,7 @@ gets a light tint, so you do not lose your place on a wide line.
 </details>
 
 <details class="faq" id="hide-the-notifications-icon" markdown>
-<summary>Hide the notifications icon<span class="bcb-summary-text">No bell at the top right</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-hide-notifications:</span>Hide the notifications icon<span class="bcb-summary-text">No bell at the top right</span></summary>
 
 <p class="bcb-starts bcb-starts--on">On from the start</p>
 
@@ -187,7 +187,7 @@ it back.
 </details>
 
 <details class="faq" id="keyboard-shortcuts" markdown>
-<summary>Keyboard shortcuts<span class="bcb-summary-text">A keyboard icon in the top bar that shows the shortcuts for where you are</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">A keyboard icon in the top bar that shows the shortcuts for where you are</span></summary>
 
 <p class="bcb-starts">Off until you switch it on</p>
 
@@ -230,7 +230,7 @@ without the icon. There this key is the way to open the panel.
 </details>
 
 <details class="faq" id="striped-rows" markdown>
-<summary>Striped rows<span class="bcb-summary-text">Every other row in a list a light grey</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-stripe-rows:</span>Striped rows<span class="bcb-summary-text">Every other row in a list a light grey</span></summary>
 
 <p class="bcb-starts">Off until you switch it on</p>
 
@@ -249,7 +249,7 @@ line you are on and the lines you select keep Business Central's own colours.
 </details>
 
 <details class="faq" id="turn-off-animations" markdown>
-<summary>Turn off animations<span class="bcb-summary-text">Pages and dialogs appear at once</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-no-animations:</span>Turn off animations<span class="bcb-summary-text">Pages and dialogs appear at once</span></summary>
 
 <p class="bcb-starts">Off until you switch it on</p>
 

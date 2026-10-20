@@ -44,17 +44,17 @@ the settings page.
 
 | Improvement | What you get in Business Central | Starts |
 |---|---|---|
-| **Copy values** | A copy icon on any value in a list or FactBox, and on links on a card | On |
-| **Maximize pages** | Every page in wide layout, tile pages as a list | On |
-| **Pin the action bar** | Every page opens with the row of actions under its tabs pinned | On |
-| **Dropdown size** | The list under a field as wide as its columns need, and taller if you like | On |
-| **Resize panes** | Drag Help, Copilot, Page Inspection and the Personalization field list wider or narrower | On |
-| **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
-| **Highlight the current line** | The line you are on in a journal or order stands out | On |
-| **Hide the notifications icon** | No bell in the top bar | On |
-| **Keyboard shortcuts** | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
-| **Striped rows** | Every other row in a list a light grey | Off |
-| **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
+| <img src="icons/settings/copy-values.svg" width="18" height="18" alt=""> **Copy values** | A copy icon on any value in a list or FactBox, and on links on a card | On |
+| <img src="icons/settings/maximize.svg" width="18" height="18" alt=""> **Maximize pages** | Every page in wide layout, tile pages as a list | On |
+| <img src="icons/settings/pin-action-bar.svg" width="18" height="18" alt=""> **Pin the action bar** | Every page opens with the row of actions under its tabs pinned | On |
+| <img src="icons/settings/dropdown.svg" width="18" height="18" alt=""> **Dropdown size** | The list under a field as wide as its columns need, and taller if you like | On |
+| <img src="icons/settings/resize-panes.svg" width="18" height="18" alt=""> **Resize panes** | Drag Help, Copilot, Page Inspection and the Personalization field list wider or narrower | On |
+| <img src="icons/settings/week-numbers.svg" width="18" height="18" alt=""> **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
+| <img src="icons/settings/highlight-row.svg" width="18" height="18" alt=""> **Highlight the current line** | The line you are on in a journal or order stands out | On |
+| <img src="icons/settings/hide-notifications.svg" width="18" height="18" alt=""> **Hide the notifications icon** | No bell in the top bar | On |
+| <img src="icons/settings/shortcuts.svg" width="18" height="18" alt=""> **Keyboard shortcuts** | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
+| <img src="icons/settings/stripe-rows.svg" width="18" height="18" alt=""> **Striped rows** | Every other row in a list a light grey | Off |
+| <img src="icons/settings/no-animations.svg" width="18" height="18" alt=""> **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
 **Reset to defaults**, above the list, puts every switch and slider back to
 how BC Buddy starts out. When your team shares a file, the button reads

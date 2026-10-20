@@ -31,6 +31,12 @@
      choice: give the options the page's colours, not the header's. */
   --topbar-option-bg: #ffffff;
   --topbar-option-text: #1b1e23;
+  /* The tiles in front of the Web client settings, in the cyan of the logo's
+     sphere (#00b7c3). The lines take a darker shade on light: the sphere's own
+     colour reaches only 2.4:1 on white. Rules: DEVELOPMENT.md, Setting icons. */
+  --icon-fg: #00838c;
+  --icon-bg: #e3f6f8;
+  --icon-border: #bfe8ec;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -55,6 +61,9 @@
     --topbar-control: var(--border);
     --topbar-option-bg: var(--surface);
     --topbar-option-text: var(--text);
+    --icon-fg: #3cc8d1;
+    --icon-bg: rgba(0, 183, 195, .14);
+    --icon-border: rgba(0, 183, 195, .32);
   }
 }
 
@@ -269,6 +278,39 @@ section { display: flex; flex-direction: column; gap: 10px; }
 label.setting { cursor: pointer; }
 .setting + .setting { border-top: 1px solid var(--border); }
 .setting--wrap { flex-wrap: wrap; }
+/* The tile in front of a setting: one SVG per setting in icons/settings/,
+   used as a mask so the line colour follows the theme. The same files are the
+   icons on the website and in the README. */
+.setting__icon {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  margin-right: -4px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--icon-bg);
+  border: 1px solid var(--icon-border);
+}
+.setting__icon::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: var(--icon-fg);
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+.setting__icon--copy-values { --icon: url(../../icons/settings/copy-values.svg); }
+.setting__icon--maximize { --icon: url(../../icons/settings/maximize.svg); }
+.setting__icon--pin-action-bar { --icon: url(../../icons/settings/pin-action-bar.svg); }
+.setting__icon--highlight-row { --icon: url(../../icons/settings/highlight-row.svg); }
+.setting__icon--dropdown { --icon: url(../../icons/settings/dropdown.svg); }
+.setting__icon--resize-panes { --icon: url(../../icons/settings/resize-panes.svg); }
+.setting__icon--week-numbers { --icon: url(../../icons/settings/week-numbers.svg); }
+.setting__icon--hide-notifications { --icon: url(../../icons/settings/hide-notifications.svg); }
+.setting__icon--shortcuts { --icon: url(../../icons/settings/shortcuts.svg); }
+.setting__icon--stripe-rows { --icon: url(../../icons/settings/stripe-rows.svg); }
+.setting__icon--no-animations { --icon: url(../../icons/settings/no-animations.svg); }
 .setting__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .setting__name { font-weight: 600; }
 .setting__sliders { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 20px; margin-left: auto; }

@@ -36,7 +36,8 @@ examples/              bc-buddy.json: the samples Load samples adds, and the
                        intune/: scripts that set the policy for IT, and
                        the ExtensionSettings value that limits its hosts
 tests/                 test pages + runner
-icons/                 logo.svg, build-icons.ps1, the PNGs
+icons/                 logo.svg, build-icons.ps1, the PNGs;
+                       settings/: one SVG per Web client setting
 tools/                 build-package.ps1: the ZIP for the store;
                        get-cws-token.ps1: one-off OAuth setup for releases;
                        mkdocs_assets.py + requirements-docs.txt: the website;
@@ -613,6 +614,68 @@ shadow around the image. In the toolbar the opposite applies, so it is a separat
 file and not a replacement for `icon128.png`. It does not go into the package
 either; you upload it in the dashboard.
 
+### Setting icons
+
+Every switch under **Web client** has an icon, shown in three places: on its
+row on the options page, on its card in `docs/web-client.md`, and in the feature
+table of the README. All three read the same file in `icons/settings/`, named
+after the setting's key in `settings.js` without `Enabled`
+(`copyValuesEnabled` → `copy-values.svg`). Never paste a copy of the drawing
+elsewhere.
+
+**Drawing.** The same line style as the section icons in the options page's
+left menu:
+
+- A `0 0 16 16` viewBox, with the drawing kept between 1 and 15.
+- Outline only. The root carries `fill="none" stroke="currentColor"
+  stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"`. Put lines
+  on the half pixel (`x="1.5"`) so they land sharp.
+- Frames such as a window, a list or a calendar get `rx="1.5"`.
+- One shade at most, for the part the setting is about (the pane that grows,
+  the week column, the stripes): `fill="currentColor" fill-opacity=".22"
+  stroke="none"`, drawn before the outline. Small solid marks such as dots or an
+  arrow head: `fill="currentColor" stroke="none"`.
+- No text or letters, no gradients, no second colour.
+- Show what people see or gain in Business Central, not how BC Buddy does it.
+  Where Business Central has its own icon for the same thing (the maximize
+  arrows, the pin), follow it, so people recognise it.
+- A line through the icon (`M2.5 2.5l11 11`) is for a switch that hides or
+  stops something Business Central does: **Hide the notifications icon**,
+  **Turn off animations**.
+- The root also carries `color="#009aa5"`: the colour the icon has in the
+  README, where nothing can style it (3.4:1 on GitHub's white, 5.6:1 on its
+  dark background). The options page uses the file only as a mask and the
+  website sets its own colour, so this value does not show there.
+
+**Tile and colours.** The icon sits on a tile in the cyan of the logo's sphere,
+`#00B7C3`. That cyan reaches only 2.4:1 on white, too pale for thin lines, so
+the lines take a darker shade on light backgrounds:
+
+| | Lines | Tile | Tile border |
+|---|---|---|---|
+| Light | `#00838C` | `#E3F6F8` | `#BFE8EC` |
+| Dark | `#3CC8D1` | `#00B7C3` at 14% | `#00B7C3` at 32% |
+
+They are the `--icon-*` tokens in `options.css` (a 28 px tile with an 18 px
+icon) and the `--bcb-icon-*` tokens in `docs/assets/extra.css`.
+
+**Adding one for a new setting:**
+
+1. Draft three options in this style and show them at real size on a light and
+   a dark background. The maintainer picks one.
+2. Save it as `icons/settings/<name>.svg`. `tools/build-package.ps1` already
+   ships that folder.
+3. Options page: put
+   `<span class="setting__icon setting__icon--<name>" aria-hidden="true"></span>`
+   in front of the row's `.setting__text`, and add
+   `.setting__icon--<name> { --icon: url(../../icons/settings/<name>.svg); }`
+   to `options.css`.
+4. Website: open the card's summary with
+   `<summary markdown="span"><span class="bcb-setting-icon">:settings-<name>:</span>`.
+   `pymdownx.emoji` in `mkdocs.yml` inlines the SVG from `icons/`.
+5. README: put `<img src="icons/settings/<name>.svg" width="18" height="18" alt="">`
+   in front of the name in the feature table.
+
 ## 🧪 Tests
 
 The test pages run the real source in headless Chrome (or Edge): parsing URLs,
@@ -1010,10 +1073,11 @@ powershell -ExecutionPolicy Bypass -File tools/build-package.ps1
 ```
 
 That puts `dist/bcbuddy-<version>.zip` in place with only what the extension
-needs: manifest, `managed_schema.json`, `src`, `_locales`, the PNG icons and
+needs: manifest, `managed_schema.json`, `src`, `_locales`, the PNG icons, the
+setting icons in `icons/settings/` that the options page shows, and
 `examples/bc-buddy.json`, which **Load samples** on the options page and the
-first install in `background.js` read with `chrome.runtime.getURL` (no network). Tests, the other examples, the SVG
-sources and these tools stay behind. The script checks that `manifest.json` ends
+first install in `background.js` read with `chrome.runtime.getURL` (no network). Tests, the other examples, the logo
+SVG and these tools stay behind. The script checks that `manifest.json` ends
 up in the root of the ZIP, which is the usual silent upload rejection.
 
 The listing copy sits in [`store/description-en.txt`](store/description-en.txt),
