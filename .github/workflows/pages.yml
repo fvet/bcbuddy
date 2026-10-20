@@ -29,6 +29,7 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
+      - 'overrides/**'
       - 'tools/mkdocs_assets.py'
       - 'tools/requirements-docs.txt'
       - 'PRIVACY.md'
