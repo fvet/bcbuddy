@@ -2293,6 +2293,15 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       C.place(box, 'left', { left: 250 }), { x: 226, y: 15 });
     check('copy values: but never outside the cell',
       C.place(box, 'left', { left: 110 }), { x: 102, y: 15 });
+    // The key column of a list on BC SaaS (Opportunities, 2026-10-20): a
+    // 90 px cell whose text ends 20 px before the edge, BC's ... in the next.
+    var key = { left: 31, right: 121, top: 10, height: 30 };
+    check('copy values: on the right, at the edge when the text leaves room',
+      C.place(box, 'right', { left: 105, right: 200 }), { x: 278, y: 15 });
+    check('copy values: on the right, just after text the edge would cover',
+      C.place(key, 'right', { left: 37, right: 101 }), { x: 105, y: 15 });
+    check('copy values: a cut-off value keeps the icon at the edge',
+      C.place(key, 'right', { left: 37, right: 180 }), { x: 99, y: 15 });
 
     var copied = [];
     Object.defineProperty(navigator, 'clipboard', {

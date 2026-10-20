@@ -23,6 +23,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - In a wider **dropdown**, the column headers now line up with the rows
   again, and a list that fits no longer gets a horizontal scrollbar. This
   happened mostly with the browser zoomed out.
+- The **copy** icon no longer covers the end of a value in a narrow column,
+  such as the No. in the first column of a list: it sits just after the
+  text.
 
 <!-- --8<-- [start:released] -->
 
