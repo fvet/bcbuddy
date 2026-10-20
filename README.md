@@ -54,7 +54,7 @@ the settings page.
 | <img src="icons/settings/hide-notifications.svg" width="18" height="18" alt=""> **Hide the notifications icon** | No bell in the top bar | On |
 | <img src="icons/settings/shortcuts.svg" width="18" height="18" alt=""> **Keyboard shortcuts** | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
 | <img src="icons/settings/stripe-rows.svg" width="18" height="18" alt=""> **Striped rows** | Every other row in a list a light grey | Off |
-| **Hide the FactBox pane** | Pages open without the FactBox pane on the right, so the page gets the room | Off |
+| <img src="icons/settings/hide-fact-box.svg" width="18" height="18" alt=""> **Hide the FactBox pane** | Pages open without the FactBox pane on the right, so the page gets the room | Off |
 | <img src="icons/settings/no-animations.svg" width="18" height="18" alt=""> **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
 **Reset to defaults**, above the list, puts every switch and slider back to

@@ -311,6 +311,7 @@ label.setting { cursor: pointer; }
 .setting__icon--hide-notifications { --icon: url(../../icons/settings/hide-notifications.svg); }
 .setting__icon--shortcuts { --icon: url(../../icons/settings/shortcuts.svg); }
 .setting__icon--stripe-rows { --icon: url(../../icons/settings/stripe-rows.svg); }
+.setting__icon--hide-fact-box { --icon: url(../../icons/settings/hide-fact-box.svg); }
 .setting__icon--no-animations { --icon: url(../../icons/settings/no-animations.svg); }
 .setting__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .setting__name { font-weight: 600; }

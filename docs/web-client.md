@@ -249,7 +249,7 @@ line you are on and the lines you select keep Business Central's own colours.
 </details>
 
 <details class="faq" id="hide-the-factbox-pane" markdown>
-<summary>Hide the FactBox pane<span class="bcb-summary-text">Pages open without the pane on the right</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-hide-fact-box:</span>Hide the FactBox pane<span class="bcb-summary-text">Pages open without the pane on the right</span></summary>
 
 <p class="bcb-starts">Off until you switch it on</p>
 
