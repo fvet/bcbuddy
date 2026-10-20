@@ -43,10 +43,19 @@
   var MARK = 'data-bcb-dropdown';
   var WIDTH_VAR = '--bcb-dropdown-width';
   var HEIGHT_VAR = '--bcb-dropdown-height';
+  var GUTTER_VAR = '--bcb-dropdown-gutter';
 
-  // Room for a vertical scrollbar. A short list has none, so this errs a few
-  // pixels wide there; erring narrow would add a horizontal scrollbar instead.
+  // BC reserves room for the vertical scrollbar on the header only when it
+  // lays the dropdown out at its own size, before we widen it, and the rows
+  // get that room only when they have a scrollbar. content.css therefore
+  // reserves it on both in a sized dropdown, as wide as the scrollbar
+  // measured here. It is wider when the browser is zoomed out (19 px at 80%),
+  // so it is measured, not assumed.
+  // Used only when it cannot be measured.
   var SCROLLBAR_PX = 17;
+  // Sub-pixel slack: a dropdown one pixel short of its columns gets a
+  // horizontal scrollbar.
+  var SLACK_PX = 1;
 
   var EX_RE = /^(\d+(?:\.\d+)?)ex$/;
 
@@ -107,6 +116,8 @@
     // that turn a sum of ex widths into pixels.
     var base = null;
     var metrics = null;
+    // The scrollbar width and the zoom level it was measured at.
+    var scrollbar = null;
     var detached = false;
 
     var lookups = new win.MutationObserver(onLookups);
@@ -152,6 +163,7 @@
       var height = Math.round(base.height * factor(HEIGHT_FACTORS, heightStep));
       lookup.style.setProperty(WIDTH_VAR, width + 'px');
       lookup.style.setProperty(HEIGHT_VAR, height + 'px');
+      lookup.style.setProperty(GUTTER_VAR, gutterOf(lookup) + 'px');
       lookup.setAttribute(MARK, '');
     }
 
@@ -169,14 +181,39 @@
       for (var i = 0; i < cells.length; i++) widths.push(cells[i].style.width);
       var ex = columnEx(widths);
       if (!ex) return 0;
-      if (!metrics) metrics = calibrate(lookup, cells);
+      if (!fresh()) metrics = calibrate(lookup, cells);
       return metrics ? ex * metrics.exPx + metrics.fixedPx : 0;
     }
 
     /**
-     * Once per document: how many pixels an ex is in the grid font, and how
-     * much the columns without an ex width (the row selector) and the popup's
-     * own edges add. This is the only layout read the sizer ever does.
+     * Metrics hold for the zoom level they were read at: zooming changes the
+     * scrollbar's width in CSS pixels.
+     */
+    function fresh() {
+      return !!metrics && metrics.dpr === win.devicePixelRatio;
+    }
+
+    /**
+     * The width of a vertical scrollbar here, in CSS pixels. Measured once
+     * per zoom level.
+     */
+    function gutterOf(lookup) {
+      var dpr = win.devicePixelRatio;
+      if (scrollbar && scrollbar.dpr === dpr) return scrollbar.px;
+      var probe = doc.createElement('div');
+      probe.style.cssText = 'position:absolute;visibility:hidden;width:100px;height:100px;overflow:scroll';
+      lookup.appendChild(probe);
+      var width = probe.offsetWidth - probe.clientWidth;
+      probe.remove();
+      scrollbar = { dpr: dpr, px: width >= 0 && width < 100 ? width : SCROLLBAR_PX };
+      return scrollbar.px;
+    }
+
+    /**
+     * Once per document and zoom level: how many pixels an ex is in the grid
+     * font, how wide a scrollbar is, and how much the columns without an ex
+     * width (the row selector) and the popup's own edges add. These are the
+     * only layout reads the sizer ever does.
      */
     function calibrate(lookup, cells) {
       var header = lookup.querySelector(HEADER_SEL);
@@ -202,11 +239,13 @@
       header.style.width = previous;
 
       if (!(exPx > 0) || !(natural > 0)) return null;
+      // BC's own header gutter, if it set one: not part of the columns.
       var gutter = px(win.getComputedStyle(header).paddingRight, 0);
       var edges = lookup.offsetWidth - header.parentElement.clientWidth;
       return {
+        dpr: win.devicePixelRatio,
         exPx: exPx,
-        fixedPx: natural - gutter - columnEx(widths) * exPx + Math.max(0, edges) + SCROLLBAR_PX
+        fixedPx: natural - gutter - columnEx(widths) * exPx + Math.max(0, edges) + gutterOf(lookup) + SLACK_PX
       };
     }
 
@@ -219,6 +258,7 @@
         marked[i].removeAttribute(MARK);
         marked[i].style.removeProperty(WIDTH_VAR);
         marked[i].style.removeProperty(HEIGHT_VAR);
+        marked[i].style.removeProperty(GUTTER_VAR);
       }
     }
 

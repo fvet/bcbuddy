@@ -109,6 +109,17 @@
   max-width: var(--bcb-dropdown-width) !important;
   max-height: var(--bcb-dropdown-height) !important;
 }
+/* Room for the vertical scrollbar, on the rows and on the header alike, so
+   their columns line up. BC decides on the header's room before we widen the
+   dropdown, and leaves it out when the list did not fit at its own size; the
+   header then stretches over the scrollbar and drifts from the rows. A list
+   too short to scroll keeps an empty strip of the same width on both. */
+[data-bcb-dropdown]:not(.spa-preview-lookup) .ms-nav-scrollable.scroll-source {
+  scrollbar-gutter: stable;
+}
+[data-bcb-dropdown]:not(.spa-preview-lookup) table.ms-nav-grid-header-table {
+  padding-right: var(--bcb-dropdown-gutter) !important;
+}
 
 /* Current row. In an editable grid (document lines in edit mode, journals)
    BC marks the row you are on with only an arrow and the three-dot cell at

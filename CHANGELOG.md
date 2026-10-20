@@ -11,6 +11,12 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Fixed
+
+- In a wider **dropdown**, the column headers now line up with the rows
+  again, and a list that fits no longer gets a horizontal scrollbar. This
+  happened mostly with the browser zoomed out.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.16 — 2026-10-20
