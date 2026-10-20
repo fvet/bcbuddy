@@ -101,3 +101,29 @@ noted when the error appeared (message, time, page), the last *Copy error
 details* the user made (session ids), and the *Latest Error* page read in the
 same tab (call stack). Startup errors ("Something went wrong") print time,
 tenant, environment and operation id on the page itself.
+
+## Copy values in lookup dropdowns
+
+The copy icon shows on read-only values in lists, FactBoxes and Page
+Inspection, but not in a lookup dropdown (the list that opens under a field
+such as **Nr.** on a line). That is on purpose: `LOOKUP_SEL` (`.spa-lookup`)
+in `copyvalues.js` skips it. Users do ask for it, for example to copy an item
+number while choosing one.
+
+Why it was left out: a dropdown is a list to pick from. A click on a row picks
+that record and closes the dropdown, and the icon swallows the press so BC
+never sees it. A click that lands on the icon copies instead of picking, which
+breaks a fast "open, click the item" habit and looks like a BC Buddy bug.
+
+Options to weigh:
+
+- **Everywhere in the dropdown.** Drop the `LOOKUP_SEL` check. The dropdown
+  cells are ordinary `.edit-container-read` cells, so nothing else is needed.
+- **Only on the first column** (the number, a link). That is the value people
+  copy; Description and the other columns stay free for picking.
+- **A longer rest** in dropdowns only, so the icon never shows while someone
+  is just moving to the row they want.
+
+To settle first: try each on a live dropdown (item lookup on a sales line)
+with fast picking, and check that the icon follows the dropdown when it
+scrolls its own rows and that it disappears when the dropdown closes.
