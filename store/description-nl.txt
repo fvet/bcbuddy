@@ -1,10 +1,12 @@
 Business Central, makkelijker in gebruik.
 
-Kopieer elke waarde met een klik, zie elke pagina over de volle breedte en weet altijd in welke omgeving je zit. BC Buddy haalt de kleine dagelijkse ergernissen uit de Business Central-webclient.
+Kopieer elke waarde met een klik, zie elke pagina over de volle breedte en weet altijd in welke omgeving je zit, gewoon in de Microsoft Dynamics 365 Business Central-webclient. BC Buddy haalt de kleine ergernissen uit je werkdag.
 
 Gratis. Werkt meteen na installatie.
 
 ⚡ Sneller door je werk
+
+Niet meer op elke pagina op dezelfde knoppen klikken.
 
 • Kopiëren met een klik: elk bedrag, Nr. of link, ook die je nooit kon selecteren
 • Elke pagina over de volle breedte, met de actiebalk vastgezet
@@ -14,6 +16,8 @@ Gratis. Werkt meteen na installatie.
 • Weeknummers in de kalender van een datumveld
 • De regel waarop je staat valt op in dagboeken en orders
 • Geen meldingenbelletje in de weg
+
+Jouw keuze wint: zet je een pagina terug naar smal, dan laat BC Buddy ze zo.
 
 Wil je meer? Zet gestreepte rijen aan, een paneel met de sneltoetsen voor de pagina waar je bent, of zet de animaties uit. Elke verbetering heeft een eigen schakelaar.
 
@@ -32,9 +36,9 @@ Kies een kleur per omgeving, per bedrijf of per klant. Of begin met kant-en-klar
 
 Een persoon kiest de kleuren, de rest krijgt ze automatisch, ook als er later iets verandert.
 
-🔒 Niets verlaat je computer
+🔒 Jouw gegevens blijven van jou
 
-Geen account. Geen server. Geen tracking.
+Geen account. Geen server. Geen tracking. BC Buddy verandert hoe Business Central eruitziet, nooit je gegevens.
 
 ✓ Business Central online en op je eigen server
 ✓ Chrome en Edge
