@@ -272,3 +272,16 @@ team's defaults** and takes the team's choices from that file; see
 [Team file](sharing.md#web-client-settings-in-the-file).
 
 Something not working as described? See [Troubleshooting](troubleshooting.md).
+
+## Extra tips
+
+BC Buddy has no dark theme or blue light filter of its own. Tools that do only
+that already do it well, so use one of these instead:
+
+- **Dark mode**: [Dark Reader](https://darkreader.org/). It darkens every
+  website, Business Central and BC Buddy included.
+- **A warmer screen in the evening**: **Night light** in Windows, under
+  **Settings** > **System** > **Display**. It works for every program, not only
+  your browser. See
+  [Microsoft's steps](https://support.microsoft.com/en-us/windows/set-your-display-for-night-time-in-windows-18fe903a-e0a1-8326-4c68-fd23d7aaf136).
+

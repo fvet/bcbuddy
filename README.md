@@ -61,6 +61,10 @@ how BC Buddy starts out. When your team shares a file, the button reads
 **Reset to your team's defaults** and takes the team's choices from that file.
 Clicked by mistake? **Undo** sits right next to the message.
 
+Looking for a dark theme or a blue light filter? BC Buddy leaves those to tools
+that do them well: [Dark Reader](https://darkreader.org/) for dark mode, and
+**Night light** in Windows for a warmer screen.
+
 What each one does, in detail:
 [Web client](https://fvet.github.io/bcbuddy/web-client/) on the website.
 
