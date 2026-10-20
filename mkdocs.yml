@@ -8,7 +8,7 @@ site_name: BC Buddy
 site_description: Makes the Business Central web client easier to work in, and gives every environment its own colour so you never post in production by mistake.
 site_url: https://fvet.github.io/bcbuddy/
 site_author: Frédéric Vercaemst
-copyright: BC Buddy is open source under the MIT licence, provided as is, and stores nothing outside your own browser. It is an independent project, not affiliated with or endorsed by Microsoft. Microsoft, Dynamics 365 and Business Central are trademarks of the Microsoft group of companies.
+copyright: Business Central is a trademark of Microsoft. BC Buddy is not affiliated with Microsoft.
 
 repo_url: https://github.com/fvet/bcbuddy
 repo_name: fvet/bcbuddy

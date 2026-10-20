@@ -543,7 +543,11 @@ wrong thing does damage. A new one brings along:
   in `CHANGELOG.md`, a row in the table under README *Web client* together
   with a section in `docs/web-client.md` (and a bullet in step 2 of
   `docs/getting-started.md` if it is on by default), and a troubleshooting
-  entry where a feature can visibly fail.
+  entry where a feature can visibly fail. Both pages show these as cards
+  that open on a click: copy the `<details class="faq" id="…" markdown>` of
+  another feature, with the one-line "what you get" in its `<summary>`, its
+  `bcb-starts` label and an `id` other pages link to, and the `??? faq "…"`
+  of another question.
 - **Live check.** Try it against a current BC online client and one on-prem
   version before it ships.
 
