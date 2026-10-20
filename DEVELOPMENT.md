@@ -30,7 +30,8 @@ src/
                        the gear menu section and the keyboard shortcuts icon
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
-  options/             options.html/css; options.js plus helpers, cards, hosted
+  options/             options.html/css; options.js plus helpers, cards, hosted;
+                       theme.js: light or dark for the options page
 examples/              bc-buddy.json: the samples Load samples adds, and the
                        example of a shared configuration (schema version 2);
                        intune/: scripts that set the policy for IT, and
@@ -651,10 +652,11 @@ left menu:
   dark background). The options page uses the file only as a mask and the
   website sets its own colour, so this value does not show there.
 
-**Tile and colours.** The icon sits on a tile in a tint of the cyan of the
-logo's sphere, `#00B7C3`, with its lines in the accent: the teal that the
-options page uses for toggles, buttons, sliders and links, and the website for
-its links. The sphere's own cyan reaches only 2.4:1 on white, too pale for thin
+**Tile and colours.** The lines are in the accent: the teal that the options
+page uses for toggles, buttons, sliders and links, and the website for its
+links. On the website the icon sits on a tile in a tint of the cyan of the
+logo's sphere, `#00B7C3`; on the options page it stands bare in front of the
+setting's name. The sphere's own cyan reaches only 2.4:1 on white, too pale for thin
 lines or text, so the accent is a darker shade on light backgrounds:
 
 | | Accent (lines) | Tile | Tile border |
@@ -662,10 +664,10 @@ lines or text, so the accent is a darker shade on light backgrounds:
 | Light | `#007A83` | `#E3F6F8` | `#BFE8EC` |
 | Dark | `#3CC8D1` | `#00B7C3` at 14% | `#00B7C3` at 32% |
 
-On the options page these are `--accent` and the `--icon-*` tokens in
-`options.css` (a 28 px tile with an 18 px icon); on the website
+On the options page the accent is `--accent` (through `--icon-fg`) in
+`options.css`, an 18 px icon without a tile; on the website
 `--md-typeset-a-color` and the `--bcb-icon-*` tokens in
-`docs/assets/extra.css`. Change the accent in both files together.
+`docs/assets/extra.css`, which also hold the tile. Change the accent in both files together.
 
 **Adding one for a new setting:**
 
@@ -677,7 +679,10 @@ On the options page these are `--accent` and the `--icon-*` tokens in
    `<span class="setting__icon setting__icon--<name>" aria-hidden="true"></span>`
    in front of the row's `.setting__text`, and add
    `.setting__icon--<name> { --icon: url(../../icons/settings/<name>.svg); }`
-   to `options.css`.
+   to `options.css`. The row itself goes under **Works straight away** when
+   the switch starts on, or under **Extras** (above **Turn off animations**)
+   when it starts off, with a one-line `<key>Desc` message in a
+   `.setting__desc` under its name.
 4. Website: open the card's summary with
    `<summary markdown="span"><span class="bcb-setting-icon">:settings-<name>:</span>`.
    `pymdownx.emoji` in `mkdocs.yml` inlines the SVG from `icons/`.

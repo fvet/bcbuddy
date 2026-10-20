@@ -597,9 +597,14 @@ function assertOptions() {
     [styleOne.querySelector('[data-preview-frame]').style.borderColor,
       styleOne.querySelector('[data-preview-brand]').textContent.indexOf('(Standaard)') !== -1],
     ['rgb(3, 131, 135)', true]);
+  var brandDot = document.getElementById('brandDot');
+  check('options: the logo dot keeps its teal when no rule matches',
+    getComputedStyle(brandDot).fill, 'rgb(0, 183, 195)');
   testUrl.value = 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
     'Sandbox?company=CRONUS%20BE&page=1';
   testUrl.dispatchEvent(new Event('input'));
+  truthy('options: the logo dot takes the colour of the rule that matches',
+    brandDot.style.fill !== '');
 
   // A click on another rule leaves the style previews in the colour of the
   // rule the test URL gets: only that one colours them.
@@ -701,7 +706,7 @@ function assertOptions() {
   check('options: no auto-update toggle',
     document.getElementById('hostedAutoSync'), null);
   check('options: button label is Synchronise',
-    document.getElementById('syncNow').textContent, chrome.i18n.getMessage('syncNow'));
+    document.getElementById('syncNow').textContent.trim(), chrome.i18n.getMessage('syncNow'));
   truthy('options: sync enabled with URL',
     !document.getElementById('syncNow').disabled);
   truthy('options: active config is not dimmed',
@@ -1186,10 +1191,54 @@ function assertWebClient() {
   var bell = document.getElementById('hideNotificationsEnabled');
   check('web client: notifications switch lives in the panel', bell.closest('.panel'), panel);
   check('web client: notifications switch is on by default', bell.checked, true);
-  var webClientRows = bell.closest('.card').querySelectorAll('.setting');
+  var webClientRows = panel.querySelectorAll('.setting');
   check('web client: animations switch is the last row',
     webClientRows[webClientRows.length - 1].contains(
       document.getElementById('noAnimationsEnabled')), true);
+  check('web client: every row has a short description',
+    Array.prototype.every.call(webClientRows, function (row) {
+      var desc = row.querySelector('.setting__desc');
+      return !!desc && desc.textContent.trim().length > 0;
+    }), true);
+
+  // Works straight away holds the switches that start on, Extras the ones
+  // that start off. The switches are still at their defaults here.
+  var groups = panel.querySelectorAll('.setting-group');
+  check('web client: two groups', groups.length, 2);
+  function toggles(group) { return group.querySelectorAll('input[type="checkbox"].toggle'); }
+  check('web client: the first group starts on',
+    Array.prototype.every.call(toggles(groups[0]), function (box) { return box.checked; }), true);
+  check('web client: Extras start off',
+    Array.prototype.every.call(toggles(groups[1]), function (box) { return !box.checked; }), true);
+  check('web client: dropdown size works straight away', groups[0].contains(width), true);
+  check('web client: Extras is the second group',
+    groups[1].querySelector('.setting-group__title').textContent, chrome.i18n.getMessage('webClientExtras'));
+
+  // The badge on the menu item counts the switches that are on.
+  var badge = document.getElementById('webClientCount');
+  function onCount() { return String(panel.querySelectorAll('input[type="checkbox"].toggle:checked').length); }
+  check('web client: badge counts the switches that are on', badge.textContent, onCount());
+  check('web client: badge is in the Web client menu item',
+    badge.closest('.nav__item').dataset.panel, 'webclient');
+  var before = Number(badge.textContent);
+  stripes.click();
+  check('web client: badge follows a switch', badge.textContent, String(before + 1));
+  check('web client: badge is read out',
+    document.getElementById('webClientCountText').textContent,
+    chrome.i18n.getMessage('webClientCount', [String(before + 1)]));
+  stripes.click();
+  check('web client: badge goes back', badge.textContent, String(before));
+
+  // The master switch: one short label, the dot shows on or off.
+  var master = document.getElementById('globalEnabled');
+  check('master switch: labelled Active',
+    master.closest('label').textContent.trim(), chrome.i18n.getMessage('extensionActive'));
+  var dot = master.closest('label').querySelector('.nav__dot');
+  var dotOn = getComputedStyle(dot).backgroundColor;
+  master.click();
+  truthy('master switch: the dot changes colour when off', getComputedStyle(dot).backgroundColor !== dotOn);
+  master.click();
+  check('master switch: and back when on', getComputedStyle(dot).backgroundColor, dotOn);
   check('web client: both sliders live in the panel',
     [width.closest('.panel'), height.closest('.panel')], [panel, panel]);
   check('web client: sliders have five steps',

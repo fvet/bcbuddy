@@ -71,6 +71,15 @@
     var team = page.teamDefaults();
     page.el.resetWebClientLabel.textContent = t(team ? 'resetWebClientTeam' : 'resetWebClient');
     page.el.resetWebClient.title = t(team ? 'resetWebClientTeamTitle' : 'resetWebClientTitle');
+    page.renderWebClientCount();
+  };
+
+  /** The badge on the Web client menu item: how many of its switches are on. */
+  page.renderWebClientCount = function () {
+    var on = document.querySelectorAll(
+      '.panel[data-panel="webclient"] input[type="checkbox"].toggle:checked').length;
+    page.el.webClientCount.textContent = String(on);
+    page.el.webClientCountText.textContent = t('webClientCount', [String(on)]);
   };
 
   /** True when Reset to defaults takes values from the shared file. */
@@ -176,7 +185,8 @@
     });
 
     var active = BCBuddy.findRule(BCBuddy.effectiveRules(page.state.settings), ctx);
-    page.el.brandDot.style.fill = active ? active.color : "var(--muted)";
+    // No matching rule: the logo's own teal (the circle's fill), never grey.
+    page.el.brandDot.style.fill = active ? active.color : '';
   };
 
   page.renderRules = function () {
@@ -391,7 +401,7 @@
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
       'resizePanesEnabled', 'hideFactBoxEnabled',
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
-      'dropdownWidth', 'dropdownHeight'
+      'dropdownWidth', 'dropdownHeight', 'webClientCount', 'webClientCountText'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     bindLanguage();
@@ -491,6 +501,10 @@
       page.save();
     });
 
+    // One listener for the badge, after each switch's own handler.
+    document.querySelector('.panel[data-panel="webclient"]')
+      .addEventListener('change', page.renderWebClientCount);
+
     el.copyValuesEnabled.addEventListener('change', function () {
       state.settings.copyValues.enabled = el.copyValuesEnabled.checked;
       page.save();
@@ -556,7 +570,7 @@
 
     el.resetWebClient.addEventListener('click', page.resetWebClient);
     // Changing a setting by hand after a reset: undoing would throw that away.
-    el.resetWebClient.closest('section').querySelector('.card').addEventListener('change', function () {
+    el.resetWebClient.closest('section').addEventListener('change', function () {
       page.setResetStatus('');
     });
 

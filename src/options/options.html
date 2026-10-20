@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <title>BC Buddy - options</title>
   <link rel="stylesheet" href="options.css">
+  <!-- Before the body, so the page paints in the chosen theme straight away. -->
+  <script src="theme.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -34,13 +36,21 @@
     </div>
     <div class="topbar__actions">
       <span class="status" id="status" role="status" aria-live="polite"></span>
+      <!-- Dark mode on or off; until clicked it follows the system (theme.js).
+           The moon shows in light mode, the sun in dark mode. -->
+      <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false"
+              data-i18n-title="themeTitle" data-i18n-label="themeLabel" aria-label="Dark mode">
+        <svg class="theme-toggle__icon theme-toggle__moon" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M13.6 9.9A5.9 5.9 0 0 1 6.1 2.4a5.9 5.9 0 1 0 7.5 7.5z"/>
+        </svg>
+        <svg class="theme-toggle__icon theme-toggle__sun" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.9"/>
+          <path d="M8 1.3v1.6M8 13.1v1.6M1.3 8h1.6M13.1 8h1.6M3.3 3.3l1.1 1.1M11.6 11.6l1.1 1.1M3.3 12.7l1.1-1.1M11.6 4.4l1.1-1.1"/>
+        </svg>
+      </button>
       <!-- Starts on the language Chrome picked; a choice here overrules it. The
            names stay in their own language. -->
       <label class="language" data-i18n-title="languageTitle">
-        <svg class="language__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="8" r="6.2"/>
-          <path d="M1.8 8h12.4M8 1.8c1.7 1.8 2.5 3.9 2.5 6.2S9.7 12.4 8 14.2C6.3 12.4 5.5 10.3 5.5 8S6.3 3.6 8 1.8z"/>
-        </svg>
         <select id="language" data-i18n-label="languageLabel" aria-label="Language">
           <option value="en" lang="en">English</option>
           <option value="nl" lang="nl">Nederlands</option>
@@ -59,6 +69,9 @@
           <path d="M1.5 5.5h13M4 8.5h5M4 11h3"/>
         </svg>
         <span data-i18n="navWebClient">Web client</span>
+        <!-- How many Web client switches are on; see renderWebClientCount(). -->
+        <span class="nav__count" id="webClientCount" aria-hidden="true"></span>
+        <span class="sr-only" id="webClientCountText"></span>
       </button>
       <button type="button" class="nav__item" data-panel="environments" aria-current="page">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -87,10 +100,14 @@
         </svg>
       </a>
 
-      <!-- Below the nav, separate from the sections: the master switch. -->
+      <!-- Below the nav, separate from the sections: the master switch, with
+           a dot that is green while BC Buddy is on. -->
       <label class="switch nav__toggle">
         <input type="checkbox" class="toggle" id="globalEnabled">
-        <span data-i18n="extensionActive">Extension active</span>
+        <span class="nav__state">
+          <span class="nav__dot" aria-hidden="true"></span>
+          <span data-i18n="extensionActive">Active</span>
+        </span>
       </label>
     </nav>
 
@@ -109,42 +126,50 @@
           </button>
         </div>
       </div>
-      <!-- One list: a name per setting, the control on the right. The
-           explanation is the row's tooltip, and the docs link below has the
-           rest. -->
+      <p class="muted small" data-i18n="webClientIntro">Small fixes for the Business Central screens you use every day.</p>
+      <!-- Two lists: the switches that start on, then the extras that start
+           off. A row has the name with one line below it and the control on
+           the right; the docs link below has the rest. -->
+      <div class="setting-group">
+      <h3 class="setting-group__title" data-i18n="webClientStandard">Works straight away</h3>
       <div class="card card--list">
-        <label class="setting" data-i18n-title="copyValuesIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--copy-values" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="copyValuesToggle">Copy values</span>
+            <span class="setting__desc" data-i18n="copyValuesDesc">Rest the mouse on a value and click the icon to copy it.</span>
           </span>
           <input type="checkbox" class="toggle" id="copyValuesEnabled">
         </label>
-        <label class="setting" data-i18n-title="maximizeIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--maximize" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="maximizeToggle">Maximize pages</span>
+            <span class="setting__desc" data-i18n="maximizeDesc">Every page opens in wide layout; tile pages open as a list.</span>
           </span>
           <input type="checkbox" class="toggle" id="maximizeEnabled">
         </label>
-        <label class="setting" data-i18n-title="pinActionBarIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--pin-action-bar" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="pinActionBarToggle">Pin the action bar</span>
+            <span class="setting__desc" data-i18n="pinActionBarDesc">The actions under a page's tabs stay in view.</span>
           </span>
           <input type="checkbox" class="toggle" id="pinActionBarEnabled">
         </label>
-        <label class="setting" data-i18n-title="highlightRowIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--highlight-row" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="highlightRowToggle">Highlight the current line</span>
+            <span class="setting__desc" data-i18n="highlightRowDesc">A light tint on the line you are on in sales lines and journals.</span>
           </span>
           <input type="checkbox" class="toggle" id="highlightRowEnabled">
         </label>
-        <div class="setting setting--wrap" data-i18n-title="dropdownIntro">
+        <div class="setting setting--wrap">
           <span class="setting__icon setting__icon--dropdown" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="dropdownHeading">Dropdown size</span>
+            <span class="setting__desc" data-i18n="dropdownDesc">More room for the list that opens under a field.</span>
           </span>
           <span class="setting__sliders">
             <label class="slider">
@@ -157,55 +182,70 @@
             </label>
           </span>
         </div>
-        <label class="setting" data-i18n-title="resizePanesIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--resize-panes" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="resizePanesToggle">Resize panes</span>
+            <span class="setting__desc" data-i18n="resizePanesDesc">Drag the edge of Help, Copilot or Page Inspection to make it wider.</span>
           </span>
           <input type="checkbox" class="toggle" id="resizePanesEnabled">
         </label>
-        <label class="setting" data-i18n-title="weekNumbersIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--week-numbers" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="weekNumbersToggle">Week numbers in the date picker</span>
+            <span class="setting__desc" data-i18n="weekNumbersDesc">The calendar of a date field shows week numbers.</span>
           </span>
           <input type="checkbox" class="toggle" id="weekNumbersEnabled">
         </label>
-        <label class="setting" data-i18n-title="hideNotificationsIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--hide-notifications" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="hideNotificationsToggle">Hide the notifications icon</span>
+            <span class="setting__desc" data-i18n="hideNotificationsDesc">Hides the bell at the top right of Business Central.</span>
           </span>
           <input type="checkbox" class="toggle" id="hideNotificationsEnabled">
         </label>
-        <label class="setting" data-i18n-title="shortcutsIntro">
+      </div>
+      </div>
+      <!-- Off from the start; a new one goes above Turn off animations,
+           which stays last. -->
+      <div class="setting-group">
+      <h3 class="setting-group__title" data-i18n="webClientExtras">Extras</h3>
+      <div class="card card--list">
+        <label class="setting">
           <span class="setting__icon setting__icon--shortcuts" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="shortcutsToggle">Keyboard shortcuts</span>
+            <span class="setting__desc" data-i18n="shortcutsDesc">A keyboard icon in the top bar lists the shortcuts that work where you are.</span>
           </span>
           <input type="checkbox" class="toggle" id="shortcutsEnabled">
         </label>
-        <label class="setting" data-i18n-title="stripeRowsIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--stripe-rows" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="stripeRowsToggle">Striped rows</span>
+            <span class="setting__desc" data-i18n="stripeRowsDesc">Every other row in a list gets a light grey, so you stay on the right line.</span>
           </span>
           <input type="checkbox" class="toggle" id="stripeRowsEnabled">
         </label>
-        <label class="setting" data-i18n-title="hideFactBoxIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--hide-fact-box" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="hideFactBoxToggle">Hide the FactBox pane</span>
+            <span class="setting__desc" data-i18n="hideFactBoxDesc">Closes the FactBox pane on pages you open for the first time.</span>
           </span>
           <input type="checkbox" class="toggle" id="hideFactBoxEnabled">
         </label>
-        <label class="setting" data-i18n-title="noAnimationsIntro">
+        <label class="setting">
           <span class="setting__icon setting__icon--no-animations" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>
+            <span class="setting__desc" data-i18n="noAnimationsDesc">Pages and panes appear at once instead of sliding in.</span>
           </span>
           <input type="checkbox" class="toggle" id="noAnimationsEnabled">
         </label>
+      </div>
       </div>
       <div class="section-foot">
         <p class="muted small"><a href="https://fvet.github.io/bcbuddy/web-client/"
@@ -316,7 +356,12 @@
           <div class="row">
             <input type="url" id="hostedUrl" spellcheck="false"
                    placeholder="https://raw.githubusercontent.com/fvet/bcbuddy/main/examples/bc-buddy.json">
-            <button type="button" class="btn btn--primary" id="syncNow" data-i18n="syncNow">Synchronise</button>
+            <button type="button" class="btn btn--primary btn--icon" id="syncNow">
+              <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2.5 8a5.5 5.5 0 0 1 9.4-3.9M13.5 8a5.5 5.5 0 0 1-9.4 3.9M11.9 1.5v2.6H9.3M4.1 14.5v-2.6h2.6"/>
+              </svg>
+              <span data-i18n="syncNow">Synchronise</span>
+            </button>
           </div>
         </div>
         <p class="muted small" id="hostedManaged" data-i18n="hostedManaged" hidden>Set by your organisation.</p>

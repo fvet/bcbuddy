@@ -270,7 +270,7 @@ survive; the shared file's come back when you undo it.
 ## 🛟 Troubleshooting
 
 **Nothing changed after installing.** Reload the Business Central tab (F5), and
-check that **Extension active** is on at the top of the settings page.
+check that **Active**, below the menu on the left of the settings page, is on.
 
 **No copy icon on a value.** Rest the mouse on it for a moment. Fields you can
 type in get no icon on purpose: select the text and press Ctrl+C.
@@ -327,7 +327,7 @@ More on the website: [Troubleshooting](https://fvet.github.io/bcbuddy/troublesho
 ## 🌍 Languages
 
 BC Buddy is in English, Dutch and French, and follows the language of your browser.
-To use another one, pick it under the globe at the top right of the BC Buddy
+To use another one, pick it in the language list at the top right of the BC Buddy
 settings. Business Central keeps its own language. The texts you type yourself in a rule or style appear exactly as you type
 them. Would you like it in your own language? See
 [TRANSLATING.md](TRANSLATING.md).
