@@ -42,8 +42,8 @@ title and a coloured tab icon. You choose the colours: per environment, per
 company or per customer.
 
 <figure markdown>
-![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](assets/screenshot-1-1280x800.png)
-<figcaption>A sandbox marked in red: the bar at the top, a frame and a corner banner.</figcaption>
+![The Sales Orders list in Business Central with a green bar reading "CRONUS BE (Production)", a green frame around the window and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts panel is open on the right](assets/screenshot-4-sales-orders-1280x800.png)
+<figcaption>Production marked in green: the bar at the top, a frame and a corner banner.</figcaption>
 </figure>
 
 Setting up your first two colours takes a minute:

@@ -19,9 +19,9 @@ from mkdocs.structure.files import File
 # Path in the repository -> path in the built site.
 PUBLISHED = {
     'icons/logo.svg': 'assets/logo.svg',
-    'store/screenshot-1-1280x800.png': 'assets/screenshot-1-1280x800.png',
-    'store/screenshot-2-1280x800.png': 'assets/screenshot-2-1280x800.png',
-    'store/screenshot-3-1280x800.png': 'assets/screenshot-3-1280x800.png',
+    'store/screenshot-4-sales-orders-1280x800.png': 'assets/screenshot-4-sales-orders-1280x800.png',
+    'store/screenshot-7-styles-1280x800.png': 'assets/screenshot-7-styles-1280x800.png',
+    'store/screenshot-6-environments-1280x800.png': 'assets/screenshot-6-environments-1280x800.png',
     # Served from the site so a team can point at a stable https URL that is
     # not a raw.githubusercontent.com blob.
     'examples/bc-buddy.json': 'examples/bc-buddy.json',
