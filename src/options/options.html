@@ -8,19 +8,26 @@
 <body>
   <header class="topbar">
     <div class="topbar__brand">
-      <svg class="brand" viewBox="0 0 128 128" role="img" aria-labelledby="brandTitle">
-        <title id="brandTitle">BC Buddy</title>
-        <mask id="brandBite">
-          <rect width="128" height="128" fill="#fff"></rect>
-          <circle cx="98" cy="91" r="27" fill="#000"></circle>
-        </mask>
-        <g mask="url(#brandBite)">
-          <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
-                letter-spacing="-4" fill="var(--brand-mark)">BC</text>
-        </g>
-        <circle id="brandDot" cx="98" cy="91" r="20" fill="#00b7c3"></circle>
-      </svg>
-      <h1>BC Buddy</h1>
+      <!-- The mark from icons/logo.svg, unchanged in its own 128 x 128 box, with
+           "Buddy" set after it in the same letters, size and baseline. -->
+      <h1>
+        <svg class="brand" viewBox="0 0 360 128" role="img" aria-labelledby="brandTitle">
+          <title id="brandTitle">BC Buddy</title>
+          <svg viewBox="0 0 128 128" width="128" height="128">
+            <mask id="brandBite">
+              <rect width="128" height="128" fill="#fff"></rect>
+              <circle cx="98" cy="91" r="27" fill="#000"></circle>
+            </mask>
+            <g mask="url(#brandBite)">
+              <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
+                    letter-spacing="-4" fill="var(--brand-mark)">BC</text>
+            </g>
+            <circle id="brandDot" cx="98" cy="91" r="20" fill="#00b7c3"></circle>
+          </svg>
+          <text x="130" y="78" font-size="84" font-weight="600"
+                letter-spacing="-4" fill="var(--brand-mark)">Buddy</text>
+        </svg>
+      </h1>
     </div>
     <div class="topbar__actions">
       <span class="status" id="status" role="status" aria-live="polite"></span>

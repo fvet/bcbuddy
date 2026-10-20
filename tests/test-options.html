@@ -240,9 +240,10 @@ function assertBrandMark() {
 
     function inlineMark(html, where) {
       var found = null;
-      parser.parseFromString(html, 'text/html').querySelectorAll('svg').forEach(function (svg) {
-        var text = svg.querySelector('text');
-        if (!found && text && text.textContent.trim() === 'BC') found = svg;
+      // The header sets "Buddy" after the mark, so take the svg that holds
+      // the BC itself rather than the first svg around it.
+      parser.parseFromString(html, 'text/html').querySelectorAll('svg text').forEach(function (text) {
+        if (!found && text.textContent.trim() === 'BC') found = text.closest('svg');
       });
       if (!found) throw new Error('no brand found in ' + where);
       return found;

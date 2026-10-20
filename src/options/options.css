@@ -139,10 +139,11 @@ a { color: var(--accent); }
 }
 .language option { background: var(--topbar-option-bg); color: var(--topbar-option-text); }
 
-/* The brand: BC with the cut-out the dot sits against. That dot takes the
-   colour of the rule that matches the test URL (see options.js). */
+/* The brand: BC with the cut-out the dot sits against, then Buddy. The dot
+   takes the colour of the rule that matches the test URL (see options.js). */
+.topbar__brand h1 { display: flex; }
 .brand {
-  width: 44px; height: 44px;
+  width: 124px; height: 44px;
   flex: none;
   font-family: "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
 }
