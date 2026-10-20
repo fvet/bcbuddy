@@ -73,6 +73,11 @@ skipped and why:
   "With BC Buddy" and "Without BC Buddy" tabs pointing at
   `assets/screenshots/`, which the MkDocs hook serves from
   `marketing/screenshots/`. Never copy them into `docs/`.
+- A Web client switch gets an icon in `icons/settings/`, shown on its options
+  row, its card in `docs/web-client.md` and its row in the README table. Draw,
+  colour and wire it up as *Setting icons* in `DEVELOPMENT.md` says: three
+  drafts in that style for the maintainer to pick from, not an icon taken
+  as-is from a library, and never a second copy of the drawing.
 
 Beta features stay out of every document. Ctrl+click / middle-click to open a
 link in a new tab (`src/lib/newtab.js`) is beta and undocumented on purpose:

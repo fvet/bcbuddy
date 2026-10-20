@@ -16,11 +16,11 @@
    --md-typeset-a-color with !important for the slate scheme, so an override of
    equal or even higher specificity loses without it. */
 [data-md-color-scheme='default'] {
-  --md-typeset-a-color: #00808a !important;
+  --md-typeset-a-color: #007a83 !important;
 }
 
 [data-md-color-scheme='slate'] {
-  --md-typeset-a-color: #2ad3de !important;
+  --md-typeset-a-color: #3cc8d1 !important;
 }
 
 /* Home page ------------------------------------------------------------- */
@@ -162,4 +162,51 @@
 .md-typeset .bcb-starts--on {
   border-color: var(--md-accent-fg-color);
   color: var(--md-typeset-a-color);
+}
+
+/* Web client: the setting's icon in a tile in front of the name and the
+   one-liner, the same icon and colours as on the options page. The SVGs come
+   from icons/settings/ through :settings-...: (pymdownx.emoji). They carry a
+   fixed colour for the README; here the tile's colour wins, and Material's
+   fill on .twemoji svg is undone so only the shaded parts are filled. Rules:
+   the Setting icons section of DEVELOPMENT.md. */
+:root {
+  --bcb-icon-bg: #e3f6f8;
+  --bcb-icon-border: #bfe8ec;
+}
+
+[data-md-color-scheme='slate'] {
+  --bcb-icon-bg: rgba(0, 183, 195, 0.14);
+  --bcb-icon-border: rgba(0, 183, 195, 0.32);
+}
+
+.md-typeset details.faq > summary:has(.bcb-setting-icon) {
+  column-gap: 0.8rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+}
+
+.md-typeset .bcb-setting-icon {
+  align-items: center;
+  align-self: center;
+  background: var(--bcb-icon-bg);
+  border: 1px solid var(--bcb-icon-border);
+  border-radius: 0.4rem;
+  /* The link colour, set per scheme above on body, not on :root. */
+  color: var(--md-typeset-a-color);
+  display: inline-flex;
+  grid-row: 1 / span 2;
+  height: 1.8rem;
+  justify-content: center;
+  width: 1.8rem;
+}
+
+.md-typeset .bcb-setting-icon .twemoji {
+  height: 1.1rem;
+}
+
+.md-typeset .bcb-setting-icon .twemoji svg {
+  color: inherit;
+  fill: none;
+  width: 1.1rem;
 }

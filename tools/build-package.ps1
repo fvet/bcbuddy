@@ -2,9 +2,10 @@
   Builds the ZIP file for the Chrome Web Store / Edge Add-ons.
 
   Only what the extension needs for the user goes in: manifest, the policy
-  schema IT sets the shared file with, src, _locales, the PNG icons and
+  schema IT sets the shared file with, src, _locales, the PNG icons, the
+  setting icons in icons/settings/ that the options page shows, and
   examples/bc-buddy.json, which Load samples on the options page reads. Tests,
-  the other examples, the SVG sources and the icon build script stay out —
+  the other examples, the logo SVG and the icon build script stay out —
   they only make the package larger and give the reviewer files to read that
   do nothing.
 
@@ -37,7 +38,9 @@ $include = @(
   'icons\icon16.png',
   'icons\icon32.png',
   'icons\icon48.png',
-  'icons\icon128.png'
+  'icons\icon128.png',
+  # The tiles in front of the Web client settings on the options page.
+  'icons\settings'
 )
 
 $staging = Join-Path ([System.IO.Path]::GetTempPath()) ("bcbuddy-pkg-" + [guid]::NewGuid().ToString('N'))

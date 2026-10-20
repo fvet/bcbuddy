@@ -10,7 +10,9 @@
   --border: #d9dde3;
   --text: #1b1e23;
   --muted: #666e7a;
-  --accent: #0f6cbd;
+  /* The teal of Business Central and the logo's sphere, dark enough for text:
+     5.1:1 on white, 4.7:1 on --bg. The sphere's own #00b7c3 is only 2.4:1. */
+  --accent: #007a83;
   --accent-text: #ffffff;
   --danger: #c4314b;
   --ok: #107c10;
@@ -31,6 +33,12 @@
      choice: give the options the page's colours, not the header's. */
   --topbar-option-bg: #ffffff;
   --topbar-option-text: #1b1e23;
+  /* The tiles in front of the Web client settings: a tint of the logo's
+     sphere (#00b7c3) with the lines in the accent. Rules: DEVELOPMENT.md,
+     Setting icons. */
+  --icon-fg: var(--accent);
+  --icon-bg: #e3f6f8;
+  --icon-border: #bfe8ec;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,7 +49,7 @@
     --border: #363b44;
     --text: #e7eaee;
     --muted: #9aa3b0;
-    --accent: #4aa3f0;
+    --accent: #3cc8d1;
     --accent-text: #0b1220;
     --brand-mark: #a7adb6;
     --shadow: none;
@@ -55,6 +63,8 @@
     --topbar-control: var(--border);
     --topbar-option-bg: var(--surface);
     --topbar-option-text: var(--text);
+    --icon-bg: rgba(0, 183, 195, .14);
+    --icon-border: rgba(0, 183, 195, .32);
   }
 }
 
@@ -113,7 +123,6 @@ a { color: var(--accent); }
 }
 
 .topbar__brand { display: flex; align-items: center; gap: 12px; }
-.topbar__brand p { margin: 2px 0 0; font-size: 12.5px; }
 .topbar__actions { display: flex; align-items: center; gap: 16px; }
 
 /* The language picker: a globe and a quiet select, not a form field. */
@@ -130,10 +139,11 @@ a { color: var(--accent); }
 }
 .language option { background: var(--topbar-option-bg); color: var(--topbar-option-text); }
 
-/* The brand: BC with the cut-out the dot sits against. That dot takes the
-   colour of the rule that matches the test URL (see options.js). */
+/* The brand: BC with the cut-out the dot sits against, then Buddy. The dot
+   takes the colour of the rule that matches the test URL (see options.js). */
+.topbar__brand h1 { display: flex; }
 .brand {
-  width: 44px; height: 44px;
+  width: 124px; height: 44px;
   flex: none;
   font-family: "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
 }
@@ -269,6 +279,39 @@ section { display: flex; flex-direction: column; gap: 10px; }
 label.setting { cursor: pointer; }
 .setting + .setting { border-top: 1px solid var(--border); }
 .setting--wrap { flex-wrap: wrap; }
+/* The tile in front of a setting: one SVG per setting in icons/settings/,
+   used as a mask so the line colour follows the theme. The same files are the
+   icons on the website and in the README. */
+.setting__icon {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  margin-right: -4px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--icon-bg);
+  border: 1px solid var(--icon-border);
+}
+.setting__icon::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: var(--icon-fg);
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+.setting__icon--copy-values { --icon: url(../../icons/settings/copy-values.svg); }
+.setting__icon--maximize { --icon: url(../../icons/settings/maximize.svg); }
+.setting__icon--pin-action-bar { --icon: url(../../icons/settings/pin-action-bar.svg); }
+.setting__icon--highlight-row { --icon: url(../../icons/settings/highlight-row.svg); }
+.setting__icon--dropdown { --icon: url(../../icons/settings/dropdown.svg); }
+.setting__icon--resize-panes { --icon: url(../../icons/settings/resize-panes.svg); }
+.setting__icon--week-numbers { --icon: url(../../icons/settings/week-numbers.svg); }
+.setting__icon--hide-notifications { --icon: url(../../icons/settings/hide-notifications.svg); }
+.setting__icon--shortcuts { --icon: url(../../icons/settings/shortcuts.svg); }
+.setting__icon--stripe-rows { --icon: url(../../icons/settings/stripe-rows.svg); }
+.setting__icon--no-animations { --icon: url(../../icons/settings/no-animations.svg); }
 .setting__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .setting__name { font-weight: 600; }
 .setting__sliders { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 20px; margin-left: auto; }

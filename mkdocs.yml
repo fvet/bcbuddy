@@ -71,6 +71,14 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
+  # :settings-copy-values: and the like inline an SVG from icons/settings/, the
+  # same files the options page shows in front of each Web client setting.
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - icons
   - pymdownx.highlight
   - pymdownx.superfences
   # "With BC Buddy" / "Without" screenshots on the Web client page.

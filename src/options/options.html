@@ -8,22 +8,26 @@
 <body>
   <header class="topbar">
     <div class="topbar__brand">
-      <svg class="brand" viewBox="0 0 128 128" role="img" aria-labelledby="brandTitle">
-        <title id="brandTitle">BC Buddy</title>
-        <mask id="brandBite">
-          <rect width="128" height="128" fill="#fff"></rect>
-          <circle cx="98" cy="91" r="27" fill="#000"></circle>
-        </mask>
-        <g mask="url(#brandBite)">
-          <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
-                letter-spacing="-4" fill="var(--brand-mark)">BC</text>
-        </g>
-        <circle id="brandDot" cx="98" cy="91" r="20" fill="#00b7c3"></circle>
-      </svg>
-      <div>
-        <h1>BC Buddy</h1>
-        <p class="muted" data-i18n="tagline">Make the Business Central web client easier to work in, and give every environment its own colour.</p>
-      </div>
+      <!-- The mark from icons/logo.svg, unchanged in its own 128 x 128 box, with
+           "Buddy" set after it in the same letters, size and baseline. -->
+      <h1>
+        <svg class="brand" viewBox="0 0 360 128" role="img" aria-labelledby="brandTitle">
+          <title id="brandTitle">BC Buddy</title>
+          <svg viewBox="0 0 128 128" width="128" height="128">
+            <mask id="brandBite">
+              <rect width="128" height="128" fill="#fff"></rect>
+              <circle cx="98" cy="91" r="27" fill="#000"></circle>
+            </mask>
+            <g mask="url(#brandBite)">
+              <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
+                    letter-spacing="-4" fill="var(--brand-mark)">BC</text>
+            </g>
+            <circle id="brandDot" cx="98" cy="91" r="20" fill="#00b7c3"></circle>
+          </svg>
+          <text x="130" y="78" font-size="84" font-weight="600"
+                letter-spacing="-4" fill="var(--brand-mark)">Buddy</text>
+        </svg>
+      </h1>
     </div>
     <div class="topbar__actions">
       <span class="status" id="status" role="status" aria-live="polite"></span>
@@ -106,30 +110,35 @@
            rest. -->
       <div class="card card--list">
         <label class="setting" data-i18n-title="copyValuesIntro">
+          <span class="setting__icon setting__icon--copy-values" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="copyValuesToggle">Copy values</span>
           </span>
           <input type="checkbox" class="toggle" id="copyValuesEnabled">
         </label>
         <label class="setting" data-i18n-title="maximizeIntro">
+          <span class="setting__icon setting__icon--maximize" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="maximizeToggle">Maximize pages</span>
           </span>
           <input type="checkbox" class="toggle" id="maximizeEnabled">
         </label>
         <label class="setting" data-i18n-title="pinActionBarIntro">
+          <span class="setting__icon setting__icon--pin-action-bar" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="pinActionBarToggle">Pin the action bar</span>
           </span>
           <input type="checkbox" class="toggle" id="pinActionBarEnabled">
         </label>
         <label class="setting" data-i18n-title="highlightRowIntro">
+          <span class="setting__icon setting__icon--highlight-row" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="highlightRowToggle">Highlight the current line</span>
           </span>
           <input type="checkbox" class="toggle" id="highlightRowEnabled">
         </label>
         <div class="setting setting--wrap" data-i18n-title="dropdownIntro">
+          <span class="setting__icon setting__icon--dropdown" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="dropdownHeading">Dropdown size</span>
           </span>
@@ -145,36 +154,42 @@
           </span>
         </div>
         <label class="setting" data-i18n-title="resizePanesIntro">
+          <span class="setting__icon setting__icon--resize-panes" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="resizePanesToggle">Resize panes</span>
           </span>
           <input type="checkbox" class="toggle" id="resizePanesEnabled">
         </label>
         <label class="setting" data-i18n-title="weekNumbersIntro">
+          <span class="setting__icon setting__icon--week-numbers" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="weekNumbersToggle">Week numbers in the date picker</span>
           </span>
           <input type="checkbox" class="toggle" id="weekNumbersEnabled">
         </label>
         <label class="setting" data-i18n-title="hideNotificationsIntro">
+          <span class="setting__icon setting__icon--hide-notifications" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="hideNotificationsToggle">Hide the notifications icon</span>
           </span>
           <input type="checkbox" class="toggle" id="hideNotificationsEnabled">
         </label>
         <label class="setting" data-i18n-title="shortcutsIntro">
+          <span class="setting__icon setting__icon--shortcuts" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="shortcutsToggle">Keyboard shortcuts</span>
           </span>
           <input type="checkbox" class="toggle" id="shortcutsEnabled">
         </label>
         <label class="setting" data-i18n-title="stripeRowsIntro">
+          <span class="setting__icon setting__icon--stripe-rows" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="stripeRowsToggle">Striped rows</span>
           </span>
           <input type="checkbox" class="toggle" id="stripeRowsEnabled">
         </label>
         <label class="setting" data-i18n-title="noAnimationsIntro">
+          <span class="setting__icon setting__icon--no-animations" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>
           </span>
