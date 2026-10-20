@@ -69,6 +69,8 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `maximize.enabled` — wide layout and list view, on by default.
 - `pinActionBar.enabled` — pin the action bar of a page that opens with it
   floating, on by default.
+- `hideFactBox.enabled` — collapse the FactBox pane on a page nobody set it
+  on yet, off by default. Shares Maximize's once-per-page pass.
 - `highlightRow.enabled` — the current-line tint, on by default.
 - `stripeRows.enabled` — every other list row a see-through grey, off by
   default. Keyed on BC's `aria-rowindex`, since BC reuses its `<tr>`
@@ -641,7 +643,9 @@ left menu:
   arrows, the pin), follow it, so people recognise it.
 - A line through the icon (`M2.5 2.5l11 11`) is for a switch that hides or
   stops something Business Central does: **Hide the notifications icon**,
-  **Turn off animations**.
+  **Turn off animations**. Leave it off when the icon is Business Central's
+  own button for the thing: **Hide the FactBox pane** shows the round *i* that
+  opens and closes the pane, without a line.
 - The root also carries `color="#009aa5"`: the colour the icon has in the
   README, where nothing can style it (3.4:1 on GitHub's white, 5.6:1 on its
   dark background). The options page uses the file only as a mask and the

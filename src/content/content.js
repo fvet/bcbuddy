@@ -89,6 +89,9 @@
     maximized: new WeakMap(),
     // Pin the action bar: the forms of the BC pages already decided.
     pinned: new WeakSet(),
+    // Hide the FactBox pane: per BC page form, whether its toggle is still
+    // awaited (see factbox.js).
+    factBoxes: new WeakMap(),
     // Dropdown sizer handle, and the settings it was started with ('' = off).
     dropdowns: null,
     dropdownKey: '',
@@ -353,7 +356,8 @@
     if (!settings || !settings.enabled) return false;
     // The current-row tint is not here on purpose: it is one attribute, set
     // once, and needs no watching.
-    var clicksBC = BCBuddy.maximizeOn(settings) || BCBuddy.pinActionBarOn(settings);
+    var clicksBC = BCBuddy.maximizeOn(settings) || BCBuddy.pinActionBarOn(settings) ||
+      BCBuddy.hideFactBoxOn(settings);
     if (!effectiveRules(settings).length && !clicksBC) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
@@ -412,6 +416,8 @@
       reassert(rule);
     }
 
+    // Before maximize: its wide click stores the pane as open (factbox.js).
+    applyHideFactBox();
     applyMaximize();
     applyPinActionBar();
     applyDropdowns();
@@ -833,6 +839,20 @@
     BCBuddy.ActionBar.apply(document, state.pinned, bcStorage());
   }
 
+  /* ------------------------------------------------------ FactBox pane */
+
+  /**
+   * Closes the FactBox pane of a BC page that opens with it, unless someone set
+   * that page before; see factbox.js. Like maximize it runs in every frame and
+   * only acts where the page is: one or two queries in the page on screen per
+   * pass, and a look in BC's storage once per page.
+   */
+  function applyHideFactBox() {
+    if (!BCBuddy.hideFactBoxOn(state.settings)) return;
+    if (!state.webClient) return;
+    BCBuddy.FactBox.apply(document, state.factBoxes, bcStorage());
+  }
+
   /**
    * The localStorage of this frame, where BC keeps the choices made on each
    * page. Null where the browser blocks it; BC cannot store anything there
@@ -1105,6 +1125,7 @@
 
     state.maximized = new WeakMap();
     state.pinned = new WeakSet();
+    state.factBoxes = new WeakMap();
   }
 
   /* --------------------------------------------------------------- helpers */

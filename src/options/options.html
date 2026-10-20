@@ -7,11 +7,14 @@
 </head>
 <body>
   <header class="topbar">
+    <div class="topbar__inner">
     <div class="topbar__brand">
       <!-- The mark from icons/logo.svg, unchanged in its own 128 x 128 box, with
-           "Buddy" set after it in the same letters, size and baseline. -->
+           "Buddy" set after it in the same letters, size and baseline. The view
+           starts at y -16 so the letters (y 18 to 78), not letters and dot
+           together, sit on the header's centre line; the dot still fits. -->
       <h1>
-        <svg class="brand" viewBox="0 0 360 128" role="img" aria-labelledby="brandTitle">
+        <svg class="brand" viewBox="0 -16 360 128" role="img" aria-labelledby="brandTitle">
           <title id="brandTitle">BC Buddy</title>
           <svg viewBox="0 0 128 128" width="128" height="128">
             <mask id="brandBite">
@@ -44,6 +47,7 @@
           <option value="fr" lang="fr">Français</option>
         </select>
       </label>
+    </div>
     </div>
   </header>
 
@@ -187,6 +191,13 @@
             <span class="setting__name" data-i18n="stripeRowsToggle">Striped rows</span>
           </span>
           <input type="checkbox" class="toggle" id="stripeRowsEnabled">
+        </label>
+        <label class="setting" data-i18n-title="hideFactBoxIntro">
+          <span class="setting__icon setting__icon--hide-fact-box" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="hideFactBoxToggle">Hide the FactBox pane</span>
+          </span>
+          <input type="checkbox" class="toggle" id="hideFactBoxEnabled">
         </label>
         <label class="setting" data-i18n-title="noAnimationsIntro">
           <span class="setting__icon setting__icon--no-animations" aria-hidden="true"></span>

@@ -102,6 +102,7 @@ window.chrome = {
 <script src="../src/lib/bcstate.js"></script>
 <script src="../src/lib/maximize.js"></script>
 <script src="../src/lib/actionbar.js"></script>
+<script src="../src/lib/factbox.js"></script>
 <script src="../src/lib/copyvalues.js"></script>
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
@@ -460,6 +461,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.highlightRowOn(BCBuddy.normalize({ enabled: false, highlightRow: { enabled: true } })), false);
 
   // striped rows likewise, off by default
+  check('factbox: left open by default', BCBuddy.hideFactBoxOn(BCBuddy.normalize(null)), false);
+  check('factbox: hidden with its own toggle',
+    BCBuddy.hideFactBoxOn(BCBuddy.normalize({ hideFactBox: { enabled: true } })), true);
+  check('factbox: off when the extension is off',
+    BCBuddy.hideFactBoxOn(BCBuddy.normalize({ enabled: false, hideFactBox: { enabled: true } })), false);
+  check('factbox: a value that is no boolean falls back to off',
+    BCBuddy.normalize({ hideFactBox: { enabled: 'yes' } }).hideFactBox, { enabled: false });
   check('stripes: off by default', BCBuddy.stripeRowsOn(BCBuddy.normalize(null)), false);
   check('stripes: on with its own toggle',
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ stripeRows: { enabled: true } })), true);
@@ -1309,6 +1317,93 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   }
   check('maximize: a list dialog set back to its size keeps it', storedDialog('34'), []);
   check('maximize: the page size does not count for its dialog', storedDialog('21'), ['dialog-max']);
+
+  // hide the FactBox pane: the toggle as BC28 draws it at the top right of a
+  // page, checked while the pane shows.
+  var F = BCBuddy.FactBox;
+  function factBoxStack(id, opts) {
+    opts = opts || {};
+    var doc = document.implementation.createHTMLDocument('bc');
+    var toggle = function (who, open) {
+      return '<div class="ms-nav-layout-factbox-toggle-button"><button role="menuitemcheckbox" id="fb-' + who +
+        '" aria-checked="' + open + '"' + (open ? ' class="is-checked"' : '') + '></button></div>';
+    };
+    doc.body.innerHTML = '<div class="spa-container">' +
+      '<div class="spa-view spa-not-top-most" inert=""><form class="ms-nav-root-form" data-page-id="5050">' +
+      toggle('below', true) + '</form></div>' +
+      '<div class="spa-view' + (opts.view || '') + '"><form class="ms-nav-root-form ' + (opts.form || '') +
+      '" data-page-id="' + id + '">' +
+      '<button class="ms-nav-layout-wide-toggle-button" id="wide-top"></button>' +
+      (opts.noToggle ? '' : toggle('top', opts.closed ? false : true)) + '</form></div></div>';
+    doc.clicks = [];
+    doc.addEventListener('click', function (e) { doc.clicks.push(e.target.id); }, true);
+    return doc;
+  }
+  function addFactBoxToggle(doc) {
+    doc.querySelector('.spa-view:not([inert]) form').insertAdjacentHTML('beforeend',
+      '<div class="ms-nav-layout-factbox-toggle-button"><button id="fb-top" aria-checked="true"></button></div>');
+  }
+
+  check('bc state: the FactBox pane is kept with the page layout',
+    [S.chosen(bcKeys, 'factbox', 21), S.chosen(bcKeys, 'factbox', 27), S.chosen(bcKeys, 'factbox', 34)],
+    [true, false, false]);
+
+  var fbFresh = factBoxStack('27');
+  var fbDone = new WeakMap();
+  F.apply(fbFresh, fbDone, bcKeys);
+  check('factbox: closes the pane of a page nobody set, on screen only', fbFresh.clicks, ['fb-top']);
+  F.apply(fbFresh, fbDone, bcKeys);
+  check('factbox: a page is handled once', fbFresh.clicks, ['fb-top']);
+
+  var fbSet = factBoxStack('21');
+  F.apply(fbSet, new WeakMap(), bcKeys);
+  check('factbox: a page with a stored layout keeps its pane', fbSet.clicks, []);
+
+  var fbClosed = factBoxStack('27', { closed: true });
+  F.apply(fbClosed, new WeakMap(), bcKeys);
+  check('factbox: a pane that is already closed is left alone', fbClosed.clicks, []);
+
+  var fbNone = factBoxStack('27', { form: 'form-no-factboxes' });
+  F.apply(fbNone, new WeakMap(), bcKeys);
+  check('factbox: a page without FactBoxes is left alone', fbNone.clicks, []);
+
+  var fbDialog = factBoxStack('27', { view: ' spa-task-dialog' });
+  F.apply(fbDialog, new WeakMap(), bcKeys);
+  check('factbox: a task dialog is left alone', fbDialog.clicks, []);
+
+  F.apply(fbFresh, new WeakMap(), null);
+  check('factbox: no storage to read, no stored choice', fbFresh.clicks, ['fb-top', 'fb-top']);
+
+  // BC writes the whole layout at each change, so Maximize's wide click stores
+  // the pane as open too. The page is judged before that click, and the
+  // verdict waits for a toggle BC draws a moment later.
+  var layoutKey = 'JOHN:production:Layout:000013ba' + ID;
+  function bcWrites(doc, storage) {
+    doc.addEventListener('click', function (e) {
+      var stored = JSON.parse(storage.getItem(layoutKey) || 'null') ||
+        { AsideAreaRightExpanded: true, PageLayoutExpanded: false, FactboxTabSelectedKey: 'Details' };
+      if (e.target.id === 'wide-top') stored.PageLayoutExpanded = true;
+      if (e.target.id === 'fb-top') stored.AsideAreaRightExpanded = false;
+      storage.setItem(layoutKey, JSON.stringify(stored));
+    });
+  }
+  var both = factBoxStack('5050', { noToggle: true });
+  var bothStore = writableStorage({});
+  bcWrites(both, bothStore);
+  var bothFb = new WeakMap();
+  var bothMax = new WeakMap();
+  F.apply(both, bothFb, bothStore);
+  M.apply(both, bothMax, bothStore);
+  addFactBoxToggle(both);
+  F.apply(both, bothFb, bothStore);
+  M.apply(both, bothMax, bothStore);
+  check('factbox: with maximize, a new page gets wide and a closed pane', both.clicks, ['wide-top', 'fb-top']);
+  check('factbox: and BC stores both',
+    JSON.parse(bothStore.getItem(layoutKey)), { AsideAreaRightExpanded: false, PageLayoutExpanded: true, FactboxTabSelectedKey: 'Details' });
+  var again = factBoxStack('5050');
+  F.apply(again, new WeakMap(), bothStore);
+  M.apply(again, new WeakMap(), bothStore);
+  check('factbox: the next time, BC opens it that way and nothing is clicked', again.clicks, []);
 
   // pin the action bar: the page's own pin sits in its menu bar; a part such
   // as the lines of an order has one in its own header.
@@ -2198,6 +2293,15 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       C.place(box, 'left', { left: 250 }), { x: 226, y: 15 });
     check('copy values: but never outside the cell',
       C.place(box, 'left', { left: 110 }), { x: 102, y: 15 });
+    // The key column of a list on BC SaaS (Opportunities, 2026-10-20): a
+    // 90 px cell whose text ends 20 px before the edge, BC's ... in the next.
+    var key = { left: 31, right: 121, top: 10, height: 30 };
+    check('copy values: on the right, at the edge when the text leaves room',
+      C.place(box, 'right', { left: 105, right: 200 }), { x: 278, y: 15 });
+    check('copy values: on the right, just after text the edge would cover',
+      C.place(key, 'right', { left: 37, right: 101 }), { x: 105, y: 15 });
+    check('copy values: a cut-off value keeps the icon at the edge',
+      C.place(key, 'right', { left: 37, right: 180 }), { x: 99, y: 15 });
 
     var copied = [];
     Object.defineProperty(navigator, 'clipboard', {

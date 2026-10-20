@@ -248,6 +248,34 @@ line you are on and the lines you select keep Business Central's own colours.
 
 </details>
 
+<details class="faq" id="hide-the-factbox-pane" markdown>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-hide-fact-box:</span>Hide the FactBox pane<span class="bcb-summary-text">Pages open without the pane on the right</span></summary>
+
+<p class="bcb-starts">Off until you switch it on</p>
+
+Cards, documents and lists show a pane on the right with extra details, such
+as **Customer Statistics** or **Sales History**. That is the FactBox pane. With
+this on, a page opens with the pane closed, so the page itself gets the room.
+
+=== "With BC Buddy"
+
+    ![A customer card using the full width, with the FactBox pane closed](assets/screenshots/crop-with-hide-factbox.png){ loading=lazy }
+
+=== "Without BC Buddy"
+
+    ![The same customer card with the FactBox pane open on the right](assets/screenshots/crop-without-hide-factbox.png){ loading=lazy }
+
+Need the details on a page? Open the pane with the **i** button at the top
+right of the page, or press Alt+F2. Business Central remembers that for that
+page, and BC Buddy leaves it open from then on.
+
+BC Buddy only closes the pane on a page you open for the first time in this
+browser. Business Central stores the pane together with wide layout, so a page
+you used before, also one **Maximize pages** made wide, keeps its pane the way
+it was. Close it there once yourself, and Business Central remembers that.
+
+</details>
+
 <details class="faq" id="turn-off-animations" markdown>
 <summary markdown="span"><span class="bcb-setting-icon">:settings-no-animations:</span>Turn off animations<span class="bcb-summary-text">Pages and dialogs appear at once</span></summary>
 

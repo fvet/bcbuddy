@@ -104,12 +104,6 @@ a { color: var(--accent); }
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 14px 24px;
   background: var(--topbar-bg);
   border-bottom: 1px solid var(--topbar-border);
   /* Dark in both themes, so native controls in it are too. */
@@ -122,6 +116,19 @@ a { color: var(--accent); }
   color: var(--text);
 }
 
+/* The black runs the full width; what is on it keeps to the column below,
+   so the logo lines up with the menu and the language with the content's
+   right edge. Widths and insets mirror .layout, .nav and main. */
+.topbar__inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 24px 14px 12px;
+}
 .topbar__brand { display: flex; align-items: center; gap: 12px; }
 .topbar__actions { display: flex; align-items: center; gap: 16px; }
 
@@ -231,6 +238,7 @@ a { color: var(--accent); }
   .layout { flex-direction: column; align-items: stretch; }
   .nav { position: static; flex: none; flex-direction: row; flex-wrap: wrap; padding: 16px 24px 0; }
   .nav__item { width: auto; }
+  .topbar__inner { padding-left: 24px; }
 }
 
 main {
@@ -311,6 +319,7 @@ label.setting { cursor: pointer; }
 .setting__icon--hide-notifications { --icon: url(../../icons/settings/hide-notifications.svg); }
 .setting__icon--shortcuts { --icon: url(../../icons/settings/shortcuts.svg); }
 .setting__icon--stripe-rows { --icon: url(../../icons/settings/stripe-rows.svg); }
+.setting__icon--hide-fact-box { --icon: url(../../icons/settings/hide-fact-box.svg); }
 .setting__icon--no-animations { --icon: url(../../icons/settings/no-animations.svg); }
 .setting__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .setting__name { font-weight: 600; }

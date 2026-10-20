@@ -38,6 +38,8 @@ $assets = @{
     '713db8844a4ea6c0053779dccff5edf8' = '../screenshots/crop-with-keyboard-shortcuts.png'
     '10bf7cb2b2055cc5fc817e54da4517b1' = '../screenshots/crop-without-striped-rows.png'
     'f3cc093f6f6c883fc0262f3678ec9d81' = '../screenshots/crop-with-striped-rows.png'
+    'bdef8623d9456cae2883fedd94f0fec5' = '../screenshots/crop-without-hide-factbox.png'
+    'a6b12f951802a3baa0926db313607a65' = '../screenshots/crop-with-hide-factbox.png'
     'f45f098d2f97fa1261c3c5c82610bc54' = '../screenshots/without-env-colours.jpg'
     '34b09d6a87dde8d87ecdfd226505e1fc' = '../screenshots/with-env-colours.jpg'
 }

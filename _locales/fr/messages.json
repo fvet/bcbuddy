@@ -153,6 +153,8 @@
   "maximizeToggle": { "message": "Agrandir les pages" },
   "pinActionBarIntro": { "message": "Épingle la barre d'actions sous les onglets d'une page la première fois que la page s'ouvre. Si vous la détachez sur une page, elle y reste détachée." },
   "pinActionBarToggle": { "message": "Épingler la barre d'actions" },
+  "hideFactBoxIntro": { "message": "Ferme le volet Récapitulatif à droite sur les pages que vous ouvrez pour la première fois. Si vous le rouvrez sur une page, il y reste ouvert." },
+  "hideFactBoxToggle": { "message": "Masquer le volet Récapitulatif" },
   "dropdownHeading": { "message": "Taille des listes déroulantes" },
   "dropdownIntro": { "message": "Donne plus d'espace à la liste qui s'ouvre sous un champ. La largeur suit les colonnes, jusqu'au maximum défini ici." },
   "highlightRowToggle": { "message": "Surligner la ligne en cours" },

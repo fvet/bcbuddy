@@ -11,11 +11,21 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Hide the FactBox pane**: a page you open for the first time shows without
+  the pane of extra details on the right, so the page gets the room. Open it on
+  a page and it stays open there. Off until you switch it on under **Web
+  client**.
+
 ### Fixed
 
 - In a wider **dropdown**, the column headers now line up with the rows
   again, and a list that fits no longer gets a horizontal scrollbar. This
   happened mostly with the browser zoomed out.
+- The **copy** icon no longer covers the end of a value in a narrow column,
+  such as the No. in the first column of a list: it sits just after the
+  text.
 
 <!-- --8<-- [start:released] -->
 

@@ -322,7 +322,8 @@
   // `webClient`, shaped exactly as they are stored. The master switch does not:
   // it belongs to whoever runs the extension.
   var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'resizePanes', 'highlightRow',
-    'stripeRows', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts'];
+    'stripeRows', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts',
+    'hideFactBox'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
@@ -336,6 +337,7 @@
     var copyValues = s.copyValues || {};
     var weekNumbers = s.weekNumbers || {};
     var shortcuts = s.shortcuts || {};
+    var hideFactBox = s.hideFactBox || {};
 
     return {
       maximize: {
@@ -374,6 +376,11 @@
       },
       shortcuts: {
         enabled: bool(shortcuts.enabled, false)
+      },
+      // Off until asked for: the FactBoxes are BC's own, and many people
+      // read them.
+      hideFactBox: {
+        enabled: bool(hideFactBox.enabled, false)
       }
     };
   }
@@ -459,6 +466,12 @@
   function pinActionBarOn(settings) {
     return !!(settings && settings.enabled &&
       settings.pinActionBar && settings.pinActionBar.enabled);
+  }
+
+  /** Hiding the FactBox pane clicks BC's controls too, so it follows the master switch. */
+  function hideFactBoxOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.hideFactBox && settings.hideFactBox.enabled);
   }
 
   /** The drag handles on BC's side panes follow the master switch as well. */
@@ -922,6 +935,7 @@
   BCBuddy.effectiveRules = effectiveRules;
   BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.pinActionBarOn = pinActionBarOn;
+  BCBuddy.hideFactBoxOn = hideFactBoxOn;
   BCBuddy.resizePanesOn = resizePanesOn;
   BCBuddy.highlightRowOn = highlightRowOn;
   BCBuddy.stripeRowsOn = stripeRowsOn;

@@ -54,6 +54,7 @@ the settings page.
 | <img src="icons/settings/hide-notifications.svg" width="18" height="18" alt=""> **Hide the notifications icon** | No bell in the top bar | On |
 | <img src="icons/settings/shortcuts.svg" width="18" height="18" alt=""> **Keyboard shortcuts** | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
 | <img src="icons/settings/stripe-rows.svg" width="18" height="18" alt=""> **Striped rows** | Every other row in a list a light grey | Off |
+| <img src="icons/settings/hide-fact-box.svg" width="18" height="18" alt=""> **Hide the FactBox pane** | Pages open without the FactBox pane on the right, so the page gets the room | Off |
 | <img src="icons/settings/no-animations.svg" width="18" height="18" alt=""> **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
 **Reset to defaults**, above the list, puts every switch and slider back to
@@ -282,6 +283,12 @@ or pick list view once, and Business Central remembers that instead.
 **The action bar floats on a page.** Pin the action bar likewise only pins a
 page nobody set yet. Click the pin at the right end of the action bar once, and
 Business Central keeps it pinned from then on.
+
+**The FactBox pane stays open on a page.** **Hide the FactBox pane** starts
+off; switch it on under **Web client**. It then only closes the pane on a page
+you open for the first time in this browser: Business Central stores the pane
+together with wide layout, so a page you used before keeps its pane. Close it
+once on that page, and Business Central keeps it closed from then on.
 
 **A pane will not get wider.** Only Help, Copilot, Page Inspection and the
 Personalize field list get the handle; the FactBox pane has Business Central's

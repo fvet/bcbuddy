@@ -28,8 +28,13 @@
   // #bcb-copy in content.css.
   var SIZE = 20;
   var INSET = 2;
-  // Space between the icon and a right-aligned value.
+  // Space between the icon and the value it sits next to.
   var GAP = 4;
+  // How far the icon may reach past the cell's right edge, into the next
+  // cell's padding, to stay off a value that fits. Small enough to stay clear
+  // of the next cell's text and of BC's ... button in the first column of a
+  // list (a 30 px cell with the glyph in its middle).
+  var OVERHANG = 6;
 
   var ICON_ID = 'bcb-copy';
   var DONE_CLASS = 'bcb-copy--done';
@@ -116,14 +121,22 @@
 
   /**
    * Where the icon goes, vertically centred in the cell. On the right it sits
-   * at the cell edge. On the left it sits just before the text, so a wide
-   * field does not leave it far from the amount; never outside the cell.
+   * at the cell edge, unless that would cover a value that fits: then just
+   * after the text, up to OVERHANG past the edge (the key column of a list,
+   * with BC's ... in the next cell, leaves less room than the icon needs). A
+   * value cut off with an ellipsis has no room after it; the icon stays at
+   * the edge, over the ellipsis. On the left it sits just before the text,
+   * so a wide field does not leave it far from the amount; never outside the
+   * cell.
    */
   function place(rect, side, textRect) {
     var x = rect.right - SIZE - INSET;
     if (side === 'left') {
       x = rect.left + INSET;
       if (textRect) x = Math.max(x, textRect.left - SIZE - GAP);
+    } else if (textRect && textRect.right + GAP > x &&
+               textRect.right + GAP + SIZE <= rect.right + OVERHANG) {
+      x = textRect.right + GAP;
     }
     return { x: Math.round(x), y: Math.round(rect.top + (rect.height - SIZE) / 2) };
   }
@@ -236,8 +249,7 @@
       // A cell too narrow to keep the value readable next to the icon.
       // FactBox rows are about as tall as the icon, so height is no limit.
       if (rect.width < SIZE * 3) return;
-      var side = sideOf(cell);
-      var at = place(rect, side, side === 'left' ? textRect(value) : null);
+      var at = place(rect, sideOf(cell), textRect(value));
       if (icon.parentNode !== doc.body) doc.body.appendChild(icon);
       reset();
       icon.style.transform = 'translate(' + at.x + 'px,' + at.y + 'px)';

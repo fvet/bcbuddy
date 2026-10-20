@@ -153,6 +153,8 @@
   "maximizeToggle": { "message": "Pagina's maximaliseren" },
   "pinActionBarIntro": { "message": "Zet de actiebalk onder de tabbladen van een pagina vast de eerste keer dat die pagina opent. Maak je hem op een pagina los, dan blijft hij daar los." },
   "pinActionBarToggle": { "message": "Actiebalk vastzetten" },
+  "hideFactBoxIntro": { "message": "Sluit het deelvenster Feitenblok rechts op pagina's die je voor het eerst opent. Open je het op een pagina weer, dan blijft het daar open." },
+  "hideFactBoxToggle": { "message": "Deelvenster Feitenblok verbergen" },
   "dropdownHeading": { "message": "Grootte van keuzelijsten" },
   "dropdownIntro": { "message": "Geeft de lijst die onder een veld openklapt meer ruimte. De breedte volgt de kolommen, tot het maximum dat je hier instelt." },
   "highlightRowToggle": { "message": "Huidige regel markeren" },
