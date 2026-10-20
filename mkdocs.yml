@@ -16,6 +16,8 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  # Adds the Google Search Console verification tag to every page's <head>.
+  custom_dir: overrides
   language: en
   logo: assets/logo.svg
   favicon: assets/logo.svg
