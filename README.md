@@ -334,3 +334,13 @@ repository or an unpacked `bcbuddy-*.zip` from the
 MIT — the full text is in [LICENSE](LICENSE). Use it, change it and pass it on,
 inside a company as well; the copyright notice and the licence text have to
 travel with it.
+
+## ⚖️ Disclaimer
+
+BC Buddy is an independent open-source project. It is not affiliated with,
+endorsed by or supported by Microsoft. Microsoft, Dynamics 365 and Business
+Central are trademarks of the Microsoft group of companies.
+
+BC Buddy is provided as is, without warranty of any kind, and its authors are
+not liable for any damage that comes from using it. The full terms are in
+[LICENSE](LICENSE).

@@ -39,3 +39,5 @@ No account. No server. No tracking.
 ✓ Chrome and Edge
 ✓ English, Dutch and French
 ✓ Free and open source
+
+BC Buddy is an independent project, not affiliated with or endorsed by Microsoft. Microsoft, Dynamics 365 and Business Central are trademarks of the Microsoft group of companies.
