@@ -208,6 +208,48 @@ html[data-bcb-no-bell] #notifications_container {
   display: none !important;
 }
 
+/* Resize panes: a grab zone on the left edge of Page Inspection, the
+   Personalization field list (top window) and Help or Copilot (client frame);
+   see panes.js. A ::before, so nothing is added to BC's DOM. Help's pane is
+   found by BC's own inline --panel-width, as its classes are hashed. Sized
+   and coloured like BC's own FactBox handle (BC 28: a 2px bar in the theme
+   accent, --bc-sldaccn, with a 10px grab area). A pseudo-element cannot know
+   it is hovered apart from its pane, so the bar shows while dragging only.
+   Width of the zone must match HANDLE in panes.js. */
+html[data-bcb-panes] body > div[style*="--panel-width"] {
+  position: relative;
+}
+html[data-bcb-panes] .designer > .pane-content > .designer-design-pane.expanded::before,
+html[data-bcb-panes] body > div[style*="--panel-width"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  width: 12px;
+  cursor: col-resize;
+}
+html[data-bcb-pane-drag] .designer > .pane-content > .designer-design-pane.expanded::before,
+html[data-bcb-pane-drag] body > div[style*="--panel-width"]::before {
+  background: linear-gradient(to right, var(--bc-sldaccn, #00838f) 2px, transparent 2px);
+}
+html[data-bcb-pane-drag] body {
+  user-select: none;
+}
+
+/* A saved width, kept clear of the page beside it in a narrow window. Only
+   while one is saved: BC's own width otherwise. */
+html[data-bcb-pane-inspect] .designer.inspector > .pane-content > .designer-design-pane.expanded {
+  width: clamp(240px, var(--bcb-pane-inspect), calc(100vw - 240px));
+}
+html[data-bcb-pane-design] .designer:not(.inspector) > .pane-content > .designer-design-pane.expanded {
+  width: clamp(240px, var(--bcb-pane-design), calc(100vw - 240px));
+}
+html[data-bcb-pane-side] body > div[style*="--panel-width"] {
+  --panel-width: clamp(240px, var(--bcb-pane-side), calc(100vw - 240px)) !important;
+}
+
 /* Copy values: the one icon, our own element in body, placed with a
    transform by copyvalues.js. Nothing here touches BC's cells. Neutral like
    BC's own icon buttons; a green tick after a copy. `all: initial` keeps BC's

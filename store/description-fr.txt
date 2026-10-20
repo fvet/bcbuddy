@@ -10,6 +10,7 @@ Gratuit. Fonctionne dès l'installation.
 • Chaque page sur toute la largeur, avec la barre d'actions épinglée
 • Des listes au lieu de mosaïques
 • Des listes déroulantes qui montrent toutes leurs colonnes : fini le défilement sur le côté
+• L'aide, Copilot et l'inspection de page aussi larges que vous le voulez, d'un glissement
 • Les numéros de semaine dans le calendrier d'un champ date
 • La ligne sur laquelle vous êtes ressort dans les feuilles et les commandes
 • Plus de cloche des notifications dans le chemin

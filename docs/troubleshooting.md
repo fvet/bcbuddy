@@ -48,6 +48,15 @@ A field with a **…** button, such as City or Post Code, opens a whole page
 instead of a dropdown, and that page keeps its size. A list with only two short
 columns needs no extra width; it only grows taller if you raise **Height**.
 
+### A pane will not get wider
+
+Only **Help**, **Copilot**, **Page Inspection** and the **Personalize** field
+list get the handle; the FactBox pane has Business Central's own. Point at the
+very left edge of the pane until the pointer turns into a double arrow. A pane
+always leaves room for the page next to it, so in a small window it stops
+growing early. Double-click the edge to go back to Business Central's own
+width.
+
 ### No keyboard icon in the top bar
 
 **Keyboard shortcuts** starts off. Switch it on under **Web client** on the

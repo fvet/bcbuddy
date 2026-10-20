@@ -161,6 +161,8 @@
   "stripeRowsToggle": { "message": "Gestreepte rijen" },
   "stripeRowsIntro": { "message": "Geeft om de andere rij in een lijst een lichtgrijze tint, zodat je in een brede lijst op de juiste regel blijft." },
   "noAnimationsToggle": { "message": "Animaties uitschakelen" },
+  "resizePanesToggle": { "message": "Breedte van deelvensters" },
+  "resizePanesIntro": { "message": "Sleep de linkerrand van Help, Copilot, Pagina-inspectie of de veldenlijst van Personaliseren om ze breder of smaller te maken. Dubbelklik op de rand voor de standaardbreedte. De breedte wordt onthouden." },
   "copyValuesToggle": { "message": "Waarden kopiëren" },
   "copyValuesIntro": { "message": "Laat de muis rusten op een waarde in een lijst of feitenblok, of op een link op een kaart, en klik op het icoon om ze te kopiëren, zoals ze getoond wordt." },
   "copyValue": { "message": "Waarde kopiëren" },

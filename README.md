@@ -48,6 +48,7 @@ the settings page.
 | **Maximize pages** | Every page in wide layout, tile pages as a list | On |
 | **Pin the action bar** | Every page opens with the row of actions under its tabs pinned | On |
 | **Dropdown size** | The list under a field as wide as its columns need, and taller if you like | On |
+| **Resize panes** | Drag Help, Copilot, Page Inspection and the Personalization field list wider or narrower | On |
 | **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
 | **Highlight the current line** | The line you are on in a journal or order stands out | On |
 | **Hide the notifications icon** | No bell in the top bar | On |
@@ -277,6 +278,11 @@ or pick list view once, and Business Central remembers that instead.
 **The action bar floats on a page.** Pin the action bar likewise only pins a
 page nobody set yet. Click the pin at the right end of the action bar once, and
 Business Central keeps it pinned from then on.
+
+**A pane will not get wider.** Only Help, Copilot, Page Inspection and the
+Personalize field list get the handle; the FactBox pane has Business Central's
+own. Point at the very left edge until the pointer turns into a double arrow.
+Double-click the edge for Business Central's own width again.
 
 **No keyboard icon in the top bar.** **Keyboard shortcuts** starts off; switch
 it on under **Web client**, and reload the tab. Business Central on your own server

@@ -321,13 +321,14 @@
   // The settings of the Web client panel. They travel in an export as
   // `webClient`, shaped exactly as they are stored. The master switch does not:
   // it belongs to whoever runs the extension.
-  var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'highlightRow',
+  var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'resizePanes', 'highlightRow',
     'stripeRows', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
     var pinActionBar = s.pinActionBar || {};
     var dropdown = s.dropdown || {};
+    var resizePanes = s.resizePanes || {};
     var highlightRow = s.highlightRow || {};
     var stripeRows = s.stripeRows || {};
     var noAnimations = s.noAnimations || {};
@@ -347,6 +348,9 @@
       dropdown: {
         width: step(dropdown.width, 5),
         height: step(dropdown.height, 5)
+      },
+      resizePanes: {
+        enabled: bool(resizePanes.enabled, true)
       },
       highlightRow: {
         enabled: bool(highlightRow.enabled, true)
@@ -455,6 +459,12 @@
   function pinActionBarOn(settings) {
     return !!(settings && settings.enabled &&
       settings.pinActionBar && settings.pinActionBar.enabled);
+  }
+
+  /** The drag handles on BC's side panes follow the master switch as well. */
+  function resizePanesOn(settings) {
+    return !!(settings && settings.enabled &&
+      settings.resizePanes && settings.resizePanes.enabled);
   }
 
   /** The current-row tint follows the master switch as well, like maximize. */
@@ -912,6 +922,7 @@
   BCBuddy.effectiveRules = effectiveRules;
   BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.pinActionBarOn = pinActionBarOn;
+  BCBuddy.resizePanesOn = resizePanesOn;
   BCBuddy.highlightRowOn = highlightRowOn;
   BCBuddy.stripeRowsOn = stripeRowsOn;
   BCBuddy.noAnimationsOn = noAnimationsOn;

@@ -10,6 +10,7 @@ Gratis. Werkt meteen na installatie.
 • Elke pagina over de volle breedte, met de actiebalk vastgezet
 • Lijsten in plaats van tegels
 • Keuzelijsten die al hun kolommen tonen: niet meer opzij scrollen
+• Help, Copilot en Pagina-inspectie zo breed als je ze sleept
 • Weeknummers in de kalender van een datumveld
 • De regel waarop je staat valt op in dagboeken en orders
 • Geen meldingenbelletje in de weg

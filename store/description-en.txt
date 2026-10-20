@@ -10,6 +10,7 @@ Free. Works the moment you install it.
 • Every page full width, with the action bar pinned
 • Lists instead of tiles
 • Dropdowns that show all their columns: no more scrolling sideways
+• Help, Copilot and Page Inspection as wide as you drag them
 • Week numbers in the date picker
 • The line you are on stands out in journals and orders
 • No notifications bell in your way

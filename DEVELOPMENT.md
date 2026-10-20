@@ -16,6 +16,7 @@ src/
   lib/match.js         parsing URLs, matching rules, tokens, colour helpers
   lib/settings.js      storage, defaults, normalisation, import/export
   lib/dropdowns.js     dropdown size: sizes BC's lookup dropdowns
+  lib/panes.js         resize panes: drag handles on BC's side panes
   lib/bcstate.js       reading the choices BC stores per page (localStorage)
   lib/maximize.js      maximize: wide layout and list view on BC's own controls
   lib/actionbar.js     pin the action bar on BC's own pin button
@@ -24,9 +25,9 @@ src/
   lib/gearmenu.js      the BC Buddy section in BC's gear menu (Settings pane)
   lib/shortcuts.js     keyboard shortcuts: the top bar icon and its panel
   content/content.js   draws frame, banner, ribbon, title and favicon;
-                       starts maximize, the dropdown sizer, the copy icon,
-                       week numbers, the row tint, the gear menu section
-                       and the keyboard shortcuts icon
+                       starts maximize, the dropdown sizer, the pane
+                       handles, the copy icon, week numbers, the row tint,
+                       the gear menu section and the keyboard shortcuts icon
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted
@@ -75,6 +76,11 @@ travel in an export and in the shared file as `webClient`; the master switch
   and never as pixels. Step 1 is BC standard; width defaults to 5, height to 1.
   `normalize()` rounds and clamps them, so a hand-edited or garbled value can
   only ever land on a valid step. The feature is on when either is above 1.
+- `resizePanes.enabled`: drag handles on Help, Copilot, Page Inspection and
+  the Personalization field list, on by default. The widths people drag are
+  not settings: they live under their own `paneWidths` key in
+  `chrome.storage.local` (`{ inspect, design, side }` in px), are never
+  exported or shared, and are read through `Panes.normalizeWidths()`.
 - `noAnimations.enabled` — turn off BC's animations, off by default.
 - `hideNotifications.enabled` — hide the notifications bell in the top bar, on
   by default. One `data-bcb-no-bell` attribute on `<html>` and one id rule in
@@ -290,9 +296,10 @@ them off and write `{"showWeekNumbers":false}`.
 `content.js` like the dropdown sizer: attached once when the switch turns on,
 detached when it turns off, one comparison per `apply()` otherwise.
 
-It is the one place with a document-wide pointer listener, which the
-performance rules otherwise forbid; a hover icon has to know what is under the
-pointer. It is kept as small as it can be:
+It is the one place with a document-wide pointer listener that fires on
+pointer movement, which the performance rules otherwise forbid; a hover icon
+has to know what is under the pointer. (Resize panes has a document-wide
+`pointerdown`, which fires per click only.) It is kept as small as it can be:
 
 - one passive `pointerover` listener per frame, only while the switch is on.
   It fires when the pointer crosses into another element, not per pixel. The
@@ -332,6 +339,44 @@ To look at the markup again on a live page:
 var f = [...document.querySelectorAll('iframe')].map(x => x.contentDocument).find(d => d && d.querySelector('table'));
 [...f.querySelectorAll('.edit-container-read')].slice(0, 5).map(c => [c.tagName, c.className, !!c.querySelector('.stringcontrol-read.value')]);
 ```
+
+## ↔️ Resize panes
+
+`lib/panes.js`, started and stopped by `applyPanes()` in `content.js` in every
+frame, one comparison per `apply()`. Where the panes are (BC 25 on-prem and
+BC 28 online, 2026-10-20):
+
+- **Page Inspection** and the **Personalization** field list: in the top
+  window, `.designer > .pane-content > .designer-design-pane`. The element
+  stays in the page; BC adds `.expanded` while it is open and gives it a width
+  by CSS (`.designer-design-pane:not(.folded).expanded`, 300 px; 350 px under
+  `.inspector`). The `.designer` carries `.inspector` or `.personalization`.
+- **Help** and **Copilot**: a `div` that BC adds directly under `<body>` of
+  the client frame and removes on close. Its classes are hashed per build
+  (`pane--UVX_…`; BC 28 adds `.spa-pane`, BC 25 has nothing stable); its width comes from its own inline
+  `--panel-width: 340px`, which a rule uses as `flex-basis` and `max-width`.
+  So we find it by `body > div[style*="--panel-width"]`.
+
+The handle is a `::before` in `content.css` on the pane's left edge, under
+`html[data-bcb-panes]`; nothing is added to BC's DOM and nothing is observed.
+It copies BC 28's own FactBox handle (`button.resize-bar`): a 12 px grab zone
+and a 2 px bar in the theme accent, `--bc-sldaccn` (defined in the client
+frame only, so the top window falls back to `#00838f`). BC lights its bar on
+hover; a pseudo-element cannot be hovered apart from its pane, so ours shows
+during a drag only. A press on it has the pane as its target, so one capturing
+`pointerdown` listener per frame does one `matches()` and, only on a pane,
+one `getBoundingClientRect()`. A drag takes pointer capture on the pane (so
+it keeps working over the client frame) and adds `pointermove`, `pointerup`
+and `lostpointercapture` to the pane for its duration; each move writes one
+custom property on `<html>` per animation frame. A saved width is
+`--bcb-pane-<kind>` plus `data-bcb-pane-<kind>` on `<html>`, and CSS clamps it
+to `240px … 100vw − 240px`. Two presses within 400 ms without a move drop the
+saved width. The handler ignores events that are not `isTrusted`.
+
+To look again after a BC update: open each pane and check that
+`document.querySelector('.designer-design-pane.expanded')` (top window) and
+`[...frame.body.children].find(n => n.style.getPropertyValue('--panel-width'))`
+(client frame) still find it.
 
 ## 🔗 URL parsing
 

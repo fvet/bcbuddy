@@ -162,6 +162,8 @@
   "stripeRowsIntro": { "message": "Grise légèrement une ligne sur deux dans une liste, pour ne pas perdre la ligne dans une liste large." },
   "noAnimationsToggle": { "message": "Désactiver les animations" },
   "noAnimationsIntro": { "message": "Les pages, boîtes de dialogue, raccourcis et volets s'affichent immédiatement au lieu de glisser ou d'apparaître en fondu. Les indicateurs de progression continuent de bouger." },
+  "resizePanesToggle": { "message": "Largeur des volets" },
+  "resizePanesIntro": { "message": "Faites glisser le bord gauche de l'aide, de Copilot, de l'inspection de page ou de la liste des champs de Personnaliser pour l'élargir ou le réduire. Double-cliquez sur le bord pour revenir à la largeur standard. La largeur est mémorisée." },
   "copyValuesToggle": { "message": "Copier les valeurs" },
   "copyValuesIntro": { "message": "Placez la souris sur une valeur dans une liste ou un récapitulatif, ou sur un lien dans une fiche, puis cliquez sur l'icône pour la copier telle qu'elle est affichée." },
   "copyValue": { "message": "Copier la valeur" },

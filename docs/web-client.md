@@ -11,6 +11,7 @@ page, so you can turn off whatever you do not like.
 | [Maximize pages](#maximize-pages) | Every page uses the full width of your screen | On |
 | [Pin the action bar](#pin-the-action-bar) | The row of actions under a page's tabs is pinned | On |
 | [Dropdown size](#dropdown-size) | The list under a field shows all its columns | On |
+| [Resize panes](#resize-panes) | Make Help, Copilot or Page Inspection wider by dragging its edge | On |
 | [Week numbers in the date picker](#week-numbers-in-the-date-picker) | Business Central's own week numbers in the calendar of a date field | On |
 | [Highlight the current line](#highlight-the-current-line) | The line you are on in a journal or order stands out | On |
 | [Hide the notifications icon](#hide-the-notifications-icon) | No bell at the top right | On |
@@ -107,6 +108,23 @@ Point at a slider to see how big the list gets.
 === "Without BC Buddy"
 
     ![The same list at Business Central's own size: only No. and Description fit, with a scroll bar to reach the other columns](assets/screenshots/crop-without-dropdown.png){ loading=lazy }
+
+## Resize panes
+
+Business Central opens some panes on the right at a fixed width: **Help**,
+**Copilot**, **Page Inspection** (Ctrl+Alt+F1) and the field list of
+**Personalize**. With BC Buddy you can make them wider or narrower, the way you
+already can with the FactBox pane:
+
+1. Point at the left edge of the pane. The pointer turns into a double arrow.
+2. Drag the edge to the left to make the pane wider, or to the right to make it
+   narrower.
+
+BC Buddy remembers the width, for each kind of pane, in every Business Central
+tab. To go back to Business Central's own width, double-click the edge.
+
+The pane always leaves some room for the page next to it, so in a small
+window it stops growing before it covers the page.
 
 ## Week numbers in the date picker
 

@@ -28,6 +28,8 @@ setup, it is now easier to work in:
 - **Wide pages.** Every page uses the full width of your screen, with its
   action bar pinned, and tile pages show as a list.
 - **Bigger dropdowns.** The list under a field shows all its columns.
+- **Wider panes.** Drag the left edge of Help, Copilot or Page Inspection to
+  make it wider.
 - **Week numbers** in the calendar of a date field.
 - **The line you are on** in a journal or order stands out.
 - **No notifications bell** at the top right.
