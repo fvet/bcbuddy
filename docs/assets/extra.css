@@ -135,11 +135,45 @@
     background-color: var(--bcb-surface-2);
   }
 
+  /* The icons from tools/mkdocs_nav_icons.py: outlines in the text colour,
+     the size and gap of the options page's menu. Material fills an icon in
+     the menu, so that is undone; a shaded part keeps its own fill. */
+  .md-nav--primary .md-nav__link > svg {
+    fill: none;
+    height: 1rem;
+    margin-right: 0.5rem;
+    width: 1rem;
+  }
+
+  /* The pages under a section line up with the section's title, not with
+     its icon. */
+  .md-nav--primary .md-nav[data-md-level='1'] > .md-nav__list {
+    padding-left: 1.9rem;
+  }
+
+  /* 0.6rem wider than Material's, so Sharing with your team still fits on
+     one line next to its icon. Material keeps the menu 11.5rem wide inside
+     the sidebar with a padding, so both grow. */
+  .md-sidebar--primary {
+    width: 12.7rem;
+  }
+
+  .md-sidebar--primary .md-sidebar__inner {
+    padding-right: calc(100% - 12.1rem);
+  }
+
   .md-nav--primary .md-nav__link--active {
     background-color: var(--bcb-surface, var(--md-default-bg-color));
     border-color: var(--bcb-border);
     color: var(--md-typeset-color);
     font-weight: 600;
+  }
+}
+
+/* No menu icons in the narrow-screen drawer, which has its own look. */
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__link > svg {
+    display: none;
   }
 }
 

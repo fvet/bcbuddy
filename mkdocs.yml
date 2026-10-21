@@ -61,6 +61,8 @@ extra_css:
 # live outside docs/; this adds them to the build without keeping a second copy.
 hooks:
   - tools/mkdocs_assets.py
+  # Icons in front of the top-level items of the left menu.
+  - tools/mkdocs_nav_icons.py
 
 plugins:
   - search
@@ -97,7 +99,7 @@ nav:
   - Home: index.md
   - Getting started: getting-started.md
   - Web client: web-client.md
-  - Environment colours:
+  - Environments:
       - Rules: matching.md
       - Styles: styles.md
   - Sharing with your team:
