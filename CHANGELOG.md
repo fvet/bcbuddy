@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.0.17 — 2026-10-21
+
 ### Added
 
 - **Hide the FactBox pane**: a page you open for the first time shows without
@@ -29,8 +33,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - The **copy** icon no longer covers the end of a value in a narrow column,
   such as the No. in the first column of a list: it sits just after the
   text.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.16 — 2026-10-20
 
