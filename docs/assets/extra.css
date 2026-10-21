@@ -140,7 +140,10 @@
      its gap. The current page's icon takes the text colour, as there.
      Material fills an icon in the menu, so that is undone; a shaded part
      keeps its own fill. */
+  /* Centred on the text: Material lines a link's content up at the top,
+     which leaves an icon smaller than the line high. */
   .md-nav--primary .md-nav__link > svg {
+    align-self: center;
     color: var(--md-default-fg-color--light);
     fill: none;
     height: 0.8rem;
