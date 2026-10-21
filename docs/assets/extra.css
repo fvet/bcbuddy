@@ -118,6 +118,12 @@
    menu. Only where the menu is a sidebar; in the narrow-screen drawer
    Material's own look fits better. */
 @media screen and (min-width: 76.25em) {
+  /* The site name above Home repeats the header. On narrow screens it heads
+     the drawer, so it stays there. */
+  .md-nav--primary > .md-nav__title {
+    display: none;
+  }
+
   .md-nav--primary .md-nav__link {
     border: 1px solid transparent;
     border-radius: var(--bcb-radius-small);
