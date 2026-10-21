@@ -41,7 +41,8 @@ icons/                 logo.svg, build-icons.ps1, the PNGs;
                        settings/: one SVG per Web client setting
 tools/                 build-package.ps1: the ZIP for the store;
                        get-cws-token.ps1: one-off OAuth setup for releases;
-                       mkdocs_assets.py + requirements-docs.txt: the website;
+                       mkdocs_assets.py, mkdocs_nav_icons.py and
+                       requirements-docs.txt: the website;
                        check-shortcut-docs.mjs: shortcuts against Microsoft's article
 store/                 listing copy and screenshots
 docs/                  the website (its mkdocs.yml lives in the root)
@@ -1169,6 +1170,16 @@ changelog include takes only its `released` section — see
 The rest of the pages are their own copy of what the README covers. Single
 sourcing that too was possible and not worth it — the README is a pitch that
 ends in a link, the site is eight pages with a navigation.
+
+### Menu icons
+
+Each top-level item of the site's left menu has an icon in the line style of
+the options page's own menu (the drawing rules under *Setting icons* apply).
+The drawings are in `overrides/.icons/bcb/`, and
+[`tools/mkdocs_nav_icons.py`](tools/mkdocs_nav_icons.py) says which item gets
+which, for pages and sections alike. A new top-level item gets an icon there in
+the same commit; renaming a section in the nav of `mkdocs.yml` means renaming
+its key there too, or the build stops.
 
 ### One-time setup: turning Pages on
 

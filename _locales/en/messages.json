@@ -469,10 +469,6 @@
     "message": "Extras",
     "description": "Heading above the Web client switches that start off, for people who want more."
   },
-  "webClientCount": {
-    "message": "$1 switched on",
-    "description": "$1 is the number of Web client switches that are on. Read out after the Web client menu item, which shows the number in a small badge."
-  },
   "maximizeDesc": {
     "message": "Every page opens in wide layout; tile pages open as a list.",
     "description": "Short description under the setting's name in the Web client panel; one line."

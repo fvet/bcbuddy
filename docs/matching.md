@@ -79,7 +79,7 @@ have every sample rule.
 
 ## For advanced use
 
-??? note "What BC Buddy reads from a web address"
+??? faq "What BC Buddy reads from a web address"
 
     Take this address:
 
@@ -100,7 +100,7 @@ have every sample rule.
     The tenant identifies your organisation's Business Central subscription,
     which helps when you work for several customers.
 
-??? note "All ways to compare"
+??? faq "All ways to compare"
 
     **contains** · **equals** · **starts with** · **ends with** ·
     **does not contain** · **RegEx** (a regular expression, for complex
@@ -115,7 +115,7 @@ have every sample rule.
     the page down, never matches. The condition then says why. Starting the
     pattern with `^` often helps.
 
-??? note "Business Central on your own server (on-premises)"
+??? faq "Business Central on your own server (on-premises)"
 
     BC Buddy recognises it too. There the server instance sits where the
     environment would be, and the tenant comes from the end of the address:
@@ -124,7 +124,7 @@ have every sample rule.
     https://bc.example.local/BC240/?company=CRONUS%20BE&tenant=default
     ```
 
-??? note "Why rules also apply outside Business Central"
+??? faq "Why rules also apply outside Business Central"
 
     Rules apply on every website, because a Business Central on your own
     server has an address BC Buddy cannot recognise by itself. If a rule ever

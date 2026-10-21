@@ -1,0 +1,21 @@
+{#- The wordmark of the options page's header (src/options/options.html), in
+    place of Material's logo image: the mark from icons/logo.svg with "Buddy"
+    set after it in the same letters, size and baseline. The letters take the
+    grey of that header; the dot the cyan of the logo. Change it there first.
+    The mask's id is kept apart from the logo's own, as this partial shows in
+    the header and again in the drawer. -#}
+<svg class="bcb-wordmark" viewBox="0 -16 360 128" role="img" aria-label="{{ config.site_name | e }}"
+     font-family="'Segoe UI Semibold','Segoe UI',system-ui,sans-serif">
+  <svg viewBox="0 0 128 128" width="128" height="128">
+    <mask id="bcbWordmarkBite">
+      <rect width="128" height="128" fill="#fff"></rect>
+      <circle cx="98" cy="91" r="27" fill="#000"></circle>
+    </mask>
+    <g mask="url(#bcbWordmarkBite)">
+      <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
+            letter-spacing="-4" fill="#a7adb6">BC</text>
+    </g>
+    <circle cx="98" cy="91" r="20" fill="#00b7c3"></circle>
+  </svg>
+  <text x="130" y="78" font-size="84" font-weight="600" letter-spacing="-4" fill="#a7adb6">Buddy</text>
+</svg>

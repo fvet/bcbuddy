@@ -242,21 +242,6 @@ a { color: var(--accent); }
 .nav__dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--muted); }
 .nav__toggle input:checked + .nav__state .nav__dot { background: var(--ok); }
 
-/* How many Web client switches are on, in a badge at the end of the item. */
-.nav__count {
-  margin-left: auto;
-  min-width: 20px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-text);
-  font-size: 11.5px;
-  font-weight: 600;
-  line-height: 18px;
-  text-align: center;
-}
-.nav__count:empty { display: none; }
-
 .nav__icon {
   width: 16px;
   height: 16px;

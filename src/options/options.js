@@ -71,15 +71,6 @@
     var team = page.teamDefaults();
     page.el.resetWebClientLabel.textContent = t(team ? 'resetWebClientTeam' : 'resetWebClient');
     page.el.resetWebClient.title = t(team ? 'resetWebClientTeamTitle' : 'resetWebClientTitle');
-    page.renderWebClientCount();
-  };
-
-  /** The badge on the Web client menu item: how many of its switches are on. */
-  page.renderWebClientCount = function () {
-    var on = document.querySelectorAll(
-      '.panel[data-panel="webclient"] input[type="checkbox"].toggle:checked').length;
-    page.el.webClientCount.textContent = String(on);
-    page.el.webClientCountText.textContent = t('webClientCount', [String(on)]);
   };
 
   /** True when Reset to defaults takes values from the shared file. */
@@ -401,7 +392,7 @@
       'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
       'resizePanesEnabled', 'hideFactBoxEnabled',
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
-      'dropdownWidth', 'dropdownHeight', 'webClientCount', 'webClientCountText'
+      'dropdownWidth', 'dropdownHeight'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     bindLanguage();
@@ -500,10 +491,6 @@
       state.settings.enabled = el.globalEnabled.checked;
       page.save();
     });
-
-    // One listener for the badge, after each switch's own handler.
-    document.querySelector('.panel[data-panel="webclient"]')
-      .addEventListener('change', page.renderWebClientCount);
 
     el.copyValuesEnabled.addEventListener('change', function () {
       state.settings.copyValues.enabled = el.copyValuesEnabled.checked;

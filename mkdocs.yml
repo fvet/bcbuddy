@@ -19,6 +19,9 @@ theme:
   # Adds the Google Search Console verification tag to every page's <head>.
   custom_dir: overrides
   language: en
+  # No Roboto from Google Fonts: extra.css sets the options page's Segoe UI
+  # stack, so the site and the extension read alike and load no font.
+  font: false
   logo: assets/logo.svg
   favicon: assets/logo.svg
   icon:
@@ -58,6 +61,8 @@ extra_css:
 # live outside docs/; this adds them to the build without keeping a second copy.
 hooks:
   - tools/mkdocs_assets.py
+  # Icons in front of the top-level items of the left menu.
+  - tools/mkdocs_nav_icons.py
 
 plugins:
   - search
@@ -94,7 +99,7 @@ nav:
   - Home: index.md
   - Getting started: getting-started.md
   - Web client: web-client.md
-  - Environment colours:
+  - Environments:
       - Rules: matching.md
       - Styles: styles.md
   - Sharing with your team:
