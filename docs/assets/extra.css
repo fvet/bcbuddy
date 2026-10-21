@@ -168,26 +168,6 @@
   max-width: none;
 }
 
-/* A ribbon the way the extension draws it, for the example on the home page. */
-.bcb-ribbon {
-  border-radius: 0.2rem;
-  color: #fff;
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  margin: 1.2rem 0;
-  padding: 0.7rem 1rem;
-}
-
-.bcb-ribbon.bcb-production {
-  background: #2e7d32;
-}
-
-.bcb-ribbon.bcb-sandbox {
-  background: #c62828;
-}
-
 /* Header ------------------------------------------------------------------ */
 
 /* Hide the GitHub repo link and star/fork counts: not useful chrome for a

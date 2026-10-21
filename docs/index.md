@@ -32,10 +32,7 @@ Each one has its own switch. [See them all](web-client.md).
 ## A colour for every environment
 
 A test environment and the real one look exactly alike. BC Buddy colours the
-bar at the top of Business Central, with your own text:
-
-<span class="bcb-ribbon bcb-production">Dynamics 365 Business Central — PRODUCTION · CRONUS BE</span>
-<span class="bcb-ribbon bcb-sandbox">Dynamics 365 Business Central — CRONUS BE (Sandbox)</span>
+bar at the top of Business Central, with your own text.
 
 It can also draw a coloured frame around the window, a banner, a marked tab
 title and a coloured tab icon. You choose the colours: per environment, per
