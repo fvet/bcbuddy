@@ -1214,21 +1214,6 @@ function assertWebClient() {
   check('web client: Extras is the second group',
     groups[1].querySelector('.setting-group__title').textContent, chrome.i18n.getMessage('webClientExtras'));
 
-  // The badge on the menu item counts the switches that are on.
-  var badge = document.getElementById('webClientCount');
-  function onCount() { return String(panel.querySelectorAll('input[type="checkbox"].toggle:checked').length); }
-  check('web client: badge counts the switches that are on', badge.textContent, onCount());
-  check('web client: badge is in the Web client menu item',
-    badge.closest('.nav__item').dataset.panel, 'webclient');
-  var before = Number(badge.textContent);
-  stripes.click();
-  check('web client: badge follows a switch', badge.textContent, String(before + 1));
-  check('web client: badge is read out',
-    document.getElementById('webClientCountText').textContent,
-    chrome.i18n.getMessage('webClientCount', [String(before + 1)]));
-  stripes.click();
-  check('web client: badge goes back', badge.textContent, String(before));
-
   // The master switch: one short label, the dot shows on or off.
   var master = document.getElementById('globalEnabled');
   check('master switch: labelled Active',

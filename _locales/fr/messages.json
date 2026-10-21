@@ -154,7 +154,6 @@
   "webClientIntro": { "message": "De petites améliorations pour les écrans Business Central que vous utilisez tous les jours." },
   "webClientStandard": { "message": "Actif d'emblée" },
   "webClientExtras": { "message": "En option" },
-  "webClientCount": { "message": "$1 activé(s)" },
   "maximizeDesc": { "message": "Chaque page s'ouvre en disposition large, les pages en mosaïque en liste." },
   "maximizeToggle": { "message": "Agrandir les pages" },
   "pinActionBarDesc": { "message": "Les actions sous les onglets d'une page restent visibles." },

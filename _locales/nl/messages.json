@@ -154,7 +154,6 @@
   "webClientIntro": { "message": "Kleine verbeteringen voor de Business Central-schermen die je elke dag gebruikt." },
   "webClientStandard": { "message": "Werkt meteen" },
   "webClientExtras": { "message": "Extra's" },
-  "webClientCount": { "message": "$1 aangezet" },
   "maximizeDesc": { "message": "Elke pagina opent in een brede lay-out, tegelpagina's als lijst." },
   "maximizeToggle": { "message": "Pagina's maximaliseren" },
   "pinActionBarDesc": { "message": "De acties onder de tabbladen van een pagina blijven in beeld." },
