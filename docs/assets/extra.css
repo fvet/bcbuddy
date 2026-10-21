@@ -210,6 +210,46 @@
 
 /* Header ------------------------------------------------------------------ */
 
+/* The wordmark from overrides/partials/logo.html, at the size of the options
+   page's, is the only name in the header: no "BC Buddy" title beside it, and
+   no page title in its place on scroll. The title keeps its room, so the
+   buttons stay on the right. */
+.md-header__button.md-logo .bcb-wordmark {
+  display: block;
+  height: 1.8rem;
+  width: auto;
+}
+
+.md-header__title {
+  visibility: hidden;
+}
+
+/* Material shows the logo only where the menu is a sidebar, and the title on
+   narrow screens. With no title, the wordmark stays, after the menu button. */
+@media screen and (max-width: 76.234375em) {
+  .md-header__button.md-logo {
+    display: block;
+  }
+
+  .md-header__button[for='__drawer'] {
+    order: -1;
+  }
+
+  /* The drawer's top: the wordmark at the header's size, without the site
+     name as text under it. Font size 0 hides only that text; the wordmark
+     is sized in rem. */
+  .md-nav--primary > .md-nav__title {
+    font-size: 0;
+    height: 3.4rem;
+  }
+
+  .md-nav--primary > .md-nav__title .md-logo .bcb-wordmark {
+    display: block;
+    height: 1.8rem;
+    width: auto;
+  }
+}
+
 /* Hide the GitHub repo link and star/fork counts: not useful chrome for a
    BC-admin audience, and the source is still reachable via the edit pencil.
    Both selectors are needed: on narrow screens the repo block moves from the
