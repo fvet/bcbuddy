@@ -23,6 +23,120 @@
   --md-typeset-a-color: #3cc8d1 !important;
 }
 
+/* The options page's look ---------------------------------------------- */
+
+/* The site follows src/options/options.css so the two read as one product:
+   the same fonts, the same neutral greys in dark mode, semibold headings,
+   rounder corners and a teal primary button. Values are copied from its
+   custom properties; change them there first. */
+:root {
+  --md-text-font: "Segoe UI", system-ui, -apple-system, Roboto, Arial;
+  --md-code-font: Consolas, "Cascadia Mono";
+  --bcb-radius: 0.5rem;
+  --bcb-radius-small: 0.35rem;
+}
+
+[data-md-color-scheme='default'] {
+  --md-typeset-color: #1b1e23;
+  --bcb-border: #d9dde3;
+  --bcb-surface-2: #f0f2f5;
+}
+
+/* Slate is blue-grey; the options page's dark mode is neutral. */
+[data-md-color-scheme='slate'] {
+  --md-default-bg-color: #16181d;
+  --md-default-fg-color: #e7eaee;
+  --md-default-fg-color--light: #9aa3b0;
+  --md-typeset-color: #e7eaee;
+  --md-code-bg-color: #262a31;
+  --md-footer-bg-color: #1e2127;
+  --md-footer-bg-color--dark: #16181d;
+  --bcb-border: #363b44;
+  --bcb-surface: #1e2127;
+  --bcb-surface-2: #262a31;
+}
+
+/* Black header in light mode, the surface with a border in dark mode, as on
+   the options page. */
+[data-md-color-scheme='slate'] .md-header {
+  background-color: var(--bcb-surface);
+  border-bottom: 1px solid var(--bcb-border);
+}
+
+.md-typeset h1,
+.md-typeset h2 {
+  color: var(--md-typeset-color);
+  font-weight: 600;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+}
+
+.md-typeset .md-button {
+  border-radius: var(--bcb-radius-small);
+  font-weight: 600;
+}
+
+/* Primary is the accent, not the black of the header. */
+.md-typeset .md-button--primary,
+.md-typeset .md-button--primary:hover,
+.md-typeset .md-button--primary:focus {
+  background-color: var(--md-typeset-a-color);
+  border-color: var(--md-typeset-a-color);
+  color: var(--md-default-bg-color);
+}
+
+.md-typeset .md-button--primary:hover {
+  filter: brightness(1.08);
+}
+
+.md-typeset :not(pre) > code {
+  background-color: var(--bcb-surface-2);
+  border: 1px solid var(--bcb-border);
+  border-radius: 0.2rem;
+}
+
+.md-typeset .admonition,
+.md-typeset details:not(.faq),
+.md-typeset pre > code,
+.md-typeset .highlight,
+.md-typeset .tabbed-set {
+  border-radius: var(--bcb-radius-small);
+}
+
+.md-typeset table:not([class]) {
+  border-color: var(--bcb-border);
+  border-radius: var(--bcb-radius-small);
+}
+
+.md-search__form {
+  border-radius: var(--bcb-radius-small);
+}
+
+/* The menu on the left: the current page as a pill, like the options page's
+   menu. Only where the menu is a sidebar; in the narrow-screen drawer
+   Material's own look fits better. */
+@media screen and (min-width: 76.25em) {
+  .md-nav--primary .md-nav__link {
+    border: 1px solid transparent;
+    border-radius: var(--bcb-radius-small);
+    margin-left: -0.6rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .md-nav--primary .md-nav__link:hover {
+    background-color: var(--bcb-surface-2);
+  }
+
+  .md-nav--primary .md-nav__link--active {
+    background-color: var(--bcb-surface, var(--md-default-bg-color));
+    border-color: var(--bcb-border);
+    color: var(--md-typeset-color);
+    font-weight: 600;
+  }
+}
+
 /* Home page ------------------------------------------------------------- */
 
 .bcb-hero {
@@ -95,7 +209,7 @@
    link points at its id. */
 .md-typeset details.faq {
   background-color: var(--md-default-bg-color);
-  border: 1px solid var(--md-default-fg-color--lightest);
+  border: 1px solid var(--bcb-border);
   border-radius: 0.6rem;
   box-shadow: none;
   font-size: inherit;
