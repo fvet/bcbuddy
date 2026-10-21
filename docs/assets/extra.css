@@ -181,7 +181,8 @@
 
 /* Collapsible cards ----------------------------------------------------- */
 
-/* The questions on Troubleshooting ("??? faq") and the features on Web client
+/* The questions on Troubleshooting and the For advanced use section of Rules
+   ("??? faq"), and the features on Web client
    (<details class="faq" id="..." markdown>, so the table can link to them):
    a plain card with the title in bold and the chevron on the right, instead
    of Material's coloured admonition look. "faq" is not one of Material's
