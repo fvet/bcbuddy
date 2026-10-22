@@ -154,9 +154,14 @@ html[data-bcb-row] form.ms-nav-cardform table.ms-nav-grid-view > tbody > tr.real
    so :nth-child would make the stripes flip. aria-rowindex is the row's own
    number in the list: an odd last digit is an odd row, whichever <tr> shows
    it. A see-through colour, so it darkens whatever is underneath, also under
-   Dark Reader. It is a background-color without !important, so BC's own
-   hover and selection colours, which carry !important, still win; the
-   current-line tint is a background-image and stacks on top. */
+   Dark Reader. It is a background-image, because in read-only list parts BC
+   puts a transparent background-color with !important on every cell, which
+   would wipe out a background-color. An image lies on top of BC's own
+   colours, so selected rows are left out. Hovered rows are not: in a grid
+   you type in, BC's hover colours only the cell under the mouse, and the rest
+   of the row would turn white; elsewhere the stripe darkens BC's hover a
+   touch. On the current line the tint, also an image but with !important,
+   takes its place. */
 html[data-bcb-stripes] {
   --bcb-stripe: rgb(0 0 0 / .045);
 }
@@ -167,8 +172,8 @@ html[data-bcb-stripes][data-darkreader-scheme="dark"] {
 
 html[data-bcb-stripes] table.ms-nav-grid-data-table > tbody > tr:is(
   [aria-rowindex$="1"], [aria-rowindex$="3"], [aria-rowindex$="5"],
-  [aria-rowindex$="7"], [aria-rowindex$="9"]) > td {
-  background-color: var(--bcb-stripe);
+  [aria-rowindex$="7"], [aria-rowindex$="9"]):not([aria-selected="true"]) > td {
+  background-image: linear-gradient(var(--bcb-stripe), var(--bcb-stripe));
 }
 
 /* No animations. BC does not honour prefers-reduced-motion, so these rules
