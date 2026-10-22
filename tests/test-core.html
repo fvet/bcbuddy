@@ -658,28 +658,37 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   // striped rows: the rules in content.css against a BC28 list and journal.
   // BC reuses <tr> elements, so the stripe follows aria-rowindex, not the
   // element's place: here the current row 1 sits on top of rows 85-87.
+  // In a read-only list part BC gives every cell a theme class that sets a
+  // transparent background-color with !important; `bc-clear` stands in for it.
   (function () {
-    function table(cls, rows) {
+    function table(cls, rows, attrs) {
       return '<table class="ms-nav-grid ' + cls + ' ms-nav-grid-data-table"><tbody>' +
-        rows.map(function (i) { return '<tr aria-rowindex="' + i + '"><td>' + i + '</td></tr>'; }).join('') +
+        rows.map(function (i) {
+          return '<tr aria-rowindex="' + i + '"' + (attrs || '') + '><td class="bc-clear">' + i + '</td></tr>';
+        }).join('') +
         '</tbody></table>';
     }
     var host = document.createElement('div');
-    host.innerHTML = table('ms-nav-grid-view', [1, 85, 86, 87]) + table('ms-nav-grid-edit', [1, 2]);
+    host.innerHTML = '<style>.bc-clear { background-color: transparent !important; }</style>' +
+      table('ms-nav-grid-view', [1, 85, 86, 87]) + table('ms-nav-grid-edit', [1, 2]) +
+      table('ms-nav-grid-view', [3], ' aria-selected="true"');
     document.body.appendChild(host);
     var view = host.querySelectorAll('table')[0];
     var edit = host.querySelectorAll('table')[1];
+    var selected = host.querySelectorAll('table')[2];
     function striped(tbl, row) {
-      return getComputedStyle(tbl.tBodies[0].rows[row].cells[0]).backgroundColor !== 'rgba(0, 0, 0, 0)';
+      return getComputedStyle(tbl.tBodies[0].rows[row].cells[0]).backgroundImage !== 'none';
     }
     var root = document.documentElement;
     var off = [striped(view, 0), striped(view, 1)];
     root.setAttribute('data-bcb-stripes', '');
     var on = [striped(view, 0), striped(view, 1), striped(view, 2), striped(view, 3), striped(edit, 0), striped(edit, 1)];
+    var onSelected = striped(selected, 0);
     root.removeAttribute('data-bcb-stripes');
     check('stripes CSS: nothing while the switch is off', off, [false, false]);
     check('stripes CSS: odd rows by their own number, not their place', on.slice(0, 4), [true, true, false, true]);
     check('stripes CSS: lists you type in are striped too', on.slice(4), [true, false]);
+    check('stripes CSS: a selected row keeps BC\'s own colour', onSelected, false);
     host.remove();
   })();
 

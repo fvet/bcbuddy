@@ -11,6 +11,12 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Fixed
+
+- **Striped rows** now cover the whole row in lists shown inside a page, such
+  as the one on **Performance Profiler**. Before, only the narrow column with
+  the **⋮** button got the grey.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.0.17 — 2026-10-21
