@@ -21,11 +21,15 @@ behaviour change usually touches both. Check the counterpart in the same commit:
 |---|---|
 | Getting started | `docs/getting-started.md` |
 | Web client | `docs/web-client.md` |
-| Environment colours · Rules | `docs/matching.md` |
-| Environment colours · Styles | `docs/styles.md` |
+| Environment colours | `docs/matching.md`, `docs/styles.md` |
 | Sharing settings with your team | `docs/sharing.md`, `docs/intune.md` |
 | Troubleshooting | `docs/troubleshooting.md` |
 | Installing | `docs/index.md` |
+
+The README is the short version, not a recap of the site: each section a few
+lines, at most one screenshot, and a link to its site page. Details, edge cases,
+IT setup and the full troubleshooting list live in `docs/` only. The *Web
+client* table is the exception: every switch keeps its row there.
 
 Write both for back-office users and data clerks with little IT or BC
 background. Plain words, short steps, the UI's own labels in bold; technical
