@@ -154,7 +154,7 @@
       "enabled": false
     },
     "hideNotifications": {
-      "enabled": true
+      "enabled": false
     },
     "copyValues": {
       "enabled": true

@@ -87,8 +87,8 @@ travel in an export and in the shared file as `webClient`; the master switch
   `chrome.storage.local` (`{ inspect, design, side }` in px), are never
   exported or shared, and are read through `Panes.normalizeWidths()`.
 - `noAnimations.enabled` — turn off BC's animations, off by default.
-- `hideNotifications.enabled` — hide the notifications bell in the top bar, on
-  by default. One `data-bcb-no-bell` attribute on `<html>` and one id rule in
+- `hideNotifications.enabled` — hide the notifications bell in the top bar, off
+  by default (BC online uses it). One `data-bcb-no-bell` attribute on `<html>` and one id rule in
   `content.css` (`#notifications_container`, in the top document).
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
 - `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
@@ -617,6 +617,9 @@ of transparent padding around it, because the store draws its own frame and
 shadow around the image. In the toolbar the opposite applies, so it is a separate
 file and not a replacement for `icon128.png`. It does not go into the package
 either; you upload it in the dashboard.
+
+It also keeps the 512 px render itself as `icon512.png`, the logo on the
+marketing deck's cover. That one stays out of the package too.
 
 ### Setting icons
 

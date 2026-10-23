@@ -14,8 +14,8 @@ Click an improvement to read more.
 
 Rest the mouse on a value in a list or a FactBox for a moment, and a small copy
 icon appears next to it. Click it and the value is copied, exactly as Business
-Central shows it: an amount like `3.515,66`, a date, or a No. you could not
-select before because it is a link. The icon briefly turns into a tick.
+Central shows it: an amount, a date, or a No. you could not select before
+because it is a link. The icon briefly turns into a tick.
 
 === "With BC Buddy"
 
@@ -176,16 +176,6 @@ gets a light tint, so you do not lose your place on a wide line.
 
 </details>
 
-<details class="faq" id="hide-the-notifications-icon" markdown>
-<summary markdown="span"><span class="bcb-setting-icon">:settings-hide-notifications:</span>Hide the notifications icon<span class="bcb-summary-text">No bell at the top right</span></summary>
-
-<p class="bcb-starts bcb-starts--on">On from the start</p>
-
-The bell at the top right of Business Central is hidden. Switch this off to get
-it back.
-
-</details>
-
 <details class="faq" id="keyboard-shortcuts" markdown>
 <summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">A keyboard icon in the top bar that shows the shortcuts for where you are</span></summary>
 
@@ -273,6 +263,17 @@ BC Buddy only closes the pane on a page you open for the first time in this
 browser. Business Central stores the pane together with wide layout, so a page
 you used before, also one **Maximize pages** made wide, keeps its pane the way
 it was. Close it there once yourself, and Business Central remembers that.
+
+</details>
+
+<details class="faq" id="hide-the-notifications-icon" markdown>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-hide-notifications:</span>Hide the notifications icon<span class="bcb-summary-text">No bell at the top right</span></summary>
+
+<p class="bcb-starts">Off until you switch it on</p>
+
+The bell at the top right of Business Central opens **Notifications**. If you
+never use it, switch this on and the bell is hidden. Switch it off to get the
+bell back.
 
 </details>
 

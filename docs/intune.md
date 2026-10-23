@@ -96,32 +96,6 @@ BC Buddy loads the file straight away. If that fails, it tries again after 1,
 2, 4 and 8 hours, then once a day; once the file loads, it checks it daily.
 When you remove the policy, the field unlocks and the shared rules stay.
 
-## If something goes wrong
-
-**One feature causes trouble.** Switch it off in the shared file, for example
-`"stripeRows": { "enabled": false }` under `webClient`, and save the file. Write
-the setting out with `false`; leaving it out of the file changes nothing.
-
-- Computers pick it up when the browser starts, or otherwise within a day.
-  Open Business Central tabs follow without a reload.
-- It is switched off once, not locked: someone who turns it back on keeps it
-  on.
-- The rest of BC Buddy keeps working.
-
-**BC Buddy as a whole causes trouble.** The shared file cannot switch it off.
-Block it in the browser instead: in the Settings catalog profile from step 1,
-remove BC Buddy from the silent-install list and add
-`jpgpcfecpdcocjlepdfceahamliimjdl` to Edge's *Control which extensions cannot
-be installed* and Chrome's *Configure extension installation blocklist*.
-
-- The browser removes BC Buddy and people cannot install it again. Both
-  steps are needed: the silent-install list wins over the blocklist.
-- It arrives at each computer's next Intune check-in, usually within a few
-  hours. **Sync** in Intune or *Reload policies* in `edge://policy` makes it
-  sooner.
-- To bring it back, undo both steps. The shared file and its rules return by
-  themselves; rules and settings people made themselves may be gone.
-
 ## Good to know
 
 - The address must start with `https://`; any other value is ignored.

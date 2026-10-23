@@ -11,6 +11,11 @@ Each rule has:
 - a **style**, which decides what the marking looks like: the coloured bar,
   a frame, a banner. See [Styles](styles.md).
 
+<figure markdown>
+![The Environments page with the four sample rules: Master Data in yellow, Production in green, UAT in red and Development in blue. Production has a green border all round because it is the rule the open Business Central tab gets. Below them, the Default style with its preview](assets/screenshot-6-environments-1280x800.png)
+<figcaption>The rule the open Business Central tab gets has a border all round in its colour.</figcaption>
+</figure>
+
 ## Conditions
 
 A condition looks at the web address of the Business Central page you are on.

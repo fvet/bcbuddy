@@ -365,8 +365,10 @@
       noAnimations: {
         enabled: bool(noAnimations.enabled, false)
       },
+      // Off until asked for: Business Central online uses the bell. Installs
+      // that saved their settings before keep what they had.
       hideNotifications: {
-        enabled: bool(hideNotifications.enabled, true)
+        enabled: bool(hideNotifications.enabled, false)
       },
       copyValues: {
         enabled: bool(copyValues.enabled, true)
