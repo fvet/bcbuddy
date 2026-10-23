@@ -115,6 +115,9 @@
         hosted.lastError = null;
         hosted.failures = 0;
         hosted.active = false;
+        // Own rules may have used a shared style, and those may have been the
+        // only styles left: normalize() points them at one that still exists.
+        state.settings = BCBuddy.normalize(state.settings);
 
         page.save();
         page.renderHosted();

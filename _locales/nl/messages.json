@@ -69,7 +69,6 @@
   "matchYes": { "message": "Wordt gebruikt voor de test-URL" },
   "newRuleName": { "message": "Nieuwe regel" },
   "copySuffix": { "message": "$1 (kopie)" },
-  "previewPageBc": { "message": "Business Central pagina" },
   "previewTitle": { "message": "Bedrijfsgegevens" },
   "conditionsHeading": { "message": "Voorwaarden" },
   "addCondition": { "message": "Voorwaarde toevoegen" },
@@ -124,6 +123,7 @@
   "tokenName": { "message": "naam van de regel" },
   "tokenEnvironment": { "message": "omgeving" },
   "tokenCompany": { "message": "bedrijf" },
+  "tokenTenant": { "message": "tenant" },
   "tokenTitle": { "message": "oorspronkelijke tabtitel" },
   "tokensFooter": { "message": "Een token dat leeg blijft verdwijnt samen met het scheidingsteken ernaast." },
   "errNoHostedUrl": { "message": "Geen gedeelde URL ingesteld." },
@@ -241,6 +241,7 @@
   "lastStyle": { "message": "De laatste stijl kan niet weg: er moet er altijd een zijn." },
   "clearShared": { "message": "Gedeelde regels wissen en niet meer bijwerken" },
   "sharedRules": { "message": "Gedeelde regels" },
+  "sharedStyles": { "message": "Gedeelde stijlen" },
   "sharedCleared": { "message": "Gedeelde regels gewist. Ze worden niet meer bijgewerkt." },
   "copyShared": { "message": "Een eigen kopie van deze regel maken" }
 }

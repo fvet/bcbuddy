@@ -129,6 +129,9 @@ have every sample rule.
     https://bc.example.local/BC240/?company=CRONUS%20BE&tenant=default
     ```
 
+    Outside Business Central online, `tenant=` is the only place BC Buddy
+    reads a tenant from.
+
 ??? faq "Why rules also apply outside Business Central"
 
     Rules apply on every website, because a Business Central on your own

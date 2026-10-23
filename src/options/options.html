@@ -256,25 +256,21 @@
     <section>
       <div class="section-head">
         <h2 data-i18n="testUrlHeading">Test</h2>
-        <div class="row">
-          <button type="button" class="btn btn--icon" id="useCurrentTab"
-                  data-i18n-title="useOpenTabTitle">
-            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M2.5 3.5h11v9h-11zM2.5 6h11"/>
-            </svg>
-            <span data-i18n="useOpenTab">From open tab</span>
-          </button>
-        </div>
       </div>
       <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and styles below.</p>
 
       <div class="card tester">
         <div class="field">
           <!-- The label is the placeholder, to save a line; aria-label keeps it
-               once the field is filled in. -->
-          <input type="text" id="testUrl" spellcheck="false"
-                 data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
-                 placeholder="URL of a Business Central page">
+               once the field is filled in. The action sits inside the field's
+               frame as a link, the way the empty rules list words its actions. -->
+          <div class="inset">
+            <input type="text" id="testUrl" spellcheck="false"
+                   data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
+                   placeholder="URL of a Business Central page">
+            <button type="button" class="inset__action" id="useCurrentTab"
+                    data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
+          </div>
         </div>
         <dl class="parsed" id="parsed"></dl>
       </div>
@@ -562,7 +558,6 @@
             <span class="preview__brand" data-preview-brand></span>
           </div>
           <div class="preview__frame" data-preview-frame>
-            <span class="preview__page" data-preview-page></span>
             <span class="preview__banner" data-preview-banner></span>
           </div>
         </div>

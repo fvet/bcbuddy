@@ -9,7 +9,8 @@ Several rules can share one style, so you set it up once. You start with two:
   bottom-left corner, the tab title and the tab icon. New rules get this one.
 - *Subtle* only colours the bar at the top and leaves its text as it is.
 
-Pick one on each rule, change them, or add your own. They are named in the
+Pick one on each rule, change them, or add your own. Styles from your
+[team's file](sharing.md) can be picked too. They are named in the
 language you install BC Buddy in: *Volledig* and *Subtiel* in Dutch, *Complet*
 and *Discret* in French.
 
@@ -58,6 +59,7 @@ placeholders, which BC Buddy fills in for you:
 | `{name}` | The name of the rule, such as `PRODUCTION` |
 | `{environment}` or `{env}` | The environment, such as `Sandbox` |
 | `{company}` | The company, such as `CRONUS BE` |
+| `{tenant}` | The tenant, such as `contoso.com` |
 | `{title}` | The original name of the browser tab |
 
 !!! example

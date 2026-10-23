@@ -69,7 +69,6 @@
   "matchYes": { "message": "Utilisée pour l'URL de test" },
   "newRuleName": { "message": "Nouvelle règle" },
   "copySuffix": { "message": "$1 (copie)" },
-  "previewPageBc": { "message": "Page Business Central" },
   "previewTitle": { "message": "Informations société" },
   "conditionsHeading": { "message": "Conditions" },
   "addCondition": { "message": "Ajouter une condition" },
@@ -124,6 +123,7 @@
   "tokenName": { "message": "nom de la règle" },
   "tokenEnvironment": { "message": "environnement" },
   "tokenCompany": { "message": "société" },
+  "tokenTenant": { "message": "locataire" },
   "tokenTitle": { "message": "titre d'origine de l'onglet" },
   "tokensFooter": { "message": "Une balise qui reste vide disparaît avec le séparateur qui l'accompagne." },
   "errNoHostedUrl": { "message": "Aucune URL partagée configurée." },
@@ -241,6 +241,7 @@
   "lastStyle": { "message": "Le dernier style ne peut pas être supprimé\u00a0: il en faut toujours un." },
   "clearShared": { "message": "Effacer les règles partagées et arrêter les mises à jour" },
   "sharedRules": { "message": "Règles partagées" },
+  "sharedStyles": { "message": "Styles partagés" },
   "sharedCleared": { "message": "Règles partagées effacées. Elles ne sont plus mises à jour." },
   "copyShared": { "message": "Créer une copie personnelle de cette règle" }
 }

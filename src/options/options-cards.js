@@ -14,11 +14,20 @@
       var el = page.el;
       var t = page.t;
 
-      /** Styles a card can pick from: shared cards see both sets. */
+      /**
+       * Styles a card can pick from: both sets, the card's own set first. A
+       * copied shared rule brings its style along under the same id; the
+       * first one wins, as it does in effectiveRules().
+       */
       page.stylesFor = function (readOnly) {
-        return readOnly
-          ? state.settings.hosted.styles.concat(state.settings.styles)
-          : state.settings.styles;
+        var own = state.settings.styles;
+        var shared = state.settings.hosted.styles;
+        var seen = {};
+        return (readOnly ? shared.concat(own) : own.concat(shared)).filter(function (style) {
+          if (seen[style.id]) return false;
+          seen[style.id] = true;
+          return true;
+        });
       };
 
       /** How many rules reference this style. */
@@ -108,12 +117,21 @@
         if (!select) return;
         var styles = page.stylesFor(readOnly);
 
+        // On an own rule the shared styles follow under their own heading,
+        // as they do in the Styles list.
+        var sharedGroup = null;
         select.textContent = '';
         styles.forEach(function (style) {
           var option = document.createElement('option');
           option.value = style.id;
           option.textContent = style.name;
-          select.appendChild(option);
+          var shared = !readOnly && !BCBuddy.findById(state.settings.styles, style.id);
+          if (shared && !sharedGroup) {
+            sharedGroup = document.createElement('optgroup');
+            sharedGroup.label = t('sharedStyles');
+            select.appendChild(sharedGroup);
+          }
+          (shared ? sharedGroup : select).appendChild(option);
         });
 
         // Set the value only now: the options did not exist above.
@@ -293,7 +311,6 @@
 
         // A style is independent of conditions, so the ribbon is always shown.
         ribbon.hidden = false;
-        card.querySelector('[data-preview-page]').textContent = t('previewPageBc');
 
         // Collapse sections based on their toggle
         card.querySelectorAll('.option').forEach(function (option) {
@@ -391,9 +408,9 @@
         if (!style) return;
 
         if (action === 'delete') {
-          // At least one must remain, otherwise "follows the only style" means
-          // nothing.
-          if (state.settings.styles.length < 2) {
+          // At least one style must remain, otherwise "follows the only style"
+          // means nothing. A shared one counts: own rules can pick it.
+          if (state.settings.styles.length + state.settings.hosted.styles.length < 2) {
             page.setStylesStatus(t('lastStyle'), 'error');
             return;
           }
