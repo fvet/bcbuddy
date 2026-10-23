@@ -14,8 +14,8 @@ Click an improvement to read more.
 
 Rest the mouse on a value in a list or a FactBox for a moment, and a small copy
 icon appears next to it. Click it and the value is copied, exactly as Business
-Central shows it: an amount like `3.515,66`, a date, or a No. you could not
-select before because it is a link. The icon briefly turns into a tick.
+Central shows it: an amount, a date, or a No. you could not select before
+because it is a link. The icon briefly turns into a tick.
 
 === "With BC Buddy"
 
