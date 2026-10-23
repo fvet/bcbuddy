@@ -25,7 +25,6 @@ needed:
 - **Bigger dropdowns** that show all their columns.
 - **Week numbers** in the date picker.
 - **The line you are on** stands out in journals and orders.
-- **No notifications bell**, and if you like, no animations.
 
 Each one has its own switch. [See them all](web-client.md).
 

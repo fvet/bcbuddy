@@ -32,7 +32,6 @@ setup, it is now easier to work in:
   make it wider.
 - **Week numbers** in the calendar of a date field.
 - **The line you are on** in a journal or order stands out.
-- **No notifications bell** at the top right.
 
 Do not like one of them? Switch it off under **Web client** on the settings
 page. [More about each improvement](web-client.md).

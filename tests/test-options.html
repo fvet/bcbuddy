@@ -1163,8 +1163,11 @@ function assertWebClient() {
   var factBox = document.getElementById('hideFactBoxEnabled');
   check('web client: factbox switch lives in the panel', factBox.closest('.panel'), panel);
   check('web client: factbox switch is off by default', factBox.checked, false);
-  check('web client: factbox sits with the switches that start off, above animations',
-    factBox.closest('.setting').nextElementSibling.contains(document.getElementById('noAnimationsEnabled')), true);
+  check('web client: factbox sits with the switches that start off, above the bell',
+    factBox.closest('.setting').nextElementSibling.contains(document.getElementById('hideNotificationsEnabled')), true);
+  check('web client: the bell sits above animations',
+    document.getElementById('hideNotificationsEnabled').closest('.setting').nextElementSibling
+      .contains(document.getElementById('noAnimationsEnabled')), true);
   check('web client: striped rows sits with the switches that start off',
     stripes.closest('.setting').nextElementSibling.contains(factBox), true);
   var keys = document.getElementById('shortcutsEnabled');
@@ -1190,7 +1193,7 @@ function assertWebClient() {
   check('web client: week numbers switch is on by default', weeks.checked, true);
   var bell = document.getElementById('hideNotificationsEnabled');
   check('web client: notifications switch lives in the panel', bell.closest('.panel'), panel);
-  check('web client: notifications switch is on by default', bell.checked, true);
+  check('web client: notifications switch is off by default', bell.checked, false);
   var webClientRows = panel.querySelectorAll('.setting');
   check('web client: animations switch is the last row',
     webClientRows[webClientRows.length - 1].contains(
@@ -1211,6 +1214,7 @@ function assertWebClient() {
   check('web client: Extras start off',
     Array.prototype.every.call(toggles(groups[1]), function (box) { return !box.checked; }), true);
   check('web client: dropdown size works straight away', groups[0].contains(width), true);
+  check('web client: hiding the bell is an extra', groups[1].contains(bell), true);
   check('web client: Extras is the second group',
     groups[1].querySelector('.setting-group__title').textContent, chrome.i18n.getMessage('webClientExtras'));
 
@@ -1271,11 +1275,11 @@ function assertWebClient() {
     bell.click();
     return wait(400);
   }).then(function () {
-    check('web client: notifications switch is saved', STORE.settings.hideNotifications, { enabled: false });
+    check('web client: notifications switch is saved', STORE.settings.hideNotifications, { enabled: true });
     bell.click();
     return wait(400);
   }).then(function () {
-    check('web client: and the notifications switch turns back on', STORE.settings.hideNotifications, { enabled: true });
+    check('web client: and the notifications switch turns back off', STORE.settings.hideNotifications, { enabled: false });
     copyRow.click();
     return wait(400);
   }).then(function () {

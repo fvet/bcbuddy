@@ -490,9 +490,11 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.noAnimationsOn(BCBuddy.normalize({ enabled: false, noAnimations: { enabled: true } })), false);
 
   // and so does hiding the notifications bell
-  check('notifications: hidden by default', BCBuddy.hideNotificationsOn(BCBuddy.normalize(null)), true);
-  check('notifications: shown with its own toggle',
-    BCBuddy.hideNotificationsOn(BCBuddy.normalize({ hideNotifications: { enabled: false } })), false);
+  check('notifications: shown by default', BCBuddy.hideNotificationsOn(BCBuddy.normalize(null)), false);
+  check('notifications: hidden with its own toggle',
+    BCBuddy.hideNotificationsOn(BCBuddy.normalize({ hideNotifications: { enabled: true } })), true);
+  check('notifications: a saved choice is kept',
+    BCBuddy.normalize({ hideNotifications: { enabled: true } }).hideNotifications, { enabled: true });
   check('notifications: shown when the extension is off',
     BCBuddy.hideNotificationsOn(BCBuddy.normalize({ enabled: false, hideNotifications: { enabled: true } })), false);
 
