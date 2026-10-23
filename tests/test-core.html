@@ -224,6 +224,12 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     velden(PROD_URL + '50%2520off')[2], '50%20off');
   check('URL: an emoji in the company name',
     velden(PROD_URL + '%F0%9F%8D%95%20Pizza')[2], '🍕 Pizza');
+  check('URL: outside BC online the path names no tenant',
+    [velden('https://example.com/index.html')[0],
+      velden('https://example.com/foo.bar/repo')[0],
+      velden('https://example.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox')[0]], ['', '', '']);
+  check('URL: outside BC online the query still names the tenant',
+    velden('https://example.com/contoso.com/?tenant=acme')[0], 'acme');
   check('URL: a + in the tenant from the query stays a +',
     velden('https://bc.contoso.local/BC240/?tenant=a%2Bb')[0], 'a+b');
   check('match: Company equals a name with a +',
@@ -431,6 +437,33 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   });
   check('style: shared rule uses shared style',
     BCBuddy.effectiveRules(shared)[0].border.width, 2);
+
+  // own rules may pick a shared style too
+  var sharedStyle = { id: 'lay-h', name: 'Gedeeld', border: { width: 2 } };
+  var ownOnShared = BCBuddy.normalize({
+    rules: [{ name: 'EIGEN', styleId: 'lay-h' }],
+    styles: [{ id: 'lay-o', name: 'Eigen', border: { width: 5 } }],
+    hosted: { styles: [sharedStyle] }
+  });
+  check('style: own rule keeps a shared style',
+    [ownOnShared.rules[0].styleId, BCBuddy.effectiveRules(ownOnShared)[0].border.width], ['lay-h', 2]);
+  var noOwnStyles = BCBuddy.normalize({
+    rules: [{ name: 'EIGEN', styleId: 'gone' }], styles: [], hosted: { styles: [sharedStyle] }
+  });
+  check('style: with shared styles no own Default is added, a rule follows the first shared',
+    [noOwnStyles.styles.length, noOwnStyles.rules[0].styleId], [0, 'lay-h']);
+  var sharedGone = BCBuddy.normalize({ rules: [{ name: 'EIGEN', styleId: 'lay-h' }], styles: [] });
+  check('style: once the shared style is gone, a Default comes back and the rule follows it',
+    [sharedGone.styles.length, sharedGone.rules[0].styleId], [1, BCBuddy.DEFAULT_STYLE_ID]);
+  check('style: an id in both sets resolves to the own style for an own rule',
+    BCBuddy.effectiveRules(BCBuddy.normalize({
+      rules: [{ name: 'EIGEN', styleId: 'lay-h' }],
+      styles: [{ id: 'lay-h', name: 'Kopie', border: { width: 5 } }],
+      hosted: { styles: [sharedStyle] }
+    }))[0].border.width, 5);
+  var exportedShared = BCBuddy.toExport(ownOnShared);
+  check('export: a shared style an own rule uses comes along',
+    exportedShared.styles.map(function (s) { return s.id; }), ['lay-o', 'lay-h']);
 
   // first match wins, own rules before shared
   var settings = BCBuddy.normalize({
@@ -1006,7 +1039,15 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('template: all supported tokens replaced',
     BCBuddy.render('{name}|{environment}|{env}|{company}|{tenant}|{title}', saas,
       { name: 'TEST', title: 'Company Information' }),
-    'TEST|Sandbox|Sandbox|CRONUS BE|c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811|Company Information');
+    'TEST|Sandbox|Sandbox|CRONUS BE||Company Information');
+  check('template: {tenant} shows a tenant domain',
+    BCBuddy.renderTidy('{tenant} - {environment}',
+      BCBuddy.parseUrl('https://businesscentral.dynamics.com/contoso.com/Sandbox'), {}),
+    'contoso.com - Sandbox');
+  check('template: {tenant} shows a tenant from the query',
+    BCBuddy.renderTidy('{tenant}', BCBuddy.parseUrl(ONPREM), {}), 'default');
+  check('template: a tenant GUID stays out, and its separator with it',
+    BCBuddy.renderTidy('{name} - {tenant} - {environment}', saas, { name: 'TEST' }), 'TEST - Sandbox');
   check('defaults: ribbon text with literal brand name', BCBuddy.normalizeStyle({}).ribbon.text,
     'Dynamics 365 Business Central - {company} ({environment})');
   check('advanced: no settings block anymore',

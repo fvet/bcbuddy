@@ -25,6 +25,7 @@
         return token('{name}', t('tokenName')) +
           token(['{environment}', '{env}'], t('tokenEnvironment')) +
           token('{company}', t('tokenCompany')) +
+          token('{tenant}', t('tokenTenant')) +
           token('{title}', t('tokenTitle'));
       };
 

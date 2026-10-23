@@ -390,7 +390,10 @@ Both BC SaaS and on-premises URLs are recognised, following the shape from
 `https://<host>[/<aadtenantid>][/<environment>]/?[company=...]&[tenant=...]`.
 Tenant and environment are both optional; the tenant is a GUID or a domain name.
 On-prem the server instance sits where the environment would be
-(`/BC240/?company=...`) and the tenant comes from the query.
+(`/BC240/?company=...`) and the tenant comes from the query. A tenant in the
+path is only read on `businesscentral.dynamics.com`: on any other host a first
+segment with a dot is far more often a file or a user name, so there only
+`?tenant=` sets it.
 
 ## 🛡️ RegEx conditions
 

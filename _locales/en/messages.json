@@ -34,7 +34,7 @@
   "useOpenTab": { "message": "From open tab" },
   "useOpenTabTitle": {
     "message": "Takes the URL from an open tab, preferring a Business Central tab",
-    "description": "Tooltip on the button next to the test URL."
+    "description": "Tooltip on the link inside the test URL field."
   },
   "noUsableTab": { "message": "No open tab with a usable URL found." },
   "nothingRecognised": { "message": "Nothing recognised in this URL." },
@@ -182,10 +182,6 @@
   "copySuffix": {
     "message": "$1 (copy)",
     "description": "Name of a duplicated rule or style. $1 is the name of the original."
-  },
-  "previewPageBc": {
-    "message": "Business Central page",
-    "description": "Caption on the mock Business Central page in the preview."
   },
   "previewTitle": {
     "message": "Company Information",
@@ -369,6 +365,10 @@
   "tokenCompany": {
     "message": "company",
     "description": "Explains the {company} token, see tokenName. Lowercase: it is read after the token itself."
+  },
+  "tokenTenant": {
+    "message": "tenant",
+    "description": "Explains the {tenant} token, see tokenName. Business Central's own term for the customer's subscription. Lowercase: it is read after the token itself."
   },
   "tokenTitle": {
     "message": "original tab title",
@@ -783,13 +783,17 @@
   },
   "lastStyle": {
     "message": "The last style cannot be removed: there must always be one.",
-    "description": "Shown when somebody tries to delete the only style left."
+    "description": "Shown when somebody tries to delete the only style left, own and shared together."
   },
   "clearShared": {
     "message": "Clear shared rules and stop updating",
     "description": "Button that throws away the shared rules and stops the daily update."
   },
   "sharedRules": { "message": "Shared rules" },
+  "sharedStyles": {
+    "message": "Shared styles",
+    "description": "Group label in the style list on a rule, above the styles that come from the shared file."
+  },
   "sharedCleared": { "message": "Shared rules cleared. They are no longer updated." },
   "copyShared": {
     "message": "Make your own copy of this rule",

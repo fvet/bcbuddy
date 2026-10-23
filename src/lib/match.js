@@ -56,7 +56,9 @@
     if (segs.length) {
       if (GUID_RE.test(segs[0]) || segs[0].indexOf('.') !== -1) {
         // /{tenantId or tenant domain}/{environment}/...
-        ctx.tenant = segs[0];
+        // Only BC online puts the tenant in the path. Elsewhere a first segment
+        // with a dot is a file or a user name; there only ?tenant= names one.
+        if (ctx.isbc) ctx.tenant = segs[0];
         ctx.environment = segs[1] && !NON_ENV_SEG.test(segs[1]) ? segs[1] : '';
       } else if (!NON_ENV_SEG.test(segs[0])) {
         // /{environment}/... (onprem server instance or BC without tenant in the path)
@@ -394,6 +396,9 @@
     Object.keys(ctx || {}).forEach(function (k) { source[k.toLowerCase()] = ctx[k]; });
     Object.keys(extra || {}).forEach(function (k) { source[k.toLowerCase()] = extra[k]; });
     source.env = source.environment;
+    // A tenant ID is a GUID, which only clutters a ribbon or a tab title.
+    // Leave it empty, so it goes with the separator next to it.
+    if (GUID_RE.test(source.tenant || '')) source.tenant = '';
 
     var map = {};
     TOKENS.forEach(function (token) {

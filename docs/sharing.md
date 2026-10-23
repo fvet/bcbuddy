@@ -18,6 +18,9 @@ checks for changes every day.
 You cannot change a shared rule. To adjust one, click its copy button: you get
 your own version, which takes the place of the shared one.
 
+The team's styles appear below your own. You cannot change those either, but
+you can pick them on your own rules.
+
 To stop using the team's file, click the **X** next to *Shared rules*.
 
 If your IT department set up BC Buddy for you, the address is already there,

@@ -301,19 +301,23 @@
   /**
    * Appearance lives in styles, so every rule points at one. A configuration
    * without any styles gets a Default, so there is always something to point
-   * at. Each rule keeps its own styleId.
+   * at. Each rule keeps its own styleId. `others` are styles the rules may
+   * also pick but that belong elsewhere: the shared ones, for own rules. While
+   * there are some, `styles` itself may be empty.
    */
-  function withDefaultStyle(styles, rules) {
-    if (!styles.length) {
+  function withDefaultStyle(styles, rules, others) {
+    var available = styles.concat(others || []);
+    if (!available.length) {
       var fresh = normalizeStyle({});
       fresh.id = DEFAULT_STYLE_ID;
       fresh.name = BCBuddy.t('defaultStyleName');
       styles.push(fresh);
+      available = styles;
     }
 
     // A rule without a valid style follows the first; a valid styleId is kept.
     rules.forEach(function (rule) {
-      if (!findById(styles, rule.styleId)) rule.styleId = styles[0].id;
+      if (!findById(available, rule.styleId)) rule.styleId = available[0].id;
     });
     return styles;
   }
@@ -418,15 +422,15 @@
       enabled: bool(s.enabled, true)
     };
     WEB_CLIENT_KEYS.forEach(function (key) { result[key] = webClient[key]; });
+    if (hostedRules.length || hostedStyles.length) withDefaultStyle(hostedStyles, hostedRules);
+    // Own rules may pick a shared style too, so those count as available.
     result.rules = rules;
-    result.styles = withDefaultStyle(styles, rules);
+    result.styles = withDefaultStyle(styles, rules, hostedStyles);
     result.hosted = {
       url: str(hosted.url),
       active: normalizeActive(hosted),
       rules: hostedRules,
-      styles: (hostedRules.length || hostedStyles.length)
-        ? withDefaultStyle(hostedStyles, hostedRules)
-        : hostedStyles,
+      styles: hostedStyles,
       // What the shared file said about the Web client last time, so a sync
       // only passes on what changed; see applySharedWebClient().
       webClient: readWebClient(hosted.webClient) || {},
@@ -442,12 +446,14 @@
 
   /**
    * Effective rules: own rules first, then the shared ones (first match wins),
-   * each with its style already applied. Shared rules look at the shared
-   * styles first, so a shared file stands on its own.
+   * each with its style already applied. Own rules look at the own styles
+   * first, shared rules at the shared ones, so an id both use resolves to the
+   * set the rule came from, and a shared file stands on its own.
    */
   function effectiveRules(settings) {
     var s = normalize(settings);
-    var own = s.rules.map(function (rule) { return resolveRule(rule, s.styles); });
+    var ownStyles = s.styles.concat(s.hosted.styles);
+    var own = s.rules.map(function (rule) { return resolveRule(rule, ownStyles); });
     var sharedStyles = s.hosted.styles.concat(s.styles);
     var shared = s.hosted.rules.map(function (rule) {
       return resolveRule(rule, sharedStyles, s.hosted.styles);
@@ -542,12 +548,20 @@
     var s = normalize(settings);
     var webClient = {};
     WEB_CLIENT_KEYS.forEach(function (key) { webClient[key] = s[key]; });
+    // A shared style an own rule uses comes along, so the file stands on its
+    // own and the rule looks the same after an import.
+    var styles = s.styles.slice();
+    s.rules.forEach(function (rule) {
+      if (findById(styles, rule.styleId)) return;
+      var shared = findById(s.hosted.styles, rule.styleId);
+      if (shared) styles.push(shared);
+    });
     return {
       app: EXPORT_APP,
       version: SCHEMA_VERSION,
       name: str(name),
       exportedAt: new Date().toISOString(),
-      styles: s.styles,
+      styles: styles,
       rules: s.rules,
       webClient: webClient
     };
@@ -768,7 +782,10 @@
     // A sample style you lack comes along even when every rule is skipped, so
     // someone who loaded the samples before the styles existed gets them too.
     if (stats.added) settings.rules = rules;
-    if (stats.added || stats.styles) settings.styles = withDefaultStyle(styles, settings.rules);
+    if (stats.added || stats.styles) {
+      settings.styles = withDefaultStyle(styles, settings.rules,
+        settings.hosted && settings.hosted.styles);
+    }
     return stats;
   }
 

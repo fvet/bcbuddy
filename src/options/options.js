@@ -243,8 +243,8 @@
       page.state.settings.hosted.styles.length > 0;
 
     // "The last style cannot go" no longer holds once there is a second one,
-    // however it got there: Add style, Load samples, an import.
-    if (page.state.settings.styles.length > 1 &&
+    // however it got there: Add style, Load samples, an import, a sync.
+    if (page.state.settings.styles.length + page.state.settings.hosted.styles.length > 1 &&
         page.el.stylesStatus.textContent === t('lastStyle')) {
       page.setStylesStatus('', '');
     }
@@ -313,9 +313,9 @@
     });
   };
 
-  /** Style a new rule gets: Default, otherwise the first one. */
+  /** Style a new rule gets: Default, otherwise the first one, own before shared. */
   page.defaultStyleId = function () {
-    var styles = page.state.settings.styles;
+    var styles = page.state.settings.styles.concat(page.state.settings.hosted.styles);
     var preferred = BCBuddy.findById(styles, BCBuddy.DEFAULT_STYLE_ID);
     if (preferred) return preferred.id;
     return styles.length ? styles[0].id : '';

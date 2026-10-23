@@ -386,6 +386,22 @@ input[type="text"]:focus, input[type="url"]:focus, input[type="number"]:focus, s
   outline-offset: -1px;
 }
 
+/* A text field with a link-style action inside its frame, on the right. The
+   frame is on the wrapper, so a longer translation of the action never runs
+   over the text. */
+.inset {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding-right: 10px;
+}
+.inset:focus-within { outline: 2px solid var(--accent); outline-offset: -1px; }
+.inset input[type="text"] { flex: 1 1 auto; border: 0; background: transparent; }
+.inset input[type="text"]:focus { outline: 0; }
+
 /* Set by browser policy (the shared file's address): readable, not editable. */
 input[type="url"]:read-only { background: var(--surface-2); color: var(--muted); }
 
@@ -593,7 +609,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   color: var(--muted);
 }
 /* A word in the empty message that does what it says. */
-.empty__action {
+.empty__action, .inset__action {
   background: none;
   border: 0;
   padding: 0;
@@ -602,6 +618,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   text-decoration: underline;
   cursor: pointer;
 }
+.inset__action { flex: none; font-size: 12.5px; white-space: nowrap; }
 
 .rule {
   background: var(--surface);
@@ -820,13 +837,9 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   border-width: 0;
   border-color: transparent;
 }
-/* The preview has its own background (a BC page), separate from the page
-   theme; text on it follows that background, not the tokens. */
-.preview__page { color: #6b7280; font-size: 12px; }
 .preview__favicon { display: block; width: 24px; height: 24px; }
 
 :root[data-theme="dark"] .preview__frame { background: #2b2f36; }
-:root[data-theme="dark"] .preview__page { color: #9aa3b0; }
 
 .preview__banner {
   position: absolute;

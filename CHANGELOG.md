@@ -11,6 +11,14 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **`{tenant}`** can go in the ribbon, banner and tab title texts, to show
+  which customer you are working for, such as `contoso.com`.
+- **Your own rules can use your team's styles.** Every rule can now pick a
+  style from the shared file, and your last own style can go while the team
+  file has some.
+
 ### Fixed
 
 - **Striped rows** now cover the whole row in lists shown inside a page, such

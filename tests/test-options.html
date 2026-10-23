@@ -884,8 +884,8 @@ function assertOptions() {
 
   setCondition('environment', 'Sandbox');
 
-  check('options: style preview shows BC page',
-    styleOne.querySelector('[data-preview-page]').textContent, chrome.i18n.getMessage('previewPageBc'));
+  check('options: style preview has no page caption',
+    styleOne.querySelector('[data-preview-frame]').textContent.indexOf('Business Central'), -1);
   truthy('options: style always shows ribbon',
     !styleOne.querySelector('[data-preview-ribbon]').hidden);
 
@@ -894,11 +894,10 @@ function assertOptions() {
   check('options: one token line per style', tokenLines.length, 1);
   var tokens = tokenLines[0].textContent;
   truthy('options: token line lists the tokens',
-    ['{name}', '{environment}', '{env}', '{company}', '{title}'].every(function (token) {
+    ['{name}', '{environment}', '{env}', '{company}', '{tenant}', '{title}'].every(function (token) {
       return tokens.indexOf(token) !== -1;
     }));
   truthy('options: token line no longer mentions {host}', tokens.indexOf('{host}') === -1);
-  truthy('options: token line no longer mentions {tenant}', tokens.indexOf('{tenant}') === -1);
   check('options: what happens to an empty token is its tooltip',
     tokenLines[0].title, chrome.i18n.getMessage('tokensFooter'));
   check('options: the token line has no label', tokenLines[0].querySelector('.tokens__label'), null);
@@ -1481,6 +1480,7 @@ function assertNav() {
 
 /* ---- styles ------------------------------------------------------------ */
 function assertStyles() {
+  var before; // the settings before the last-style checks, put back after them
   var cards = document.querySelectorAll('#styleList .rule');
   check('style: own styles rendered', cards.length, 2);
   check('style: shared style rendered', document.querySelectorAll('#hostedStyleList .rule').length, 1);
@@ -1502,7 +1502,11 @@ function assertStyles() {
   var picker = ruleCard.querySelector('[data-style-picker]');
   check('rule: picker lists own and shared styles',
     Array.prototype.map.call(picker.options, function (o) { return o.textContent; }),
-    ['Standaard', 'Compact']);
+    ['Standaard', 'Compact', 'GEDEELDE STYLE']);
+  check('rule: shared styles sit in their own group',
+    [picker.querySelectorAll('optgroup').length, picker.querySelector('optgroup').label,
+      picker.querySelector('optgroup option').value],
+    [1, chrome.i18n.getMessage('sharedStyles'), 'hl1']);
   check('rule: no per-rule settings choice', picker.value, 'lay-1');
 
   picker.value = 'lay-2';
@@ -1528,8 +1532,9 @@ function assertStyles() {
     // add style
     document.getElementById('addStyle').click();
     check('style: added', document.querySelectorAll('#styleList .rule').length, 3);
+    // three own styles and the shared one
     check('style: picker knows new style',
-      document.querySelectorAll('#ruleList .rule')[0].querySelector('[data-style-picker]').options.length, 3);
+      document.querySelectorAll('#ruleList .rule')[0].querySelector('[data-style-picker]').options.length, 4);
 
     // and remove again: the rule falls back to the first style
     var confirmed = window.confirm;
@@ -1548,8 +1553,9 @@ function assertStyles() {
       document.querySelectorAll('#ruleList .rule')[0]
         .querySelector('[data-style-picker]').value, 'lay-1');
 
-    // The last style cannot go, and that message leaves once a second is back
-    var status = document.getElementById('stylesStatus');
+    // While a shared style is there, the last own style can go too: own rules
+    // then follow the shared one.
+    before = JSON.parse(JSON.stringify(STORE.settings));
     var confirmed = window.confirm;
     window.confirm = function () { return true; };
     document.querySelectorAll('#styleList .rule')[1]
@@ -1557,14 +1563,38 @@ function assertStyles() {
     document.querySelectorAll('#styleList .rule')[0]
       .querySelector('[data-action="delete"]').click();
     window.confirm = confirmed;
+    check('style: the last own style can go while a shared one is there',
+      [document.querySelectorAll('#styleList .rule').length, status().textContent], [0, '']);
+    return wait(400);
+  }).then(function () {
+    check('style: own rules then follow the shared style', STORE.settings.rules[0].styleId, 'hl1');
+
+    // Without shared styles the last one cannot go, and that message leaves
+    // once a second is back.
+    var alone = JSON.parse(JSON.stringify(before));
+    alone.styles = alone.styles.slice(0, 1);
+    alone.hosted.rules = [];
+    alone.hosted.styles = [];
+    return chrome.storage.local.set({ settings: alone }).then(function () { return wait(300); });
+  }).then(function () {
+    var confirmed = window.confirm;
+    window.confirm = function () { return true; };
+    document.querySelectorAll('#styleList .rule')[0]
+      .querySelector('[data-action="delete"]').click();
+    window.confirm = confirmed;
     check('style: the last one stays, and says why',
-      [document.querySelectorAll('#styleList .rule').length, status.textContent],
+      [document.querySelectorAll('#styleList .rule').length, status().textContent],
       [1, chrome.i18n.getMessage('lastStyle')]);
     document.getElementById('addStyle').click();
     check('style: the message goes once there are two again',
-      [document.querySelectorAll('#styleList .rule').length, status.textContent], [2, '']);
+      [document.querySelectorAll('#styleList .rule').length, status().textContent], [2, '']);
     return wait(400);
+  }).then(function () {
+    // Later steps expect the shared rule and style again.
+    return chrome.storage.local.set({ settings: before }).then(function () { return wait(300); });
   });
+
+  function status() { return document.getElementById('stylesStatus'); }
 }
 
 /* ---- copy a shared rule ------------------------------------------------- */
