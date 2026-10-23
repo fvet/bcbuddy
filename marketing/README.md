@@ -177,7 +177,7 @@ by asset URL. For a new screenshot, upload it (`asset: true`) and replace the
 
 | Slide | Asset | File |
 |---|---|---|
-| cover | `/_blob/d5d4269ac0d2f7c4d225856646e6921a` | `../brand/bc-buddy-logo-512.png` (`icons/logo.svg` rendered at 512 px with headless Chrome, transparent) |
+| cover | `/_blob/d5d4269ac0d2f7c4d225856646e6921a` | `../../icons/icon512.png` (`icons/logo.svg` at 512 px, written by `icons/build-icons.ps1`) |
 | copy | `/_blob/45e5c32bbe176b133035d872f1bcfe57` | `crop-without-copy-values.png` |
 | copy | `/_blob/b83c3c20645de7777c200dbe28242b83` | `crop-with-copy-values.png` |
 | maximize | `/_blob/49d1904a43219c8f1547216b7ca1b486` | `without-maximize.jpg` |

@@ -10,7 +10,7 @@
 
     What the script changes on the way:
     - /_blob/<id> image addresses (assets in the Claude artifact) become the
-      matching files in marketing/screenshots/ and marketing/brand/.
+      matching files in marketing/screenshots/ and icons/.
     - <x-icon> becomes an inline SVG, drawn here.
     - <aside> speaker notes stay in the page but are hidden.
 #>
@@ -22,7 +22,7 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 # Asset id in the artifact -> file, relative to present.html. Keep in step with
 # the table in marketing/README.md.
 $assets = @{
-    'd5d4269ac0d2f7c4d225856646e6921a' = '../brand/bc-buddy-logo-512.png'
+    'd5d4269ac0d2f7c4d225856646e6921a' = '../../icons/icon512.png'
     '45e5c32bbe176b133035d872f1bcfe57' = '../screenshots/crop-without-copy-values.png'
     'b83c3c20645de7777c200dbe28242b83' = '../screenshots/crop-with-copy-values.png'
     '49d1904a43219c8f1547216b7ca1b486' = '../screenshots/without-maximize.jpg'

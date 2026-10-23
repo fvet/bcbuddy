@@ -618,6 +618,9 @@ shadow around the image. In the toolbar the opposite applies, so it is a separat
 file and not a replacement for `icon128.png`. It does not go into the package
 either; you upload it in the dashboard.
 
+It also keeps the 512 px render itself as `icon512.png`, the logo on the
+marketing deck's cover. That one stays out of the package too.
+
 ### Setting icons
 
 Every switch under **Web client** has an icon, shown in three places: on its
