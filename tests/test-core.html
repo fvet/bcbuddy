@@ -1549,26 +1549,26 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   truthy('import: clear error for invalid JSON',
     importError.indexOf(chrome.i18n.getMessage('errInvalidJson', ['']).replace(/\s*$/, '')) === 0);
 
-  // helpdesk settings: checked like any other field, carried by export/import
+  // Help & feedback settings: checked like any other field, carried by export/import
   var hd = BCBuddy.normalize({});
-  check('helpdesk: off by default', hd.helpdeskEnabled, false);
-  check('helpdesk: default colour', hd.helpdeskColor, BCBuddy.DEFAULT_HELPDESK_COLOR);
-  check('helpdesk: colour goes through toHex', BCBuddy.normalize({ helpdeskColor: 'red;}body{x:y' }).helpdeskColor,
+  check('feedback: off by default', hd.feedbackEnabled, false);
+  check('feedback: default colour', hd.feedbackColor, BCBuddy.DEFAULT_FEEDBACK_COLOR);
+  check('feedback: colour goes through toHex', BCBuddy.normalize({ feedbackColor: 'red;}body{x:y' }).feedbackColor,
     BCBuddy.toHex('red;}body{x:y'));
-  check('helpdesk: a plain address is kept', BCBuddy.normalize({ helpdeskEmail: ' help@example.com ' }).helpdeskEmail,
+  check('feedback: a plain address is kept', BCBuddy.normalize({ feedbackEmail: ' help@example.com ' }).feedbackEmail,
     'help@example.com');
   ['a@b.c?cc=x@evil.com', 'a@b.c,b@c.d', 'a b@c.d', 'nobody', 'a@b.c&body=x', 'x'.repeat(250) + '@b.cd']
     .forEach(function (bad) {
-      check('helpdesk: refused address ' + bad.slice(0, 30), BCBuddy.normalize({ helpdeskEmail: bad }).helpdeskEmail, '');
+      check('feedback: refused address ' + bad.slice(0, 30), BCBuddy.normalize({ feedbackEmail: bad }).feedbackEmail, '');
     });
-  var hdExport = BCBuddy.toExport({ helpdeskEnabled: true, helpdeskEmail: 'help@example.com', helpdeskColor: '#107c10' }, 'X');
-  var hdImport = BCBuddy.parseImport(JSON.stringify(hdExport)).helpdesk;
-  check('helpdesk: export/import round trip', hdImport,
-    { helpdeskEnabled: true, helpdeskEmail: 'help@example.com', helpdeskColor: '#107c10' });
-  check('helpdesk: a file without it says nothing', BCBuddy.parseImport(JSON.stringify(BCBuddy.toExport({}, 'X'))).helpdesk, null);
-  var hdTarget = BCBuddy.normalize({ helpdeskEmail: 'own@example.com' });
-  BCBuddy.applyHelpdesk(hdTarget, BCBuddy.parseImport('{"rules":[],"helpdeskEmail":"bad address"}').helpdesk);
-  check('helpdesk: a bad address in a file leaves the own one', hdTarget.helpdeskEmail, 'own@example.com');
+  var hdExport = BCBuddy.toExport({ feedbackEnabled: true, feedbackEmail: 'help@example.com', feedbackColor: '#107c10' }, 'X');
+  var hdImport = BCBuddy.parseImport(JSON.stringify(hdExport)).feedback;
+  check('feedback: export/import round trip', hdImport,
+    { feedbackEnabled: true, feedbackEmail: 'help@example.com', feedbackColor: '#107c10' });
+  check('feedback: a file without it says nothing', BCBuddy.parseImport(JSON.stringify(BCBuddy.toExport({}, 'X'))).feedback, null);
+  var hdTarget = BCBuddy.normalize({ feedbackEmail: 'own@example.com' });
+  BCBuddy.applyFeedback(hdTarget, BCBuddy.parseImport('{"rules":[],"feedbackEmail":"bad address"}').feedback);
+  check('feedback: a bad address in a file leaves the own one', hdTarget.feedbackEmail, 'own@example.com');
 
   // merge on import
   function ruleNamed(name, extra) {

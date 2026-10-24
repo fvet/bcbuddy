@@ -435,22 +435,3 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
 #bcb-keys .bcb-keys__foot { margin-top: 16px; color: #605e5c; font-size: 13px; }
 #bcb-keys .bcb-keys__foot p { margin: 4px 0 0; }
 #bcb-keys a { color: #00718c; text-decoration: underline; cursor: pointer; }
-
-
-/* "Report a problem" next to the brand name in the ribbon. Same colour as the
-   ribbon text, lighter weight so the brand still reads as the brand. */
-[data-bcb-support] {
-  display: inline-block;
-  margin-left: 14px;
-  font-weight: 400 !important;
-  font-size: 12px;
-  line-height: 1;
-  color: inherit !important;
-  opacity: 0.85;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-[data-bcb-support]:hover, [data-bcb-support]:focus-visible { opacity: 1; outline: none; }

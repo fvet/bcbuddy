@@ -28,20 +28,22 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   Business Central online often leaves the company out of the address. BC
   Buddy now reads it from the page, for `{company}` and for rules on
   **Company**.
-- **Report a problem.** A small panel on top of Business Central sends a
-  support request to your helpdesk without leaving the page. Describe what
-  went wrong, add up to nine screenshots and draw arrows on them, pick a type
-  and priority, and click **Send to support**: your email app opens with the
-  report ready to paste. Open it from the BC Buddy icon in the toolbar or the
-  **Report a problem** link next to the brand name in Business Central. Off
-  until you switch it on under **Helpdesk**; the address and colour can come
-  with your team's shared file.
+- **Help & feedback.** Send a support request to your helpdesk without
+  leaving Business Central: a panel opens next to the page, in the browser's
+  side panel. Describe what went wrong, add up to nine screenshots and draw
+  arrows on them, give a problem a priority, and click **Send to
+  support**: your email app opens with the report ready to paste. The report
+  stays while you move around Business Central or close the panel. Click the
+  BC Buddy logo in Business Central's top bar, or the BC Buddy icon in the
+  toolbar, and pick **Report a problem** or **Feedback or a suggestion**.
+  Off until you switch it on under **Help & feedback**; the address and
+  colour can come with your team's shared file.
 
 ### Changed
 
-- **Keyboard shortcuts in a side panel.** The keyboard icon in the top bar
-  now opens the shortcuts in the browser's side panel, next to Business
-  Central instead of on top of it. It follows you from page to page, has a
+- **Keyboard shortcuts in a side panel.** The BC Buddy logo in the top bar
+  now opens the browser's side panel, next to Business Central instead of on
+  top of it, and **Keyboard shortcuts** there shows the shortcuts. It follows you from page to page, has a
   gear for the BC Buddy settings, and closes by itself when you leave
   Business Central.
 

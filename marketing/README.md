@@ -75,7 +75,7 @@ Check the result before using it: the top bar should show only
 | `with-week-numbers` | Same | on |
 | `without-current-line` | Sales order 101001 Adatum (several lines), click the **Description** of line 3; type nothing, leave with Escape | off |
 | `with-current-line` | Same | on |
-| `with-keyboard-shortcuts` | Sales order 101001, click the **Description** of line 3, then the BC Buddy logo in the top bar; take the whole window with the side panel open. Close the side panel with **×** afterwards. No "without" shot: the slide shows only the panel | on, **Keyboard shortcuts** switched on |
+| `with-keyboard-shortcuts` | Sales order 101001, click the **Description** of line 3, then the BC Buddy logo in the top bar and **Keyboard shortcuts**; take the whole window with the side panel open. Close the side panel with **×** afterwards. No "without" shot: the slide shows only the panel | on, **Keyboard shortcuts** switched on |
 | `without-striped-rows` | Sales Orders list (page 9305); Customers has too few rows | off |
 | `with-striped-rows` | Same | on, **Striped rows** switched on |
 | `crop-without-hide-factbox` | Customer card 20000, FactBox pane open (BC's own **i** button, top right) | on |

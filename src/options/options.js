@@ -51,18 +51,18 @@
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
 
-    page.renderHelpdesk();
+    page.renderFeedback();
     page.refreshContext();
     page.renderHosted();
   };
 
-  page.renderHelpdesk = function () {
+  page.renderFeedback = function () {
     var s = page.state.settings;
-    page.el.helpdeskEnabled.checked = s.helpdeskEnabled;
-    page.el.helpdeskConfig.hidden = !s.helpdeskEnabled;
+    page.el.feedbackEnabled.checked = s.feedbackEnabled;
+    page.el.feedbackConfig.hidden = !s.feedbackEnabled;
     // Not while someone is typing in it: a half-typed address is not saved yet.
-    if (document.activeElement !== page.el.helpdeskEmail) page.el.helpdeskEmail.value = s.helpdeskEmail;
-    page.el.helpdeskColor.value = s.helpdeskColor;
+    if (document.activeElement !== page.el.feedbackEmail) page.el.feedbackEmail.value = s.feedbackEmail;
+    page.el.feedbackColor.value = s.feedbackColor;
   };
 
   page.renderWebClient = function () {
@@ -403,7 +403,7 @@
       'resizePanesEnabled', 'hideFactBoxEnabled',
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
       'dropdownWidth', 'dropdownHeight',
-      'helpdeskEnabled', 'helpdeskConfig', 'helpdeskEmail', 'helpdeskColor'
+      'feedbackEnabled', 'feedbackConfig', 'feedbackEmail', 'feedbackColor'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     bindLanguage();
@@ -503,32 +503,32 @@
       page.save();
     });
 
-    el.helpdeskEnabled.addEventListener('change', function () {
-      state.settings.helpdeskEnabled = el.helpdeskEnabled.checked;
-      page.renderHelpdesk();
+    el.feedbackEnabled.addEventListener('change', function () {
+      state.settings.feedbackEnabled = el.feedbackEnabled.checked;
+      page.renderFeedback();
       page.save();
     });
 
     // Saved when the field is left, and only as one valid address: it goes
-    // into a mailto: link (see helpdeskEmail() in settings.js).
-    el.helpdeskEmail.addEventListener('input', function () {
-      el.helpdeskEmail.setCustomValidity('');
+    // into a mailto: link (see feedbackEmail() in settings.js).
+    el.feedbackEmail.addEventListener('input', function () {
+      el.feedbackEmail.setCustomValidity('');
     });
-    el.helpdeskEmail.addEventListener('change', function () {
-      page.trimField(el.helpdeskEmail);
-      var typed = el.helpdeskEmail.value;
-      var valid = BCBuddy.normalize({ helpdeskEmail: typed }).helpdeskEmail;
+    el.feedbackEmail.addEventListener('change', function () {
+      page.trimField(el.feedbackEmail);
+      var typed = el.feedbackEmail.value;
+      var valid = BCBuddy.normalize({ feedbackEmail: typed }).feedbackEmail;
       if (typed && !valid) {
-        el.helpdeskEmail.setCustomValidity(t('helpdeskEmailInvalid'));
-        el.helpdeskEmail.reportValidity();
+        el.feedbackEmail.setCustomValidity(t('feedbackEmailInvalid'));
+        el.feedbackEmail.reportValidity();
         return;
       }
-      state.settings.helpdeskEmail = valid;
+      state.settings.feedbackEmail = valid;
       page.save();
     });
 
-    el.helpdeskColor.addEventListener('input', function () {
-      state.settings.helpdeskColor = el.helpdeskColor.value;
+    el.feedbackColor.addEventListener('input', function () {
+      state.settings.feedbackColor = el.feedbackColor.value;
       page.save();
     });
 

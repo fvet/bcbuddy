@@ -1,17 +1,51 @@
-/* The keyboard shortcuts in the browser's side panel (sidepanel.js), dressed
-   like Business Central's own Help pane: a 20px pane title, white cards on a
-   light grey ground. Light only, as BC is. The browser draws its own header
-   with our name above it. */
+/* The browser's side panel (sidepanel.js): the start view, the keyboard
+   shortcuts and Help & feedback (help.js), dressed like BC Buddy's settings
+   page: the same colours, rounded cards and buttons, light or dark as the
+   settings page is (theme.js). The confirm dialog is the exception: it looks
+   like Business Central's own. The browser draws its own header with our
+   name above it. */
 :root {
-  --ground: #f8f8f8;
-  --card: #fff;
-  --card-line: #e1dfdd;
-  --text: #212121;
-  --muted: #505050;
-  --link: #00718c;
-  --key-bg: #faf9f8;
-  --key-line: #c8c6c4;
+  --ground: #f5f6f8;
+  --card: #ffffff;
+  --card-line: #d9dde3;
+  --hover: #f0f2f5;
+  --text: #1b1e23;
+  --muted: #666e7a;
+  --faint: #8a919c;
+  /* The settings page's teal: 5.1:1 on white. */
+  --link: #007a83;
+  --key-bg: #f5f6f8;
+  --key-line: #c4c9d1;
+  --field-line: #d9dde3;
+  --error: #c4314b;
+  --warn-bg: #fff4ce;
+  --warn-line: #f3d98a;
+  --warn-text: #5a4600;
+  --on-link: #ffffff;
+  --radius: 10px;
+  --radius-small: 7px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 12px rgba(16, 24, 40, .05);
   color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --ground: #16181d;
+  --card: #1e2127;
+  --card-line: #363b44;
+  --hover: #262a31;
+  --text: #e7eaee;
+  --muted: #9aa3b0;
+  --faint: #7d8592;
+  --link: #3cc8d1;
+  --on-link: #0b1220;
+  --key-bg: #262a31;
+  --key-line: #4a505b;
+  --field-line: #363b44;
+  --error: #f1707b;
+  --warn-bg: #3a3214;
+  --warn-line: #6b5a1c;
+  --warn-text: #f3e2a6;
+  --shadow: none;
+  color-scheme: dark;
 }
 
 html, body { margin: 0; }
@@ -19,7 +53,7 @@ body {
   min-height: 100vh;
   background: var(--ground);
   color: var(--text);
-  font: 13px/1.4 "Segoe UI", "Segoe UI Web (West European)", system-ui, sans-serif;
+  font: 13px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
 }
 
 .head {
@@ -28,7 +62,7 @@ body {
   gap: 8px;
   margin: 14px 8px 14px 16px;
 }
-.head h1 { flex: 1; margin: 0; font-size: 20px; font-weight: 600; }
+.head h1 { flex: 1; margin: 0; font-size: 17px; font-weight: 600; }
 
 .icon-button {
   display: inline-flex;
@@ -38,25 +72,25 @@ body {
   height: 32px;
   padding: 0;
   border: 0;
-  border-radius: 2px;
+  border-radius: var(--radius-small);
   background: none;
   color: var(--muted);
   cursor: pointer;
 }
-.icon-button:hover { background: #edebe9; color: var(--text); }
+.icon-button:hover { background: var(--hover); color: var(--text); }
 .icon-button:focus-visible { outline: 2px solid var(--link); }
 
 main { display: flex; flex-direction: column; gap: 12px; padding: 0 12px; }
 
 .card {
   margin: 0;
-  padding: 12px 12px 14px;
+  padding: 14px 16px 16px;
   border: 1px solid var(--card-line);
-  border-radius: 2px;
+  border-radius: var(--radius);
   background: var(--card);
-  box-shadow: 0 1.6px 3.6px rgba(0, 0, 0, .1), 0 .3px .9px rgba(0, 0, 0, .08);
+  box-shadow: var(--shadow);
 }
-body > .card { margin: 12px 12px 16px; }
+.view > .card { margin: 12px 12px 16px; }
 .card h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
 .note { margin: -4px 0 10px; font-size: 12px; color: var(--muted); }
 
@@ -94,3 +128,241 @@ kbd {
   text-decoration: none;
 }
 .link:hover span { text-decoration: underline; }
+
+[hidden] { display: none !important; }
+
+/* ---------- Help & feedback ---------- */
+
+/* The admin's colour from the Help & feedback settings, else the teal. */
+#view-help { --accent-color: var(--accent, var(--link)); --on-accent-color: var(--on-accent, var(--on-link)); }
+
+.stack { display: flex; flex-direction: column; gap: 12px; }
+#help-capture { padding: 0 12px 16px; }
+#view-help > .card { margin: 0 12px 16px; }
+
+.card-title { display: block; margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+.stack > .card-title, .stack > .note, .stack > .steps { margin: 0; }
+
+.row { display: flex; gap: 8px; align-items: stretch; }
+.row > * { min-width: 0; }
+.grow { flex: 1; }
+.card .row { margin-top: 10px; }
+
+.field {
+  box-sizing: border-box;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-small);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
+.field:focus { outline: 2px solid var(--accent-color); outline-offset: -1px; border-color: transparent; }
+.desc { display: block; width: 100%; min-height: 96px; padding: 6px 8px; resize: vertical; line-height: 1.45; }
+.desc::placeholder { color: var(--faint); }
+.card .note { margin: 6px 0 0; }
+
+.warn {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--warn-line);
+  border-radius: var(--radius-small);
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  font-size: 12px;
+}
+.warn a { color: inherit; font-weight: 600; }
+
+.btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-small);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) { background: var(--hover); }
+.btn:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.square { flex: none; width: 32px; padding: 0; }
+.btn.primary { border-color: var(--accent-color); background: var(--accent-color); color: var(--on-accent-color); font-weight: 600; }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
+
+/* Three per row. The remove and edit badges hang 7px outside each thumbnail,
+   so the gaps leave room for them. */
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 14px;
+  padding: 7px 7px 4px 0;
+}
+.thumb { position: relative; min-width: 0; }
+.thumb-img {
+  display: block;
+  width: 100%;
+  height: 56px;
+  object-fit: cover;
+  border: 1px solid var(--card-line);
+  border-radius: 5px;
+  background: var(--ground);
+}
+.thumb-edit, .thumb-del {
+  position: absolute;
+  right: -7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.thumb-edit {
+  bottom: -7px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--accent-color);
+  background: var(--card);
+  color: var(--accent-color);
+}
+.thumb-edit:hover:not(:disabled) { background: var(--accent-color); color: var(--on-accent-color); }
+.thumb-edit:disabled { opacity: .4; cursor: default; }
+.thumb-del {
+  top: -7px;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: var(--error);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.status { margin: 0; min-height: 16px; font-size: 12px; color: var(--muted); }
+.status-err { color: var(--error); }
+
+.steps { padding-left: 20px; }
+.steps li { margin-bottom: 4px; }
+
+/* Type and priority, the first thing in the report. */
+.card .row.meta { margin: 0 0 12px; }
+.dd { position: relative; flex: 1; min-width: 0; }
+.dd-btn {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 32px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-small);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dd-btn:hover { background: var(--hover); }
+.dd-btn:focus-visible { outline: 2px solid var(--accent-color); outline-offset: -1px; }
+.dd-dot { flex: none; }
+.dd-lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-caret { flex: none; opacity: .6; }
+.dd-menu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  padding: 4px 0;
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius-small);
+  background: var(--card);
+  box-shadow: 0 6px 16px rgba(16, 24, 40, .14);
+}
+.dd-opt {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dd-opt:hover, .dd-opt:focus-visible { background: var(--hover); outline: none; }
+.dd-opt[aria-checked="true"] { font-weight: 600; }
+.prio-unset { color: var(--faint); }
+.prio-High { color: #ca5010; }
+.prio-Critical { color: #c4314b; font-weight: 700; }
+
+/* The throw-away question: a modal over the panel in the same style, a
+   round question mark, the question, and the buttons at the bottom right.
+   Cancel is the safe one and has the focus; Throw away is in the red. */
+.dialog {
+  box-sizing: border-box;
+  width: calc(100% - 24px);
+  max-width: 360px;
+  padding: 20px 20px 16px;
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 12px 32px rgba(16, 24, 40, .18), 0 2px 6px rgba(16, 24, 40, .08);
+}
+.dialog::backdrop { background: rgba(16, 24, 40, .4); }
+.dialog-body { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 20px; }
+.dialog-icon { flex: none; color: var(--link); }
+.dialog h2 { margin: 4px 0 6px; font-size: 14px; font-weight: 600; }
+.dialog .note { margin: 0; font-size: 12px; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.dialog .btn { min-width: 88px; }
+.btn.danger { color: var(--error); }
+.btn.danger:hover:not(:disabled) { border-color: var(--error); }
+
+/* The start view: one card per thing the panel can do, each with its icon in
+   the teal, as the settings page shows its switches. Each opens its view;
+   the back arrow in the header comes back here. */
+.head .back { margin-left: -8px; }
+.entries { display: flex; flex-direction: column; gap: 8px; padding: 0 12px; }
+.entry {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.entry:hover { background: var(--hover); }
+.entry:focus-visible { outline: 2px solid var(--link); outline-offset: -1px; }
+.entry-icon { flex: none; width: 18px; height: 18px; color: var(--link); }
+/* The same drawing as the switch on the options page, used as a mask so it
+   takes the text colour. */
+.entry-icon-keys {
+  background: currentColor;
+  -webkit-mask: url("../../icons/settings/shortcuts.svg") center / contain no-repeat;
+  mask: url("../../icons/settings/shortcuts.svg") center / contain no-repeat;
+}
+.entry-text { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
+.entry-title { font-size: 14px; font-weight: 600; }
+.entry-note { font-size: 12px; color: var(--muted); }
+.entry-go { flex: none; color: var(--muted); }
+.card .row.meta .dd { flex: 0 1 50%; }

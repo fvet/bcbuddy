@@ -12,9 +12,10 @@
   var OPEN_PANEL_KEY = 'openPanel';
   var EXPORT_APP = 'bc-buddy';
   var SCHEMA_VERSION = 2;
-  // Accent of the "Report a problem" panel. Neutral on purpose: the panel is
-  // opened by someone who just hit an error, and a red box does not help.
-  var DEFAULT_HELPDESK_COLOR = '#0f6cbd';
+  // Accent of the Help & feedback panel: the settings page's teal. Neutral
+  // on purpose: the panel is opened by someone who just hit an error, and a
+  // red box does not help.
+  var DEFAULT_FEEDBACK_COLOR = '#007a83';
   // RFC 5321 caps an address at 254 characters.
   var MAX_EMAIL_LENGTH = 254;
 
@@ -419,44 +420,44 @@
    * The helpdesk address goes into a mailto: link, so it is one plain address
    * or nothing: no spaces, no second address, no ?subject= of its own.
    */
-  function helpdeskEmail(value) {
+  function feedbackEmail(value) {
     var s = str(value);
     if (s.length > MAX_EMAIL_LENGTH) return '';
     return /^[^\s@<>()",;:?&=%\/\\]+@[^\s@<>()",;:?&=%\/\\]+$/.test(s) ? s : '';
   }
 
-  function helpdeskColor(value) {
+  function feedbackColor(value) {
     var s = str(value);
-    return s ? BCBuddy.toHex(s) : DEFAULT_HELPDESK_COLOR;
+    return s ? BCBuddy.toHex(s) : DEFAULT_FEEDBACK_COLOR;
   }
 
   /**
-   * The helpdesk part of an import or a shared file: only what it names, each
+   * The Help & feedback part of an import or a shared file: only what it names, each
    * value checked, so a file that leaves it out leaves the local choice alone.
-   * Null when the file says nothing about the helpdesk.
+   * Null when the file says nothing about Help & feedback.
    */
-  function readHelpdesk(data) {
+  function readFeedback(data) {
     if (!data || typeof data !== 'object') return null;
     var picked = null;
-    if (typeof data.helpdeskEnabled === 'boolean') {
+    if (typeof data.feedbackEnabled === 'boolean') {
       picked = picked || {};
-      picked.helpdeskEnabled = data.helpdeskEnabled;
+      picked.feedbackEnabled = data.feedbackEnabled;
     }
-    if (helpdeskEmail(data.helpdeskEmail)) {
+    if (feedbackEmail(data.feedbackEmail)) {
       picked = picked || {};
-      picked.helpdeskEmail = helpdeskEmail(data.helpdeskEmail);
+      picked.feedbackEmail = feedbackEmail(data.feedbackEmail);
     }
-    if (str(data.helpdeskColor)) {
+    if (str(data.feedbackColor)) {
       picked = picked || {};
-      picked.helpdeskColor = helpdeskColor(data.helpdeskColor);
+      picked.feedbackColor = feedbackColor(data.feedbackColor);
     }
     return picked;
   }
 
-  /** Takes over what readHelpdesk() found. */
-  function applyHelpdesk(settings, incoming) {
+  /** Takes over what readFeedback() found. */
+  function applyFeedback(settings, incoming) {
     if (!incoming) return;
-    ['helpdeskEnabled', 'helpdeskEmail', 'helpdeskColor'].forEach(function (key) {
+    ['feedbackEnabled', 'feedbackEmail', 'feedbackColor'].forEach(function (key) {
       if (key in incoming) settings[key] = incoming[key];
     });
   }
@@ -475,9 +476,9 @@
       enabled: bool(s.enabled, true)
     };
     WEB_CLIENT_KEYS.forEach(function (key) { result[key] = webClient[key]; });
-    result.helpdeskEnabled = bool(s.helpdeskEnabled, false);
-    result.helpdeskEmail = helpdeskEmail(s.helpdeskEmail);
-    result.helpdeskColor = helpdeskColor(s.helpdeskColor);
+    result.feedbackEnabled = bool(s.feedbackEnabled, false);
+    result.feedbackEmail = feedbackEmail(s.feedbackEmail);
+    result.feedbackColor = feedbackColor(s.feedbackColor);
     if (hostedRules.length || hostedStyles.length) withDefaultStyle(hostedStyles, hostedRules);
     // Own rules may pick a shared style too, so those count as available.
     result.rules = rules;
@@ -621,12 +622,12 @@
       rules: s.rules,
       webClient: webClient
     };
-    // Only a helpdesk someone set up travels, so a file from a colleague who
+    // Only a Help & feedback someone set up travels, so a file from a colleague who
     // never touched it does not switch it off for the team.
-    if (s.helpdeskEnabled || s.helpdeskEmail) {
-      result.helpdeskEnabled = s.helpdeskEnabled;
-      if (s.helpdeskEmail) result.helpdeskEmail = s.helpdeskEmail;
-      result.helpdeskColor = s.helpdeskColor;
+    if (s.feedbackEnabled || s.feedbackEmail) {
+      result.feedbackEnabled = s.feedbackEnabled;
+      if (s.feedbackEmail) result.feedbackEmail = s.feedbackEmail;
+      result.feedbackColor = s.feedbackColor;
     }
     return result;
   }
@@ -670,7 +671,7 @@
       rules: normalizedRules,
       styles: normalizedStyles,
       webClient: webClient,
-      helpdesk: Array.isArray(data) ? null : readHelpdesk(data),
+      feedback: Array.isArray(data) ? null : readFeedback(data),
       name: name
     };
   }
@@ -1085,8 +1086,8 @@
   BCBuddy.SAMPLES_PATH = 'examples/bc-buddy.json';
   BCBuddy.applyWebClient = applyWebClient;
   BCBuddy.applySharedWebClient = applySharedWebClient;
-  BCBuddy.DEFAULT_HELPDESK_COLOR = DEFAULT_HELPDESK_COLOR;
-  BCBuddy.applyHelpdesk = applyHelpdesk;
+  BCBuddy.DEFAULT_FEEDBACK_COLOR = DEFAULT_FEEDBACK_COLOR;
+  BCBuddy.applyFeedback = applyFeedback;
   BCBuddy.webClientDefaults = webClientDefaults;
   BCBuddy.webClientOf = webClientOf;
   BCBuddy.hash = hash;

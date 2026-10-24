@@ -27,7 +27,10 @@ src/
                        icons/build-icons.ps1, never edited by hand
   lib/shortcuts.js     keyboard shortcuts: the top bar icon, its panel and
                        the feed for the side panel
-  sidepanel/           the keyboard shortcuts in the browser side panel
+  sidepanel/           the browser side panel: keyboard shortcuts and
+                       Help & feedback (help.js)
+  support/             Help & feedback's area selection and drawing editor,
+                       injected into the tab only while one runs
   content/content.js   draws frame, banner, ribbon, title and favicon;
                        starts maximize, the dropdown sizer, the pane
                        handles, the copy icon, week numbers, the row tint,
@@ -893,6 +896,29 @@ the button opens the floating panel in the page instead.
   another origin, and takes the tab's zoom (`tabs.getZoom`, `onZoomChange`;
   no permission needed).
 
+- **Three views.** The panel opens on a start view (`home`) with an entry
+  per thing it does, each shown only while its switch is on: *Report a
+  problem* and *Feedback or a suggestion* open Help & feedback
+  (`sidepanel/help.js`) as type Bug (with a priority) or Improvement, and
+  *Keyboard shortcuts* opens `shortcuts`. A back arrow in the header returns
+  to the start view. The service worker keeps the view each window's panel
+  shows: the logo in the top bar sends `bcb:toggle-side-panel`, which opens
+  `home` or closes an open panel whatever it shows; the browser shortcut
+  toggles `shortcuts`; the toolbar icon opens the panel through
+  `sidePanel.setPanelBehavior({ openPanelOnActionClick })`, set while Help &
+  feedback is on, because `sidePanel.open()` would come too late after
+  reading the settings. A panel that opens asks for its view when it
+  connects; without one it shows `home`. The logo is in the top bar while
+  the shortcuts or Help & feedback is on. The panel follows the settings
+  page's look and its light or dark theme (`options/theme.js`). Only the
+  shortcuts view
+  closes the panel when the tab leaves BC. Help & feedback asks the tab's
+  top frame `bcb:support-context` (BC or not, environment, company), keeps
+  the report in `chrome.storage.session` per window, takes screenshots with
+  `tabs.captureVisibleTab` and injects `src/support/support-overlay.*` for
+  the area selection and the drawing editor, whose result comes back
+  through `scripting.executeScript`.
+
 - **Where.** BC online shows the client in `iframe.designer-client-frame`,
   same origin, under the Microsoft 365 top bar. Icon and panel live in the top
   window; the panel reads the client's document directly. The icon goes just
@@ -949,13 +975,12 @@ the button opens the floating panel in the page instead.
 
 - `storage` — keeping settings.
 - `alarms` — checking the shared file periodically.
-- `scripting` — injecting the *Report a problem* panel
-  (`src/support/`) into the tab when someone opens it, and again after a
-  navigation while a report is in progress. Only with the helpdesk switched
-  on; the screenshots use `tabs.captureVisibleTab`, which the host permission
-  covers.
-- `sidePanel` — the keyboard shortcuts in the browser's side panel
-  (`src/sidepanel/`). `sidePanel.open()` needs Chrome 116, hence
+- `scripting` — injecting Help & feedback's area selection and drawing
+  editor (`src/support/`) into a Business Central tab when someone starts
+  one from the side panel. Only with Help & feedback switched on; the
+  screenshots use `tabs.captureVisibleTab`, which the host permission covers.
+- `sidePanel` — the browser's side panel (`src/sidepanel/`): the keyboard
+  shortcuts and Help & feedback. `sidePanel.open()` needs Chrome 116, hence
   `minimum_chrome_version`.
 - `storage.managed_schema` is not a permission and shows no warning, so adding
   a policy key does not hold up the automatic update. `chrome.management.getSelf`

@@ -3,12 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="scIconLabel">Keyboard shortcuts</title>
+  <title>BC Buddy</title>
+  <script src="../options/theme.js"></script>
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
   <header class="head">
-    <h1 data-i18n="scIconLabel">Keyboard shortcuts</h1>
+    <button type="button" id="back" class="icon-button back" data-i18n-title="bpBack" data-i18n-label="bpBack" hidden>
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>
+    </button>
+    <h1 id="title"></h1>
+    <button type="button" id="help-discard" class="icon-button" data-i18n-title="spDiscard" data-i18n-label="spDiscard" hidden>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v5M14 11v5"/>
+      </svg>
+    </button>
     <button type="button" id="settings" class="icon-button" data-i18n-title="gearMenuSettings" data-i18n-label="gearMenuSettings">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
@@ -16,16 +25,145 @@
       </svg>
     </button>
   </header>
-  <main id="list" aria-live="polite"></main>
-  <p id="empty" class="empty" data-i18n="scPanelEmpty" hidden>Open a Business Central page to see its shortcuts.</p>
-  <section class="card">
-    <a id="docs" class="link" target="_blank" rel="noopener noreferrer">
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M4.5 2.5h7v9h-7z"/><path d="M2.5 4.5v9h7"/></svg>
-      <span data-i18n="scDocsAll">All keyboard shortcuts</span>
-    </a>
-  </section>
+
+  <div id="view-home" class="view" hidden>
+    <nav class="entries">
+      <button type="button" class="entry" id="go-bug" hidden>
+        <svg class="entry-icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 14.5v-12M3.5 2.5h8.5l-2 3 2 3H3.5"/></svg>
+        <span class="entry-text">
+          <span class="entry-title" data-i18n="bpBug">Report a problem</span>
+          <span class="entry-note" data-i18n="bpBugNote">Something does not work as it should</span>
+        </span>
+        <svg class="entry-go" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
+      </button>
+      <button type="button" class="entry" id="go-idea" hidden>
+        <svg class="entry-icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.7.6 1.2v.6h4v-.6c0-.5.2-.9.6-1.2A4.5 4.5 0 0 0 8 1.5z"/></svg>
+        <span class="entry-text">
+          <span class="entry-title" data-i18n="bpIdea">Feedback or a suggestion</span>
+          <span class="entry-note" data-i18n="bpIdeaNote">An idea, or a question about something new</span>
+        </span>
+        <svg class="entry-go" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
+      </button>
+      <button type="button" class="entry" id="go-shortcuts" hidden>
+        <span class="entry-icon entry-icon-keys" aria-hidden="true"></span>
+        <span class="entry-text">
+          <span class="entry-title" data-i18n="scIconLabel">Keyboard shortcuts</span>
+          <span class="entry-note" data-i18n="bpShortcutsNote">The shortcuts that work where you are</span>
+        </span>
+        <svg class="entry-go" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
+      </button>
+    </nav>
+    <p id="home-empty" class="empty" data-i18n="bpNothingOn" hidden>Nothing to show here yet. Switch on Keyboard shortcuts or Help &amp; feedback in the settings.</p>
+  </div>
+
+  <div id="view-shortcuts" class="view" hidden>
+    <main id="list" aria-live="polite"></main>
+    <p id="empty" class="empty" data-i18n="scPanelEmpty" hidden>Open a Business Central page to see its shortcuts.</p>
+    <section class="card">
+      <a id="docs" class="link" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M4.5 2.5h7v9h-7z"/><path d="M2.5 4.5v9h7"/></svg>
+        <span data-i18n="scDocsAll">All keyboard shortcuts</span>
+      </a>
+    </section>
+  </div>
+
+  <div id="view-help" class="view" hidden>
+    <div id="help-capture" class="stack">
+      <p class="warn" id="help-noaddr" hidden>
+        <span data-i18n="spNoAddress">No support address set up yet. Ask your administrator, or add it in settings.</span>
+        <a href="#" id="help-noaddr-link" data-i18n="spOpenSettings">Open settings</a>
+      </p>
+
+      <section class="card">
+        <div class="row meta" id="help-prio-row">
+          <div class="dd">
+            <button type="button" class="dd-btn" id="help-prio-btn" aria-haspopup="menu" aria-expanded="false" data-i18n-label="spPriority">
+              <svg class="dd-dot" id="help-prio-dot" width="8" height="8" viewBox="0 0 8 8" aria-hidden="true" hidden></svg>
+              <span class="dd-lbl" id="help-prio-lbl"></span>
+              <svg class="dd-caret" width="8" height="5" viewBox="0 0 8 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 1 4 4 7 1"/></svg>
+            </button>
+            <div class="dd-menu" id="help-prio-menu" role="menu" hidden>
+              <button type="button" class="dd-opt" role="menuitemradio" data-value="Normal">
+                <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="#667080"/></svg>
+                <span class="prio-Normal" data-i18n="spPrioNormal">Normal</span>
+              </button>
+              <button type="button" class="dd-opt" role="menuitemradio" data-value="High">
+                <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="#ca5010"/></svg>
+                <span class="prio-High" data-i18n="spPrioHigh">High</span>
+              </button>
+              <button type="button" class="dd-opt" role="menuitemradio" data-value="Critical">
+                <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><polygon points="4,0 8,4 4,8 0,4" fill="#c4314b"/></svg>
+                <span class="prio-Critical" data-i18n="spPrioCritical">Critical</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <label class="card-title" id="help-desc-label" for="help-desc" data-i18n="spDescLabel">What went wrong?</label>
+        <textarea id="help-desc" class="field desc" rows="5" maxlength="20000"></textarea>
+        <p class="note" id="help-desc-hint"></p>
+      </section>
+
+      <section class="card">
+        <h2 data-i18n="spScreenshots">Screenshots</h2>
+        <p class="note" id="help-notbc" data-i18n="spNotBC" hidden>Open a Business Central page to add screenshots.</p>
+        <p class="note" id="help-max" hidden></p>
+        <div id="help-thumbs" class="thumbs" hidden></div>
+        <div class="row">
+          <button type="button" class="btn grow" id="help-add-area">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+            <span id="help-add-lbl" data-i18n="spAddShot">Add a screenshot</span>
+          </button>
+          <button type="button" class="btn square" id="help-add-full" data-i18n-title="spFullPage" data-i18n-label="spFullPage">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <div class="row">
+        <button type="button" class="btn primary grow" id="help-send" disabled>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7 12 13 2 7"/></svg>
+          <span data-i18n="spSend">Send to support</span>
+        </button>
+        <button type="button" class="btn square" id="help-dl" disabled data-i18n-title="spSaveReportHint" data-i18n-label="spSaveReportHint">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v8M4.5 7 7.5 10 10.5 7M2.5 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <p class="status" id="help-status" role="status"></p>
+    </div>
+
+    <dialog id="help-confirm" class="dialog" aria-labelledby="help-confirm-title" aria-describedby="help-confirm-text">
+      <div class="dialog-body">
+        <svg class="dialog-icon" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="16" cy="16" r="14.5"/><path d="M12.3 12.2a3.8 3.8 0 1 1 5.3 3.5c-1 .5-1.6 1.4-1.6 2.5v1"/><circle cx="16" cy="22.6" r=".4" fill="currentColor"/></svg>
+        <div>
+          <h2 id="help-confirm-title" data-i18n="spDiscardConfirm">Throw away this report?</h2>
+          <p id="help-confirm-text" class="note" data-i18n="spDiscardText">Your description and screenshots are removed from this computer.</p>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn danger" id="help-discard-yes" data-i18n="spDiscardYes">Throw away</button>
+        <button type="button" class="btn" id="help-discard-no" data-i18n="spDiscardNo">Cancel</button>
+      </div>
+    </dialog>
+
+    <section id="help-done" class="card stack" hidden>
+      <p class="card-title" data-i18n="spDoneTitle">One more step in your email app</p>
+      <ol class="steps" id="help-steps"></ol>
+      <p class="note" data-i18n="spDoneFallback">No email opened? Save the report and attach it to an email yourself.</p>
+      <p class="note" data-i18n="spDoneWebmail">Using Gmail or Outlook on the web? Pictures often do not paste there: use Save report and attach the file.</p>
+      <div class="row">
+        <button type="button" class="btn grow" id="help-copy-again" data-i18n="spCopyAgain">Copy again</button>
+        <button type="button" class="btn grow" id="help-dl-done" data-i18n="spSaveReport">Save report</button>
+      </div>
+      <button type="button" class="btn primary" id="help-new" data-i18n="spNewReport">New report</button>
+      <p class="status" id="help-done-status" role="status"></p>
+    </section>
+  </div>
+
   <script src="../lib/i18n.js"></script>
+  <script src="../lib/match.js"></script>
+  <script src="../lib/settings.js"></script>
   <script src="../lib/shortcuts.js"></script>
+  <script src="help.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

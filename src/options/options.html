@@ -77,13 +77,13 @@
         </svg>
         <span data-i18n="navEnvironments">Environments</span>
       </button>
-      <button type="button" class="nav__item" data-panel="helpdesk">
+      <button type="button" class="nav__item" data-panel="feedback">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <circle cx="8" cy="6.5" r="4"/>
           <path d="M5.5 13.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5"/>
           <circle cx="8" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
         </svg>
-        <span data-i18n="navHelpdesk">Helpdesk</span>
+        <span data-i18n="navFeedback">Help &amp; feedback</span>
       </button>
       <button type="button" class="nav__item" data-panel="settings">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -344,32 +344,32 @@
 
     </div>
 
-    <div class="panel" data-panel="helpdesk" hidden>
+    <div class="panel" data-panel="feedback" hidden>
     <section>
       <div class="section-head">
-        <h2 data-i18n="navHelpdesk">Helpdesk</h2>
+        <h2 data-i18n="navFeedback">Help &amp; feedback</h2>
       </div>
-      <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.</p>
+      <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the Report a problem link in the ribbon opens a panel next to the page that collects a description and screenshots and hands them to the email app.</p>
       <div class="card card--list">
         <label class="setting">
           <span class="setting__text">
-            <span class="setting__name" data-i18n="helpdeskEnabledToggle">Enable Helpdesk</span>
+            <span class="setting__name" data-i18n="feedbackEnabledToggle">Enable Help &amp; feedback</span>
           </span>
-          <input type="checkbox" class="toggle" id="helpdeskEnabled">
+          <input type="checkbox" class="toggle" id="feedbackEnabled">
         </label>
-        <div id="helpdeskConfig" hidden>
+        <div id="feedbackConfig" hidden>
           <label class="setting setting--wrap">
             <span class="setting__text">
-              <span class="setting__name" data-i18n="helpdeskEmailLabel">Helpdesk email address</span>
+              <span class="setting__name" data-i18n="feedbackEmailLabel">Helpdesk email address</span>
             </span>
-            <input type="email" id="helpdeskEmail" spellcheck="false" maxlength="254"
+            <input type="email" id="feedbackEmail" spellcheck="false" maxlength="254"
                    placeholder="helpdesk@example.com">
           </label>
           <label class="setting">
             <span class="setting__text">
-              <span class="setting__name" data-i18n="helpdeskColorLabel">Colour</span>
+              <span class="setting__name" data-i18n="feedbackColorLabel">Colour</span>
             </span>
-            <input type="color" id="helpdeskColor" data-i18n-title="customColour">
+            <input type="color" id="feedbackColor" data-i18n-title="customColour">
           </label>
         </div>
       </div>

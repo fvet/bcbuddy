@@ -75,8 +75,9 @@ Click a question to see the answer.
 
 ??? faq "No BC Buddy logo in the top bar"
 
-    **Keyboard shortcuts** starts off. Switch it on under **Web client** on the
-    settings page, and reload the Business Central tab (F5). Business Central on
+    The logo shows when **Keyboard shortcuts** or **Help & feedback** is on,
+    and both start off. Switch one on in the settings, and reload the
+    Business Central tab (F5). Business Central on
     your own server has a different top bar without the icon; there you can open
     the panel with a key of your own, see
     [Keyboard shortcuts](web-client.md#keyboard-shortcuts).

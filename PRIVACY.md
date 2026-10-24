@@ -16,8 +16,8 @@ Everything BC Buddy knows lives in `chrome.storage.local`, on your own machine:
 - your web client preferences (whether pages are maximized, and the dropdown
   size steps),
 - the widths you dragged Business Central's side panes to,
-- your helpdesk settings (on or off, the helpdesk email address, the panel
-  colour),
+- your Help & feedback settings (on or off, the helpdesk email address, the
+  panel colour),
 - the URL of a shared configuration file, if you configured one, plus the
   rules it returned and the timestamp of the last synchronisation.
 
@@ -43,13 +43,15 @@ BC Buddy only reads it.
 
 ## Report a problem
 
-When you open the *Report a problem* panel and add a screenshot, BC Buddy
-captures the visible part of that tab. The screenshots, your description and
-the details of the page (environment, company, browser, screen size) stay in
-your browser while you work on the report, and are dropped when you close the
-panel or the tab. *Send to support* opens your own email app and puts the
-report on your clipboard; *Save report* saves it as a file. BC Buddy itself
-sends the report nowhere.
+When you open *Help & feedback* in the browser's side panel and add a
+screenshot, BC Buddy captures the visible part of the tab in front. The
+screenshots, your description and the details of the page (environment,
+company, browser, screen size) stay in your browser while you work on the
+report: in the browser's session storage, so the report survives closing the
+panel, and is gone when you send it, throw it away or close the browser.
+*Send to support* opens your own email app and puts the report on your
+clipboard; *Save report* saves it as a file. BC Buddy itself sends the report
+nowhere.
 
 ## Network requests
 
@@ -72,9 +74,12 @@ to it.
 - `storage` - keep your settings.
 - `alarms` - check the shared configuration file once a day, or every hour
   while it could not be loaded.
+- `scripting` - show the area selection and the drawing editor of *Help &
+  feedback* on the Business Central page, only while you use them.
 - `sidePanel` - show the keyboard shortcuts for the Business Central page
-  you are on in the browser's side panel. The panel only shows what the
-  extension reads from that page; nothing leaves your computer.
+  you are on, and *Help & feedback*, in the browser's side panel. The panel
+  only shows what the extension reads from that page and what you add;
+  nothing leaves your computer.
 - host permissions (`<all_urls>`) - rules may match any URL, because a
   Business Central on-premises server runs on your own host name, and your
   shared configuration file can be hosted anywhere. The extension only uses

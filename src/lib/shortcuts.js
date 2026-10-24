@@ -495,7 +495,7 @@
       if (detached || doc.getElementById(ICON_ID)) return;
       var help = doc.getElementById(HELP_ID);
       if (!help || !help.parentNode) return;
-      var icon = buildIcon(doc, help, t('scIconLabel'), options.onIcon || toggle);
+      var icon = buildIcon(doc, help, t(options.iconLabel || 'scIconLabel'), options.onIcon || toggle);
       if (icon) help.parentNode.insertBefore(icon, help);
     }
 

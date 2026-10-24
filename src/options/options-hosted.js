@@ -217,9 +217,9 @@
         state.settings.rules = merged.rules;
         // An import by hand is deliberate: the file's Web client settings win.
         var webClientChanged = BCBuddy.applyWebClient(state.settings, parsed.webClient);
-        BCBuddy.applyHelpdesk(state.settings, parsed.helpdesk);
+        BCBuddy.applyFeedback(state.settings, parsed.feedback);
         page.save();
-        page.renderHelpdesk();
+        page.renderFeedback();
         page.renderRules();
         page.renderStyles();
         page.renderParsed();

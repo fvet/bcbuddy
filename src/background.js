@@ -74,90 +74,30 @@ function welcome() {
   });
 }
 
-// The toolbar icon has no popup. With the helpdesk on, a click opens the
-// Report a problem panel in the tab; otherwise, or on a page we cannot script,
-// it opens the options page on the Web client panel, or brings an open one to
-// the front and switches it there.
-chrome.action.onClicked.addListener(function (tab) {
+// The toolbar icon has no popup. With Help & feedback on, the browser opens
+// the side panel itself (syncActionBehavior), and this click
+// never comes. Otherwise it opens the options page on the Web client panel,
+// or brings an open one to the front and switches it there.
+chrome.action.onClicked.addListener(function () {
+  openOptions('webclient');
+});
+
+/**
+ * Lets the toolbar icon open the side panel while Help & feedback is on.
+ * sidePanel.open() only works during the click itself, and reading the
+ * settings first would be too late, so the browser does it: the behaviour
+ * outlives the worker. The panel then shows its start view, since nobody
+ * asked for another one (see sidePanels below).
+ */
+function syncActionBehavior() {
+  if (!chrome.sidePanel || !chrome.sidePanel.setPanelBehavior) return;
   BCBuddy.loadSettings().then(function (settings) {
-    if (!settings.enabled || !settings.helpdeskEnabled || !tab || tab.id === undefined) return false;
-    return openSupportPanel(tab.id);
-  }).catch(function () { return false; }).then(function (opened) {
-    if (!opened) openOptions('webclient');
-  });
-});
-
-/**
- * Opens the Report a problem panel in a tab. Used by the toolbar icon, the
- * link in the Business Central ribbon, and the re-injection after a navigation
- * while a report is in progress. Resolves false when the tab cannot be
- * scripted (a chrome:// page, the Web Store, ...). Top frame only.
- */
-function openSupportPanel(tabId) {
-  return chrome.scripting.insertCSS({
-    target: { tabId: tabId },
-    files: ['src/support/support-panel.css']
-  }).then(function () {
-    return chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['src/support/support-panel.js']
-    });
-  }).then(function () { return true; }, function () { return false; });
+    var help = !!(settings.enabled && settings.feedbackEnabled);
+    return chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: help });
+  }).catch(function () { /* settings unreadable: leave it */ });
 }
 
-// In-progress reports, keyed by tab id. Intentionally not persisted to
-// storage: the data is large (screenshots) and only needs to survive a
-// navigation, which happens within seconds of the last screenshot.
-var supportSessions = {};
-
-// Re-open the panel after the tab finishes navigating, so the user can walk
-// through a scenario across page loads without losing their report.
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
-  if (changeInfo.status !== 'complete' || !supportSessions[tabId]) return;
-  openSupportPanel(tabId).then(function (ok) {
-    // Restricted page: drop the session so we do not retry on every load.
-    if (!ok) delete supportSessions[tabId];
-  });
-});
-
-chrome.tabs.onRemoved.addListener(function (tabId) { delete supportSessions[tabId]; });
-
-/**
- * The Report a problem messages, from the panel or the ribbon link: both are
- * our own scripts in a tab's top frame. Returns true for an async answer,
- * false when the message is not one of these.
- */
-function handleSupportMessage(message, sender, sendResponse) {
-  var tab = sender && sender.tab;
-  if (!tab || tab.id === undefined || sender.id !== chrome.runtime.id || sender.frameId !== 0) return false;
-  switch (message.type) {
-    case 'bcb:support-screenshot':
-      // Only the extension can capture; the page cannot ask for it, since a
-      // page cannot send our messages.
-      chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' })
-        .then(function (dataUrl) { sendResponse({ ok: true, dataUrl: dataUrl }); })
-        .catch(function (err) { sendResponse({ ok: false, error: String(err && err.message || err) }); });
-      return true;
-    case 'bcb:support-save-session':
-      supportSessions[tab.id] = message.session || null;
-      sendResponse({ ok: true });
-      return true;
-    case 'bcb:support-restore-session':
-      sendResponse({ ok: true, session: supportSessions[tab.id] || null });
-      return true;
-    case 'bcb:support-clear-session':
-      delete supportSessions[tab.id];
-      sendResponse({ ok: true });
-      return true;
-    case 'bcb:open-support':
-      BCBuddy.loadSettings().then(function (settings) {
-        if (!settings.enabled || !settings.helpdeskEnabled) return false;
-        return openSupportPanel(tab.id);
-      }).catch(function () { return false; }).then(function (ok) { sendResponse({ ok: ok }); });
-      return true;
-  }
-  return false;
-}
+syncActionBehavior();
 
 /**
  * Opens the options page on `panel`. openOptionsPage() takes no address, so
@@ -192,6 +132,7 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   }
   if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY]) languageReady = BCBuddy.loadLanguage();
   if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
+  syncActionBehavior();
   var before = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].oldValue).hosted;
   var after = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue).hosted;
   if (before.url !== after.url || before.active !== after.active) {
@@ -214,53 +155,73 @@ chrome.storage.onChanged.addListener(function (changes, area) {
 // takes one from Business Central. Only the tab's top frame listens.
 chrome.commands.onCommand.addListener(function (command, tab) {
   if (command !== 'show-shortcuts' || !tab || tab.id === undefined) return;
-  toggleSidePanel(tab).then(function (ok) {
+  toggleSidePanel(tab, 'shortcuts', true).then(function (ok) {
     if (ok) return;
     return chrome.tabs.sendMessage(tab.id, { type: 'bcb:toggle-shortcuts' }, { frameId: 0 });
   }).catch(function () { /* no BC Buddy in that tab */ });
 });
 
-// The keyboard shortcuts side panel (src/sidepanel/) open in each window, by
-// window id: the port it connected with. Only our own extension pages count.
+// The side panel (src/sidepanel/) open in each window, by window id: the port
+// it connected with and the view it shows, 'home', 'shortcuts' or 'help'. Only our
+// own extension pages count.
 var sidePanels = {};
+// The view asked for while the panel was still opening, by window id. The
+// panel asks for it when it connects; without one it shows its start view,
+// as when the toolbar icon opened it.
+var pendingViews = {};
 
 chrome.runtime.onConnect.addListener(function (port) {
   if (port.name !== 'bcb-sidepanel' || !isExtensionPage(port.sender)) return;
   var windowId = null;
   port.onMessage.addListener(function (message) {
-    if (!message || message.type !== 'hello' || typeof message.windowId !== 'number') return;
-    windowId = message.windowId;
-    sidePanels[windowId] = port;
+    if (!message) return;
+    if (message.type === 'hello' && typeof message.windowId === 'number') {
+      windowId = message.windowId;
+      var view = pendingViews[windowId] || null;
+      delete pendingViews[windowId];
+      sidePanels[windowId] = { port: port, view: view };
+      try { port.postMessage({ type: 'view', view: view }); } catch (e) { /* closed */ }
+    } else if (message.type === 'shown' && windowId !== null && sidePanels[windowId] &&
+        (message.view === 'home' || message.view === 'shortcuts' || message.view === 'help')) {
+      sidePanels[windowId].view = message.view;
+    }
   });
   port.onDisconnect.addListener(function () {
-    if (windowId !== null && sidePanels[windowId] === port) delete sidePanels[windowId];
+    if (windowId !== null && sidePanels[windowId] && sidePanels[windowId].port === port) delete sidePanels[windowId];
   });
 });
 
 /**
- * Opens the shortcuts side panel in the tab's window, or closes it there
- * when it is open. sidePanel.open() only works during a click or a key
- * press, so it is called straight away, before anything asynchronous.
- * Resolves false when the browser has no side panel to open.
+ * Shows `view` in the side panel of the tab's window. With `toggle`, a panel
+ * that already shows it closes instead, as the browser shortcut does; with
+ * 'any', an open panel closes whatever it shows, as the logo does.
+ * sidePanel.open() only works during a click or a key press, so it is called
+ * straight away, before anything asynchronous. Resolves false when the
+ * browser has no side panel to open.
  */
-function toggleSidePanel(tab) {
-  var port = sidePanels[tab.windowId];
-  if (port) {
+function toggleSidePanel(tab, view, toggle) {
+  var open = sidePanels[tab.windowId];
+  if (open) {
     try {
-      port.postMessage({ type: 'close' });
+      if (toggle === 'any' || (toggle && open.view === view)) open.port.postMessage({ type: 'close' });
+      else open.port.postMessage({ type: 'view', view: view });
+      open.view = view;
       return Promise.resolve(true);
     } catch (e) { delete sidePanels[tab.windowId]; }
   }
   if (!chrome.sidePanel || !chrome.sidePanel.open) return Promise.resolve(false);
+  pendingViews[tab.windowId] = view;
   return chrome.sidePanel.open({ windowId: tab.windowId })
-    .then(function () { return true; }, function () { return false; });
+    .then(function () { return true; }, function () {
+      delete pendingViews[tab.windowId];
+      return false;
+    });
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
-  // The Report a problem messages are checked in handleSupportMessage().
-  // The four other messages a content script may send: the keyboard icon
-  // toggling the side panel, Open in a new tab, the
+  // The four messages a content script may send: the BC Buddy logo toggling
+  // the side panel, Open in a new tab, the
   // Settings link in BC's gear menu (gearmenu.js), which can only ask for our
   // own options page, and the texts of the language picked on the options
   // page, which are our own packaged files (see i18n.js).
@@ -273,21 +234,21 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     openTab(message, sender);
     return;
   }
-  if (message.type.indexOf('bcb:support-') === 0 || message.type === 'bcb:open-support') {
-    return handleSupportMessage(message, sender, sendResponse) || undefined;
-  }
-  // The keyboard icon in BC's top bar, from a tab's top frame.
+  // The BC Buddy logo in BC's top bar, from a tab's top frame: opens the
+  // panel on its start view, or closes it when it is open. The panel itself
+  // checks which entries are switched on.
   if (message.type === 'bcb:toggle-side-panel') {
     var tab = sender && sender.tab;
     if (!tab || tab.windowId === undefined || sender.id !== chrome.runtime.id || sender.frameId !== 0) return;
-    toggleSidePanel(tab).then(function (ok) { sendResponse({ ok: ok }); });
+    toggleSidePanel(tab, 'home', 'any').then(function (ok) { sendResponse({ ok: ok }); });
     return true; // async response
   }
   if (message.type === 'bcb:open-options') {
-    // The panel's gear asks for the Helpdesk panel; anything else, such as
+    // The Help & feedback view's gear asks for its own settings panel
+    // anything else, such as
     // the gear menu link, gets Web client.
     if (sender && sender.id === chrome.runtime.id) {
-      openOptions(message.panel === 'helpdesk' ? 'helpdesk' : 'webclient');
+      openOptions(message.panel === 'feedback' ? 'feedback' : 'webclient');
     }
     return;
   }
@@ -397,7 +358,7 @@ function fetchHosted(url) {
         rules: parsed.rules,
         styles: parsed.styles,
         webClient: parsed.webClient,
-        helpdesk: parsed.helpdesk,
+        feedback: parsed.feedback,
         name: parsed.name,
         hash: BCBuddy.hash(text),
         url: target
@@ -455,10 +416,10 @@ function syncHosted(options) {
       settings.hosted.rules = result.rules;
       settings.hosted.styles = result.styles;
       BCBuddy.applySharedWebClient(settings, result.webClient);
-      // The helpdesk settings in the file are the team's, so they win over
+      // The Help & feedback settings in the file are the team's, so they win over
       // whatever was typed here, the way an import treats them. A file that
       // does not mention them leaves the local choice alone.
-      BCBuddy.applyHelpdesk(settings, result.helpdesk);
+      BCBuddy.applyFeedback(settings, result.feedback);
       settings.hosted.sourceName = result.name;
       settings.hosted.lastHash = result.hash;
       settings.hosted.lastSync = new Date().toISOString();

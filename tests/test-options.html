@@ -177,8 +177,8 @@ var FILES = [
   'src/lib/weeknumbers.js', 'src/lib/gearmenu.js', 'src/lib/logo.js', 'src/lib/shortcuts.js',
   'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
-  'src/options/options-hosted.js', 'src/options/options.js', 'src/sidepanel/sidepanel.js',
-  'src/support/support-panel.js'
+  'src/options/options-hosted.js', 'src/options/options.js', 'src/sidepanel/sidepanel.js', 'src/sidepanel/help.js',
+  'src/support/support-overlay.js'
 ];
 
 Promise.all(FILES.map(function (f) {
@@ -1457,7 +1457,7 @@ function assertNav() {
     getComputedStyle(document.getElementById('globalEnabled')).width, '34px');
   check('nav: four sections and a help link',
     Array.prototype.map.call(items, function (b) { return b.dataset.panel || b.getAttribute('href'); }),
-    ['webclient', 'environments', 'helpdesk', 'settings', 'https://fvet.github.io/bcbuddy/']);
+    ['webclient', 'environments', 'feedback', 'settings', 'https://fvet.github.io/bcbuddy/']);
   check('nav: each section has an icon',
     Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 5);
   check('nav: environments is open',
@@ -1475,8 +1475,8 @@ function assertNav() {
   check('nav: clicked section marked', items[3].getAttribute('aria-current'), 'page');
   truthy('nav: choice remembered', STORE.ui && STORE.ui.panel === 'settings');
 
-  check('nav: helpdesk settings under helpdesk',
-    document.getElementById('helpdeskEmail').closest('.panel').dataset.panel, 'helpdesk');
+  check('nav: Help & feedback settings under feedback',
+    document.getElementById('feedbackEmail').closest('.panel').dataset.panel, 'feedback');
   check('nav: no About panel any more',
     document.querySelector('.panel[data-panel="about"]'), null);
   check('nav: help is a link, not a section', items[4].tagName, 'A');

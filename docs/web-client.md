@@ -177,13 +177,13 @@ gets a light tint, so you do not lose your place on a wide line.
 </details>
 
 <details class="faq" id="keyboard-shortcuts" markdown>
-<summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">The BC Buddy logo in the top bar opens the shortcuts for where you are in a side panel</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">The BC Buddy logo in the top bar shows the shortcuts for where you are in a side panel</span></summary>
 
 <p class="bcb-starts">Off until you switch it on</p>
 
 BC Buddy adds its logo to the top bar of Business Central, next to the
-question mark. Click it to open a side panel next to Business Central with the
-shortcuts that work where you are:
+question mark. Click it to open a side panel next to Business Central, then
+click **Keyboard shortcuts** to see the shortcuts that work where you are:
 
 - **On this page**: the page's own actions that have a shortcut, such as
   **Post** (F9). Buttons in one part of a page, such as the lines of an
@@ -194,8 +194,8 @@ shortcuts that work where you are:
 
 The panel stays open while you work, and changes along when you open another
 page or move to the lines, a list or a date field, and zooms along with
-the page. The gear opens the BC Buddy settings. Click
-**×** or the logo to close it. When you leave Business Central in
+the page. The arrow at the top goes back to the start of the panel, and
+the gear opens the BC Buddy settings. Click **×** or the logo to close it. When you leave Business Central in
 that tab, the panel closes by itself. A link at the bottom opens Microsoft's
 full list of shortcuts.
 

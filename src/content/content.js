@@ -239,10 +239,23 @@
     // service worker, in the top frame only.
     if (IS_TOP) {
       try {
-        chrome.runtime.onMessage.addListener(function (message, sender) {
-          if (!message || message.type !== 'bcb:toggle-shortcuts') return;
-          if (!sender || sender.id !== chrome.runtime.id || sender.tab) return;
-          if (state.shortcuts) state.shortcuts.toggle();
+        chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+          if (!message || !sender || sender.id !== chrome.runtime.id || sender.tab) return;
+          if (message.type === 'bcb:toggle-shortcuts') {
+            if (state.shortcuts) state.shortcuts.toggle();
+          } else if (message.type === 'bcb:support-context') {
+            // The Help & feedback panel asks where the tab is: whether this
+            // is Business Central (it only draws on BC pages) and the
+            // environment and company for the report, the company also when
+            // it came from the page rather than the address.
+            var ctx = state.ctx || {};
+            sendResponse({
+              webClient: !!state.webClient,
+              tenant: ctx.tenant || '',
+              environment: ctx.environment || '',
+              company: ctx.company || ''
+            });
+          }
         });
         chrome.runtime.onConnect.addListener(panelConnected);
       } catch (e) { /* extension reloaded */ }
@@ -371,13 +384,11 @@
     // once, and needs no watching.
     var clicksBC = BCBuddy.maximizeOn(settings) || BCBuddy.pinActionBarOn(settings) ||
       BCBuddy.hideFactBoxOn(settings);
-    // The Report a problem link has to come back when BC redraws its top bar.
-    var supportLink = !!settings.helpdeskEnabled;
-    if (!effectiveRules(settings).length && !clicksBC && !supportLink) return false;
+    if (!effectiveRules(settings).length && !clicksBC) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
-    if ((clicksBC || supportLink) && state.webClient) return true;
+    if (clicksBC && state.webClient) return true;
     return false;
   }
 
@@ -449,7 +460,6 @@
     applyWeekNumbers();
     applyGearMenu();
     applyShortcuts();
-    applySupportLink();
   }
 
   function sameRule(a, b) {
@@ -590,48 +600,6 @@
     if (!band.hasAttribute('data-bcb-ribbon')) band.setAttribute('data-bcb-ribbon', '');
     clearRibbonPaint(band);
     guardRibbon(band, rule);
-  }
-
-  /**
-   * "Report a problem" next to the brand name. This is how a user who never
-   * pinned the toolbar icon finds the helpdesk panel: it sits in the ribbon
-   * they look at all day, coloured by a rule or not. Top window only, where
-   * the panel opens too. Costs one lookup per apply() once it is in place;
-   * the brand search only runs while it is missing.
-   */
-  function applySupportLink() {
-    var settings = state.settings;
-    var link = document.querySelector('[data-bcb-support]');
-    var want = IS_TOP && state.webClient && settings && settings.enabled && settings.helpdeskEnabled;
-    if (!want) {
-      if (link) link.remove();
-      return;
-    }
-    var prev = link && link.isConnected ? link.previousElementSibling : null;
-    if (prev && (prev.hasAttribute('data-bcb-brand') || isBrandText((prev.textContent || '').trim()))) return;
-    var brand = getBrandElement();
-    if (!brand || !brand.parentNode) return;
-    if (link) link.remove();
-
-    link = document.createElement('span');
-    link.setAttribute('data-bcb-support', '');
-    link.setAttribute('role', 'button');
-    link.setAttribute('tabindex', '0');
-    link.textContent = BCBuddy.t('ribbonSupportLink');
-    var open = function (e) {
-      // The brand sits inside BC's own home link; keep that from firing.
-      e.preventDefault();
-      e.stopPropagation();
-      // A page cannot open the panel by firing a click on the link.
-      if (!e.isTrusted) return;
-      try { chrome.runtime.sendMessage({ type: 'bcb:open-support' }); } catch (err) { /* extension reloaded */ }
-    };
-    link.addEventListener('click', open);
-    link.addEventListener('mousedown', function (e) { e.stopPropagation(); });
-    link.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') open(e);
-    });
-    brand.parentNode.insertBefore(link, brand.nextSibling);
   }
 
   /**
@@ -1147,17 +1115,23 @@
   /* ------------------------------------------------------------ shortcuts */
 
   /**
-   * The keyboard icon in BC's top bar and the panel it opens; see
-   * shortcuts.js. Top window only: from there it reads BC's client frame.
-   * Attached once, like the gear menu, so this costs one comparison per
-   * apply().
+   * The BC Buddy logo in BC's top bar, which opens the side panel on its
+   * start view, and the shortcuts it feeds that panel; see shortcuts.js. The
+   * logo is there while the keyboard shortcuts or Help & feedback is on: it
+   * is how people find both. Top window only: from there it reads BC's
+   * client frame. Attached once, like the gear menu, so this costs one
+   * comparison per apply().
    */
   function applyShortcuts() {
-    var want = IS_TOP && BCBuddy.shortcutsOn(state.settings) && isWebClientTarget(state.href);
+    var settings = state.settings;
+    var want = IS_TOP && isWebClientTarget(state.href) && (BCBuddy.shortcutsOn(settings) ||
+      !!(settings && settings.enabled && settings.feedbackEnabled));
     if (want === !!state.shortcuts) return;
     dropShortcuts();
     if (!want) return;
-    state.shortcuts = BCBuddy.Shortcuts.attach(document, { t: BCBuddy.t, icon: true, onIcon: openSidePanel });
+    state.shortcuts = BCBuddy.Shortcuts.attach(document, {
+      t: BCBuddy.t, icon: true, iconLabel: 'bpTitle', onIcon: openSidePanel
+    });
     state.panelPorts.forEach(feedPanel);
   }
 
@@ -1172,12 +1146,15 @@
   }
 
   /**
-   * The keyboard icon opens the browser's side panel, or closes it when it
-   * is open; the service worker does that, as only it may. Where it cannot,
-   * such as a browser without side panels, the floating panel opens instead.
+   * The logo opens the browser's side panel on its start view, or closes it
+   * when it is open; the service worker does that, as only it may. Where it
+   * cannot, such as a browser without side panels, the floating shortcuts
+   * panel opens instead, if the shortcuts are on.
    */
   function openSidePanel() {
-    var fallback = function () { if (state.shortcuts) state.shortcuts.toggle(); };
+    var fallback = function () {
+      if (state.shortcuts && BCBuddy.shortcutsOn(state.settings)) state.shortcuts.toggle();
+    };
     try {
       chrome.runtime.sendMessage({ type: 'bcb:toggle-side-panel' })
         .then(function (answer) { if (!answer || !answer.ok) fallback(); })

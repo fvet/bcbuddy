@@ -619,7 +619,7 @@
   },
   "scIconLabel": {
     "message": "Keyboard shortcuts",
-    "description": "Tooltip of the BC Buddy logo BC Buddy adds to the top bar of Business Central."
+    "description": "Title of the keyboard shortcuts view of the side panel, and of its entry on the start view."
   },
   "scTitle": {
     "message": "Keyboard shortcuts Buddy",
@@ -801,37 +801,57 @@
     "description": "Turns a shared rule into a copy the user owns and can edit."
   },
 
-  "navHelpdesk": {
-    "message": "Helpdesk",
-    "description": "Navigation item leading to the helpdesk / support panel settings."
+  "navFeedback": {
+    "message": "Help & feedback",
+    "description": "Navigation item leading to the Help & feedback settings."
   },
   "supportIntro": {
-    "message": "Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.",
+    "message": "Lets users report a problem to your helpdesk straight from Business Central: the BC Buddy logo in the top bar or the toolbar icon opens a panel next to the page that collects a description and screenshots and hands them to the email app.",
     "description": "Intro text of the Support section on the Settings panel."
   },
-  "helpdeskEnabledToggle": {
-    "message": "Enable Helpdesk",
-    "description": "Master switch for the helpdesk feature on the Helpdesk panel."
+  "feedbackEnabledToggle": {
+    "message": "Enable Help & feedback",
+    "description": "Master switch on the Help & feedback settings panel."
   },
-  "helpdeskEmailLabel": {
+  "feedbackEmailLabel": {
     "message": "Helpdesk email address",
     "description": "Label on the field where the user enters the support team's email address."
   },
-  "helpdeskColorLabel": {
+  "feedbackColorLabel": {
     "message": "Colour",
-    "description": "Label on the colour picker for the helpdesk support panel accent colour."
+    "description": "Label on the colour picker for the Help & feedback panel accent colour."
   },
-  "ribbonSupportLink": {
+  "bpTitle": {
+    "message": "BC Buddy",
+    "description": "Title of the side panel's start view, and tooltip of the BC Buddy logo in the top bar of Business Central that opens it."
+  },
+  "bpBack": {
+    "message": "Back",
+    "description": "Tooltip of the back arrow in the side panel header; returns to the start view."
+  },
+  "bpBug": {
     "message": "Report a problem",
-    "description": "Link next to the brand name in the Business Central ribbon; opens the support panel."
+    "description": "Entry on the side panel's start view that opens a problem report to the helpdesk."
   },
-  "spSettings": {
-    "message": "Settings",
-    "description": "Tooltip of the gear in the support panel header."
+  "bpBugNote": {
+    "message": "Something does not work as it should",
+    "description": "Line under Report a problem on the side panel's start view."
   },
-  "spClose": {
-    "message": "Close",
-    "description": "Close button of the support panel."
+  "bpIdea": {
+    "message": "Feedback or a suggestion",
+    "description": "Entry on the side panel's start view that opens a suggestion to the helpdesk."
+  },
+  "bpIdeaNote": {
+    "message": "An idea, or a question about something new",
+    "description": "Line under Feedback or a suggestion on the side panel's start view."
+  },
+  "bpShortcutsNote": {
+    "message": "The shortcuts that work where you are",
+    "description": "Line under Keyboard shortcuts on the side panel's start view."
+  },
+  "bpNothingOn": {
+    "message": "Nothing to show here yet. Switch on Keyboard shortcuts or Help & feedback in the settings.",
+    "description": "Shown on the side panel's start view when both are switched off."
   },
   "spNoAddress": {
     "message": "No support address set up yet. Ask your administrator, or add it in settings.",
@@ -864,22 +884,6 @@
   "spDescHintImp": {
     "message": "Add a screenshot of the page it is about, if that helps.",
     "description": "Hint under the description box when the type is Improvement."
-  },
-  "spTypeBug": {
-    "message": "Bug",
-    "description": "Report type."
-  },
-  "spTypeBugHint": {
-    "message": "Something is wrong: an error, or it does not do what you expect.",
-    "description": "Tooltip explaining the Bug type."
-  },
-  "spTypeImprovement": {
-    "message": "Improvement",
-    "description": "Report type."
-  },
-  "spTypeImprovementHint": {
-    "message": "A suggestion, or a request for something new.",
-    "description": "Tooltip explaining the Improvement type."
   },
   "spPriority": {
     "message": "Priority",
@@ -1010,16 +1014,36 @@
     "description": "Status after saving the report as a file."
   },
   "spDiscardConfirm": {
-    "message": "Close and throw away your screenshots?",
+    "message": "Throw away this report?",
     "description": "Confirmation when closing the panel with unsent screenshots."
+  },
+  "spDiscardText": {
+    "message": "Your description and screenshots are removed from this computer.",
+    "description": "Line under the question in the throw-away confirmation of the Help & feedback side panel."
   },
   "spDiscardYes": {
     "message": "Throw away",
     "description": "Button in the close confirmation that discards the report."
   },
   "spDiscardNo": {
-    "message": "Keep editing",
-    "description": "Button in the close confirmation that returns to the report."
+    "message": "Cancel",
+    "description": "Button in the throw-away confirmation that keeps the report."
+  },
+  "spDiscard": {
+    "message": "Throw away this report",
+    "description": "Tooltip of the bin button in the Help & feedback side panel header."
+  },
+  "spScreenshots": {
+    "message": "Screenshots",
+    "description": "Heading of the screenshots card in the Help & feedback side panel."
+  },
+  "spNotBC": {
+    "message": "Open a Business Central page to add screenshots.",
+    "description": "Shown in the screenshots card when the tab in front is not Business Central."
+  },
+  "spNewReport": {
+    "message": "New report",
+    "description": "Button on the done view of the Help & feedback side panel that starts an empty report."
   },
   "spSubject": {
     "message": "BC Support Request",
@@ -1037,7 +1061,7 @@
     "message": "System",
     "description": "Label in the HTML report for OS, browser and screen size."
   },
-  "helpdeskEmailInvalid": {
+  "feedbackEmailInvalid": {
     "message": "Enter one email address, such as helpdesk@example.com."
   }
 }
