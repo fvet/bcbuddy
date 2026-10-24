@@ -39,7 +39,7 @@ BC Buddy reads it as **Production**, so your Production rule covers it too.
 !!! tip "Check a rule before you rely on it"
 
     Open **Environments** while a Business Central tab is open: **Test**
-    at the top already holds that tab's address. BC Buddy shows the
+    at the bottom already holds that tab's address. BC Buddy shows the
     environment and company it reads, and the rule that wins has a border all
     round in its colour.
     Opened another tab since? Click **From open tab**, or paste the address of
@@ -55,8 +55,9 @@ environment belongs above a rule for "anything called Production".
 
 ## Start from the samples { #samples }
 
-No rules yet, or not sure where to start? Click **Load samples** next to
-**Rules**. You get four rules of your own:
+BC Buddy comes with four sample rules, switched off, so nothing gets a colour
+until you decide. Click **Load samples** next to **Rules** to switch them all
+on, or switch on only the ones you want:
 
 | Rule | Colour | Fits when |
 |---|---|---|
@@ -71,10 +72,14 @@ first, so a master data company shows yellow even in production. They use the
 [*Full* style](styles.md); pick *Subtle* on a rule for a quieter marking.
 
 Rules you already have stay as they are. A sample with the same name as one of
-your rules is skipped, so clicking **Load samples** twice adds nothing.
-Deleted a sample? Click **Load samples** again and it comes back in its old
-place. A missing *Full* or *Subtle* style comes back too, even when you already
-have every sample rule.
+your rules is skipped, so clicking **Load samples** twice adds nothing, and a
+sample you changed while it was off stays off. Deleted a sample? Click **Load
+samples** again and it comes back in its old place. A missing *Full* or
+*Subtle* style comes back too, even when you already have every sample rule.
+
+When your [team's shared file](sharing.md) brings rules for the first time,
+they take over from the samples: every sample you did not change goes,
+switched on or not. Samples you changed stay.
 
 !!! note "No Load samples button?"
 
@@ -104,6 +109,15 @@ have every sample rule.
     **Url** with **contains** matches a piece of text anywhere in the address.
     The tenant identifies your organisation's Business Central subscription,
     which helps when you work for several customers.
+
+    Right after you sign in, Business Central online often opens your default
+    company without `company=` in the address. BC Buddy then reads the
+    company from the page itself: from the environment button at the top
+    right, or else from the heading of your Role Center. That is the
+    company's display name, which can differ from its name in the address:
+    `Cronus België` instead of `CRONUS BE`. To be safe, use **contains** with
+    a part both share, or list both: `CRONUS BE, Cronus België`. **Test** on
+    the settings page only reads the address, so it shows no company then.
 
 ??? faq "All ways to compare"
 

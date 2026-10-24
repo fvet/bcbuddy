@@ -18,9 +18,22 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Your own rules can use your team's styles.** Every rule can now pick a
   style from the shared file, and your last own style can go while the team
   file has some.
+- **Bar at the top.** A banner can now sit above Business Central's own top
+  bar. It moves the page down, so it covers nothing.
+- **Sample rules from the start.** A new install comes with the four sample
+  rules, switched off, so nothing is coloured until you decide. **Load
+  samples** switches them on. When your team's shared file brings rules, they
+  take over from the samples you did not change.
+- **The company, also when the address has none.** Right after you sign in,
+  Business Central online often leaves the company out of the address. BC
+  Buddy now reads it from the page, for `{company}` and for rules on
+  **Company**.
 
 ### Fixed
 
+- **Readable banner text.** On a see-through banner or corner ribbon, the text
+  is now black or white for the colour you actually see. Before, a dark colour
+  at half opacity got white text on what looked like light pink.
 - **Striped rows** now cover the whole row in lists shown inside a page, such
   as the one on **Performance Profiler**. Before, only the narrow column with
   the **⋮** button got the grey.

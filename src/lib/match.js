@@ -449,6 +449,32 @@
     return tidy(text);
   }
 
+  /* ---------- company from the page ---------- */
+
+  // BC caps a company's display name at 250 characters; anything longer is
+  // not one.
+  var COMPANY_MAX = 250;
+
+  /** Page text as a company name: one line, trimmed, '' when too long. */
+  function tidyCompany(text) {
+    var s = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+    return s.length > COMPANY_MAX ? '' : s;
+  }
+
+  /**
+   * The company in the title of BC's environment button:
+   * "Cronus België, Omgeving: Sandbox" gives "Cronus België". The label
+   * after the last comma is in the user's language ("Environment",
+   * "Environnement :"), so only its colon is checked. '' when the title has
+   * no company part.
+   */
+  function companyFromLauncher(title) {
+    var s = String(title == null ? '' : title);
+    var cut = s.lastIndexOf(',');
+    if (cut <= 0 || s.indexOf(':', cut) === -1) return '';
+    return tidyCompany(s.slice(0, cut));
+  }
+
   /* ---------- colour helpers ---------- */
 
   function parseColor(input) {
@@ -505,9 +531,22 @@
    * White or black, whichever reads best on that background.
    * The 0.179 threshold is where WCAG contrast with black overtakes that with
    * white: sqrt(1.05 * 0.05) - 0.05.
+   * A see-through background (`opacity` below 1) is judged by the colour you
+   * see: mixed with the page under it, white unless `under` says otherwise.
    */
-  function idealText(background) {
-    return luminance(background) > 0.179 ? '#000000' : '#ffffff';
+  function idealText(background, opacity, under) {
+    var seen = opacity == null || opacity >= 1 ? background : blend(background, under || '#ffffff', opacity);
+    return luminance(seen) > 0.179 ? '#000000' : '#ffffff';
+  }
+
+  /** `top` at `opacity` over `bottom`, as the browser paints it. */
+  function blend(top, bottom, opacity) {
+    var a = parseColor(top);
+    var b = parseColor(bottom);
+    if (!a || !b) return a || b;
+    var o = Math.max(0, Math.min(1, opacity));
+    function mix(x, y) { return x * o + y * (1 - o); }
+    return { r: mix(a.r, b.r), g: mix(a.g, b.g), b: mix(a.b, b.b), a: 1 };
   }
 
   /**
@@ -565,11 +604,14 @@
   BCBuddy.render = render;
   BCBuddy.renderTidy = renderTidy;
   BCBuddy.tidy = tidy;
+  BCBuddy.tidyCompany = tidyCompany;
+  BCBuddy.companyFromLauncher = companyFromLauncher;
   BCBuddy.parseColor = parseColor;
   BCBuddy.toHex = toHex;
   BCBuddy.toRgba = toRgba;
   BCBuddy.luminance = luminance;
   BCBuddy.idealText = idealText;
+  BCBuddy.blend = blend;
   BCBuddy.drawFavicon = drawFavicon;
   BCBuddy.TOKENS = TOKENS;
   BCBuddy.FIELDS = FIELDS;

@@ -198,7 +198,7 @@
         var shown = isStyle ? item : BCBuddy.resolveRule(item, page.stylesFor(readOnly));
         var source = isStyle ? page.sampleRule() : item;
         var color = source ? source.color : NEUTRAL;
-        var textColor = source && source.textColor !== 'auto' ? source.textColor : BCBuddy.idealText(color);
+        var textColor = BCBuddy.idealText(color);
 
         card.style.setProperty('--rule-color', color);
         card.classList.toggle('rule--disabled', item.enabled === false);
@@ -280,13 +280,26 @@
         frame.style.borderWidth = shown.border.enabled ? Math.min(shown.border.width, 14) + 'px' : '0';
         frame.style.borderColor = color;
 
-        // Banner (bar or corner ribbon)
+        // Banner (bar or corner ribbon). The bar at the top has its own element
+        // above the ribbon, and is always solid.
+        var atTop = shown.banner.position === 'top';
+        var topBar = card.querySelector('[data-preview-topbar]');
+        topBar.hidden = !(shown.banner.enabled && atTop);
+        if (!topBar.hidden) {
+          topBar.style.background = color;
+          topBar.style.color = textColor;
+          topBar.textContent = BCBuddy.renderTidy(shown.banner.text || '{name}', ctx, extras);
+        }
+        var opacityField = card.querySelector('[data-banner-opacity]');
+        if (opacityField) opacityField.hidden = atTop;
         var banner = card.querySelector('[data-preview-banner]');
         banner.className = 'preview__banner preview__banner--' + shown.banner.position +
-          (shown.banner.enabled ? ' preview__banner--visible' : '');
-        if (shown.banner.enabled) {
-          banner.style.background = BCBuddy.toRgba(color, shown.banner.opacity);
-          banner.style.color = textColor;
+          (shown.banner.enabled && !atTop ? ' preview__banner--visible' : '');
+        if (shown.banner.enabled && !atTop) {
+          // Business Central's page is white, whatever this page's theme: show
+          // the colour it gets there, mixed with white, and its text colour.
+          banner.style.background = BCBuddy.toHex(BCBuddy.blend(color, '#ffffff', shown.banner.opacity));
+          banner.style.color = BCBuddy.idealText(color, shown.banner.opacity);
           banner.textContent = BCBuddy.renderTidy(shown.banner.text || '{name}', ctx, extras);
           // A fixed size is scaled like the rest of the preview (the bar to
           // about 0.85, the corner ribbon to about 0.5); automatic keeps the CSS size.

@@ -34,9 +34,13 @@ Tick the ones you want:
 : A coloured border around the whole window, 1 to 5 pixels wide.
 
 **Banner**
-: A bar along the bottom, or a diagonal ribbon in one of the corners, with a
-  text such as `SANDBOX`. At **Size** all the way left, the text shrinks to
-  fit; further right it is larger.
+: A bar with a text such as `SANDBOX`. **Bar at the top** sits above
+  Business Central's own top bar and moves the page down, so it covers
+  nothing. **Bar at the bottom** runs along the bottom, and the four
+  **Ribbon** choices put a diagonal ribbon in a corner. At **Size** all the
+  way left, the text shrinks to fit; further right it is larger. **Opacity**
+  lets the page show through the bar at the bottom or a ribbon; the bar at
+  the top is always solid.
 
 **Tab title**
 : The name of the browser tab with a marking added, for example
@@ -46,8 +50,9 @@ Tick the ones you want:
 : A coloured icon on the browser tab with one or two letters, so you spot the
   right tab in a row of tabs. You type the letters on the rule.
 
-The text colour is *Automatic*: white or black, whichever is easiest to read on
-the colour of the rule.
+BC Buddy picks the text colour itself: white or black, whichever is easiest to
+read. On a see-through banner it looks at the colour you actually see, the
+rule's colour mixed with the page behind it.
 
 ## Your own text
 
@@ -58,7 +63,7 @@ placeholders, which BC Buddy fills in for you:
 |---|---|
 | `{name}` | The name of the rule, such as `PRODUCTION` |
 | `{environment}` or `{env}` | The environment, such as `Sandbox` |
-| `{company}` | The company, such as `CRONUS BE` |
+| `{company}` | The company, such as `CRONUS BE`. Not in the address? Then the [name on the page](matching.md#for-advanced-use) |
 | `{tenant}` | The tenant, such as `contoso.com` |
 | `{title}` | The original name of the browser tab |
 

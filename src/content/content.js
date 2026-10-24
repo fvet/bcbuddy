@@ -60,6 +60,14 @@
   // background BC added to a node that stayed in place is picked up again.
   var REPAINT_SWEEP_MS = 2000;
 
+  // BC online without ?company= in the address: how often to look for the
+  // company on the page until it is found (see companyFromPage()).
+  var COMPANY_RETRY_MS = 2000;
+
+  // On <html> in the top window while the banner is a bar at the top: the
+  // page moves down to make room for it (content.css).
+  var TOP_BAR_ATTR = 'data-bcb-top-bar';
+
   var state = {
     settings: null,
     rule: null,
@@ -78,6 +86,8 @@
     // ever found one (then this is Business Central).
     lastBrandSearch: 0,
     bcSeen: false,
+    // When we last looked for the company on the page (companyFromPage()).
+    lastCompanyLook: 0,
     // Ribbon elements whose own background we turn off.
     painted: [],
     // Ribbon elements already found to paint nothing, and when that memory was
@@ -391,11 +401,13 @@
       // search immediately.
       state.lastBrandSearch = 0;
       state.bcSeen = false;
+      state.lastCompanyLook = 0;
       // A new address may be BC where the old one was not: look again. Once
       // this document showed BC's elements, that stays true.
       if (state.probeUntil === -1) state.probeUntil = 0;
     }
     state.webClient = webClientHere();
+    if (state.webClient && state.ctx.isbc && !state.ctx.company) companyFromPage();
 
     // Rules apply on every site. From the URL alone you cannot tell that a
     // custom host runs Business Central, so filtering on the BC host would
@@ -453,12 +465,19 @@
 
   function setVariables(rule) {
     var root = document.documentElement;
-    var text = rule.textColor === 'auto' ? BCBuddy.idealText(rule.color) : rule.textColor;
+    // A bar at the top has the page below it, not behind it: always solid.
+    var opacity = rule.banner.position === 'top' ? 1 : rule.banner.opacity;
+    // The banner's text is picked for the colour you see through it: over a
+    // page Dark Reader made dark, that is the rule's colour over dark grey.
+    var under = root.getAttribute('data-darkreader-scheme') === 'dark' ? '#181a1b' : '#ffffff';
     root.style.setProperty('--bcb-color', rule.color);
-    root.style.setProperty('--bcb-text', text);
+    root.style.setProperty('--bcb-text', BCBuddy.idealText(rule.color));
     root.style.setProperty('--bcb-border-width', rule.border.width + 'px');
-    root.style.setProperty('--bcb-bar-bg', BCBuddy.toRgba(rule.color, rule.banner.opacity));
+    root.style.setProperty('--bcb-bar-bg', BCBuddy.toRgba(rule.color, opacity));
+    root.style.setProperty('--bcb-bar-text', BCBuddy.idealText(rule.color, opacity, under));
     root.style.setProperty('--bcb-bar-font-size', (rule.banner.fontSize || 13) + 'px');
+    // Room for one line of the largest automatic size (14px) or the fixed one.
+    root.style.setProperty('--bcb-top-height', Math.round((rule.banner.fontSize || 14) * 1.35) + 8 + 'px');
   }
 
   /* ---------------------------------------------------------------- frame */
@@ -484,6 +503,12 @@
 
   function applyBanner(rule) {
     var el = document.getElementById(BANNER_ID);
+    var root = document.documentElement;
+    var top = rule.banner.enabled && rule.banner.position === 'top';
+    if (top !== root.hasAttribute(TOP_BAR_ATTR)) {
+      if (top) root.setAttribute(TOP_BAR_ATTR, '');
+      else root.removeAttribute(TOP_BAR_ATTR);
+    }
     if (!rule.banner.enabled) {
       if (el) el.remove();
       return;
@@ -570,7 +595,7 @@
    */
   function guardRibbon(band, rule) {
     var color = rule.color;
-    var text = rule.textColor === 'auto' ? BCBuddy.idealText(rule.color) : rule.textColor;
+    var text = BCBuddy.idealText(rule.color);
 
     function paint() {
       band.style.setProperty('background-color', color, 'important');
@@ -1104,6 +1129,7 @@
     if (frame) frame.remove();
     var banner = document.getElementById(BANNER_ID);
     if (banner) banner.remove();
+    document.documentElement.removeAttribute(TOP_BAR_ATTR);
     releaseRibbon();
 
     if (state.titleApplied && document.title === state.titleApplied) {
@@ -1118,14 +1144,65 @@
     }
 
     var root = document.documentElement;
-    ['--bcb-color', '--bcb-text', '--bcb-border-width',
-      '--bcb-bar-bg', '--bcb-bar-font-size'].forEach(function (v) {
+    ['--bcb-color', '--bcb-text', '--bcb-border-width', '--bcb-bar-bg',
+      '--bcb-bar-text', '--bcb-bar-font-size', '--bcb-top-height'].forEach(function (v) {
       root.style.removeProperty(v);
     });
 
     state.maximized = new WeakMap();
     state.pinned = new WeakSet();
     state.factBoxes = new WeakMap();
+  }
+
+  /* -------------------------------------------------------------- company */
+
+  /**
+   * BC online opens your default company without ?company= in the address.
+   * The company then comes from the page: the environment button in BC's top
+   * bar, whose title reads "Cronus België, Environment: Sandbox", or else the
+   * Role Center heading in the client frame. Both show the company's display
+   * name. Only on BC online, only while the address names no company, and at
+   * most every COMPANY_RETRY_MS until found: one lookup by id, and an
+   * attribute search only when the button gave nothing. Once found it is part
+   * of state.ctx until the address changes, so rules and texts use it.
+   */
+  function companyFromPage() {
+    var now = Date.now();
+    if (now - state.lastCompanyLook < COMPANY_RETRY_MS) return;
+    state.lastCompanyLook = now;
+
+    var company = '';
+    var shell = sameOriginDocument(IS_TOP ? window : window.top);
+    var launcher = shell && shell.getElementById('BC_EnvironmentLauncher');
+    var button = launcher && launcher.querySelector('button[title]');
+    if (button) company = BCBuddy.companyFromLauncher(button.getAttribute('title'));
+    if (!company) {
+      var client = IS_TOP ? clientDocument() : document;
+      var home = client && client.querySelector('a[data-home-node="true"] [role="heading"] [aria-label]');
+      // aria-label, not the text: the heading holds the caption twice.
+      if (home) company = BCBuddy.tidyCompany(home.getAttribute('aria-label'));
+    }
+    if (!company) return;
+
+    var ctx = {};
+    Object.keys(state.ctx).forEach(function (key) { ctx[key] = state.ctx[key]; });
+    ctx.company = company;
+    state.ctx = ctx;
+  }
+
+  /** The document of a window on this origin; null across origins. */
+  function sameOriginDocument(win) {
+    try {
+      return win.document;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /** The BC client frame's document, from the top window. */
+  function clientDocument() {
+    var frame = document.querySelector('iframe.designer-client-frame');
+    return frame ? sameOriginDocument(frame.contentWindow) : null;
   }
 
   /* --------------------------------------------------------------- helpers */

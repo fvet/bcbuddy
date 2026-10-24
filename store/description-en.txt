@@ -22,14 +22,14 @@ Want more? Switch on striped rows, a panel with the keyboard shortcuts for the p
 
 🎨 Never post in the wrong environment
 
-Production and sandbox look exactly alike. With BC Buddy, they don't.
+Ten tabs open, one of them Production: one wrong click and a test order is posted for real. Production and sandbox look exactly alike. With BC Buddy, they don't.
 
 • The top bar in your colour, with your text: "PRODUCTION - CRONUS BE"
 • A coloured frame around the window
-• A banner, or a ribbon in the corner
+• A bar above Business Central, a banner at the bottom, or a ribbon in the corner
 • A marked tab title and a coloured tab icon, easy to spot among ten tabs
 
-Choose a colour per environment, per company or per customer. Or start from ready-made samples in one click.
+Choose a colour per environment, per company or per customer. Ready-made samples are included: switch them on in one click.
 
 👥 Set it up once for the whole team
 

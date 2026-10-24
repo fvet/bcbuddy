@@ -255,29 +255,6 @@
     <div class="panel" data-panel="environments">
     <section>
       <div class="section-head">
-        <h2 data-i18n="testUrlHeading">Test</h2>
-      </div>
-      <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and styles below.</p>
-
-      <div class="card tester">
-        <div class="field">
-          <!-- The label is the placeholder, to save a line; aria-label keeps it
-               once the field is filled in. The action sits inside the field's
-               frame as a link, the way the empty rules list words its actions. -->
-          <div class="inset">
-            <input type="text" id="testUrl" spellcheck="false"
-                   data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
-                   placeholder="URL of a Business Central page">
-            <button type="button" class="inset__action" id="useCurrentTab"
-                    data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
-          </div>
-        </div>
-        <dl class="parsed" id="parsed"></dl>
-      </div>
-    </section>
-
-    <section>
-      <div class="section-head">
         <div class="section-title">
           <h2 data-i18n="rulesHeading">Rules</h2>
           <button type="button" class="icon-btn icon-btn--add" id="addRule"
@@ -331,6 +308,29 @@
         <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#environments"
            target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and styles</a></p>
         <p class="sync-status" id="stylesStatus"></p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="testUrlHeading">Test</h2>
+      </div>
+      <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and styles above.</p>
+
+      <div class="card tester">
+        <div class="field">
+          <!-- The label is the placeholder, to save a line; aria-label keeps it
+               once the field is filled in. The action sits inside the field's
+               frame as a link, the way the empty rules list words its actions. -->
+          <div class="inset">
+            <input type="text" id="testUrl" spellcheck="false"
+                   data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
+                   placeholder="URL of a Business Central page">
+            <button type="button" class="inset__action" id="useCurrentTab"
+                    data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
+          </div>
+        </div>
+        <dl class="parsed" id="parsed"></dl>
       </div>
     </section>
 
@@ -440,14 +440,6 @@
                 <input type="color" class="palette__custom" data-custom-color
                        data-path="color" data-i18n-title="customColour"></div>
             </div>
-            <label class="field">
-              <span data-i18n="textColour">Text colour</span>
-              <select data-path="textColor">
-                <option value="auto" data-i18n="textAuto">Automatic</option>
-                <option value="#ffffff" data-i18n="textWhite">White</option>
-                <option value="#000000" data-i18n="textBlack">Black</option>
-              </select>
-            </label>
             <label class="field field--style">
               <span data-i18n="styleLabel">Style</span>
               <select data-path="styleId" data-style-picker></select>
@@ -489,6 +481,7 @@
             <div class="option__body">
               <!-- No caption: each choice says where the banner goes. -->
               <select data-path="banner.position" data-i18n-label="bannerPosition">
+                <option value="top" data-i18n="posTop">Bar at the top</option>
                 <option value="bottom" data-i18n="posBottom">Bar at the bottom</option>
                 <option value="top-right" data-i18n="posTopRight">Ribbon top right</option>
                 <option value="top-left" data-i18n="posTopLeft">Ribbon top left</option>
@@ -506,7 +499,8 @@
                 <input type="range" data-path="banner.fontSize" min="1" max="5" step="1"
                        data-steps="0 11 14 18 22">
               </label>
-              <label class="field field--narrow">
+              <!-- Hidden for the bar at the top, which is always solid. -->
+              <label class="field field--narrow" data-banner-opacity>
                 <span data-i18n="bannerOpacity">Opacity</span>
                 <!-- Five steps like the frame thickness. What is saved is the
                      opacity itself, so exports and shared files stay as they are. -->
@@ -554,6 +548,8 @@
 
       <div class="rule__body" data-body>
         <div class="preview" data-preview>
+          <!-- The bar at the top goes above BC's ribbon, as on the page. -->
+          <div class="preview__topbar" data-preview-topbar hidden></div>
           <div class="preview__ribbon" data-preview-ribbon>
             <span class="preview__brand" data-preview-brand></span>
           </div>

@@ -22,14 +22,14 @@ Envie de plus ? Activez les lignes alternées, un panneau avec les raccourcis cl
 
 🎨 Ne validez plus jamais dans le mauvais environnement
 
-Production et bac à sable se ressemblent comme deux gouttes d'eau. Plus avec BC Buddy.
+Dix onglets ouverts, dont un en production : un mauvais clic et une commande de test est validée pour de vrai. Production et bac à sable se ressemblent comme deux gouttes d'eau. Plus avec BC Buddy.
 
 • La barre en haut dans votre couleur, avec votre texte : « PRODUCTION - CRONUS BE »
 • Un cadre coloré autour de la fenêtre
-• Une bannière, ou un bandeau dans un angle
+• Une barre au-dessus de Business Central, une bannière en bas, ou un bandeau dans un angle
 • Un titre d'onglet marqué et une icône colorée, pour trouver le bon onglet parmi dix autres
 
-Choisissez une couleur par environnement, par société ou par client. Ou partez d'exemples tout prêts, en un clic.
+Choisissez une couleur par environnement, par société ou par client. Des exemples tout prêts sont inclus : activez-les en un clic.
 
 👥 Une seule configuration pour toute l'équipe
 

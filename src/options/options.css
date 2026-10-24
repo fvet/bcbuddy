@@ -426,7 +426,8 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width
 .field input, .field select { color: var(--text); }
 .field--wide { flex: 1 1 260px; }
 .field--narrow { flex: 0 1 150px; }
-/* The colour block is as wide as the palette, so text colour stays beside it. */
+.field[hidden] { display: none; }
+/* The colour block is as wide as the palette, so the style stays beside it. */
 .field--colour { flex: 0 0 auto; max-width: 100%; }
 .field--style { flex: 0 1 190px; }
 /* Same mute as a rule that is off (.rule--disabled). */
@@ -570,7 +571,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .rule__section > .section-title .icon-btn--add .btn__icon { width: 14px; height: 14px; }
 .grid { display: flex; flex-wrap: wrap; gap: 12px; }
 .grid--two > * { flex: 1 1 320px; }
-/* Top-align so Colour (short swatch) shares a baseline with Text colour / Style. */
+/* Top-align so Colour (short swatch) shares a baseline with Style. */
 .grid--style { align-items: start; }
 /* The Colour heading stands in for that field's label: same height, so the
    palette lines up with the selects beside it. */
@@ -817,6 +818,18 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   min-height: 32px;
 }
 .preview__ribbon[hidden] { display: none; }
+
+.preview__topbar {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preview__topbar[hidden] { display: none; }
 .preview__brand { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .preview__chip {
   font-size: 11px;

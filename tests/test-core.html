@@ -1072,6 +1072,24 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('color: text on dark', BCBuddy.idealText('#bc0000'), '#ffffff');
   check('color: text on light', BCBuddy.idealText('#eaa300'), '#000000');
   check('color: rgba with opacity', BCBuddy.toRgba('#bc0000', 0.5), 'rgba(188,0,0,0.5)');
+  // A see-through banner is judged by the colour you see through it
+  check('color: red at half opacity on white reads best in black',
+    [BCBuddy.idealText('#c4314b'), BCBuddy.idealText('#c4314b', 0.5)], ['#ffffff', '#000000']);
+  check('color: solid is solid', BCBuddy.idealText('#c4314b', 1), '#ffffff');
+  check('color: amber at half opacity over a dark page reads best in white',
+    [BCBuddy.idealText('#eaa300', 0.5), BCBuddy.idealText('#eaa300', 0.5, '#181a1b')], ['#000000', '#ffffff']);
+  check('color: blend', BCBuddy.toHex(BCBuddy.blend('#000000', '#ffffff', 0.5)), '#808080');
+  check('color: an older textColor is dropped',
+    'textColor' in BCBuddy.normalizeRule({ name: 'X', textColor: '#000000' }), false);
+
+  // company from BC's environment button, when the address has none
+  check('company: from the environment button',
+    ['Cronus België, Omgeving: Sandbox', 'CRONUS BE, Environment: Production',
+      'Dupont, Fils & Cie, Environnement : Test', 'Omgeving: Sandbox', '', null]
+      .map(BCBuddy.companyFromLauncher),
+    ['Cronus België', 'CRONUS BE', 'Dupont, Fils & Cie', '', '', '']);
+  check('company: one line, trimmed', BCBuddy.tidyCompany('  Cronus\n  België '), 'Cronus België');
+  check('company: too long is not a company', BCBuddy.tidyCompany(new Array(300).join('x')), '');
 
   // normalization and import/export
   var def = BCBuddy.normalize(null);
@@ -1131,7 +1149,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('normalization: no opacity on border anymore',
     Object.prototype.hasOwnProperty.call(BCBuddy.normalizeStyle({}).border, 'opacity'), false);
   check('normalization: unknown position falls back', BCBuddy.normalizeStyle({ banner: { position: 'zijkant' } }).banner.position, 'bottom');
-  check('normalization: top bar position no longer exists', BCBuddy.normalizeStyle({ banner: { position: 'top' } }).banner.position, 'bottom');
+  check('normalization: bar at the top preserved', BCBuddy.normalizeStyle({ banner: { position: 'top' } }).banner.position, 'top');
   check('normalization: corner position preserved', BCBuddy.normalizeStyle({ banner: { position: 'bottom-left' } }).banner.position, 'bottom-left');
   check('normalization: empty rule gets a condition', BCBuddy.normalizeRule({}).conditions.length, 1);
 
@@ -1666,11 +1684,42 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     samples.rules.map(function (r) { return r.styleId; }), ['full', 'full', 'full', 'full']);
   var installed = BCBuddy.normalize({});
   check('seed: a fresh install gets the sample styles',
-    [BCBuddy.seedStyles(installed, samples), installed.styles.map(function (l) { return l.id; })],
+    [BCBuddy.seedSamples(installed, samples), installed.styles.map(function (l) { return l.id; })],
     [true, ['full', 'subtle']]);
-  check('seed: survives normalize', BCBuddy.normalize(installed).styles.length, 2);
-  check('seed: not twice', BCBuddy.seedStyles(installed, samples), false);
-  check('seed: not over settings someone already has', BCBuddy.seedStyles(withMine, samples), false);
+  check('seed: and the sample rules, switched off',
+    installed.rules.map(function (r) { return [r.name, r.enabled]; }),
+    samples.rules.map(function (r) { return [r.name, false]; }));
+  check('seed: an off sample colours nothing',
+    BCBuddy.findRule(BCBuddy.effectiveRules(installed),
+      BCBuddy.parseUrl('https://businesscentral.dynamics.com/contoso.com/Production')), null);
+  check('seed: survives normalize',
+    [BCBuddy.normalize(installed).styles.length, BCBuddy.normalize(installed).rules.length], [2, 4]);
+  check('seed: not twice', BCBuddy.seedSamples(installed, samples), false);
+  check('seed: not over settings someone already has', BCBuddy.seedSamples(withMine, samples), false);
+
+  // Load samples switches on the samples the install left off, as they came
+  var seeded = BCBuddy.normalize({});
+  BCBuddy.seedSamples(seeded, samples);
+  seeded.rules[1].color = '#000000';
+  check('seed: Load samples switches on the untouched ones',
+    [BCBuddy.addSamples(seeded, samples), seeded.rules.map(function (r) { return r.enabled; })],
+    [{ added: 3, skipped: 1, styles: 0 }, [true, false, true, true]]);
+
+  // The first shared rules take over from the samples nobody edited
+  var toShare = BCBuddy.normalize({});
+  BCBuddy.seedSamples(toShare, samples);
+  toShare.rules[0].enabled = true;
+  toShare.rules[2].conditions[0].value = 'acceptatie';
+  toShare.rules[3].styleId = 'subtle';
+  toShare.rules.push(BCBuddy.normalizeRule({ id: 'mine', name: 'Shop',
+    conditions: [{ field: 'url', op: 'contains', value: 'shop' }] }));
+  check('drop: switched on but unedited goes, edited ones and your own stay',
+    [BCBuddy.dropSamples(toShare, samples), toShare.rules.map(function (r) { return r.name; })],
+    [2, ['UAT', 'Development', 'Shop']]);
+  var sameName = BCBuddy.normalize({ rules: [JSON.parse(JSON.stringify(samples.rules[1]))] });
+  sameName.rules[0].id = 'own-production';
+  check('drop: a rule of your own with the name of a sample stays',
+    [BCBuddy.dropSamples(sameName, samples), sameName.rules.length], [0, 1]);
 
   // styles travel along in import and export
   var withStyleExported = BCBuddy.toExport(BCBuddy.normalize({ rules: [linkedRule], styles: [style] }));
@@ -2652,6 +2701,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     var H = window.innerHeight;
     function centre(r) { return [r.left + r.width / 2, r.top + r.height / 2]; }
     var lands = {
+      'top': function (r) { return r.top <= 1 && r.width >= W - 1; },
       'bottom': function (r) { return r.bottom >= H - 1 && r.width >= W - 1; },
       'top-right': function (r) { return centre(r)[0] > W / 2 && centre(r)[1] < H / 2; },
       'top-left': function (r) { return centre(r)[0] < W / 2 && centre(r)[1] < H / 2; },
@@ -2669,6 +2719,14 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
         truthy('banner DOM: ' + position + ' lands in its place', !!rect && lands[position](rect));
         check('banner DOM: ' + position + ' is the only banner', document.querySelectorAll('#bcb-banner').length, 1);
         check('banner DOM: ' + position + ' shows its text', bannerText(), 'POS');
+        // Only the bar at the top moves the page down, by its own height.
+        var root = document.documentElement;
+        check('banner DOM: ' + position + (position === 'top' ? ' moves' : ' leaves') + ' the page',
+          [root.hasAttribute('data-bcb-top-bar'), getComputedStyle(root).marginTop === (rect && rect.height + 'px')],
+          [position === 'top', position === 'top']);
+        if (position === 'top') {
+          check('banner DOM: the bar at the top is solid', getComputedStyle(banner).backgroundColor, 'rgb(15, 108, 189)');
+        }
       });
     }, Promise.resolve());
   }
