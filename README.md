@@ -77,7 +77,7 @@ exactly alike. BC Buddy colours the bar at the top of Business Central, with
 your own text, and can add a bar above it, a coloured frame, a banner, a
 marked tab title and a coloured tab icon.
 
-![The Sales Orders list in Business Central with a green bar reading "CRONUS BE (Production)", a green frame around the window and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts panel is open on the right](store/screenshot-4-sales-orders-1280x800.png)
+![The Sales Orders list in Business Central with a green top bar, a green frame around the page and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts side panel is open on the right](store/screenshot-4-sales-orders-1280x800.png)
 
 You set this up under **Environments** on the settings page:
 
