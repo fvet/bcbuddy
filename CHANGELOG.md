@@ -37,8 +37,19 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   until you switch it on under **Helpdesk**; the address and colour can come
   with your team's shared file.
 
+### Changed
+
+- **Keyboard shortcuts in a side panel.** The keyboard icon in the top bar
+  now opens the shortcuts in the browser's side panel, next to Business
+  Central instead of on top of it. It follows you from page to page, has a
+  gear for the BC Buddy settings, and closes by itself when you leave
+  Business Central.
+
 ### Fixed
 
+- **No red on hover in the top bar.** Pointing at the **Environment** button
+  in a coloured top bar showed Business Central's own red. It now keeps the
+  rule's colour.
 - **Readable banner text.** On a see-through banner or corner ribbon, the text
   is now black or white for the colour you actually see. Before, a dark colour
   at half opacity got white text on what looked like light pink.

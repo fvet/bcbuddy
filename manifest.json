@@ -4,8 +4,8 @@
   "version": "1.0.17",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
-  "minimum_chrome_version": "111",
-  "permissions": ["storage", "alarms", "scripting"],
+  "minimum_chrome_version": "116",
+  "permissions": ["storage", "alarms", "scripting", "sidePanel"],
   "storage": {
     "managed_schema": "managed_schema.json"
   },
@@ -35,6 +35,9 @@
     "show-shortcuts": {
       "description": "__MSG_commandShortcuts__"
     }
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/sidepanel.html"
   },
   "options_ui": {
     "page": "src/options/options.html",

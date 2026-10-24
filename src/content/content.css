@@ -114,6 +114,13 @@ html[data-bcb-top-bar] {
 [data-bcb-ribbon] *:not(svg):not(img):not(input):not(textarea):not(select) {
   background-color: transparent !important;
 }
+/* BC's own hover colours come with !important and a more specific selector
+   (.thm-bgcolor--palette--…--hover:hover on the Environment button), so on
+   hover its colour, red on Production, would show through the rule's colour.
+   :hover here outranks it. Only the top bar, only the hovered element. */
+[data-bcb-ribbon] *:hover:not(svg):not(img):not(input):not(textarea):not(select) {
+  background-color: transparent !important;
+}
 
 /* Dropdown size. BC caps its lookup dropdown, and three containers inside it,
    with a fixed max-width and max-height. On a dropdown the content script has

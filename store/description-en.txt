@@ -18,7 +18,7 @@ No more clicking the same buttons on every page.
 
 Your choices win: set a page back to narrow, and BC Buddy leaves it that way.
 
-Want more? Switch on striped rows, a panel with the keyboard shortcuts for the page you are on, hide the FactBox pane or the notifications bell, or turn off animations. Every improvement has its own switch.
+Want more? Switch on striped rows, a side panel with the keyboard shortcuts for the page you are on, hide the FactBox pane or the notifications bell, or turn off animations. Every improvement has its own switch.
 
 🎨 Never post in the wrong environment
 

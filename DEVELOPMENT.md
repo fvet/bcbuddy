@@ -23,7 +23,9 @@ src/
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
   lib/gearmenu.js      the BC Buddy section in BC's gear menu (Settings pane)
-  lib/shortcuts.js     keyboard shortcuts: the top bar icon and its panel
+  lib/shortcuts.js     keyboard shortcuts: the top bar icon, its panel and
+                       the feed for the side panel
+  sidepanel/           the keyboard shortcuts in the browser side panel
   content/content.js   draws frame, banner, ribbon, title and favicon;
                        starts maximize, the dropdown sizer, the pane
                        handles, the copy icon, week numbers, the row tint,
@@ -864,8 +866,25 @@ var a = document.getElementById('O365_Settings_navbardatalinks');
 
 ## ⌨️ Keyboard shortcuts
 
-`shortcuts.js` adds a keyboard button to BC's top bar and opens a panel with
-the shortcuts for where the cursor is. The switch starts off.
+`shortcuts.js` adds a keyboard button to BC's top bar that opens the
+browser's side panel (`src/sidepanel/`) with the shortcuts for where the
+cursor is. The switch starts off. Where the browser cannot open a side panel,
+the button opens the floating panel in the page instead.
+
+- **Side panel.** The button sends `bcb:toggle-side-panel`; the service
+  worker calls `chrome.sidePanel.open({ windowId })` at once, while the click
+  still counts as a user gesture, or tells the panel to close when one is
+  open in that window (the panel registers over a `bcb-sidepanel` port). The
+  panel follows the active tab: it opens a `bcb-shortcuts` port to the tab's
+  top frame, and `content.js` answers through `listen()` in `shortcuts.js`
+  with the sections. A
+  content script only accepts that port from our own extension pages. While
+  a panel listens: the page observer below, and one `focusin` listener on
+  BC's document that restarts a 300 ms timer; nothing is sent when the
+  sections did not change. The panel caps what arrives and puts it on the
+  page as text only. It closes itself when the tab it showed BC in moves to
+  another origin, and takes the tab's zoom (`tabs.getZoom`, `onZoomChange`;
+  no permission needed).
 
 - **Where.** BC online shows the client in `iframe.designer-client-frame`,
   same origin, under the Microsoft 365 top bar. Icon and panel live in the top
@@ -928,6 +947,9 @@ the shortcuts for where the cursor is. The switch starts off.
   navigation while a report is in progress. Only with the helpdesk switched
   on; the screenshots use `tabs.captureVisibleTab`, which the host permission
   covers.
+- `sidePanel` — the keyboard shortcuts in the browser's side panel
+  (`src/sidepanel/`). `sidePanel.open()` needs Chrome 116, hence
+  `minimum_chrome_version`.
 - `storage.managed_schema` is not a permission and shows no warning, so adding
   a policy key does not hold up the automatic update. `chrome.management.getSelf`
   needs no permission either.

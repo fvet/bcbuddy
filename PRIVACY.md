@@ -72,6 +72,9 @@ to it.
 - `storage` - keep your settings.
 - `alarms` - check the shared configuration file once a day, or every hour
   while it could not be loaded.
+- `sidePanel` - show the keyboard shortcuts for the Business Central page
+  you are on in the browser's side panel. The panel only shows what the
+  extension reads from that page; nothing leaves your computer.
 - host permissions (`<all_urls>`) - rules may match any URL, because a
   Business Central on-premises server runs on your own host name, and your
   shared configuration file can be hosted anywhere. The extension only uses

@@ -210,6 +210,7 @@
   "scKeyTips": { "message": "Afficher les touches d'accès des actions" },
   "scNotListed": { "message": "Les actions des menus que vous n'avez pas encore ouverts ne sont pas listées." },
   "scDocsAll": { "message": "Tous les raccourcis clavier" },
+  "scPanelEmpty": { "message": "Ouvrez une page de Business Central pour voir ses raccourcis." },
   "weekNumbersToggle": { "message": "Numéros de semaine dans le sélecteur de date" },
   "weekNumbersDesc": { "message": "Le calendrier d'un champ date affiche les numéros de semaine." },
   "hideNotificationsToggle": { "message": "Masquer l'icône des notifications" },

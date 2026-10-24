@@ -209,6 +209,7 @@
   "scKeyTips": { "message": "Toegangstoetsen voor de acties weergeven" },
   "scNotListed": { "message": "Acties in menu's die je nog niet opende, staan er niet bij." },
   "scDocsAll": { "message": "Alle sneltoetsen" },
+  "scPanelEmpty": { "message": "Open een pagina in Business Central om de sneltoetsen te zien." },
   "weekNumbersToggle": { "message": "Weeknummers in de datumkiezer" },
   "weekNumbersDesc": { "message": "De kalender van een datumveld toont weeknummers." },
   "hideNotificationsToggle": { "message": "Berichtenicoon verbergen" },
