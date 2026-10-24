@@ -296,9 +296,10 @@
         banner.className = 'preview__banner preview__banner--' + shown.banner.position +
           (shown.banner.enabled && !atTop ? ' preview__banner--visible' : '');
         if (shown.banner.enabled && !atTop) {
-          var under = document.documentElement.getAttribute('data-theme') === 'dark' ? '#2b2f36' : '#ffffff';
-          banner.style.background = BCBuddy.toRgba(color, shown.banner.opacity);
-          banner.style.color = BCBuddy.idealText(color, shown.banner.opacity, under);
+          // Business Central's page is white, whatever this page's theme: show
+          // the colour it gets there, mixed with white, and its text colour.
+          banner.style.background = BCBuddy.toHex(BCBuddy.blend(color, '#ffffff', shown.banner.opacity));
+          banner.style.color = BCBuddy.idealText(color, shown.banner.opacity);
           banner.textContent = BCBuddy.renderTidy(shown.banner.text || '{name}', ctx, extras);
           // A fixed size is scaled like the rest of the preview (the bar to
           // about 0.85, the corner ribbon to about 0.5); automatic keeps the CSS size.
