@@ -18,6 +18,7 @@
           page.updateSyncEnabled(el.hostedUrl.value);
         });
         el.hostedUrl.addEventListener('change', function () {
+          if (state.policyUrl) return;
           page.trimField(el.hostedUrl);
           if (!page.applyHostedUrl(el.hostedUrl.value, { persist: true })) return;
           page.renderHostedStatus();
@@ -99,20 +100,28 @@
        */
       page.clearSharedRules = function () {
         var hosted = state.settings.hosted;
+        // Set by policy: the service worker would turn it straight back on.
+        if (state.policyUrl) return;
         // Deleting one rule asks first; wiping the whole shared set should not
         // be the one destructive action that goes through on a single click.
         if (!confirm(t('clearSharedConfirm', [hosted.rules.length]))) return;
         hosted.rules = [];
-        hosted.layouts = [];
+        hosted.styles = [];
+        // Starting over means the file's Web client defaults count as new again.
+        hosted.webClient = {};
         hosted.lastHash = '';
         hosted.sourceName = '';
         hosted.lastSync = null;
         hosted.lastError = null;
+        hosted.failures = 0;
         hosted.active = false;
+        // Own rules may have used a shared style, and those may have been the
+        // only styles left: normalize() points them at one that still exists.
+        state.settings = BCBuddy.normalize(state.settings);
 
         page.save();
         page.renderHosted();
-        page.renderLayouts();
+        page.renderStyles();
         page.renderParsed();
         page.setHostedStatus(t('sharedCleared'), 'ok');
       };
@@ -128,7 +137,7 @@
             page.applyImport(String(reader.result), file.name);
             el.importFile.value = '';
           };
-          reader.onerror = function () { page.setImportStatus(t('importReadFailed'), 'error'); };
+          reader.onerror = function () { page.setTransferStatus(t('importReadFailed'), 'error'); };
           reader.readAsText(file);
         });
 
@@ -143,8 +152,53 @@
           a.click();
           a.remove();
           setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
-          page.setExportStatus(t('exportDone', data.rules.length), 'ok');
+          page.setTransferStatus(t('exportDone', data.rules.length), 'ok');
         });
+
+        el.loadSamples.addEventListener('click', page.loadSamples);
+      };
+
+      /**
+       * Adds the sample rules from the file packaged with the extension: no
+       * network, and the same file the site offers as a shared example. They
+       * become own rules; rules you already have are left alone.
+       */
+      page.loadSamples = function () {
+        // Checked again on the click: a policy may have arrived since the page
+        // was drawn.
+        Promise.all([BCBuddy.readPolicy(), page.readInstallType()]).then(function (results) {
+          state.policyUrl = BCBuddy.policyUrl(results[0]);
+          state.installType = results[1];
+          if (!page.samplesAllowed()) {
+            page.renderEmptyState();
+            return null;
+          }
+          return fetch(chrome.runtime.getURL(BCBuddy.SAMPLES_PATH)).then(function (response) {
+            if (!response.ok) throw new Error(String(response.status));
+            return response.text();
+          });
+        }).then(function (text) {
+          if (text === null) return;
+          var samples = BCBuddy.localizeSamples(BCBuddy.parseImport(text));
+          var stats = BCBuddy.addSamples(state.settings, samples);
+          if (stats.added || stats.styles) {
+            page.save();
+            page.renderStyles();
+            page.renderRules(); // rule dropdowns now include the sample style
+            page.renderParsed();
+          }
+          var status = stats.added ? t('samplesAdded', [stats.added])
+            : stats.styles ? t('samplesStylesAdded', [stats.styles])
+            : t('samplesNone');
+          page.setSamplesStatus(status, 'ok');
+        }).catch(function (err) {
+          page.setSamplesStatus(t('samplesFailed', [String(err && err.message || err)]), 'error');
+        });
+      };
+
+      page.setSamplesStatus = function (text, kind) {
+        el.samplesStatus.textContent = text;
+        el.samplesStatus.className = 'sync-status' + (kind ? ' sync-status--' + kind : '');
       };
 
       page.applyImport = function (text, source) {
@@ -152,63 +206,53 @@
         try {
           parsed = BCBuddy.parseImport(text);
         } catch (e) {
-          page.setImportStatus(t('importFailed', e.message), 'error');
+          page.setTransferStatus(t('importFailed', e.message), 'error');
           return;
         }
-        // Layouts first, so rules can point at something that already exists.
-        var mergedLayouts = BCBuddy.mergeLayouts(state.settings.layouts, parsed.layouts);
-        state.settings.layouts = mergedLayouts.layouts;
+        // Styles first, so rules can point at something that already exists.
+        var mergedStyles = BCBuddy.mergeStyles(state.settings.styles, parsed.styles);
+        state.settings.styles = mergedStyles.styles;
 
         var merged = BCBuddy.mergeRules(state.settings.rules, parsed.rules);
         state.settings.rules = merged.rules;
-        if (parsed.helpdeskEmail) {
-          state.settings.helpdeskEmail = parsed.helpdeskEmail;
-          if (page.el.helpdeskEmail) page.el.helpdeskEmail.value = parsed.helpdeskEmail;
-        }
-        if (parsed.helpdeskColor) {
-          state.settings.helpdeskColor = parsed.helpdeskColor;
-          if (page.el.helpdeskColor) page.el.helpdeskColor.value = BCBuddy.toHex(parsed.helpdeskColor);
-        }
-        if (parsed.helpdeskEnabled !== null) {
-          state.settings.helpdeskEnabled = parsed.helpdeskEnabled;
-          if (page.el.helpdeskEnabled) page.el.helpdeskEnabled.checked = parsed.helpdeskEnabled;
-          page.renderHelpdeskConfig();
-        }
+        // An import by hand is deliberate: the file's Web client settings win.
+        var webClientChanged = BCBuddy.applyWebClient(state.settings, parsed.webClient);
+        BCBuddy.applyHelpdesk(state.settings, parsed.helpdesk);
         page.save();
+        page.renderHelpdesk();
         page.renderRules();
-        page.renderLayouts();
+        page.renderStyles();
         page.renderParsed();
+        page.renderWebClient();
 
         var stats = merged.stats;
-        var layoutStats = mergedLayouts.stats;
+        var styleStats = mergedStyles.stats;
         var rules = page.counts([[stats.overwritten, 'importOverwritten'],
           [stats.added, 'importAdded'], [stats.kept, 'importKept']]);
-        var layouts = page.counts([[layoutStats.overwritten, 'importOverwritten'],
-          [layoutStats.added, 'importAdded']]);
+        var styles = page.counts([[styleStats.overwritten, 'importOverwritten'],
+          [styleStats.added, 'importAdded']]);
 
-        page.setImportStatus(
+        page.setTransferStatus(
           t('importDone', [parsed.rules.length, page.shorten(source), rules || t('importNone')]) +
-          (layouts ? t('importLayouts', [layouts]) : ''), 'ok');
+          (styles ? t('importStyles', [styles]) : '') +
+          (webClientChanged ? t('importWebClient', [webClientChanged]) : ''), 'ok');
       };
 
       page.renderHostedStatus = function () {
         var h = state.settings.hosted;
-        var managed = state.managed || { url: '', error: '' };
         page.updateSyncEnabled(h.url);
-        // A URL set by policy is not the user's to edit, and clearing the
-        // shared rules would only hold until the next browser start.
-        el.hostedUrl.disabled = !!managed.url;
-        el.hostedManagedNote.hidden = !managed.url;
-        el.clearShared.hidden = !!managed.url;
+        // Set by policy: the address cannot be changed and the shared rules not
+        // cleared. Synchronise stays, to fetch a change right away.
+        var managed = !!state.policyUrl;
+        el.hostedUrl.readOnly = managed;
+        el.hostedManaged.hidden = !managed;
+        el.clearShared.hidden = managed;
         // When shared configuration is off, dim the field — like a disabled rule.
         var field = el.hostedUrl.closest('.field');
         if (field) field.classList.toggle('field--inactive', !h.active);
-        if (managed.error) {
-          page.setHostedStatus(t('hostedManagedInvalid', [managed.error]), 'error');
-          return;
-        }
+        // No URL: the empty field says it already, so the line stays hidden.
         if (!h.url) {
-          page.setHostedStatus(t('statusNoHosted'));
+          page.setHostedStatus('');
           return;
         }
         // Legacy http:// URLs stay visible but cannot sync until upgraded.

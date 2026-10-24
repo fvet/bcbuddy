@@ -29,11 +29,17 @@
   var lastHtml    = '';
   var sent        = false;
 
+  // The content scripts' BCBuddy: this file runs in their isolated world, so
+  // the language picked on the options page and the settings checks are here.
+  var BCBuddy = window.BCBuddy || null;
+
   /** Translation with a readable fallback: a missing key shows the key. */
   function t(key, subs) {
     var list = subs == null ? [] : (Array.isArray(subs) ? subs : [subs]);
+    list = list.map(String);
+    if (BCBuddy && BCBuddy.t) return BCBuddy.t(key, list);
     var msg = '';
-    try { msg = chrome.i18n.getMessage(key, list.map(String)); } catch (e) { /* outside an extension */ }
+    try { msg = chrome.i18n.getMessage(key, list); } catch (e) { /* outside an extension */ }
     return msg || key;
   }
 
@@ -222,7 +228,7 @@
 
   function openSettings() {
     // Keeps the panel (and the report) open; settings open in their own tab.
-    chrome.runtime.sendMessage({ type: 'bcb:open-options' });
+    chrome.runtime.sendMessage({ type: 'bcb:open-options', panel: 'helpdesk' });
   }
 
   elSettings.addEventListener('click', openSettings);
@@ -383,8 +389,11 @@
   // ------------------------------------------------------------------ settings
 
   function applySettings(raw) {
-    cachedEmail = (raw && typeof raw.helpdeskEmail === 'string' && raw.helpdeskEmail.trim()) || '';
-    var accent = raw && typeof raw.helpdeskColor === 'string' && raw.helpdeskColor.trim();
+    // Stored settings are untrusted: only what normalize() lets through is
+    // used, and without it nothing is (no address, the default colour).
+    var s = BCBuddy && BCBuddy.normalize ? BCBuddy.normalize(raw) : null;
+    cachedEmail = (s && s.helpdeskEmail) || '';
+    var accent = s && s.helpdeskColor;
     if (accent) panel.style.setProperty('--bcb-sp-accent', accent);
     else panel.style.removeProperty('--bcb-sp-accent');
     renderIntro();

@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
   "name": "BC Buddy",
-  "version": "1.0.8",
+  "version": "1.0.17",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "minimum_chrome_version": "111",
   "permissions": ["storage", "alarms", "scripting"],
   "storage": {
-    "managed_schema": "schema.json"
+    "managed_schema": "managed_schema.json"
   },
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -16,13 +16,26 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/lib/i18n.js", "src/lib/match.js", "src/lib/settings.js", "src/content/content.js"],
+      "js": ["src/lib/i18n.js", "src/lib/match.js", "src/lib/settings.js", "src/lib/dropdowns.js", "src/lib/panes.js", "src/lib/bcstate.js", "src/lib/maximize.js", "src/lib/actionbar.js", "src/lib/factbox.js", "src/lib/copyvalues.js", "src/lib/newtab.js", "src/lib/weeknumbers.js", "src/lib/gearmenu.js", "src/lib/shortcuts.js", "src/content/content.js"],
       "css": ["src/content/content.css"],
       "run_at": "document_start",
       "all_frames": true,
       "match_about_blank": false
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/calm.js"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": false,
+      "world": "MAIN"
     }
   ],
+  "commands": {
+    "show-shortcuts": {
+      "description": "__MSG_commandShortcuts__"
+    }
+  },
   "options_ui": {
     "page": "src/options/options.html",
     "open_in_tab": true

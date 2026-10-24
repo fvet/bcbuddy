@@ -1,78 +1,67 @@
 ---
-title: Tell your Business Central environments apart
+title: Business Central, easier to work in
 ---
 
 <div class="bcb-hero" markdown>
 
 # BC Buddy
 
-<p class="bcb-tagline">If you work across several customers or environments, all
-your Business Central tabs start to look the same. Posting in production while
-you thought you were in a sandbox is easily done. BC Buddy gives every
-environment its own colour.</p>
+<p class="bcb-tagline">A free browser extension that makes the Business Central
+web client easier to work in, and gives every environment its own colour, so
+you never post in production by mistake.</p>
 
 [Getting started](getting-started.md){ .md-button .md-button--primary }
 [Install from Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl){ .md-button }
-[Source on GitHub](https://github.com/fvet/bcbuddy){ .md-button }
 
 </div>
 
-The most visible part is the bar at the top of the BC client, which takes your
-colour and your own text:
+## An easier web client
 
-<span class="bcb-ribbon bcb-production">Dynamics 365 Business Central — PRODUCTION · CRONUS BE</span>
-<span class="bcb-ribbon bcb-sandbox">Dynamics 365 Business Central — CRONUS BE (Sandbox)</span>
+Install it and Business Central is easier to work in straight away. No setup
+needed:
 
-Alongside that it can draw a coloured frame around the window, a banner, a
-marked tab title and a coloured tab icon.
+- **Copy any value with one click**, also an amount or a No. you cannot select.
+- **Wide pages** with the action bar pinned, and lists instead of tiles.
+- **Bigger dropdowns** that show all their columns.
+- **Week numbers** in the date picker.
+- **The line you are on** stands out in journals and orders.
+
+Each one has its own switch. [See them all](web-client.md).
+
+## A colour for every environment
+
+Ten tabs open, one of them is Production, and a test order gets posted in the
+live company. It happens because a test environment and the real one look
+exactly alike. BC Buddy colours the bar at the top of Business Central, with
+your own text.
+
+It can also add a bar above Business Central, a coloured frame around the
+window, a banner, a marked tab title and a coloured tab icon. You choose the colours: per environment, per
+company or per customer.
 
 <figure markdown>
-![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](assets/screenshot-1-1280x800.png)
-<figcaption>A marked environment: ribbon, frame and corner banner, all in the colour of the rule that matched.</figcaption>
+![The Sales Orders list in Business Central with a green bar reading "CRONUS BE (Production)", a green frame around the window and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts panel is open on the right](assets/screenshot-4-sales-orders-1280x800.png)
+<figcaption>Production marked in green: the bar at the top, a frame and a corner banner.</figcaption>
 </figure>
 
-## What it does
+Setting up your first two colours takes a minute:
+[Getting started](getting-started.md#environments).
 
-- **Automatic wide layout.** Every page expands to full width and tile pages
-  switch to list view automatically — no clicking required. Toggle it off in
-  one click under **Maximize**.
-- **Colour per environment.** You decide when each colour appears: per
-  environment, per company or per customer. Production green, test orange,
-  sandbox red — or whatever suits you.
-- **Five ways to mark.** Ribbon, frame, banner, tab title and tab icon. Turn on
-  as many as you find useful.
-- **Online and on-premises.** Both are recognised, including the server
-  instance in the URL of an on-prem installation.
-- **Shared across a team.** Set the markings up once and your colleagues get
-  them automatically, later changes included.
-- **Nothing leaves your machine.** No server, no analytics, no tracking. See
+## Good to know
+
+- **Works for your whole team.** One person sets up the colours and everyone
+  else gets them automatically. See [Sharing with your team](sharing.md).
+- **Nothing leaves your computer.** No account, no tracking. See
   [Privacy](privacy.md).
+- **Chrome and Edge**, version 111 or newer, with Business Central online or
+  on your own server.
+- **In English, Dutch and French**, following the language of your browser.
+  To choose another one, use the language list at the top right of the BC
+  Buddy settings.
+- **Free and open source** under the
+  [MIT licence](https://github.com/fvet/bcbuddy/blob/main/LICENSE), also for
+  use at work.
+- **A question, an idea or a problem?** Tell us at
+  [github.com/fvet/bcbuddy/issues](https://github.com/fvet/bcbuddy/issues).
 
-BC Buddy is a Chrome and Edge extension (Manifest V3), and is available in
-Dutch and English. It follows the language of your browser. It is open source
-under the
-[MIT licence](https://github.com/fvet/bcbuddy/blob/main/LICENSE), so you are
-free to use it at work, change it and pass it on.
-
-## Installing
-
-Click [Install from Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl)
-and confirm the browser prompt. The options page opens automatically on first
-install.
-
-Chrome or Edge 111 or newer is required.
-
-An organisation can install the extension and its shared configuration on every
-managed browser by policy, so colleagues have nothing to set up: see
-[Deploying for your organisation](deploying.md).
-
-??? note "Installing from source"
-
-    1. Download the latest `bcbuddy-*.zip` from the
-       [releases page](https://github.com/fvet/bcbuddy/releases/latest) and
-       unpack it, or clone the repository.
-    2. Open `chrome://extensions` (or `edge://extensions`).
-    3. Turn on **Developer mode**.
-    4. Click **Load unpacked** and pick the folder you just unpacked.
-
-[Set up your first environment](getting-started.md){ .md-button .md-button--primary }
+[Get started](getting-started.md){ .md-button .md-button--primary }

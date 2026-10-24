@@ -49,15 +49,20 @@ $locales = (Get-ChildItem (Join-Path $root '_locales') -Directory |
     Select-Object -ExpandProperty Name | Sort-Object) -join ','
 if (-not $locales) { throw 'No language folders under _locales.' }
 
-$suites = @('test-core.html', 'test-options.html', 'test-popup.html')
+$suites = @('test-core.html', 'test-options.html')
 $totalFailed = 0
 
 foreach ($suite in $suites) {
     $url = 'file:///' + ((Join-Path $testDir $suite) -replace '\\', '/') + '?locales=' + $locales
     $dumpFile = Join-Path $work ($suite + '.txt')
 
+    # A fixed window: headless Chrome's default size differs per machine, and a
+    # layout check that passes at 1280 pixels here failed at 800 on CI.
+    # Virtual time, so the waits cost nothing real; the options suite needs
+    # about 21 s of it, and a budget it outgrows leaves it on "running...".
     & $browser --headless=new --disable-gpu --no-sandbox --allow-file-access-from-files `
-        --user-data-dir="$work\profile" --virtual-time-budget=20000 --dump-dom $url |
+        --window-size=800,600 `
+        --user-data-dir="$work\profile" --virtual-time-budget=40000 --dump-dom $url |
         Out-File -FilePath $dumpFile -Encoding utf8
 
     $dom = Get-Content $dumpFile -Raw
@@ -91,6 +96,29 @@ foreach ($suite in $suites) {
     # Notes fail nothing, so they only help if they are printed either way.
     if ($notes) { $notes | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkGray } }
     Write-Host "  $total"
+}
+
+# The keyboard shortcuts panel's built-in lists against Microsoft's article.
+# This one goes online, so trouble reaching GitHub or Learn (exit 2) is
+# printed and fails nothing; a key or link that is gone (exit 1) fails.
+$node = Get-Command node -ErrorAction SilentlyContinue
+if (-not $node) {
+    Write-Host 'shortcut docs  SKIPPED (no node on PATH)' -ForegroundColor Yellow
+} else {
+    $report = & $node.Source (Join-Path $root 'tools\check-shortcut-docs.mjs')
+    $code = $LASTEXITCODE
+    $text = $report | ForEach-Object { "$_" } | Where-Object { $_ -and $_ -notmatch '^## ' }
+    if ($code -eq 0) {
+        Write-Host 'shortcut docs  OK' -ForegroundColor Green
+        $text | ForEach-Object { Write-Host "  $_" }
+    } elseif ($code -eq 2) {
+        Write-Host 'shortcut docs  NOT CHECKED (offline?)' -ForegroundColor Yellow
+        $text | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkGray }
+    } else {
+        Write-Host 'shortcut docs' -ForegroundColor Red
+        $text | ForEach-Object { Write-Host "  $_" }
+        $totalFailed++
+    }
 }
 
 if ($totalFailed -gt 0) {

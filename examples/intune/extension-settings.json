@@ -1,0 +1,10 @@
+{
+  "jpgpcfecpdcocjlepdfceahamliimjdl": {
+    "runtime_blocked_hosts": ["*://*"],
+    "runtime_allowed_hosts": [
+      "*://*.dynamics.com",
+      "*://bc.example.local",
+      "*://example.com"
+    ]
+  }
+}

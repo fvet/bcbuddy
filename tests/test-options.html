@@ -12,7 +12,12 @@
 <script>
 var ROOT = '../';
 var STORE = {};
+var SESSION = {};
 var LISTENERS = [];
+// What IT set by browser policy (chrome.storage.managed).
+var MANAGED = {};
+// How BC Buddy was installed (chrome.management.getSelf); 'admin' when IT pushed it.
+var INSTALL_TYPE = 'normal';
 var SENT = [];
 
 // The options page is in the active tab itself; the button must look further.
@@ -72,12 +77,42 @@ window.chrome = {
       },
       remove: function (k) { delete STORE[k]; return Promise.resolve(); }
     },
+    session: {
+      get: function (k) {
+        var out = {};
+        if (SESSION[k] !== undefined) out[k] = SESSION[k];
+        return Promise.resolve(out);
+      },
+      set: function (obj) {
+        var changes = {};
+        Object.keys(obj).forEach(function (k) {
+          changes[k] = { oldValue: SESSION[k], newValue: obj[k] };
+          SESSION[k] = obj[k];
+        });
+        LISTENERS.forEach(function (fn) { fn(changes, 'session'); });
+        return Promise.resolve();
+      },
+      remove: function (k) {
+        var changes = {};
+        changes[k] = { oldValue: SESSION[k] };
+        delete SESSION[k];
+        LISTENERS.forEach(function (fn) { fn(changes, 'session'); });
+        return Promise.resolve();
+      }
+    },
+    managed: {
+      get: function () { return Promise.resolve(JSON.parse(JSON.stringify(MANAGED))); }
+    },
     onChanged: { addListener: function (fn) { LISTENERS.push(fn); } }
   },
   runtime: {
     sendMessage: function (msg) { SENT.push(msg); return Promise.resolve({ ok: true, count: 3 }); },
     openOptionsPage: function () {},
+    getURL: function (path) { return ROOT + path; },
     onMessage: { addListener: function () {} }
+  },
+  management: {
+    getSelf: function () { return Promise.resolve({ installType: INSTALL_TYPE }); }
   },
   tabs: {
     query: function () { return Promise.resolve(TABS); },
@@ -137,9 +172,12 @@ function report() {
 
 /* ---- syntax check of all script files ----------------------------------- */
 var FILES = [
-  'src/lib/match.js', 'src/lib/settings.js', 'src/content/content.js',
+  'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/lib/panes.js', 'src/lib/bcstate.js',
+  'src/lib/maximize.js', 'src/lib/actionbar.js', 'src/lib/factbox.js', 'src/lib/copyvalues.js', 'src/lib/newtab.js',
+  'src/lib/weeknumbers.js', 'src/lib/gearmenu.js', 'src/lib/shortcuts.js',
+  'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
-  'src/options/options-hosted.js', 'src/options/options.js', 'src/popup/popup.js',
+  'src/options/options-hosted.js', 'src/options/options.js',
   'src/support/support-panel.js'
 ];
 
@@ -160,10 +198,10 @@ Promise.all(FILES.map(function (f) {
   report();
 });
 
-/* ---- the brand appears three times --------------------------------------
- * logo.svg supplies the PNGs; the options page and popup have the brand inline,
- * because only that way can the tint follow the browser theme.
- * Those two copies can therefore quietly drift from the source.
+/* ---- the brand appears twice -------------------------------------------
+ * logo.svg supplies the PNGs; the options page has the brand inline, because
+ * only that way can the tint follow the browser theme.
+ * That copy can therefore quietly drift from the source.
  * Hence this check on the geometry — not the colors: the fill differs on purpose
  * (var(--brand-mark) versus a fixed tint), as do the ids, which must be unique per document.
  */
@@ -194,7 +232,7 @@ function markSignature(svg) {
 }
 
 function assertBrandMark() {
-  var sources = ['icons/logo.svg', 'src/options/options.html', 'src/popup/popup.html'];
+  var sources = ['icons/logo.svg', 'src/options/options.html'];
   return Promise.all(sources.map(function (f) {
     return fetch(ROOT + f).then(function (r) { return r.text(); });
   })).then(function (texts) {
@@ -203,9 +241,10 @@ function assertBrandMark() {
 
     function inlineMark(html, where) {
       var found = null;
-      parser.parseFromString(html, 'text/html').querySelectorAll('svg').forEach(function (svg) {
-        var text = svg.querySelector('text');
-        if (!found && text && text.textContent.trim() === 'BC') found = svg;
+      // The header sets "Buddy" after the mark, so take the svg that holds
+      // the BC itself rather than the first svg around it.
+      parser.parseFromString(html, 'text/html').querySelectorAll('svg text').forEach(function (text) {
+        if (!found && text.textContent.trim() === 'BC') found = text.closest('svg');
       });
       if (!found) throw new Error('no brand found in ' + where);
       return found;
@@ -213,8 +252,6 @@ function assertBrandMark() {
 
     check('brand: options page matches logo.svg',
       markSignature(inlineMark(texts[1], 'options.html')), expected);
-    check('brand: popup matches logo.svg',
-      markSignature(inlineMark(texts[2], 'popup.html')), expected);
   });
 }
 
@@ -307,7 +344,7 @@ function messageText(locale, key) {
 }
 
 function assertMessages() {
-  var sources = FILES.concat(['src/options/options.html', 'src/popup/popup.html', 'manifest.json']);
+  var sources = FILES.concat(['src/lib/i18n.js', 'src/options/options.html', 'manifest.json']);
   return localeFolders().then(function (codes) {
     return Promise.all([
       fetch(ROOT + 'manifest.json').then(function (r) { return r.json(); }),
@@ -317,6 +354,10 @@ function assertMessages() {
       }))
     ]);
   }).then(function (loaded) {
+    // A popup would swallow the click that background.js turns into the
+    // options page.
+    check('manifest: the toolbar icon has no popup',
+      (loaded[0].action || {}).default_popup, undefined);
     var fallback = loaded[0].default_locale;
     var locales = loaded[1];
     var source = loaded[2].join('\n');
@@ -327,6 +368,16 @@ function assertMessages() {
     truthy('i18n: more than one language', locales.length > 1);
     truthy('i18n: the default locale (' + fallback + ') is one of them', !!base);
     if (!base) return;
+
+    // A new folder needs a place in the language picker too, and in the list
+    // i18n.js checks a stored choice against.
+    var codes = locales.map(function (l) { return l.code; }).sort();
+    var listed = /var LANGUAGES = \[([^\]]*)\]/.exec(source);
+    check('i18n: i18n.js knows every language', listed ? (listed[1].match(/[a-z_A-Z]+/g) || []).sort() : null, codes);
+    var picker = /<select id="language"[\s\S]*?<\/select>/.exec(source);
+    var offered = picker ? (picker[0].match(/value="[^"]+"/g) || [])
+      .map(function (v) { return v.slice(7, -1); }).sort() : null;
+    check('i18n: the language picker offers every language', offered, codes);
 
     check('i18n: every locale folder is a name the Web Store accepts',
       locales.map(function (l) { return l.code; })
@@ -435,11 +486,11 @@ function runOptions() {
     enabled: true,
     rules: [
       {
-        id: 'a', name: 'TEST', color: '#bc0000', layoutId: 'lay-1',
+        id: 'a', name: 'TEST', color: '#bc0000', styleId: 'lay-1',
         conditions: [{ field: 'environment', op: 'contains', value: 'Sandbox' }]
       },
       {
-        id: 'b', name: 'PROD', color: '#107c10', layoutId: 'lay-1',
+        id: 'b', name: 'PROD', color: '#107c10', styleId: 'lay-1',
         conditions: [{ field: 'environment', op: 'equals', value: 'Productie' }]
       }
     ],
@@ -448,19 +499,19 @@ function runOptions() {
       active: true,
       sourceName: 'Bedrijf X',
       lastSync: '2026-08-22T09:00:00.000Z',
-      rules: [{ id: 'h1', name: 'GEDEELD', color: '#0f6cbd', layoutId: 'hl1',
+      rules: [{ id: 'h1', name: 'GEDEELD', color: '#0f6cbd', styleId: 'hl1',
                  conditions: [{ field: 'url', op: 'contains', value: 'dynamics' }] }],
-      layouts: [{ id: 'hl1', name: 'GEDEELDE LAYOUT', border: { enabled: true, width: 5 } }]
+      styles: [{ id: 'hl1', name: 'GEDEELDE STYLE', border: { enabled: true, width: 5 } }]
     },
-    layouts: [
+    styles: [
       { id: 'lay-1', name: 'Standaard',
         ribbon: { enabled: true, text: 'Dynamics 365 Business Central - {environment} - {company} ({name})' },
         border: { enabled: true, width: 4 },
         banner: { enabled: true, position: 'top-right', text: '{name}' } },
       { id: 'lay-2', name: 'Compact',
-        ribbon: { enabled: true, text: 'LAYOUT {environment}' },
+        ribbon: { enabled: true, text: 'STYLE {environment}' },
         border: { enabled: true, width: 2 },
-        banner: { enabled: true, position: 'bottom-left', text: 'uit de layout' } }
+        banner: { enabled: true, position: 'bottom-left', text: 'uit de style' } }
     ]
   };
 
@@ -477,6 +528,7 @@ function runOptions() {
       return loadScript(ROOT + 'src/lib/i18n.js')
         .then(function () { return loadScript(ROOT + 'src/lib/match.js'); })
         .then(function () { return loadScript(ROOT + 'src/lib/settings.js'); })
+        .then(function () { return loadScript(ROOT + 'src/lib/dropdowns.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-helpers.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-cards.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-hosted.js'); })
@@ -489,6 +541,24 @@ function runOptions() {
 }
 
 function assertOptions() {
+  // A first visit, with no panel remembered, opens on the Web client panel.
+  check('nav: a first visit opens on the Web client panel',
+    [!document.querySelector('.panel[data-panel="webclient"]').hidden,
+      document.querySelector('.panel[data-panel="environments"]').hidden,
+      document.querySelector('.nav__item[data-panel="webclient"]').getAttribute('aria-current')],
+    [true, true, 'page']);
+  // The checks below work with the rules, so open their panel.
+  document.querySelector('.nav__item[data-panel="environments"]').click();
+
+  // On open the test URL comes from the BC tab, though Google was used later.
+  var testUrl = document.getElementById('testUrl');
+  check('options: test URL filled in from the open BC tab',
+    [testUrl.value, STORE.ui && STORE.ui.testUrl], [BC_TAB.url, BC_TAB.url]);
+  // The checks below expect the sample URL.
+  testUrl.value = 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
+    'Sandbox?company=CRONUS%20BE&page=1';
+  testUrl.dispatchEvent(new Event('input'));
+
   var cards = document.querySelectorAll('#ruleList .rule');
   check('options: own rules rendered', cards.length, 2);
   check('options: document lang follows UI language',
@@ -496,44 +566,81 @@ function assertOptions() {
   check('options: shared rule rendered', document.querySelectorAll('#hostedList .rule').length, 1);
 
   var first = cards[0];
-  var layoutOne = document.querySelectorAll('#layoutList .rule')[0];
+  var styleOne = document.querySelectorAll('#styleList .rule')[0];
   check('options: name filled in', first.querySelector('.rule__name').value, 'TEST');
   check('options: color field filled in', first.querySelector('input[type="color"][data-path="color"]').value, '#bc0000');
   check('options: no preview on a rule anymore', first.querySelector('[data-preview]'), null);
-  check('options: ribbon preview text lives on the layout',
-    layoutOne.querySelector('[data-preview-brand]').textContent,
-    'Dynamics 365 Business Central - Sandbox - CRONUS BE (Standaard)');
-  check('options: match is a checkmark', first.querySelector('[data-match]').textContent, '✓');
-  check('options: with tooltip on hover',
-    first.querySelector('[data-match]').title, chrome.i18n.getMessage('matchYes'));
-  check('options: no match is a neutral circle',
-    cards[1].querySelector('[data-match]').textContent, '○');
-  check('options: tooltip on hover there too',
-    cards[1].querySelector('[data-match]').title, chrome.i18n.getMessage('matchNo'));
+  // A style preview borrows the rule the test URL gets.
+  check('options: ribbon preview text lives on the style',
+    styleOne.querySelector('[data-preview-brand]').textContent,
+    'Dynamics 365 Business Central - Sandbox - CRONUS BE (TEST)');
+  check('options: style preview takes the matching rule colour',
+    styleOne.querySelector('[data-preview-frame]').style.borderColor, 'rgb(188, 0, 0)');
+  check('options: the rule that wins has its colour all round',
+    [first.classList.contains('rule--wins'), cards[1].classList.contains('rule--wins')], [true, false]);
+  check('options: the ring is in the rule colour',
+    getComputedStyle(first).borderTopColor, getComputedStyle(first).borderLeftColor);
+  check('options: no tick or circle any more', first.querySelector('.match'), null);
+  check('options: only one rule wins, shared ones included',
+    document.querySelectorAll('.rule--wins').length, 1);
 
-  // The glyph alone is invisible to a screen reader, so the state sits on the
-  // element as a label rather than behind aria-hidden.
-  check('a11y: match state is exposed, not hidden',
-    first.querySelector('[data-match]').getAttribute('aria-hidden'), null);
-  check('a11y: match state carries a label',
-    first.querySelector('[data-match]').getAttribute('aria-label'), chrome.i18n.getMessage('matchYes'));
-  check('a11y: no-match state carries its own label',
-    cards[1].querySelector('[data-match]').getAttribute('aria-label'), chrome.i18n.getMessage('matchNo'));
+  // The border is for the eye; a screen reader hears it from a hidden label.
+  check('a11y: the winning rule says so',
+    first.querySelector('[data-match]').textContent, chrome.i18n.getMessage('matchYes'));
+  check('a11y: the others say nothing',
+    cards[1].querySelector('[data-match]').textContent, '');
+
+  // No rule matches: the style preview turns neutral and shows the style name.
+  testUrl.value = 'https://example.com/';
+  testUrl.dispatchEvent(new Event('input'));
+  styleOne = document.querySelectorAll('#styleList .rule')[0];
+  check('options: style preview is neutral when no rule matches',
+    [styleOne.querySelector('[data-preview-frame]').style.borderColor,
+      styleOne.querySelector('[data-preview-brand]').textContent.indexOf('(Standaard)') !== -1],
+    ['rgb(3, 131, 135)', true]);
+  var brandDot = document.getElementById('brandDot');
+  check('options: the logo dot keeps its teal when no rule matches',
+    getComputedStyle(brandDot).fill, 'rgb(0, 183, 195)');
+  testUrl.value = 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
+    'Sandbox?company=CRONUS%20BE&page=1';
+  testUrl.dispatchEvent(new Event('input'));
+  truthy('options: the logo dot takes the colour of the rule that matches',
+    brandDot.style.fill !== '');
+
+  // A click on another rule leaves the style previews in the colour of the
+  // rule the test URL gets: only that one colours them.
+  cards = document.querySelectorAll('#ruleList .rule');
+  first = cards[0];
+  cards[1].querySelector('.rule__name').click();
+  cards[1].querySelector('.rule__name').dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+  styleOne = document.querySelectorAll('#styleList .rule')[0];
+  check('options: a clicked rule does not colour the style preview',
+    [styleOne.querySelector('[data-preview-frame]').style.borderColor,
+      styleOne.querySelector('[data-preview-brand]').textContent.indexOf('(TEST)') !== -1],
+    ['rgb(188, 0, 0)', true]);
+  check('options: nor the shared style preview',
+    document.querySelector('#hostedStyleList [data-preview-frame]').style.borderColor, 'rgb(188, 0, 0)');
+  check('options: a click does not change which rule wins',
+    first.classList.contains('rule--wins'), true);
   check('a11y: a filled condition announces whether it matches',
     first.querySelector('[data-cond-match]').getAttribute('aria-label'),
     chrome.i18n.getMessage('conditionMatches'));
-  check('options: banner in layout preview',
-    layoutOne.querySelector('[data-preview-banner]').className,
+  check('options: banner in style preview',
+    styleOne.querySelector('[data-preview-banner]').className,
     'preview__banner preview__banner--top-right preview__banner--visible');
-  check('options: frame width in layout preview',
-    layoutOne.querySelector('[data-preview-frame]').style.borderWidth, '4px');
+  check('options: frame width in style preview',
+    styleOne.querySelector('[data-preview-frame]').style.borderWidth, '4px');
 
   // rules start collapsed until you click them
   truthy('options: rules start collapsed', first.classList.contains('rule--collapsed'));
-  check('options: no separate collapse arrow on a rule',
-    first.querySelector('.rule__toggle'), null);
-  truthy('options: color swatch is the toggle',
-    first.querySelector('[data-action="toggle"]').classList.contains('rule__swatch'));
+  truthy('options: rule has the same triangle as a style',
+    first.querySelector('[data-action="toggle"]').classList.contains('rule__toggle'));
+  truthy('options: the triangle is also the grip',
+    first.querySelector('[data-action="toggle"]').hasAttribute('data-grip'));
+  check('options: the colour swatch is a grip too',
+    first.querySelector('[data-swatch]').hasAttribute('data-grip'), true);
+  check('options: color swatch is no button',
+    first.querySelector('[data-swatch]').tagName, 'SPAN');
   check('options: aria-expanded is false',
     first.querySelector('[data-action="toggle"]').getAttribute('aria-expanded'), 'false');
   check('options: rule on/off uses the same toggle',
@@ -543,11 +650,19 @@ function assertOptions() {
   truthy('options: details hidden when collapsed',
     first.querySelector('[data-body]').offsetParent === null);
 
-  first.querySelector('[data-match]').click();
+  first.querySelector('[data-swatch]').click();
   truthy('options: click on header expands', !first.classList.contains('rule--collapsed'));
   check('options: aria-expanded is true',
     first.querySelector('[data-action="toggle"]').getAttribute('aria-expanded'), 'true');
   truthy('options: details now visible', first.querySelector('[data-body]').offsetParent !== null);
+  check('options: no Appearance heading above the colour row',
+    first.querySelectorAll('[data-body] .rule__section')[1].firstElementChild.tagName, 'DIV');
+  check('options: Colour heading sits on the label row',
+    first.querySelector('.field--colour > h4').getBoundingClientRect().top,
+    first.querySelector('[data-path="styleId"]').closest('.field').getBoundingClientRect().top);
+  check('options: palette lines up with the selects',
+    Math.round(first.querySelector('[data-palette]').getBoundingClientRect().top),
+    Math.round(first.querySelector('[data-path="styleId"]').getBoundingClientRect().top));
 
   first.querySelector('[data-action="toggle"]').click();
   truthy('options: click again collapses', first.classList.contains('rule--collapsed'));
@@ -581,8 +696,10 @@ function assertOptions() {
   truthy('options: shared rule expands', !hostedCard.classList.contains('rule--collapsed'));
   truthy('options: shared rule has no chip anymore',
     hostedCard.textContent.indexOf(chrome.i18n.getMessage('sharedRules')) === -1);
-  truthy('options: shared rule cannot be dragged',
-    hostedCard.querySelector('[data-grip]').disabled);
+  check('options: shared rule cannot be dragged',
+    hostedCard.querySelector('[data-grip]'), null);
+  truthy('options: shared rule keeps its triangle',
+    hostedCard.querySelector('.rule__toggle') !== null);
   truthy('options: sync status shows source',
     document.getElementById('hostedStatus').textContent.indexOf('Bedrijf X') !== -1);
 
@@ -590,21 +707,52 @@ function assertOptions() {
   check('options: no auto-update toggle',
     document.getElementById('hostedAutoSync'), null);
   check('options: button label is Synchronise',
-    document.getElementById('syncNow').textContent, chrome.i18n.getMessage('syncNow'));
+    document.getElementById('syncNow').textContent.trim(), chrome.i18n.getMessage('syncNow'));
   truthy('options: sync enabled with URL',
     !document.getElementById('syncNow').disabled);
   truthy('options: active config is not dimmed',
     !document.getElementById('hostedUrl').closest('.field').classList.contains('field--inactive'));
-  truthy('options: choose file matches other button style',
-    document.getElementById('importFileBtn').classList.contains('btn--primary'));
+  // one primary button in the Settings panel: Synchronise. Import and export
+  // are two ordinary buttons side by side, with the import note in view.
+  check('options: Settings has one primary button',
+    Array.prototype.map.call(
+      document.querySelectorAll('.panel[data-panel="settings"] .btn--primary'),
+      function (button) { return button.id; }), ['syncNow']);
+  var transfer = document.getElementById('importFileBtn').closest('.transfer');
+  check('options: import and export side by side',
+    transfer && transfer.contains(document.getElementById('exportDownload')), true);
+  check('options: import note is on the page, not a tooltip',
+    transfer.closest('.card').querySelector('.note').textContent,
+    chrome.i18n.getMessage('importNote'));
+  check('options: one status line for import and export',
+    transfer.closest('.card').querySelectorAll('.sync-status').length, 1);
+  // Rules before Styles, because that is where everyone starts, and the test
+  // URL last, so the colours come first
+  var envHeads = Array.prototype.map.call(
+    document.querySelectorAll('.panel[data-panel="environments"] .section-head h2'),
+    function (h) { return h.textContent; });
+  check('options: Rules above Styles, then the Test URL', envHeads,
+    [chrome.i18n.getMessage('rulesHeading'), chrome.i18n.getMessage('stylesHeading'),
+      chrome.i18n.getMessage('testUrlHeading')]);
+  // No label line above the field: the label is the placeholder, and stays the
+  // field's name once it is filled in.
+  check('options: test URL label sits in the field',
+    [document.querySelector('label[for="testUrl"]'), document.getElementById('testUrl').placeholder,
+      document.getElementById('testUrl').getAttribute('aria-label')],
+    [null, chrome.i18n.getMessage('testUrlLabel'), chrome.i18n.getMessage('testUrlLabel')]);
+  // the rule switch shows its state itself; the label is for screen readers
+  var ruleSwitch = first.querySelector('input[data-path="enabled"]');
+  check('options: rule switch has no On text', ruleSwitch.closest('label').textContent.trim(), '');
+  check('options: rule switch is labelled', ruleSwitch.getAttribute('aria-label'),
+    chrome.i18n.getMessage('ruleActiveTitle'));
   truthy('options: active config says daily update',
     document.getElementById('hostedStatus').textContent
       .indexOf(chrome.i18n.getMessage('statusDaily')) !== -1);
   check('options: no interval choice anymore', document.getElementById('hostedInterval'), null);
   check('options: no advanced block anymore', document.getElementById('pollMs'), null);
   check('options: and no reset button', document.getElementById('resetAll'), null);
-  check('options: trust warning present',
-    document.querySelector('.trust-note').textContent, chrome.i18n.getMessage('sharedTrust'));
+  // The "URL you control" warning lives in the docs, not on the page.
+  check('options: no trust note on the page', document.querySelector('.trust-note'), null);
   truthy('options: intro mentions HTTPS',
     document.querySelector('[data-i18n="sharedIntro"]').textContent.indexOf('HTTPS') !== -1);
 
@@ -622,8 +770,8 @@ function assertOptions() {
   truthy('options: sync re-enabled with https',
     !document.getElementById('syncNow').disabled);
 
-  check('options: subtitle no longer says "Environment marker"',
-    document.querySelector('.topbar__brand p').textContent.trim(), chrome.i18n.getMessage('tagline'));
+  check('options: header has the name only, no tagline',
+    document.querySelector('.topbar__brand p'), null);
   truthy('options: raw link help removed',
     document.getElementById('app').textContent.indexOf('raw-variant') === -1);
   truthy('options: help no longer refers to list above',
@@ -634,27 +782,83 @@ function assertOptions() {
   check('options: no name on export', document.getElementById('exportName'), null);
   check('options: no clipboard button', document.getElementById('exportCopy'), null);
   check('options: export button renamed',
-    document.getElementById('exportDownload').textContent, chrome.i18n.getMessage('exportButton'));
+    document.getElementById('exportDownload').textContent.trim(), chrome.i18n.getMessage('exportButton'));
   truthy('options: file picker present', !!document.getElementById('importFileBtn'));
 
-  // display lives only at layout level now
+  // display lives only at style level now
   check('options: no display block on a rule', first.querySelector('[data-display]'), null);
   check('options: no ribbon field on a rule', first.querySelector('[data-path="ribbon.text"]'), null);
-  truthy('options: present on a layout', !!layoutOne.querySelector('[data-path="ribbon.text"]'));
+  truthy('options: present on a style', !!styleOne.querySelector('[data-path="ribbon.text"]'));
 
-  var posSelect = layoutOne.querySelector('select[data-path="banner.position"]');
-  check('options: banner positions without top bar',
+  var posSelect = styleOne.querySelector('select[data-path="banner.position"]');
+  check('options: banner positions, bars first',
     Array.prototype.map.call(posSelect.options, function (o) { return o.value; }),
-    ['bottom', 'top-right', 'top-left', 'bottom-right', 'bottom-left']);
+    BCBuddy.POSITIONS);
+  check('options: no text colour on a rule', first.querySelector('[data-path="textColor"]'), null);
   check('options: no opacity on frame',
-    layoutOne.querySelector('[data-path="border.opacity"]'), null);
-  var borderWidth = layoutOne.querySelector('input[data-path="border.width"]');
+    styleOne.querySelector('[data-path="border.opacity"]'), null);
+  var borderWidth = styleOne.querySelector('input[data-path="border.width"]');
   check('options: frame width is a slider', borderWidth.type, 'range');
   check('options: range 1 to 5', [borderWidth.min, borderWidth.max, borderWidth.step], ['1', '5', '1']);
+  var opacity = styleOne.querySelector('input[data-path="banner.opacity"]');
+  check('options: banner opacity is a slider of five steps too',
+    [opacity.type, opacity.min, opacity.max, opacity.step], ['range', '1', '5', '1']);
+  // the step is shown, the opacity itself is saved
+  var steps = { el: {}, t: BCBuddy.t };
+  BCBuddy.OptionsHelpers.install(steps);
+  var probe = opacity.cloneNode(true);
+  steps.setControlValue(probe, 0.5);
+  check('options: half opacity is the middle step', probe.value, '3');
+  steps.setControlValue(probe, 0.8);
+  check('options: an opacity between steps shows the nearest', probe.value, '4');
+  probe.value = '5';
+  check('options: the top step saves full opacity', steps.controlValue(probe), 1);
+  probe.value = '1';
+  check('options: the bottom step saves 0.2', steps.controlValue(probe), 0.2);
+  var fontSize = styleOne.querySelector('input[data-path="banner.fontSize"]');
+  check('options: banner size is a slider of five steps',
+    [fontSize.type, fontSize.min, fontSize.max, fontSize.step], ['range', '1', '5', '1']);
+  var sizeProbe = fontSize.cloneNode(true);
+  sizeProbe.value = '1';
+  check('options: the bottom size step saves 0 (automatic)', steps.controlValue(sizeProbe), 0);
+  sizeProbe.value = '5';
+  check('options: the top size step saves 22', steps.controlValue(sizeProbe), 22);
+  steps.setControlValue(sizeProbe, 0);
+  check('options: an automatic size shows the bottom step', sizeProbe.value, '1');
+  steps.setControlValue(sizeProbe, 16);
+  check('options: a saved size between steps shows the nearest', sizeProbe.value, '3');
+  // the preview follows the slider while it moves: half size in a corner ribbon
+  var sizeBefore = fontSize.value;
+  var previewBanner = styleOne.querySelector('[data-preview-banner]');
+  fontSize.value = '5';
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: the size slider resizes the preview banner', previewBanner.style.fontSize, '11px');
+  fontSize.value = '1';
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: automatic size leaves the preview at its own size', previewBanner.style.fontSize, '');
+  fontSize.value = sizeBefore;
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  // the preview banner shows the colour BC shows: solid, as mixed with BC's
+  // white page, with the text for that colour, in either theme of this page
+  var lightLook = [previewBanner.style.background, previewBanner.style.color];
+  check('options: the preview banner is solid, with the text for its colour',
+    [BCBuddy.parseColor(getComputedStyle(previewBanner).backgroundColor).a,
+      BCBuddy.idealText(getComputedStyle(previewBanner).backgroundColor) ===
+        BCBuddy.toHex(getComputedStyle(previewBanner).color)],
+    [1, true]);
+  document.documentElement.setAttribute('data-theme', 'dark');
+  fontSize.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: the preview banner looks the same in the dark theme',
+    [previewBanner.style.background, previewBanner.style.color], lightLook);
+  document.documentElement.removeAttribute('data-theme');
+  first = document.querySelectorAll('#ruleList .rule')[0]; // a style change redraws the rules
+  check('options: the banner position has no caption, only an aria-label',
+    [posSelect.closest('label'), posSelect.getAttribute('aria-label')],
+    [null, chrome.i18n.getMessage('bannerPosition')]);
   check('options: toggle label is Ribbon',
-    layoutOne.querySelector('[data-i18n="ribbonToggle"]').textContent, 'Ribbon');
+    styleOne.querySelector('[data-i18n="ribbonToggle"]').textContent, 'Ribbon');
   check('options: and Tab title',
-    layoutOne.querySelector('[data-i18n="titleToggle"]').textContent, chrome.i18n.getMessage('titleToggle'));
+    styleOne.querySelector('[data-i18n="titleToggle"]').textContent, chrome.i18n.getMessage('titleToggle'));
 
   // a rule preview does not show a ribbon on a non-BC site
   var condField = first.querySelector('select[data-cond="field"]');
@@ -668,25 +872,78 @@ function assertOptions() {
 
   setCondition('url', 'intranet.local');
   check('options: condition updated', first.querySelector('[data-cond="value"]').value, 'intranet.local');
+
+  // a RegEx that cannot run says why, instead of looking like a plain mismatch
+  var condOp = first.querySelector('select[data-cond="op"]');
+  var opBefore = condOp.value;
+  condOp.value = 'regex';
+  condOp.dispatchEvent(new Event('change', { bubbles: true }));
+  setCondition('environment', '(a+)+');
+  check('options: too heavy RegEx marks the field',
+    condValue.getAttribute('aria-invalid'), 'true');
+  check('options: too heavy RegEx says why',
+    first.querySelector('[data-cond-match]').getAttribute('aria-label'),
+    chrome.i18n.getMessage('regexTooHeavy'));
+  setCondition('environment', '[');
+  check('options: invalid RegEx says why',
+    condValue.title, chrome.i18n.getMessage('regexInvalid'));
+  setCondition('environment', '^sand');
+  check('options: a RegEx that runs clears the mark',
+    condValue.getAttribute('aria-invalid'), null);
+  check('options: and matches as before',
+    first.querySelector('[data-cond-match]').getAttribute('aria-label'),
+    chrome.i18n.getMessage('conditionMatches'));
+
+  condOp.value = opBefore;
+  condOp.dispatchEvent(new Event('change', { bubbles: true }));
+
   setCondition('environment', 'Sandbox');
 
-  check('options: layout preview shows BC page',
-    layoutOne.querySelector('[data-preview-page]').textContent, chrome.i18n.getMessage('previewPageBc'));
-  truthy('options: layout always shows ribbon',
-    !layoutOne.querySelector('[data-preview-ribbon]').hidden);
+  check('options: style preview has no page caption',
+    styleOne.querySelector('[data-preview-frame]').textContent.indexOf('Business Central'), -1);
+  truthy('options: style always shows ribbon',
+    !styleOne.querySelector('[data-preview-ribbon]').hidden);
 
-  // help behind the question mark
-  var hint = layoutOne.querySelector('.hint[data-action="hint"]');
-  truthy('options: question mark beside text field', !!hint);
-  truthy('options: help mentions tokens', hint.textContent.indexOf('{environment}') !== -1);
-  truthy('options: help no longer mentions {host}', hint.textContent.indexOf('{host}') === -1);
-  truthy('options: help no longer mentions {tenant}', hint.textContent.indexOf('{tenant}') === -1);
-  truthy('options: help starts closed', !hint.classList.contains('is-open'));
-  hint.click();
-  truthy('options: click opens help', hint.classList.contains('is-open'));
-  hint.click();
-  truthy('options: click again closes it', !hint.classList.contains('is-open'));
-  check('options: three fields with help', layoutOne.querySelectorAll('.hint[data-action="hint"]').length, 3);
+  // one line of tokens on a style, instead of a question mark per text field
+  var tokenLines = styleOne.querySelectorAll('[data-token-line]');
+  check('options: one token line per style', tokenLines.length, 1);
+  var tokens = tokenLines[0].textContent;
+  truthy('options: token line lists the tokens',
+    ['{name}', '{environment}', '{env}', '{company}', '{tenant}', '{title}'].every(function (token) {
+      return tokens.indexOf(token) !== -1;
+    }));
+  truthy('options: token line no longer mentions {host}', tokens.indexOf('{host}') === -1);
+  check('options: what happens to an empty token is its tooltip',
+    tokenLines[0].title, chrome.i18n.getMessage('tokensFooter'));
+  check('options: the token line has no label', tokenLines[0].querySelector('.tokens__label'), null);
+  check('options: no question marks left', styleOne.querySelectorAll('.hint').length, 0);
+  check('options: a style card has no section heading', styleOne.querySelectorAll('h4').length, 0);
+
+  // every part of a style is a row with a switch, folded while off
+  var parts = styleOne.querySelectorAll('.option');
+  check('options: five parts, each with a switch',
+    Array.prototype.map.call(parts, function (part) {
+      return part.querySelector(':scope > input.toggle').dataset.path;
+    }), ['ribbon.enabled', 'border.enabled', 'banner.enabled', 'title.enabled', 'favicon.enabled']);
+  truthy('options: each switch is labelled with its part',
+    Array.prototype.every.call(parts, function (part) {
+      return part.querySelector(':scope > input.toggle').getAttribute('aria-label') ===
+        part.querySelector('.option__name').textContent;
+    }));
+  truthy('options: every part explains itself in a tooltip on its name',
+    Array.prototype.every.call(parts, function (part) {
+      return part.querySelector('.option__name').title.length > 0;
+    }));
+  check('options: a single text field needs no caption, only a label',
+    ['ribbon.text', 'title.text'].map(function (path) {
+      var input = styleOne.querySelector('[data-path="' + path + '"]');
+      return [!!input.closest('label'), !!input.getAttribute('aria-label')];
+    }), [[false, true], [false, true]]);
+  truthy('options: name, fields and switch share one row',
+    Array.prototype.every.call(parts, function (part) {
+      var body = part.querySelector('.option__body');
+      return !body || body.parentNode === part;
+    }));
   check('options: token list no longer at page bottom',
     document.querySelector('#app footer'), null);
 
@@ -704,14 +961,43 @@ function assertOptions() {
   check('options: parsed test URL shows environment',
     document.getElementById('parsed').textContent.indexOf('Sandbox') !== -1, true);
 
-  // ribbon text is edited on the layout and flows through to the rules
-  var ribbonInput = layoutOne.querySelector('input[data-path="ribbon.text"]');
+  // ribbon text is edited on the style and flows through to the rules
+  var ribbonInput = styleOne.querySelector('input[data-path="ribbon.text"]');
   ribbonInput.value = '{name} op {environment}';
   ribbonInput.dispatchEvent(new Event('input', { bubbles: true }));
-  check('options: layout preview follows edited text',
-    layoutOne.querySelector('[data-preview-brand]').textContent, 'Standaard op Sandbox');
+  // {name} is the rule the test URL gets.
+  check('options: style preview follows edited text',
+    styleOne.querySelector('[data-preview-brand]').textContent, 'TEST op Sandbox');
   ribbonInput.value = 'Dynamics 365 Business Central - {environment} - {company} ({name})';
   ribbonInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+  // The banner fills in its placeholders too, as a BC tab would.
+  var bannerOn = styleOne.querySelector('input[data-path="banner.enabled"]');
+  var bannerText = styleOne.querySelector('input[data-path="banner.text"]');
+  bannerOn.checked = true;
+  bannerOn.dispatchEvent(new Event('change', { bubbles: true }));
+  bannerText.value = '{name} - {environment}';
+  bannerText.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: style preview banner fills in placeholders',
+    styleOne.querySelector('[data-preview-banner]').textContent, 'TEST - Sandbox');
+  bannerText.value = '{name}';
+  bannerText.dispatchEvent(new Event('input', { bubbles: true }));
+  bannerOn.checked = false;
+  bannerOn.dispatchEvent(new Event('change', { bubbles: true }));
+
+  // With the favicon on, its row shows the icon a BC tab gets.
+  var faviconOn = styleOne.querySelector('input[data-path="favicon.enabled"]');
+  var faviconImg = styleOne.querySelector('[data-preview-favicon]');
+  faviconOn.checked = true;
+  faviconOn.dispatchEvent(new Event('change', { bubbles: true }));
+  check('options: favicon preview drawn for the borrowed rule',
+    [faviconImg.getAttribute('src') === BCBuddy.drawFavicon('#bc0000', 'TEST'),
+      faviconImg.dataset.signature, styleOne.querySelector('.option--off [data-preview-favicon]')],
+    [true, '#bc0000|TEST', null]);
+  faviconOn.checked = false;
+  faviconOn.dispatchEvent(new Event('change', { bubbles: true }));
+  truthy('options: favicon preview hidden while the switch is off',
+    !!styleOne.querySelector('.option--off [data-preview-favicon]'));
   first = document.querySelectorAll('#ruleList .rule')[0]; // the cards were redrawn
 
   // pick a color from the palette
@@ -749,10 +1035,12 @@ function assertOptions() {
         row.querySelector('[data-cond="value"]').value;
     }),
     ['environment equals Sandbox']);
-  truthy('options: new rule matches test URL immediately',
-    added.querySelector('[data-match]').textContent === '\u2713');
-  check('options: new rule gets default layout',
-    added.querySelector('[data-layout-picker]').value, 'lay-1');
+  // It fits the test URL too, but the first rule that fits wins.
+  check('options: an earlier matching rule still wins',
+    [document.querySelectorAll('#ruleList .rule')[0].classList.contains('rule--wins'),
+      added.classList.contains('rule--wins')], [true, false]);
+  check('options: new rule gets default style',
+    added.querySelector('[data-style-picker]').value, 'lay-1');
   check('options: no arrow buttons to move',
     document.querySelector('#ruleList [data-action="up"]'), null);
 
@@ -788,6 +1076,12 @@ function assertOptions() {
   var transfer = new DataTransfer();
   dragged.querySelector('[data-grip]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
   truthy('options: grip makes card draggable', dragged.draggable);
+  dragged.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  truthy('options: released without dragging, the card is normal again', !dragged.draggable);
+  dragged.querySelector('[data-swatch]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  truthy('options: colour swatch makes card draggable', dragged.draggable);
+  dragged.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  dragged.querySelector('[data-grip]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
   dragged.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: transfer }));
 
   var lastCard = document.querySelectorAll('#ruleList .rule')[namesBefore.length - 1];
@@ -811,13 +1105,40 @@ function assertOptions() {
   var card0 = document.querySelectorAll('#ruleList .rule')[0];
   card0.querySelector('[data-action="add-condition"]').click();
   check('options: condition added', card0.querySelectorAll('.condition').length, 2);
+  card0.querySelector('[data-action="add-condition"]').click();
+  check('options: + adds no second empty condition', card0.querySelectorAll('.condition').length, 2);
+  check('options: + goes to the empty condition instead',
+    document.activeElement, card0.querySelectorAll('.condition')[1].querySelector('[data-cond="value"]'));
+
+  // the same condition twice is flagged, and + goes there too
+  var condRows = card0.querySelectorAll('.condition');
+  ['field', 'op'].forEach(function (name) {
+    var select = condRows[1].querySelector('[data-cond="' + name + '"]');
+    select.value = condRows[0].querySelector('[data-cond="' + name + '"]').value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  var repeatValue = condRows[1].querySelector('[data-cond="value"]');
+  repeatValue.value = ' ' + condRows[0].querySelector('[data-cond="value"]').value.toUpperCase() + ' ';
+  repeatValue.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: a repeated condition is flagged',
+    [repeatValue.getAttribute('aria-invalid'), repeatValue.title],
+    ['true', chrome.i18n.getMessage('conditionRepeated')]);
+  check('options: the first of the two is not',
+    condRows[0].querySelector('[data-cond="value"]').getAttribute('aria-invalid'), null);
+  repeatValue.blur();
+  card0.querySelector('[data-action="add-condition"]').click();
+  check('options: + adds nothing while a condition repeats',
+    [card0.querySelectorAll('.condition').length, document.activeElement], [2, repeatValue]);
+  repeatValue.value = '';
+  repeatValue.dispatchEvent(new Event('input', { bubbles: true }));
+  check('options: emptied, it is no longer flagged', repeatValue.getAttribute('aria-invalid'), null);
 
   check('options: no replace vs add choice',
     document.querySelector('input[name="importMode"]'), null);
   check('options: no brand name selector', document.getElementById('brandSelector'), null);
   check('options: no ribbon bar selector', document.getElementById('ribbonSelector'), null);
   check('options: no bold toggle on ribbon',
-    layoutOne.querySelector('[data-path="ribbon.bold"]'), null);
+    styleOne.querySelector('[data-path="ribbon.bold"]'), null);
 
   // sync saves first, then messages the service worker
   document.getElementById('syncNow').click();
@@ -830,9 +1151,205 @@ function assertOptions() {
     check('options: save reports nothing',
       document.getElementById('status').textContent, '');
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
-    return assertNav().then(assertLayouts).then(importFile)
+    return assertNav().then(assertToolbarOpen).then(assertWebClient).then(assertStyles).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
-      .then(assertExternalWrite).then(assertManaged);
+      .then(assertExternalWrite).then(assertPolicyLock).then(assertEdgeCases).then(assertSamples)
+      .then(assertResetWebClient);
+  });
+}
+
+/* ---- web client: maximize and dropdown size ---------------------------- */
+function assertWebClient() {
+  var panel = document.querySelector('.panel[data-panel="webclient"]');
+  var width = document.getElementById('dropdownWidth');
+  var height = document.getElementById('dropdownHeight');
+  check('web client: maximize lives in the panel',
+    document.getElementById('maximizeEnabled').closest('.panel'), panel);
+  var pin = document.getElementById('pinActionBarEnabled');
+  check('web client: pin action bar switch lives in the panel', pin.closest('.panel'), panel);
+  check('web client: pin action bar switch is on by default', pin.checked, true);
+  var row = document.getElementById('highlightRowEnabled');
+  check('web client: current line switch lives in the panel', row.closest('.panel'), panel);
+  check('web client: current line is on by default', row.checked, true);
+  var stripes = document.getElementById('stripeRowsEnabled');
+  check('web client: striped rows switch lives in the panel', stripes.closest('.panel'), panel);
+  check('web client: striped rows switch is off by default', stripes.checked, false);
+  var factBox = document.getElementById('hideFactBoxEnabled');
+  check('web client: factbox switch lives in the panel', factBox.closest('.panel'), panel);
+  check('web client: factbox switch is off by default', factBox.checked, false);
+  check('web client: factbox sits with the switches that start off, above the bell',
+    factBox.closest('.setting').nextElementSibling.contains(document.getElementById('hideNotificationsEnabled')), true);
+  check('web client: the bell sits above animations',
+    document.getElementById('hideNotificationsEnabled').closest('.setting').nextElementSibling
+      .contains(document.getElementById('noAnimationsEnabled')), true);
+  check('web client: striped rows sits with the switches that start off',
+    stripes.closest('.setting').nextElementSibling.contains(factBox), true);
+  var keys = document.getElementById('shortcutsEnabled');
+  check('web client: keyboard shortcuts switch lives in the panel', keys.closest('.panel'), panel);
+  check('web client: keyboard shortcuts switch is off by default', keys.checked, false);
+  check('web client: keyboard shortcuts sits with the switches that start off',
+    keys.closest('.setting').nextElementSibling.contains(stripes), true);
+  var calm = document.getElementById('noAnimationsEnabled');
+  check('web client: animations switch lives in the panel', calm.closest('.panel'), panel);
+  check('web client: animations switch is off by default', calm.checked, false);
+  var copyRow = document.getElementById('copyValuesEnabled');
+  check('web client: copy values switch lives in the panel', copyRow.closest('.panel'), panel);
+  check('web client: copy values switch is on by default', copyRow.checked, true);
+  check('web client: copy values switch is the first row',
+    copyRow.closest('.card').querySelector('.setting').contains(copyRow), true);
+  check('web client: open in a new tab is beta and has no switch',
+    document.getElementById('newTabEnabled'), null);
+  var panes = document.getElementById('resizePanesEnabled');
+  check('web client: resize panes switch lives in the panel', panes.closest('.panel'), panel);
+  check('web client: resize panes switch is on by default', panes.checked, true);
+  var weeks = document.getElementById('weekNumbersEnabled');
+  check('web client: week numbers switch lives in the panel', weeks.closest('.panel'), panel);
+  check('web client: week numbers switch is on by default', weeks.checked, true);
+  var bell = document.getElementById('hideNotificationsEnabled');
+  check('web client: notifications switch lives in the panel', bell.closest('.panel'), panel);
+  check('web client: notifications switch is off by default', bell.checked, false);
+  var webClientRows = panel.querySelectorAll('.setting');
+  check('web client: animations switch is the last row',
+    webClientRows[webClientRows.length - 1].contains(
+      document.getElementById('noAnimationsEnabled')), true);
+  check('web client: every row has a short description',
+    Array.prototype.every.call(webClientRows, function (row) {
+      var desc = row.querySelector('.setting__desc');
+      return !!desc && desc.textContent.trim().length > 0;
+    }), true);
+
+  // Works straight away holds the switches that start on, Extras the ones
+  // that start off. The switches are still at their defaults here.
+  var groups = panel.querySelectorAll('.setting-group');
+  check('web client: two groups', groups.length, 2);
+  function toggles(group) { return group.querySelectorAll('input[type="checkbox"].toggle'); }
+  check('web client: the first group starts on',
+    Array.prototype.every.call(toggles(groups[0]), function (box) { return box.checked; }), true);
+  check('web client: Extras start off',
+    Array.prototype.every.call(toggles(groups[1]), function (box) { return !box.checked; }), true);
+  check('web client: dropdown size works straight away', groups[0].contains(width), true);
+  check('web client: hiding the bell is an extra', groups[1].contains(bell), true);
+  check('web client: Extras is the second group',
+    groups[1].querySelector('.setting-group__title').textContent, chrome.i18n.getMessage('webClientExtras'));
+
+  // The master switch: one short label, the dot shows on or off.
+  var master = document.getElementById('globalEnabled');
+  check('master switch: labelled Active',
+    master.closest('label').textContent.trim(), chrome.i18n.getMessage('extensionActive'));
+  var dot = master.closest('label').querySelector('.nav__dot');
+  var dotOn = getComputedStyle(dot).backgroundColor;
+  master.click();
+  truthy('master switch: the dot changes colour when off', getComputedStyle(dot).backgroundColor !== dotOn);
+  master.click();
+  check('master switch: and back when on', getComputedStyle(dot).backgroundColor, dotOn);
+  check('web client: both sliders live in the panel',
+    [width.closest('.panel'), height.closest('.panel')], [panel, panel]);
+  check('web client: sliders have five steps',
+    [width.min, width.max, width.step, height.min, height.max, height.step],
+    ['1', '5', '1', '1', '5', '1']);
+  check('web client: width defaults to step 5', width.value, '5');
+  check('web client: height defaults to step 5', height.value, '5');
+  check('web client: width shows how much bigger', width.title, '300%');
+  check('web client: height at step 5 shows how much taller', height.getAttribute('aria-valuetext'), '150%');
+
+  height.value = '1';
+  height.dispatchEvent(new Event('input', { bubbles: true }));
+  check('web client: label follows the slider',
+    height.title, chrome.i18n.getMessage('dropdownStandard'));
+  height.value = '3';
+  height.dispatchEvent(new Event('input', { bubbles: true }));
+  return wait(400).then(function () {
+    check('web client: the step is saved, not pixels', STORE.settings.dropdown, { width: 5, height: 3 });
+    width.value = '1';
+    width.dispatchEvent(new Event('input', { bubbles: true }));
+    height.value = '1';
+    height.dispatchEvent(new Event('input', { bubbles: true }));
+    return wait(400);
+  }).then(function () {
+    check('web client: both at BC standard is stored as off', STORE.settings.dropdown, { width: 1, height: 1 });
+    check('web client: and reads as off', BCBuddy.Dropdowns.isOn(STORE.settings.dropdown), false);
+    width.value = '3';
+    width.dispatchEvent(new Event('input', { bubbles: true }));
+    row.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: current line switch is saved', STORE.settings.highlightRow, { enabled: false });
+    row.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and switches back on', STORE.settings.highlightRow, { enabled: true });
+    calm.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: animations switch is saved', STORE.settings.noAnimations, { enabled: true });
+    calm.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the animations switch turns back off', STORE.settings.noAnimations, { enabled: false });
+    bell.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: notifications switch is saved', STORE.settings.hideNotifications, { enabled: true });
+    bell.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the notifications switch turns back off', STORE.settings.hideNotifications, { enabled: false });
+    copyRow.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: copy values switch is saved', STORE.settings.copyValues, { enabled: false });
+    copyRow.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the copy values switch turns back on', STORE.settings.copyValues, { enabled: true });
+    panes.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: resize panes switch is saved', STORE.settings.resizePanes, { enabled: false });
+    panes.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the resize panes switch turns back on', STORE.settings.resizePanes, { enabled: true });
+    weeks.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: week numbers switch is saved', STORE.settings.weekNumbers, { enabled: false });
+    weeks.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the week numbers switch turns back on', STORE.settings.weekNumbers, { enabled: true });
+    pin.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: pin action bar switch is saved', STORE.settings.pinActionBar, { enabled: false });
+    pin.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the pin action bar switch turns back on', STORE.settings.pinActionBar, { enabled: true });
+    stripes.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: striped rows switch is saved', STORE.settings.stripeRows, { enabled: true });
+    stripes.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and striped rows turn back off', STORE.settings.stripeRows, { enabled: false });
+    factBox.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: factbox switch is saved', STORE.settings.hideFactBox, { enabled: true });
+    factBox.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the factbox switch turns back off', STORE.settings.hideFactBox, { enabled: false });
+    keys.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: keyboard shortcuts switch is saved', STORE.settings.shortcuts, { enabled: true });
+    keys.click();
+    return wait(400);
+  }).then(function () {
+    check('web client: and the keyboard shortcuts switch turns back off', STORE.settings.shortcuts, { enabled: false });
   });
 }
 
@@ -865,18 +1382,21 @@ function assertParsedUrl() {
     fresh.querySelector('[data-cond="op"]').value + ' ' +
     fresh.querySelector('[data-cond="value"]').value,
     'url contains https://www.google.com/shopping');
-  check('new rule: matches test URL immediately',
-    fresh.querySelector('[data-match]').title, chrome.i18n.getMessage('matchYes'));
+  check('new rule: wins for the test URL immediately',
+    [fresh.classList.contains('rule--wins'), fresh.querySelector('[data-match]').textContent],
+    [true, chrome.i18n.getMessage('matchYes')]);
   check('new rule: no preview on rule', fresh.querySelector('[data-preview]'), null);
 
   setUrl('niet-een-url');
   check('URL: message when nothing recognised',
     parsed.textContent, chrome.i18n.getMessage('nothingRecognised'));
+  setUrl('  ');
+  check('URL: no message while the field is empty', parsed.textContent, '');
 
   setUrl('https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE');
   check('URL: all four fields on full BC URL',
     Array.prototype.map.call(parsed.querySelectorAll('dt'), function (dt) { return dt.textContent; }),
-    [chrome.i18n.getMessage('labelEnvironment') + ':', chrome.i18n.getMessage('labelCompany') + ':', chrome.i18n.getMessage('labelTenant') + ':']);
+    [chrome.i18n.getMessage('labelTenant') + ':', chrome.i18n.getMessage('labelEnvironment') + ':', chrome.i18n.getMessage('labelCompany') + ':']);
 
   return assertTabPicker(input);
 }
@@ -910,6 +1430,22 @@ function assertTabPicker(input) {
 }
 
 /* ---- navigation --------------------------------------------------------- */
+/* ---- toolbar icon: the open page switches to the Web client panel ------- */
+function assertToolbarOpen() {
+  var before = STORE.ui && STORE.ui.panel;
+  // What the service worker does on a click of the toolbar icon.
+  return chrome.storage.session.set({ openPanel: 'webclient' }).then(function () {
+    return wait(100);
+  }).then(function () {
+    check('toolbar: an open page switches to the Web client panel',
+      [before !== 'webclient', !document.querySelector('.panel[data-panel="webclient"]').hidden,
+        document.querySelector('.nav__item[data-panel="webclient"]').getAttribute('aria-current')],
+      [true, true, 'page']);
+    check('toolbar: the request is cleared once shown', SESSION.openPanel, undefined);
+    check('toolbar: and remembered like a click in the nav', STORE.ui.panel, 'webclient');
+  });
+}
+
 function assertNav() {
   var items = document.querySelectorAll('.nav__item');
   check('nav: master toggle at bottom of nav',
@@ -919,70 +1455,75 @@ function assertNav() {
     document.querySelector('.topbar__actions #globalEnabled'), null);
   check('nav: master toggle is a switch not checkbox',
     getComputedStyle(document.getElementById('globalEnabled')).width, '34px');
-  check('nav: four sections',
-    Array.prototype.map.call(items, function (b) { return b.dataset.panel; }),
-    ['maximize', 'environments', 'settings', 'about']);
+  check('nav: four sections and a help link',
+    Array.prototype.map.call(items, function (b) { return b.dataset.panel || b.getAttribute('href'); }),
+    ['webclient', 'environments', 'helpdesk', 'settings', 'https://fvet.github.io/bcbuddy/']);
   check('nav: each section has an icon',
-    Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 4);
+    Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 5);
   check('nav: environments is open',
     items[1].getAttribute('aria-current'), 'page');
   truthy('nav: rules visible', !document.querySelector('.panel[data-panel="environments"]').hidden);
   truthy('nav: settings hidden', document.querySelector('.panel[data-panel="settings"]').hidden);
 
-  items[2].click();
+  items[3].click();
   truthy('nav: settings now visible', !document.querySelector('.panel[data-panel="settings"]').hidden);
   truthy('nav: environments now hidden', document.querySelector('.panel[data-panel="environments"]').hidden);
   check('nav: shared config under settings',
     document.getElementById('syncNow').closest('.panel').dataset.panel, 'settings');
-  check('nav: layouts and rules under environments',
-    document.getElementById('addLayout').closest('.panel').dataset.panel, 'environments');
-  check('nav: clicked section marked', items[2].getAttribute('aria-current'), 'page');
+  check('nav: styles and rules under environments',
+    document.getElementById('addStyle').closest('.panel').dataset.panel, 'environments');
+  check('nav: clicked section marked', items[3].getAttribute('aria-current'), 'page');
   truthy('nav: choice remembered', STORE.ui && STORE.ui.panel === 'settings');
 
-  items[3].click();
-  var about = document.querySelector('.panel[data-panel="about"]');
-  truthy('nav: about section no longer called Help',
-    items[3].textContent.trim() === chrome.i18n.getMessage('navAbout'));
-  truthy('nav: and explains what the extension does',
-    about.querySelector('[data-i18n="aboutIntro"]').textContent.length > 60);
-  check('nav: with email address',
-    about.querySelector('a[href^="mailto:"]').getAttribute('href'),
-    'mailto:frederic.vercaemst@outlook.com');
-  check('nav: and link to github',
-    about.querySelector('a[href^="https://github.com"]').getAttribute('href'),
-    'https://github.com/fvet/bcbuddy');
-  check('nav: and link to the documentation site',
-    about.querySelector('a[href^="https://fvet.github.io"]').getAttribute('href'),
-    'https://fvet.github.io/bcbuddy/');
+  check('nav: helpdesk settings under helpdesk',
+    document.getElementById('helpdeskEmail').closest('.panel').dataset.panel, 'helpdesk');
+  check('nav: no About panel any more',
+    document.querySelector('.panel[data-panel="about"]'), null);
+  check('nav: help is a link, not a section', items[4].tagName, 'A');
+  check('nav: help is called Help',
+    items[4].textContent.trim(), chrome.i18n.getMessage('navHelp'));
+  check('nav: help opens in a new tab', items[4].getAttribute('target'), '_blank');
+  check('nav: help gives the site no opener',
+    items[4].getAttribute('rel'), 'noopener noreferrer');
+  // The click would open the site; the panel must not change because of it.
+  items[4].addEventListener('click', function (e) { e.preventDefault(); }, { once: true });
+  items[4].click();
+  check('nav: help leaves the open section alone', items[3].getAttribute('aria-current'), 'page');
+  truthy('nav: help does not change the remembered section', STORE.ui.panel === 'settings');
 
   items[1].click(); // back to environments; the rest of the test works with the rules
   return Promise.resolve();
 }
 
-/* ---- layouts ------------------------------------------------------------ */
-function assertLayouts() {
-  var cards = document.querySelectorAll('#layoutList .rule');
-  check('layout: own layouts rendered', cards.length, 2);
-  check('layout: shared layout rendered', document.querySelectorAll('#hostedLayoutList .rule').length, 1);
+/* ---- styles ------------------------------------------------------------ */
+function assertStyles() {
+  var before; // the settings before the last-style checks, put back after them
+  var cards = document.querySelectorAll('#styleList .rule');
+  check('style: own styles rendered', cards.length, 2);
+  check('style: shared style rendered', document.querySelectorAll('#hostedStyleList .rule').length, 1);
 
-  var layoutCard = cards[0];
-  check('layout: name filled in', layoutCard.querySelector('.rule__name').value, 'Standaard');
-  check('layout: no usage counter anymore', layoutCard.querySelector('[data-usage]'), null);
-  check('layout: no color palette on layout', layoutCard.querySelector('[data-palette]'), null);
-  check('layout: no conditions on layout', layoutCard.querySelector('[data-conditions]'), null);
-  check('layout: no favicon letters on layout',
-    layoutCard.querySelector('[data-path="favicon.text"]'), null);
-  truthy('layout: display block present', !!layoutCard.querySelector('[data-path="ribbon.text"]'));
-  check('layout: preview uses layout text',
-    cards[1].querySelector('[data-preview-brand]').textContent, 'LAYOUT Sandbox');
+  var styleCard = cards[0];
+  check('style: name filled in', styleCard.querySelector('.rule__name').value, 'Standaard');
+  check('style: no usage counter anymore', styleCard.querySelector('[data-usage]'), null);
+  check('style: no color palette on style', styleCard.querySelector('[data-palette]'), null);
+  check('style: no conditions on style', styleCard.querySelector('[data-conditions]'), null);
+  check('style: no favicon letters on style',
+    styleCard.querySelector('[data-path="favicon.text"]'), null);
+  truthy('style: display block present', !!styleCard.querySelector('[data-path="ribbon.text"]'));
+  check('style: preview uses style text',
+    cards[1].querySelector('[data-preview-brand]').textContent, 'STYLE Sandbox');
 
   // The first rule here is PROD: earlier steps changed the order.
   // It is linked to 'Standaard' and has color #107c10.
   var ruleCard = document.querySelectorAll('#ruleList .rule')[0];
-  var picker = ruleCard.querySelector('[data-layout-picker]');
-  check('rule: picker lists own and shared layouts',
+  var picker = ruleCard.querySelector('[data-style-picker]');
+  check('rule: picker lists own and shared styles',
     Array.prototype.map.call(picker.options, function (o) { return o.textContent; }),
-    ['Standaard', 'Compact']);
+    ['Standaard', 'Compact', 'GEDEELDE STYLE']);
+  check('rule: shared styles sit in their own group',
+    [picker.querySelectorAll('optgroup').length, picker.querySelector('optgroup').label,
+      picker.querySelector('optgroup option').value],
+    [1, chrome.i18n.getMessage('sharedStyles'), 'hl1']);
   check('rule: no per-rule settings choice', picker.value, 'lay-1');
 
   picker.value = 'lay-2';
@@ -992,48 +1533,91 @@ function assertLayouts() {
     ruleCard.querySelector('[data-preview]'), null);
 
   return wait(400).then(function () {
-    check('layout: link saved', STORE.settings.rules[0].layoutId, 'lay-2');
+    check('style: link saved', STORE.settings.rules[0].styleId, 'lay-2');
 
-    var used = document.querySelectorAll('#layoutList .rule')[1];
-    check('layout: preview borrows rule color',
+    var used = document.querySelectorAll('#styleList .rule')[1];
+    check('style: preview borrows rule color',
       used.querySelector('[data-preview-frame]').style.borderColor, 'rgb(16, 124, 16)');
 
-    // a change in a layout is saved (on the first one, which stays put)
-    var width = document.querySelectorAll('#layoutList .rule')[0]
+    // a change in a style is saved (on the first one, which stays put)
+    var width = document.querySelectorAll('#styleList .rule')[0]
       .querySelector('input[data-path="border.width"]');
     width.value = '5';
     width.dispatchEvent(new Event('input', { bubbles: true }));
-    check('layout: field change applied', width.value, '5');
+    check('style: field change applied', width.value, '5');
 
-    // add layout
-    document.getElementById('addLayout').click();
-    check('layout: added', document.querySelectorAll('#layoutList .rule').length, 3);
-    check('layout: picker knows new layout',
-      document.querySelectorAll('#ruleList .rule')[0].querySelector('[data-layout-picker]').options.length, 3);
+    // add style
+    document.getElementById('addStyle').click();
+    check('style: added', document.querySelectorAll('#styleList .rule').length, 3);
+    // three own styles and the shared one
+    check('style: picker knows new style',
+      document.querySelectorAll('#ruleList .rule')[0].querySelector('[data-style-picker]').options.length, 4);
 
-    // and remove again: the rule falls back to the first layout
+    // and remove again: the rule falls back to the first style
     var confirmed = window.confirm;
     window.confirm = function () { return true; };
-    document.querySelectorAll('#layoutList .rule')[1]
+    document.querySelectorAll('#styleList .rule')[1]
       .querySelector('[data-action="delete"]').click();
     window.confirm = confirmed;
 
     return wait(400);
   }).then(function () {
-    check('layout: change saved', STORE.settings.layouts[0].border.width, 5);
-    check('layout: removed', document.querySelectorAll('#layoutList .rule').length, 2);
-    check('layout: rule falls back to first layout',
-      STORE.settings.rules[0].layoutId, 'lay-1');
-    check('rule: picker selects first layout',
+    check('style: change saved', STORE.settings.styles[0].border.width, 5);
+    check('style: removed', document.querySelectorAll('#styleList .rule').length, 2);
+    check('style: rule falls back to first style',
+      STORE.settings.rules[0].styleId, 'lay-1');
+    check('rule: picker selects first style',
       document.querySelectorAll('#ruleList .rule')[0]
-        .querySelector('[data-layout-picker]').value, 'lay-1');
+        .querySelector('[data-style-picker]').value, 'lay-1');
+
+    // While a shared style is there, the last own style can go too: own rules
+    // then follow the shared one.
+    before = JSON.parse(JSON.stringify(STORE.settings));
+    var confirmed = window.confirm;
+    window.confirm = function () { return true; };
+    document.querySelectorAll('#styleList .rule')[1]
+      .querySelector('[data-action="delete"]').click();
+    document.querySelectorAll('#styleList .rule')[0]
+      .querySelector('[data-action="delete"]').click();
+    window.confirm = confirmed;
+    check('style: the last own style can go while a shared one is there',
+      [document.querySelectorAll('#styleList .rule').length, status().textContent], [0, '']);
+    return wait(400);
+  }).then(function () {
+    check('style: own rules then follow the shared style', STORE.settings.rules[0].styleId, 'hl1');
+
+    // Without shared styles the last one cannot go, and that message leaves
+    // once a second is back.
+    var alone = JSON.parse(JSON.stringify(before));
+    alone.styles = alone.styles.slice(0, 1);
+    alone.hosted.rules = [];
+    alone.hosted.styles = [];
+    return chrome.storage.local.set({ settings: alone }).then(function () { return wait(300); });
+  }).then(function () {
+    var confirmed = window.confirm;
+    window.confirm = function () { return true; };
+    document.querySelectorAll('#styleList .rule')[0]
+      .querySelector('[data-action="delete"]').click();
+    window.confirm = confirmed;
+    check('style: the last one stays, and says why',
+      [document.querySelectorAll('#styleList .rule').length, status().textContent],
+      [1, chrome.i18n.getMessage('lastStyle')]);
+    document.getElementById('addStyle').click();
+    check('style: the message goes once there are two again',
+      [document.querySelectorAll('#styleList .rule').length, status().textContent], [2, '']);
+    return wait(400);
+  }).then(function () {
+    // Later steps expect the shared rule and style again.
+    return chrome.storage.local.set({ settings: before }).then(function () { return wait(300); });
   });
+
+  function status() { return document.getElementById('stylesStatus'); }
 }
 
 /* ---- copy a shared rule ------------------------------------------------- */
 function assertSharedCopy() {
   var before = document.querySelectorAll('#ruleList .rule').length;
-  var layoutsBefore = document.querySelectorAll('#layoutList .rule').length;
+  var stylesBefore = document.querySelectorAll('#styleList .rule').length;
   var shared = document.querySelector('#hostedList .rule');
 
   check('shared: no copy-all button anymore', document.getElementById('copyHosted'), null);
@@ -1050,10 +1634,10 @@ function assertSharedCopy() {
       rules[rules.length - 1].querySelector('.rule__name').value, 'GEDEELD');
     truthy('shared: copy is editable',
       !rules[rules.length - 1].querySelector('.rule__name').disabled);
-    check('shared: shared layout copied too',
-      document.querySelectorAll('#layoutList .rule').length, layoutsBefore + 1);
+    check('shared: shared style copied too',
+      document.querySelectorAll('#styleList .rule').length, stylesBefore + 1);
     check('shared: copy points to it',
-      rules[rules.length - 1].querySelector('[data-layout-picker]').value, 'hl1');
+      rules[rules.length - 1].querySelector('[data-style-picker]').value, 'hl1');
     check('shared: original remains',
       document.querySelectorAll('#hostedList .rule').length, 1);
   });
@@ -1097,6 +1681,9 @@ function assertClearShared() {
     return wait(400).then(function () {
       truthy('clear: empty URL disables shared config too',
         STORE.settings.hosted.active === false && STORE.settings.hosted.url === '');
+      // The empty field says enough; no "nothing configured" line under it.
+      check('clear: no status line without URL',
+        document.getElementById('hostedStatus').textContent, '');
     });
   });
 }
@@ -1131,13 +1718,13 @@ function importFile() {
         .querySelector('input[type="color"][data-path="color"]').value, '#8764b8');
     check('import: overwritten rule got id from file',
       STORE.settings.rules[0].id, 'imp-1');
-    var status = document.getElementById('importStatus').textContent;
+    var status = document.getElementById('transferStatus').textContent;
     check('import: status mentions overwritten and added',
       status.indexOf(chrome.i18n.getMessage('importOverwritten', ['1'])) !== -1 &&
       status.indexOf(chrome.i18n.getMessage('importAdded', ['1'])) !== -1 ? 'ok' : status, 'ok');
     truthy('import: zero counts omitted', !/\b0\s/.test(status));
-    truthy('import: no layout line for file without layouts',
-      status.indexOf('Layouts') === -1);
+    truthy('import: no style line for file without styles',
+      status.indexOf('Styles') === -1);
   });
 }
 
@@ -1170,41 +1757,225 @@ function assertExternalWrite() {
   });
 }
 
-/* ---- a URL set by the organisation's policy ----------------------------- */
-function assertManaged() {
-  var url = document.getElementById('hostedUrl');
-  var note = document.getElementById('hostedManagedNote');
+/* ---- shared file set by browser policy locks the field ------------------ */
+function assertPolicyLock() {
+  var field = document.getElementById('hostedUrl');
+  var note = document.getElementById('hostedManaged');
   var clear = document.getElementById('clearShared');
-  var status = document.getElementById('hostedStatus');
+  truthy('policy: field editable without a policy', !field.readOnly && note.hidden);
 
-  check('managed: without a policy the field is editable', url.disabled, false);
-  check('managed: without a policy the note is hidden', note.hidden, true);
-
-  // The policy arrives while the page is open: the browser fires the change
-  // event for the managed area, and the page re-reads it.
   function setPolicy(value) {
-    chrome.storage.managed = { get: function () { return Promise.resolve(value); } };
-    LISTENERS.forEach(function (fn) { fn({ hostedUrl: { newValue: value.hostedUrl } }, 'managed'); });
+    MANAGED = value;
+    LISTENERS.forEach(function (fn) { fn({ sharedConfigUrl: { newValue: value.sharedConfigUrl } }, 'managed'); });
     return wait(200);
   }
 
-  return setPolicy({ hostedUrl: 'https://intranet.example.com/bc-buddy.json' }).then(function () {
-    check('managed: field is read-only', url.disabled, true);
-    check('managed: note is shown', note.hidden, false);
-    truthy('managed: note says who set it', note.textContent.indexOf('organisation') !== -1);
-    check('managed: clearing the shared rules is not offered', clear.hidden, true);
-    check('managed: sync stays available', document.getElementById('syncNow').disabled, false);
-    return setPolicy({ hostedUrl: 'http://intranet.example.com/bc-buddy.json' });
+  return setPolicy({ sharedConfigUrl: 'https://example.com/shared.json' }).then(function () {
+    truthy('policy: field is locked', field.readOnly);
+    truthy('policy: says who set it', !note.hidden &&
+      note.textContent === chrome.i18n.getMessage('hostedManaged'));
+    truthy('policy: shared rules cannot be cleared', clear.hidden);
+    truthy('policy: Synchronise still works', !document.getElementById('syncNow').disabled);
+    var before = STORE.settings.hosted.url;
+    field.value = 'https://elsewhere.example/x.json';
+    field.dispatchEvent(new Event('change'));
+    return wait(400).then(function () {
+      check('policy: a change in the field is not saved', STORE.settings.hosted.url, before);
+      field.value = before;
+      return setPolicy({});
+    });
   }).then(function () {
-    truthy('managed: an http policy URL is reported',
-      status.textContent.indexOf('HTTPS') !== -1 && status.textContent.indexOf('organisation') !== -1);
-    check('managed: an unusable policy leaves the field editable', url.disabled, false);
+    truthy('policy: removed policy unlocks the field', !field.readOnly && note.hidden);
+    truthy('policy: and the clear button is back', !clear.hidden);
+    check('policy: shared rules stay', document.querySelectorAll('#hostedList .rule').length, 1);
+  });
+}
+
+/* ---- a very long name, an emoji, and no rules at all -------------------- */
+function assertEdgeCases() {
+  // Measure on the panel that shows the rules, not on a hidden one.
+  document.querySelector('.nav__item[data-panel="environments"]').click();
+  var widthBefore = document.documentElement.scrollWidth;
+  var name = '🔴 CONTOSO' + new Array(41).join(' PRODUCTION');
+  var field = document.querySelector('#ruleList .rule .rule__name');
+  field.value = name;
+  field.dispatchEvent(new Event('input', { bubbles: true }));
+  // The parsed fields under Test URL show the company in full.
+  var testUrl = document.getElementById('testUrl');
+  testUrl.value = 'https://businesscentral.dynamics.com/Production/?company=' + encodeURIComponent(name);
+  testUrl.dispatchEvent(new Event('input'));
+  truthy('edge: rules hide the empty message', document.getElementById('emptyRules').hidden);
+
+  return wait(400).then(function () {
+    check('edge: a long name with an emoji is saved whole', STORE.settings.rules[0].name, name);
+    truthy('edge: a long rule name and company do not widen the page (' +
+      document.documentElement.scrollWidth + ' vs ' + widthBefore + ')',
+      document.documentElement.scrollWidth <= widthBefore);
+
+    // Everything gone, own and shared: the page says what to do next.
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.rules = [];
+    stored.hosted.rules = [];
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  }).then(function () {
+    check('edge: no rules at all shows the empty message',
+      [document.querySelectorAll('#ruleList .rule').length, document.getElementById('emptyRules').hidden],
+      [0, false]);
+    check('edge: and no shared heading either', document.getElementById('sharedHead').hidden, true);
+  });
+}
+
+/* ---- Load samples: own rules, not where IT manages BC Buddy ------------ */
+function assertSamples() {
+  var button = document.getElementById('loadSamples');
+  var empty = document.getElementById('emptyRules');
+  var status = document.getElementById('samplesStatus');
+  function names() {
+    return Array.prototype.map.call(
+      document.querySelectorAll('#ruleList .rule .rule__name'), function (i) { return i.value; });
+  }
+  function setPolicy(value) {
+    MANAGED = value;
+    LISTENERS.forEach(function (fn) { fn({ sharedConfigUrl: { newValue: value.sharedConfigUrl } }, 'managed'); });
+    return wait(200);
+  }
+
+  truthy('samples: button shown for an install of your own', !button.hidden);
+  function message(key, linkKeys) {
+    return chrome.i18n.getMessage(key, linkKeys.map(function (k) { return chrome.i18n.getMessage(k); }));
+  }
+  function links() {
+    return Array.prototype.map.call(empty.querySelectorAll('button.empty__action'),
+      function (b) { return b.textContent; });
+  }
+  check('samples: the empty message points at it', empty.textContent,
+    message('emptyRulesSamples', ['addRule', 'loadSamples', 'emptyRulesImport']));
+  check('samples: its three actions are links, Load samples first',
+    links(), ['loadSamples', 'addRule', 'emptyRulesImport'].map(function (k) { return chrome.i18n.getMessage(k); }));
+  button.click();
+  return wait(500).then(function () {
+    check('samples: four own rules added', names(), ['Master Data', 'Production', 'UAT', 'Development']);
+    check('samples: and saved', STORE.settings.rules.map(function (r) { return r.id; }),
+      ['sample-master-data', 'sample-production', 'sample-uat', 'sample-development']);
+    check('samples: one favicon letter each', STORE.settings.rules.map(function (r) { return r.favicon.text; }),
+      ['M', 'P', 'U', 'D']);
+    check('samples: no shared rules come from it', STORE.settings.hosted.rules.length, 0);
+    check('samples: Full and Subtle come along, rules on Full',
+      [STORE.settings.styles.slice(-2).map(function (l) { return l.id; }),
+        STORE.settings.rules.map(function (r) { return r.styleId; })],
+      [['full', 'subtle'], ['full', 'full', 'full', 'full']]);
+    check('samples: status says how many', status.textContent,
+      chrome.i18n.getMessage('samplesAdded', ['4']));
+    truthy('samples: the empty message is gone', empty.hidden);
+    button.click();
+    return wait(400);
+  }).then(function () {
+    check('samples: a second click adds nothing', [names().length, status.textContent],
+      [4, chrome.i18n.getMessage('samplesNone')]);
+    return setPolicy({ sharedConfigUrl: 'https://example.com/shared.json' });
+  }).then(function () {
+    truthy('samples: hidden once IT sets the shared file', button.hidden);
     return setPolicy({});
   }).then(function () {
-    check('managed: policy removed, field editable again', url.disabled, false);
-    check('managed: policy removed, note hidden again', note.hidden, true);
-    check('managed: policy removed, clearing offered again', clear.hidden, false);
-    delete chrome.storage.managed;
+    truthy('samples: back when the policy is gone', !button.hidden);
+    // IT pushed BC Buddy after the page was drawn: the click checks again.
+    INSTALL_TYPE = 'admin';
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.rules = [];
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  }).then(function () {
+    button.click();
+    return wait(400);
+  }).then(function () {
+    check('samples: nothing added when IT installed BC Buddy', names(), []);
+    truthy('samples: and the button hides', button.hidden);
+    check('samples: the empty message does not mention it', empty.textContent,
+      message('emptyRules', ['addRule', 'emptyRulesImport']));
+    check('samples: and has two links left',
+      links(), ['addRule', 'emptyRulesImport'].map(function (k) { return chrome.i18n.getMessage(k); }));
+
+    // The import link goes to the import button's panel and opens the picker.
+    var picker = document.getElementById('importFile');
+    var opened = 0;
+    picker.click = function () { opened++; };
+    empty.querySelectorAll('button.empty__action')[1].click();
+    delete picker.click;
+    check('empty: import link opens the file picker', opened, 1);
+    truthy('empty: on the panel where its result shows',
+      !document.querySelector('.panel[data-panel="settings"]').hidden);
+    document.querySelector('.nav__item[data-panel="environments"]').click();
+
+    empty.querySelector('button.empty__action').click();
+    return wait(400);
+  }).then(function () {
+    check('empty: Add rule link adds a rule', document.querySelectorAll('#ruleList .rule').length, 1);
+    truthy('empty: and the message goes', empty.hidden);
+    INSTALL_TYPE = 'normal';
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.rules = [];
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  });
+}
+
+/* ---- Reset to defaults on the Web client panel -------------------------- */
+function assertResetWebClient() {
+  var button = document.getElementById('resetWebClientLabel');
+  var status = document.getElementById('resetStatus');
+  function store(patch) {
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    Object.keys(patch).forEach(function (key) { stored[key] = patch[key]; });
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  }
+  function onOff() {
+    return [STORE.settings.stripeRows.enabled, STORE.settings.shortcuts.enabled,
+      STORE.settings.copyValues.enabled];
+  }
+
+  check('reset: the button lives in the Web client panel',
+    button.closest('.panel'), document.querySelector('.panel[data-panel="webclient"]'));
+  return store({
+    stripeRows: { enabled: true }, shortcuts: { enabled: true }, copyValues: { enabled: true },
+    dropdown: { width: 5, height: 5 },
+    hosted: { url: 'https://example.com/shared.json', active: true, rules: [], styles: [],
+      webClient: { copyValues: { enabled: false } } }
+  }).then(function () {
+    check('reset: the label names the team when the shared file sets something',
+      button.textContent, chrome.i18n.getMessage('resetWebClientTeam'));
+    button.click();
+    return wait(400);
+  }).then(function () {
+    check('reset: app defaults, with the shared file on top', onOff(), [false, false, false]);
+    check('reset: the switches follow',
+      document.getElementById('copyValuesEnabled').checked, false);
+    check('reset: the master switch is left alone', STORE.settings.enabled, true);
+    check('reset: says how many, with an undo',
+      [status.firstChild.textContent, status.querySelector('button').textContent],
+      [chrome.i18n.getMessage('resetWebClientDone', ['3']), chrome.i18n.getMessage('undo')]);
+    status.querySelector('button').click();
+    return wait(400);
+  }).then(function () {
+    check('reset: undo puts everything back', onOff(), [true, true, true]);
+    check('reset: and says so', status.textContent, chrome.i18n.getMessage('resetWebClientUndone'));
+    button.click();
+    return wait(100);
+  }).then(function () {
+    document.getElementById('stripeRowsEnabled').click();
+    check('reset: a change by hand drops the undo', status.textContent, '');
+    var hosted = JSON.parse(JSON.stringify(STORE.settings.hosted));
+    hosted.active = false;
+    return wait(400).then(function () { return store({ hosted: hosted }); });
+  }).then(function () {
+    check('reset: without the shared file, the plain label',
+      button.textContent, chrome.i18n.getMessage('resetWebClient'));
+    button.click();
+    return wait(400);
+  }).then(function () {
+    check('reset: then only the app defaults count', onOff(), [false, false, true]);
+    button.click();
+    return wait(100);
+  }).then(function () {
+    check('reset: nothing to reset says so', status.textContent,
+      chrome.i18n.getMessage('resetWebClientNone'));
   });
 }
 

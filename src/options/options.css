@@ -10,28 +10,59 @@
   --border: #d9dde3;
   --text: #1b1e23;
   --muted: #666e7a;
-  --accent: #0f6cbd;
+  /* The teal of Business Central and the logo's sphere, dark enough for text:
+     5.1:1 on white, 4.7:1 on --bg. The sphere's own #00b7c3 is only 2.4:1. */
+  --accent: #007a83;
   --accent-text: #ffffff;
   --danger: #c4314b;
   --ok: #107c10;
   --brand-mark: #505c6d;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 12px rgba(16, 24, 40, .05);
+  /* A black header, like the documentation site's: the grey and the cyan of
+     the logo stay legible on it, and it sets the page off from the browser. */
+  --topbar-bg: #000000;
+  --topbar-border: #000000;
+  --topbar-text: #ffffff;
+  --topbar-muted: #b4bbc5;
+  --topbar-mark: #a7adb6;
+  --topbar-ok: #6ccb5f;
+  --topbar-danger: #ff8a99;
+  --topbar-control: rgba(255, 255, 255, .28);
+  /* The select's list is drawn by the system, light or dark at its own
+     choice: give the options the page's colours, not the header's. */
+  --topbar-option-bg: #ffffff;
+  --topbar-option-text: #1b1e23;
+  /* The icons in front of the Web client settings: lines in the accent, no
+     tile. Rules: DEVELOPMENT.md, Setting icons. */
+  --icon-fg: var(--accent);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #16181d;
-    --surface: #1e2127;
-    --surface-2: #262a31;
-    --border: #363b44;
-    --text: #e7eaee;
-    --muted: #9aa3b0;
-    --accent: #4aa3f0;
-    --accent-text: #0b1220;
-    --brand-mark: #a7adb6;
-    --shadow: none;
-  }
+/* theme.js puts the theme in effect on <html data-theme>: the system's, or
+   the one picked with the button in the header. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #16181d;
+  --surface: #1e2127;
+  --surface-2: #262a31;
+  --border: #363b44;
+  --text: #e7eaee;
+  --muted: #9aa3b0;
+  --accent: #3cc8d1;
+  --accent-text: #0b1220;
+  --brand-mark: #a7adb6;
+  --shadow: none;
+  --topbar-bg: var(--surface);
+  --topbar-border: var(--border);
+  --topbar-text: var(--text);
+  --topbar-muted: var(--muted);
+  --topbar-mark: var(--brand-mark);
+  --topbar-ok: var(--ok);
+  --topbar-danger: var(--danger);
+  --topbar-control: var(--border);
+  --topbar-option-bg: var(--surface);
+  --topbar-option-text: var(--text);
 }
 
 * { box-sizing: border-box; }
@@ -70,24 +101,73 @@ a { color: var(--accent); }
   position: sticky;
   top: 0;
   z-index: 10;
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--topbar-border);
+  /* Dark in both themes, so native controls in it are too. */
+  color-scheme: dark;
+  --text: var(--topbar-text);
+  --muted: var(--topbar-muted);
+  --brand-mark: var(--topbar-mark);
+  --ok: var(--topbar-ok);
+  --danger: var(--topbar-danger);
+  color: var(--text);
+}
+
+/* The black runs the full width; what is on it keeps to the column below,
+   so the logo lines up with the menu and the language with the content's
+   right edge. Widths and insets mirror .layout, .nav and main. */
+.topbar__inner {
+  max-width: 1240px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 14px 24px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  padding: 14px 24px 14px 12px;
 }
-
 .topbar__brand { display: flex; align-items: center; gap: 12px; }
-.topbar__brand p { margin: 2px 0 0; font-size: 12.5px; }
 .topbar__actions { display: flex; align-items: center; gap: 16px; }
 
-/* The brand: BC with the cut-out the dot sits against. That dot takes the
-   colour of the rule that matches the test URL (see options.js). */
+/* The language picker: a quiet select, not a form field. */
+.language { display: inline-flex; align-items: center; color: var(--muted); }
+.language select {
+  width: auto;
+  background: transparent;
+  color: var(--text);
+  border-color: var(--topbar-control);
+  padding: 5px 8px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.language option { background: var(--topbar-option-bg); color: var(--topbar-option-text); }
+
+/* Light or dark: an icon button as quiet as the language picker beside it. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--topbar-control);
+  border-radius: 7px;
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--text); }
+/* The two page controls go together: 6px apart instead of the bar's 16px. */
+.theme-toggle + .language { margin-left: -10px; }
+.theme-toggle__icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.theme-toggle__sun,
+:root[data-theme="dark"] .theme-toggle__moon { display: none; }
+:root[data-theme="dark"] .theme-toggle__sun { display: block; }
+
+/* The brand: BC with the cut-out the dot sits against, then Buddy. The dot
+   takes the colour of the rule that matches the test URL (see options.js). */
+.topbar__brand h1 { display: flex; }
 .brand {
-  width: 44px; height: 44px;
+  width: 124px; height: 44px;
   flex: none;
   font-family: "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
 }
@@ -128,6 +208,7 @@ a { color: var(--accent); }
   font: inherit;
   font-size: 13.5px;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
 .nav__item:hover { background: var(--surface-2); color: var(--text); }
@@ -139,18 +220,27 @@ a { color: var(--accent); }
 }
 
 /* The master switch does not belong with the sections, so it sits separately
-   at the bottom of the nav: label on the left, toggle on the right (hence
-   row-reverse). */
+   at the bottom of the nav, in a frame of its own so it stands out: label on
+   the left, toggle on the right (hence row-reverse). */
 .nav__toggle {
   margin-top: 16px;
-  padding: 14px 12px 0;
-  border-top: 1px solid var(--border);
+  padding: 12px 12px 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   flex-direction: row-reverse;
   justify-content: space-between;
+  gap: 10px;
   font-size: 13.5px;
-  color: var(--muted);
+  font-weight: 600;
+  color: var(--text);
 }
-.nav__toggle:hover { color: var(--text); }
+.nav__toggle:hover { border-color: var(--accent); }
+/* "BC Buddy is on" with a dot: green while the switch is on, grey when off. */
+.nav__state { display: inline-flex; align-items: center; gap: 8px; }
+.nav__dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--muted); }
+.nav__toggle input:checked + .nav__state .nav__dot { background: var(--ok); }
 
 .nav__icon {
   width: 16px;
@@ -162,14 +252,19 @@ a { color: var(--accent); }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* Help leaves the page: a small arrow on the right says so. */
+.nav__external { width: 12px; height: 12px; margin-left: auto; opacity: .7; }
 
 .panel { display: flex; flex-direction: column; gap: 26px; }
 .panel[hidden] { display: none; }
 
 @media (max-width: 820px) {
-  .layout { flex-direction: column; }
+  /* Stretch, not flex-start: in a column, flex-start sizes main to its
+     content, so a long company name would widen the page past the window. */
+  .layout { flex-direction: column; align-items: stretch; }
   .nav { position: static; flex: none; flex-direction: row; flex-wrap: wrap; padding: 16px 24px 0; }
   .nav__item { width: auto; }
+  .topbar__inner { padding-left: 24px; }
 }
 
 main {
@@ -192,6 +287,8 @@ section { display: flex; flex-direction: column; gap: 10px; }
 }
 .section-head h2 { white-space: nowrap; }
 .section-head .row { width: auto; margin-left: auto; }
+/* A heading with its add (+) button right beside it. */
+.section-title { display: flex; align-items: center; gap: 4px; }
 
 .card {
   background: var(--surface);
@@ -203,6 +300,69 @@ section { display: flex; flex-direction: column; gap: 10px; }
   flex-direction: column;
   gap: 12px;
 }
+
+/* A list of settings in one card: the name on the left, the control on the
+   right, a line between the rows. What a setting does is its tooltip. */
+.card--list { padding: 0; gap: 0; }
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 16px;
+}
+label.setting { cursor: pointer; }
+.setting + .setting { border-top: 1px solid var(--border); }
+.setting--wrap { flex-wrap: wrap; }
+/* The icon in front of a setting: one SVG per setting in icons/settings/,
+   used as a mask so the line colour follows the theme. Bare, without the tile
+   the website puts it on. The same files are the icons on the website and in
+   the README. */
+.setting__icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-right: -4px;
+  display: grid;
+  place-items: center;
+}
+.setting__icon::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: var(--icon-fg);
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+.setting__icon--copy-values { --icon: url(../../icons/settings/copy-values.svg); }
+.setting__icon--maximize { --icon: url(../../icons/settings/maximize.svg); }
+.setting__icon--pin-action-bar { --icon: url(../../icons/settings/pin-action-bar.svg); }
+.setting__icon--highlight-row { --icon: url(../../icons/settings/highlight-row.svg); }
+.setting__icon--dropdown { --icon: url(../../icons/settings/dropdown.svg); }
+.setting__icon--resize-panes { --icon: url(../../icons/settings/resize-panes.svg); }
+.setting__icon--week-numbers { --icon: url(../../icons/settings/week-numbers.svg); }
+.setting__icon--hide-notifications { --icon: url(../../icons/settings/hide-notifications.svg); }
+.setting__icon--shortcuts { --icon: url(../../icons/settings/shortcuts.svg); }
+.setting__icon--stripe-rows { --icon: url(../../icons/settings/stripe-rows.svg); }
+.setting__icon--hide-fact-box { --icon: url(../../icons/settings/hide-fact-box.svg); }
+.setting__icon--no-animations { --icon: url(../../icons/settings/no-animations.svg); }
+.setting__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.setting__name { font-weight: 600; }
+.setting__desc { font-size: 12.5px; color: var(--muted); }
+
+/* Works straight away, then Extras: a small heading above each list. */
+.setting-group { display: flex; flex-direction: column; gap: 8px; }
+.setting-group + .setting-group { margin-top: 10px; }
+.setting-group__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+.setting__sliders { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 20px; margin-left: auto; }
+.slider { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.slider input[type="range"] { width: 110px; }
 
 footer { padding-top: 8px; border-top: 1px solid var(--border); }
 footer code { margin-right: 2px; }
@@ -226,6 +386,25 @@ input[type="text"]:focus, input[type="url"]:focus, input[type="email"]:focus, in
   outline-offset: -1px;
 }
 
+/* A text field with a link-style action inside its frame, on the right. The
+   frame is on the wrapper, so a longer translation of the action never runs
+   over the text. */
+.inset {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding-right: 10px;
+}
+.inset:focus-within { outline: 2px solid var(--accent); outline-offset: -1px; }
+.inset input[type="text"] { flex: 1 1 auto; border: 0; background: transparent; }
+.inset input[type="text"]:focus { outline: 0; }
+
+/* Set by browser policy (the shared file's address): readable, not editable. */
+input[type="url"]:read-only { background: var(--surface-2); color: var(--muted); }
+
 input[type="color"] {
   width: 38px;
   height: 32px;
@@ -247,9 +426,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width
 .field input, .field select { color: var(--text); }
 .field--wide { flex: 1 1 260px; }
 .field--narrow { flex: 0 1 150px; }
-/* The colour block is as wide as the palette, so text colour stays beside it. */
+.field[hidden] { display: none; }
+/* The colour block is as wide as the palette, so the style stays beside it. */
 .field--colour { flex: 0 0 auto; max-width: 100%; }
-.field--layout { flex: 0 1 190px; }
+.field--style { flex: 0 1 190px; }
 /* Same mute as a rule that is off (.rule--disabled). */
 .field--inactive { opacity: .6; }
 
@@ -329,6 +509,42 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
    its grey background and the dark text becomes unreadable. */
 .btn--primary:hover { background: var(--accent); color: var(--accent-text); filter: brightness(1.08); }
 .btn--small { align-self: flex-start; padding: 5px 10px; font-size: 12.5px; }
+/* An icon in front of the label, at the height of a plain .btn. */
+.btn--icon { display: inline-flex; align-items: center; gap: 6px; }
+.btn--icon[hidden] { display: none; }
+.btn--icon .btn__icon { width: 14px; height: 14px; }
+/* A wide button with an icon, for an action that is the whole card. */
+.btn--tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 13px;
+  font-size: 13.5px;
+  white-space: normal;
+}
+.btn__icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Import and export side by side; stacked when the page is narrow. */
+.transfer { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
 
 .icon-btn {
   background: transparent;
@@ -342,17 +558,29 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 }
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .icon-btn--danger:hover { background: rgba(196, 49, 75, .12); color: var(--danger); }
-
+/* Add (+) beside a section heading: in the accent colour, so it still reads
+   as the section's main action without a label. */
+.icon-btn--add { display: inline-flex; padding: 4px; color: var(--accent); }
+.icon-btn--add:hover { color: var(--accent); }
+.icon-btn--add .btn__icon { width: 18px; height: 18px; stroke-width: 1.6; }
+/* The same + beside a small card heading (Conditions): smaller, and the
+   heading's bottom margin moves to the row so the + does not add height. */
+.rule__section > .section-title { margin-bottom: 8px; }
+.rule__section > .section-title h4 { margin: 0; }
+.rule__section > .section-title .icon-btn--add { padding: 0 2px; }
+.rule__section > .section-title .icon-btn--add .btn__icon { width: 14px; height: 14px; }
 .grid { display: flex; flex-wrap: wrap; gap: 12px; }
 .grid--two > * { flex: 1 1 320px; }
-.grid--hosted { align-items: end; }
-/* Top-align so Colour (short swatch) shares a baseline with Text colour / Layout. */
+/* Top-align so Colour (short swatch) shares a baseline with Style. */
 .grid--style { align-items: start; }
+/* The Colour heading stands in for that field's label: same height, so the
+   palette lines up with the selects beside it. */
+.grid--style .field > span,
+.grid--style .field > h4 { margin: 0; line-height: 18px; }
 
 /* -------------------------------------------------------------- tester */
 
 .tester { gap: 10px; }
-.tester__row { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--muted); }
 
 .parsed {
   display: flex;
@@ -361,6 +589,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   margin: 0;
   font-size: 12.5px;
 }
+.parsed:empty { display: none; }
 .parsed div { display: flex; gap: 6px; align-items: baseline; }
 .parsed dt { color: var(--muted); }
 .parsed dd { margin: 0; font-weight: 600; }
@@ -380,6 +609,17 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   text-align: center;
   color: var(--muted);
 }
+/* A word in the empty message that does what it says. */
+.empty__action, .inset__action {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.inset__action { flex: none; font-size: 12.5px; white-space: nowrap; }
 
 .rule {
   background: var(--surface);
@@ -393,6 +633,9 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   gap: 14px;
 }
 .rule--disabled { opacity: .6; }
+/* The rule the test URL gets: its colour all round. The ring is a shadow, so
+   the card does not shift by a pixel when another rule takes over. */
+.rule--wins { border-color: var(--rule-color); box-shadow: 0 0 0 1px var(--rule-color), var(--shadow); }
 
 .rule__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; cursor: pointer; }
 .rule__head input[type="text"] { cursor: text; }
@@ -408,9 +651,9 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 
 .rule__body { display: flex; flex-direction: column; gap: 14px; }
 
-/* A layout card has no colour of its own, so no coloured edge either. */
-.rule--layout { border-left-color: var(--border); }
-.rule--layout .rule__name { flex: 1 1 220px; }
+/* A style card has no colour of its own, so no coloured edge either. */
+.rule--style { border-left-color: var(--border); }
+.rule--style .rule__name { flex: 1 1 220px; }
 .display { display: flex; flex-direction: column; }
 [data-display][hidden] { display: none; }
 .rule--collapsed .rule__body { display: none; }
@@ -419,45 +662,29 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   width: 20px; height: 20px; border-radius: 6px; flex: none;
   background: var(--rule-color, #ccc);
   border: 1px solid rgba(0,0,0,.15);
-  padding: 0;
-  cursor: pointer;
 }
-.rule__swatch:hover { box-shadow: 0 0 0 2px var(--surface-2); }
 .rule__name { flex: 1 1 180px; font-weight: 600; }
 .rule__tools { display: flex; align-items: center; gap: 2px; margin-left: auto; }
 
-/* The grip you drag a rule to another place with. Shared rules are fixed but
-   keep the grip's slot, so the list stays neatly aligned. */
-.rule__grip {
-  flex: none;
-  cursor: grab;
-  font-size: 15px;
-  padding: 5px 3px;
-}
+/* An own rule's triangle is also the grip you drag it to another place with.
+   Shared rules keep the order from the shared file, so theirs only toggles. */
+.rule__grip { cursor: grab; }
 .rule__grip:active { cursor: grabbing; }
-.rule[data-readonly="1"] .rule__grip { visibility: hidden; }
 
 .rule--dragging { opacity: .5; }
 /* Where the rule lands if you release now. */
 .rule--drop-before { box-shadow: 0 -3px 0 -1px var(--accent), var(--shadow); }
 .rule--drop-after { box-shadow: 0 3px 0 -1px var(--accent), var(--shadow); }
 
-/* Does the rule match the test URL? A tick or a circle; the explanation is in
-   the tooltip, so the header row stays short. */
-.match {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 12px;
-  line-height: 1;
-  cursor: help;
+/* Read by a screen reader, not shown. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
-.match--yes { color: var(--ok); background: rgba(16, 124, 16, .12); }
-.match--no { color: var(--muted); background: var(--surface-2); }
 
 .shared-head {
   display: flex;
@@ -474,6 +701,7 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .condition { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 .condition select { flex: 0 1 150px; }
 .condition input { flex: 1 1 220px; }
+.condition input[aria-invalid="true"] { border-color: var(--danger); }
 
 .dot-indicator {
   width: 9px; height: 9px; border-radius: 50%;
@@ -483,77 +711,59 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .dot-indicator--on { background: var(--ok); }
 .dot-indicator--off { background: var(--danger); }
 
+/* A part of a style (ribbon, frame, ...), as one row like the Web client
+   settings: its name, its fields with the caption beside them, and its switch
+   on the right. While it is off only the name and the switch remain. What a
+   part does is the tooltip on its name. */
 .option {
   border-top: 1px solid var(--border);
-  padding-top: 10px;
+  padding: 10px 0;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
 }
-.option__body { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding-left: 22px; }
+.option__name { flex: 0 0 170px; font-weight: 600; cursor: help; }
+.option__body {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+/* Specific enough to beat the general margin: 0 on .toggle. */
+.option > input[type="checkbox"].toggle { margin-left: auto; }
+.option__body .field { flex-direction: row; align-items: center; gap: 8px; }
+.option__body .field > span { white-space: nowrap; }
+/* Small enough that the banner (position, text, size, opacity) fits on one
+   line; the text field takes whatever room is left. */
+.option__body .field--wide { flex: 1 1 120px; }
+.option__body .field--narrow { flex: 0 0 auto; }
+.option__body input[type="text"] { flex: 1 1 auto; }
+/* A part with a single text field (ribbon, tab title) needs no caption: the
+   part's name says what it is, and the field keeps it as its aria-label. */
+.option__body > input[type="text"] { flex: 1 1 240px; }
+.option__body input[type="number"] { width: 64px; }
+.option__body input[type="range"] { width: 90px; }
+.option__body select { width: auto; }
+
+/* The tokens the texts on a style can use, on one line below its parts. */
+.tokens {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--muted);
+  cursor: help;
+}
+.tokens__item { white-space: nowrap; }
 .option--off .option__body { display: none; }
 .option[hidden] { display: none; }
-
-/* Small question mark beside a field, with help on hover, focus or click. */
-.hint {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  margin-left: 5px;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface-2);
-  color: var(--muted);
-  font: inherit;
-  font-size: 10px;
-  line-height: 1;
-  cursor: help;
-  vertical-align: middle;
-}
-.hint:hover, .hint:focus { color: var(--text); border-color: var(--accent); }
-.hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.hint__bubble {
-  position: absolute;
-  top: calc(100% + 7px);
-  left: -8px;
-  z-index: 20;
-  /* Shown via visibility, not display, so a delay can apply: that way the
-     help does not pop open when you happen to move past it. */
-  visibility: hidden;
-  opacity: 0;
-  transition: visibility 0s linear .45s, opacity .12s linear .45s;
-  width: max-content;
-  max-width: 330px;
-  padding: 9px 11px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
-  color: var(--text);
-  font-size: 12.5px;
-  line-height: 1.7;
-  text-align: left;
-  white-space: normal;
-  cursor: auto;
-}
-.hint:hover .hint__bubble,
-.hint:focus .hint__bubble {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Clicked, it stays open immediately. */
-.hint.is-open .hint__bubble {
-  visibility: visible;
-  opacity: 1;
-  transition-delay: 0s;
-}
-.hint__bubble code { margin-right: 3px; }
 
 .palette { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .palette button {
@@ -608,6 +818,18 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   min-height: 32px;
 }
 .preview__ribbon[hidden] { display: none; }
+
+.preview__topbar {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preview__topbar[hidden] { display: none; }
 .preview__brand { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .preview__chip {
   font-size: 11px;
@@ -628,14 +850,9 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   border-width: 0;
   border-color: transparent;
 }
-/* The preview has its own background (a BC page), separate from the page
-   theme; text on it follows that background, not the tokens. */
-.preview__page { color: #6b7280; font-size: 12px; }
+.preview__favicon { display: block; width: 24px; height: 24px; }
 
-@media (prefers-color-scheme: dark) {
-  .preview__frame { background: #2b2f36; }
-  .preview__page { color: #9aa3b0; }
-}
+:root[data-theme="dark"] .preview__frame { background: #2b2f36; }
 
 .preview__banner {
   position: absolute;
@@ -671,15 +888,22 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 .sync-status { font-size: 12.5px; color: var(--muted); margin: 0; min-height: 18px; }
 .sync-status--ok { color: var(--ok); }
 .sync-status--error { color: var(--danger); }
-
-/* Trust boundary for the shared file: visible without looking like an error. */
-.trust-note {
-  margin: 0 0 12px;
-  padding: 10px 12px;
-  border-left: 3px solid var(--accent);
-  background: var(--surface-2);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  font-size: 12.5px;
-  color: var(--muted);
-  line-height: 1.45;
+/* Undo after Reset to defaults: a link in the status line, not a second button. */
+.sync-status__action {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-left: 6px;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
 }
+/* Docs link on the left, the section's message on the right of the same line. */
+.section-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; }
+.section-foot > p { margin: 0; }
+.section-foot > .sync-status { margin-left: auto; text-align: right; }
+/* Feedback on the rules sits on the right, like the other sections. */
+#samplesStatus { text-align: right; }
+.card > .sync-status:empty,
+section > .sync-status:empty { display: none; }

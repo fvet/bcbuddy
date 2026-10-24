@@ -1,0 +1,47 @@
+Business Central, plus simple au quotidien.
+
+Copiez n'importe quelle valeur en un clic, voyez chaque page sur toute la largeur et sachez toujours dans quel environnement vous êtes, directement dans le client Web Microsoft Dynamics 365 Business Central. BC Buddy élimine les petites frustrations de votre journée de travail.
+
+Gratuit. Fonctionne dès l'installation.
+
+⚡ Travaillez plus vite
+
+Fini de cliquer sur les mêmes boutons à chaque page.
+
+• Copie en un clic : n'importe quel montant, n° ou lien, même ceux que vous ne pouviez pas sélectionner
+• Chaque page sur toute la largeur, avec la barre d'actions épinglée
+• Des listes au lieu de mosaïques
+• Des listes déroulantes qui montrent toutes leurs colonnes : fini le défilement sur le côté
+• L'aide, Copilot et l'inspection de page aussi larges que vous le voulez, d'un glissement
+• Les numéros de semaine dans le calendrier d'un champ date
+• La ligne sur laquelle vous êtes ressort dans les feuilles et les commandes
+
+Vos choix priment : remettez une page en mode étroit, et BC Buddy la laisse ainsi.
+
+Envie de plus ? Activez les lignes alternées, un panneau avec les raccourcis clavier de la page où vous êtes, masquez le volet Récapitulatif ou la cloche des notifications, ou désactivez les animations. Chaque amélioration a son propre interrupteur.
+
+🎨 Ne validez plus jamais dans le mauvais environnement
+
+Dix onglets ouverts, dont un en production : un mauvais clic et une commande de test est validée pour de vrai. Production et bac à sable se ressemblent comme deux gouttes d'eau. Plus avec BC Buddy.
+
+• La barre en haut dans votre couleur, avec votre texte : « PRODUCTION - CRONUS BE »
+• Un cadre coloré autour de la fenêtre
+• Une barre au-dessus de Business Central, une bannière en bas, ou un bandeau dans un angle
+• Un titre d'onglet marqué et une icône colorée, pour trouver le bon onglet parmi dix autres
+
+Choisissez une couleur par environnement, par société ou par client. Des exemples tout prêts sont inclus : activez-les en un clic.
+
+👥 Une seule configuration pour toute l'équipe
+
+Une personne choisit les couleurs, tous les autres les reçoivent automatiquement, modifications ultérieures comprises.
+
+🔒 Vos données restent les vôtres
+
+Pas de compte. Pas de serveur. Pas de suivi. BC Buddy change l'apparence de Business Central, jamais vos données.
+
+✓ Business Central online et sur votre propre serveur
+✓ Chrome et Edge
+✓ Français, anglais et néerlandais
+✓ Gratuit et open source
+
+BC Buddy est un projet indépendant, sans lien avec Microsoft et non approuvé par Microsoft. Microsoft, Dynamics 365 et Business Central sont des marques du groupe Microsoft.

@@ -5,10 +5,10 @@
 # `mkdocs serve` after `pip install -r tools/requirements-docs.txt`.
 
 site_name: BC Buddy
-site_description: Give every Business Central environment its own colour, so you never post in production by mistake.
+site_description: Makes the Business Central web client easier to work in, and gives every environment its own colour so you never post in production by mistake.
 site_url: https://fvet.github.io/bcbuddy/
 site_author: Frédéric Vercaemst
-copyright: BC Buddy is open source under the MIT licence and stores nothing outside your own browser.
+copyright: Business Central is a trademark of Microsoft. BC Buddy is not affiliated with Microsoft.
 
 repo_url: https://github.com/fvet/bcbuddy
 repo_name: fvet/bcbuddy
@@ -16,7 +16,12 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  # Adds the Google Search Console verification tag to every page's <head>.
+  custom_dir: overrides
   language: en
+  # No Roboto from Google Fonts: extra.css sets the options page's Segoe UI
+  # stack, so the site and the extension read alike and load no font.
+  font: false
   logo: assets/logo.svg
   favicon: assets/logo.svg
   icon:
@@ -52,10 +57,12 @@ theme:
 extra_css:
   - assets/extra.css
 
-# Screenshots and the example configuration live outside docs/; this adds them
-# to the build without keeping a second copy.
+# Screenshots (store/ and marketing/screenshots/) and the example configuration
+# live outside docs/; this adds them to the build without keeping a second copy.
 hooks:
   - tools/mkdocs_assets.py
+  # Icons in front of the top-level items of the left menu.
+  - tools/mkdocs_nav_icons.py
 
 plugins:
   - search
@@ -69,8 +76,19 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
+  # :settings-copy-values: and the like inline an SVG from icons/settings/, the
+  # same files the options page shows in front of each Web client setting.
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - icons
   - pymdownx.highlight
   - pymdownx.superfences
+  # "With BC Buddy" / "Without" screenshots on the Web client page.
+  - pymdownx.tabbed:
+      alternate_style: true
   # Lets docs/privacy.md include the PRIVACY.md that ships with the repository,
   # so the policy on the site and the one in the repository cannot disagree.
   - pymdownx.snippets:
@@ -80,10 +98,13 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting started: getting-started.md
-  - Rules and matching: matching.md
-  - Layouts: layouts.md
-  - Sharing with your team: sharing.md
-  - Deploying for your organisation: deploying.md
+  - Web client: web-client.md
+  - Environments:
+      - Rules: matching.md
+      - Styles: styles.md
+  - Sharing with your team:
+      - Team file: sharing.md
+      - Install with Intune: intune.md
   - Troubleshooting: troubleshooting.md
   - What's new: whats-new.md
   - Privacy: privacy.md

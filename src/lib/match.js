@@ -11,6 +11,8 @@
   var BC_HOST_RE = /(^|\.)businesscentral\.dynamics(-tie)?\.com$/i;
   // Segments that can follow the tenant but are not an environment name themselves.
   var NON_ENV_SEG = /^(deeplink|signin|_layouts|api|webhooks)$/i;
+  // What BC online opens when the address names no environment.
+  var DEFAULT_ENVIRONMENT = 'Production';
 
   function safeDecode(value) {
     try {
@@ -46,13 +48,17 @@
     ctx.host = u.hostname;
     ctx.path = safeDecode(u.pathname);
     ctx.isbc = BC_HOST_RE.test(u.hostname);
-    ctx.company = safeDecode(u.searchParams.get('company') || '');
+    // searchParams already decodes. Decoding again would read a + as a space
+    // (R%2BD becomes "R D") and a literal %20 in a name as a space.
+    ctx.company = u.searchParams.get('company') || '';
 
     var segs = u.pathname.split('/').filter(Boolean).map(safeDecode);
     if (segs.length) {
       if (GUID_RE.test(segs[0]) || segs[0].indexOf('.') !== -1) {
         // /{tenantId or tenant domain}/{environment}/...
-        ctx.tenant = segs[0];
+        // Only BC online puts the tenant in the path. Elsewhere a first segment
+        // with a dot is a file or a user name; there only ?tenant= names one.
+        if (ctx.isbc) ctx.tenant = segs[0];
         ctx.environment = segs[1] && !NON_ENV_SEG.test(segs[1]) ? segs[1] : '';
       } else if (!NON_ENV_SEG.test(segs[0])) {
         // /{environment}/... (onprem server instance or BC without tenant in the path)
@@ -60,9 +66,34 @@
       }
     }
     var qTenant = u.searchParams.get('tenant');
-    if (qTenant) ctx.tenant = safeDecode(qTenant);
+    if (qTenant) ctx.tenant = qTenant;
+
+    // BC online without an environment in the address opens the tenant's
+    // default environment, which Microsoft names Production. Only on BC's own
+    // host: anywhere else an empty path says nothing about an environment.
+    if (ctx.isbc && !ctx.environment) ctx.environment = DEFAULT_ENVIRONMENT;
 
     return ctx;
+  }
+
+  // Microsoft's own Dynamics 365 domain. Sales, Customer Service, Finance and
+  // Operations and the rest share it, so there only Business Central's hosts
+  // count: businesscentral.dynamics.com and the embed apps on *.bc.dynamics.com.
+  var DYNAMICS_HOST_RE = /(^|\.)dynamics(-tie)?\.com$/i;
+  var BC_EMBED_HOST_RE = /(^|\.)bc\.dynamics(-tie)?\.com$/i;
+
+  /**
+   * Where the web client tweaks may apply: BC online and common on-prem URL
+   * shapes. Only the address; the content script still checks the page.
+   */
+  function isWebClientTarget(href) {
+    var u;
+    try { u = new URL(href); } catch (e) { return false; }
+    var host = u.hostname.toLowerCase();
+    if (DYNAMICS_HOST_RE.test(host)) return BC_HOST_RE.test(host) || BC_EMBED_HOST_RE.test(host);
+    if (/(?:^|\.)bc[^.]*(?:\.|$)/.test(host)) return true;   // hostname label starts with 'bc' (bc, bcdev, bcprod, …)
+    if (/^\/bc/i.test(u.pathname)) return true;             // path starts with /BC (on-prem)
+    return false;
   }
 
   // Labels come from the translations: fieldUrl, opContains, and so on.
@@ -101,39 +132,173 @@
       case 'equals': return a === b;
       case 'startsWith': return a.indexOf(b) === 0;
       case 'endsWith': return a.length >= b.length && a.lastIndexOf(b) === a.length - b.length;
-      case 'notContains': return a.indexOf(b) === -1;
-      default: return a.indexOf(b) !== -1;
     }
+    // Contains and does not contain take a list, the way DevOps reads "In":
+    // dev, uat, qa. Empty items from a stray comma are skipped.
+    var items = b.indexOf(',') === -1 ? [b] : b.split(',').map(function (item) {
+      return item.trim();
+    }).filter(Boolean);
+    if (!items.length) return false;
+    var found = items.some(function (item) { return a.indexOf(item) !== -1; });
+    return op === 'notContains' ? !found : found;
   }
 
   // Long enough for real BC URL patterns; short enough to keep ReDoS bounded.
   var REGEX_MAX_LEN = 200;
 
   // A subject longer than this is not a URL anyone navigated to, and the cost
-  // of backtracking grows with it. Bounding both ends keeps the worst case
-  // finite even for a pattern the filter below does not recognise.
+  // of backtracking grows with it.
   var SUBJECT_MAX_LEN = 2048;
+
+  // How much backtracking a pattern may need in the worst case, in the units
+  // of estimateCost(). Measured in Chrome's engine, a pattern at this budget
+  // takes 20 to 60 ms on a subject it does not match; one twenty times over
+  // it freezes the tab for seconds. Ungrouped quantifiers are what the shape
+  // filter below cannot see: .*.*.*.*.*.*Q is 13 characters and kept a tab
+  // busy for 45 s on a 100-character URL before this budget existed.
+  var REGEX_BUDGET = 1 << 24;
+
+  // Stands for "as many as the subject has" in a list of quantifier widths.
+  var OPEN = -1;
+
+  // Compiled patterns and their quantifiers, so the content script does not
+  // parse the same few patterns again on every pass. Patterns come from the
+  // settings, so there are few; the cap only guards against a long session of
+  // typing in the options page.
+  var compiled = {};
+  var compiledCount = 0;
+  var COMPILED_MAX = 500;
+
+  /**
+   * Why a RegEx condition cannot run on a subject of `length` characters:
+   * 'invalid' for a syntax error, 'heavy' when checking it could take long
+   * enough to freeze the page, '' when it can run. The options page shows the
+   * reason; matching treats both the same, as a condition that does not match.
+   */
+  function regexProblem(pattern, length) {
+    var entry = inspect(String(pattern == null ? '' : pattern));
+    if (entry.problem) return entry.problem;
+    if (length > SUBJECT_MAX_LEN) return 'heavy';
+    return estimateCost(entry, length) > REGEX_BUDGET ? 'heavy' : '';
+  }
 
   /**
    * Runs a user/shared RegEx against a subject. Invalid patterns, oversized
-   * ones and the quantifier shapes below all fail closed — the condition simply
-   * does not match, same as a syntax error.
+   * ones, the nested shapes below and anything over the backtracking budget
+   * fail closed — the condition simply does not match, same as a syntax error.
+   * A wrong colour on Production is worse than none, so a pattern that is
+   * too heavy is never run on part of the subject instead.
    *
-   * The filter is deliberately conservative rather than complete: deciding
-   * whether an arbitrary pattern backtracks catastrophically is not something
-   * a source scan can settle. It rejects the shapes that show up in practice
-   * and bounds the subject; a pattern that slips through is still bounded by
-   * that length, not by the filter.
+   * Deciding whether an arbitrary pattern backtracks catastrophically is not
+   * something a source scan can settle, so both checks are conservative: the
+   * shape filter catches nested quantifiers, which blow up exponentially, and
+   * the budget bounds what is left by the subject's length.
    */
   function safeRegexTest(pattern, subject) {
-    if (pattern.length > REGEX_MAX_LEN) return false;
-    if (subject.length > SUBJECT_MAX_LEN) return false;
-    if (hasRiskyQuantifier(pattern)) return false;
-    try {
-      return new RegExp(pattern, 'i').test(subject);
-    } catch (e) {
-      return false;
+    var entry = inspect(pattern);
+    if (entry.problem || subject.length > SUBJECT_MAX_LEN) return false;
+    if (estimateCost(entry, subject.length) > REGEX_BUDGET) return false;
+    return entry.re.test(subject);
+  }
+
+  function inspect(pattern) {
+    if (Object.prototype.hasOwnProperty.call(compiled, pattern)) return compiled[pattern];
+    var entry = { problem: '', re: null, widths: [], anchored: false };
+    var source = trimLooseEnds(pattern);
+    if (pattern.length > REGEX_MAX_LEN || hasRiskyQuantifier(source)) {
+      entry.problem = 'heavy';
+    } else {
+      try {
+        entry.re = new RegExp(source, 'i');
+        var shape = quantifiers(source);
+        entry.widths = shape.widths;
+        entry.anchored = source.charAt(0) === '^' && !shape.alternation;
+      } catch (e) {
+        entry.problem = 'invalid';
+      }
     }
+    if (compiledCount >= COMPILED_MAX) {
+      compiled = {};
+      compiledCount = 0;
+    }
+    compiled[pattern] = entry;
+    compiledCount += 1;
+    return entry;
+  }
+
+  /**
+   * An upper bound on the paths the engine may try before it gives up on a
+   * subject of `length`: each quantifier multiplies them by the number of
+   * lengths it can take, and an unanchored pattern is tried again from every
+   * position. Real patterns usually stay far below it, because their literal
+   * parts rule out most paths at once.
+   */
+  function estimateCost(entry, length) {
+    var n = Math.max(length, 1);
+    var cost = entry.anchored ? 1 : n;
+    for (var i = 0; i < entry.widths.length && cost <= REGEX_BUDGET; i++) {
+      cost *= entry.widths[i] === OPEN ? n : entry.widths[i];
+    }
+    return cost;
+  }
+
+  /**
+   * A .* at the very start or end changes nothing for test(): it may match
+   * nothing, so the rest matches wherever it would have anyway. People write
+   * .*CRONUS.* all the same, and dropping those ends keeps the pattern from
+   * spending its budget on them.
+   */
+  function trimLooseEnds(source) {
+    var s = source;
+    var lead = /^\.\*\??/;
+    var m;
+    while ((m = lead.exec(s)) && !/^[*+?{]/.test(s.slice(m[0].length))) s = s.slice(m[0].length);
+    while ((m = /\.\*\??$/.exec(s)) && !isEscaped(s, m.index)) s = s.slice(0, m.index);
+    return s;
+  }
+
+  function isEscaped(source, index) {
+    var slashes = 0;
+    for (var i = index - 1; i >= 0 && source.charAt(i) === '\\'; i--) slashes += 1;
+    return slashes % 2 === 1;
+  }
+
+  /**
+   * The quantifiers of a pattern as widths — how many lengths each can take,
+   * OPEN for *, + and {n,} — and whether it has an | outside any group, which
+   * makes a leading ^ anchor only its first branch. Character classes and
+   * escapes are skipped; the pattern already compiled, so it is well formed.
+   */
+  function quantifiers(source) {
+    var widths = [];
+    var depth = 0;
+    var alternation = false;
+    for (var i = 0; i < source.length; i++) {
+      var ch = source.charAt(i);
+      var width = 0;
+      if (ch === '\\') { i += 1; continue; }
+      if (ch === '[') { i = findClassEnd(source, i); continue; }
+      if (ch === '(') {
+        depth += 1;
+        // The ? of (?: (?= (?! (?<name> is not a quantifier.
+        if (source.charAt(i + 1) === '?') i += 1;
+        continue;
+      }
+      if (ch === ')') { depth -= 1; continue; }
+      if (ch === '|') { if (depth === 0) alternation = true; continue; }
+      if (ch === '*' || ch === '+') width = OPEN;
+      else if (ch === '?') width = 2;
+      else if (ch === '{') {
+        var range = /^\{(\d+)(?:(,)(\d*))?\}/.exec(source.slice(i));
+        if (!range) continue; // a literal brace
+        width = !range[2] ? 1 : (range[3] === '' ? OPEN : Math.max(1, range[3] - range[1] + 1));
+        i += range[0].length - 1;
+      } else continue;
+      widths.push(width);
+      // A ? right after a quantifier makes it lazy; it is no quantifier itself.
+      if (source.charAt(i + 1) === '?') i += 1;
+    }
+    return { widths: widths, alternation: alternation };
   }
 
   /**
@@ -231,6 +396,9 @@
     Object.keys(ctx || {}).forEach(function (k) { source[k.toLowerCase()] = ctx[k]; });
     Object.keys(extra || {}).forEach(function (k) { source[k.toLowerCase()] = extra[k]; });
     source.env = source.environment;
+    // A tenant ID is a GUID, which only clutters a ribbon or a tab title.
+    // Leave it empty, so it goes with the separator next to it.
+    if (GUID_RE.test(source.tenant || '')) source.tenant = '';
 
     var map = {};
     TOKENS.forEach(function (token) {
@@ -279,6 +447,32 @@
     });
 
     return tidy(text);
+  }
+
+  /* ---------- company from the page ---------- */
+
+  // BC caps a company's display name at 250 characters; anything longer is
+  // not one.
+  var COMPANY_MAX = 250;
+
+  /** Page text as a company name: one line, trimmed, '' when too long. */
+  function tidyCompany(text) {
+    var s = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+    return s.length > COMPANY_MAX ? '' : s;
+  }
+
+  /**
+   * The company in the title of BC's environment button:
+   * "Cronus België, Omgeving: Sandbox" gives "Cronus België". The label
+   * after the last comma is in the user's language ("Environment",
+   * "Environnement :"), so only its colon is checked. '' when the title has
+   * no company part.
+   */
+  function companyFromLauncher(title) {
+    var s = String(title == null ? '' : title);
+    var cut = s.lastIndexOf(',');
+    if (cut <= 0 || s.indexOf(':', cut) === -1) return '';
+    return tidyCompany(s.slice(0, cut));
   }
 
   /* ---------- colour helpers ---------- */
@@ -337,24 +531,88 @@
    * White or black, whichever reads best on that background.
    * The 0.179 threshold is where WCAG contrast with black overtakes that with
    * white: sqrt(1.05 * 0.05) - 0.05.
+   * A see-through background (`opacity` below 1) is judged by the colour you
+   * see: mixed with the page under it, white unless `under` says otherwise.
    */
-  function idealText(background) {
-    return luminance(background) > 0.179 ? '#000000' : '#ffffff';
+  function idealText(background, opacity, under) {
+    var seen = opacity == null || opacity >= 1 ? background : blend(background, under || '#ffffff', opacity);
+    return luminance(seen) > 0.179 ? '#000000' : '#ffffff';
+  }
+
+  /** `top` at `opacity` over `bottom`, as the browser paints it. */
+  function blend(top, bottom, opacity) {
+    var a = parseColor(top);
+    var b = parseColor(bottom);
+    if (!a || !b) return a || b;
+    var o = Math.max(0, Math.min(1, opacity));
+    function mix(x, y) { return x * o + y * (1 - o); }
+    return { r: mix(a.r, b.r), g: mix(a.g, b.g), b: mix(a.b, b.b), a: 1 };
+  }
+
+  /**
+   * The tab icon a rule gets: a rounded square in its colour with up to two
+   * letters, as a PNG data URL. Shared by the BC tab and the options preview.
+   * Null where there is no canvas.
+   */
+  function drawFavicon(color, label) {
+    try {
+      var size = 32;
+      var canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      var ctx2d = canvas.getContext('2d');
+      if (!ctx2d) return null;
+
+      ctx2d.fillStyle = color;
+      roundRect(ctx2d, 0, 0, size, size, 6);
+      ctx2d.fill();
+
+      // Letters keep their accents (\p{M}), and two letters are counted as you
+      // see them, not in UTF-16 units.
+      var initials = BCBuddy.leading(String(label || '').replace(/[^\p{L}\p{M}\p{N}]/gu, ''), 2).toUpperCase();
+      if (initials) {
+        ctx2d.fillStyle = idealText(color);
+        var single = BCBuddy.leading(initials, 1) === initials;
+        ctx2d.font = 'bold ' + (single ? 22 : 17) + 'px "Segoe UI", Arial, sans-serif';
+        ctx2d.textAlign = 'center';
+        ctx2d.textBaseline = 'middle';
+        ctx2d.fillText(initials, size / 2, size / 2 + 1);
+      }
+      return canvas.toDataURL('image/png');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function roundRect(ctx2d, x, y, w, h, r) {
+    ctx2d.beginPath();
+    ctx2d.moveTo(x + r, y);
+    ctx2d.arcTo(x + w, y, x + w, y + h, r);
+    ctx2d.arcTo(x + w, y + h, x, y + h, r);
+    ctx2d.arcTo(x, y + h, x, y, r);
+    ctx2d.arcTo(x, y, x + w, y, r);
+    ctx2d.closePath();
   }
 
   BCBuddy.parseUrl = parseUrl;
+  BCBuddy.isWebClientTarget = isWebClientTarget;
   BCBuddy.testCondition = testCondition;
   BCBuddy.matchRule = matchRule;
   BCBuddy.safeRegexTest = safeRegexTest;
+  BCBuddy.regexProblem = regexProblem;
   BCBuddy.findRule = findRule;
   BCBuddy.render = render;
   BCBuddy.renderTidy = renderTidy;
   BCBuddy.tidy = tidy;
+  BCBuddy.tidyCompany = tidyCompany;
+  BCBuddy.companyFromLauncher = companyFromLauncher;
   BCBuddy.parseColor = parseColor;
   BCBuddy.toHex = toHex;
   BCBuddy.toRgba = toRgba;
   BCBuddy.luminance = luminance;
   BCBuddy.idealText = idealText;
+  BCBuddy.blend = blend;
+  BCBuddy.drawFavicon = drawFavicon;
   BCBuddy.TOKENS = TOKENS;
   BCBuddy.FIELDS = FIELDS;
   BCBuddy.OPERATORS = OPERATORS;

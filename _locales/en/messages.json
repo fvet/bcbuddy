@@ -1,34 +1,43 @@
 {
   "extDescription": {
-    "message": "See at a glance which Business Central environment you are in: colour in the top bar, frame, banner, tab icon and auto-wide pages.",
+    "message": "One-click copy, full-width pages, bigger dropdowns, and a colour per environment so you never post in production by mistake.",
     "description": "The description in the store listing. Hard limit of 132 characters, per language: a longer one is rejected at upload."
   },
   "optionsTitle": {
     "message": "BC Buddy - options",
     "description": "Title of the options page. BC Buddy is a product name and stays as it is."
   },
-  "tagline": {
-    "message": "Mark your Business Central environments with colour and expand every page to wide layout automatically.",
-    "description": "One-line summary under the title on the options page."
+  "extensionActive": {
+    "message": "Active",
+    "description": "Label of the switch that turns BC Buddy on or off, at the bottom of the options menu. Keep it to one short word."
   },
-  "extensionActive": { "message": "Extension active" },
+  "languageLabel": { "message": "Language" },
+  "languageTitle": { "message": "The language of BC Buddy. Business Central keeps its own." },
+  "themeLabel": {
+    "message": "Dark mode",
+    "description": "Accessible name of the sun/moon button in the options header. It is a toggle: pressed means the page is dark."
+  },
+  "themeTitle": {
+    "message": "Light or dark mode for this page. Business Central keeps its own.",
+    "description": "Tooltip on the sun/moon button in the options header."
+  },
   "saveFailed": {
     "message": "Saving failed: $1",
     "description": "Shown when the settings could not be stored. $1 is the error message from the browser."
   },
-  "testUrlLabel": { "message": "Test URL" },
-  "testUrlHint": { "message": "(drives the previews below)" },
+  "testUrlHeading": { "message": "Test" },
+  "testUrlIntro": {
+    "message": "Drives the previews of the rules and styles above.",
+    "description": "One line under the Test URL heading."
+  },
+  "testUrlLabel": { "message": "URL of a Business Central page" },
   "useOpenTab": { "message": "From open tab" },
   "useOpenTabTitle": {
     "message": "Takes the URL from an open tab, preferring a Business Central tab",
-    "description": "Tooltip on the button next to the test URL."
+    "description": "Tooltip on the link inside the test URL field."
   },
   "noUsableTab": { "message": "No open tab with a usable URL found." },
   "nothingRecognised": { "message": "Nothing recognised in this URL." },
-  "labelRule": {
-    "message": "Rule",
-    "description": "Column heading above the name of a rule."
-  },
   "labelEnvironment": {
     "message": "Environment",
     "description": "Business Central term for the environment a tenant runs (production, sandbox). Use the word the Business Central UI uses in this language, not a literal translation."
@@ -44,22 +53,39 @@
   "rulesHeading": { "message": "Rules" },
   "addRule": { "message": "Add rule" },
   "rulesIntro": { "message": "Which environment gets which colour. The first matching rule wins." },
-  "emptyRules": { "message": "No rules yet. Click Add rule or import a configuration." },
+  "emptyRules": {
+    "message": "No rules yet. Click $1 or $2.",
+    "description": "$1 is the Add rule link (addRule), $2 the import link (emptyRulesImport)."
+  },
+  "emptyRulesSamples": {
+    "message": "No rules yet. Click $2, $1 or $3.",
+    "description": "$1 is the Add rule link (addRule), $2 the Load samples link (loadSamples), $3 the import link (emptyRulesImport)."
+  },
+  "emptyRulesImport": {
+    "message": "import a configuration",
+    "description": "Link text inside emptyRules and emptyRulesSamples; opens the file picker for an import."
+  },
+  "loadSamples": { "message": "Load samples" },
+  "loadSamplesTitle": { "message": "Add ready-made rules for Master Data, Production, UAT and Development, and the styles Full and Subtle. Rules and styles you already have stay as they are." },
+  "samplesAdded": {
+    "message": "$1 sample rule(s) added. Change them like any rule of your own.",
+    "description": "$1 is a number of rules."
+  },
+  "samplesStylesAdded": {
+    "message": "$1 sample style(s) added. Pick one on a rule to use it.",
+    "description": "$1 is a number of styles. Shown when the sample rules were already there and only their styles were missing."
+  },
+  "samplesNone": { "message": "The sample rules and styles are already there." },
+  "samplesFailed": {
+    "message": "Could not load the samples: $1",
+    "description": "$1 is the reason."
+  },
   "sharedHeading": { "message": "Shared configuration" },
   "sharedIntro": {
-    "message": "Host a JSON file on a public HTTPS URL (e.g. a raw GitHub link) so everyone in the company uses the same markers.",
-    "description": "JSON, HTTPS and GitHub are names and stay as they are."
-  },
-  "sharedTrust": {
-    "message": "Only use a URL you control (for example your team\u0027s repository). The file can define rules that mark any site.",
-    "description": "Warning about pointing the extension at a file somebody else controls."
+    "message": "One file over HTTPS gives the whole team the same rules.",
+    "description": "One line under the Shared configuration heading. HTTPS is a name and stays as it is."
   },
   "hostedUrlLabel": { "message": "URL of the shared file" },
-  "hostedManaged": { "message": "Set by your organisation. The URL cannot be changed here; the shared configuration is loaded on every browser start." },
-  "hostedManagedInvalid": {
-    "message": "Your organisation set a URL that cannot be used: $1",
-    "description": "$1 is an error message such as errHttpsOnly."
-  },
   "statusDaily": { "message": "Updated every day." },
   "syncNow": { "message": "Synchronise" },
   "syncing": { "message": "Syncing..." },
@@ -80,8 +106,11 @@
     "message": "Copied $1 rule(s) to your own rules.",
     "description": "$1 is a number of rules copied out of the shared configuration into the user\u0027s own list."
   },
-  "statusNoHosted": { "message": "No shared file configured yet." },
   "statusNotSynced": { "message": "Not synced yet." },
+  "hostedManaged": {
+    "message": "Set by your organisation.",
+    "description": "Under the shared file URL when IT set it by browser policy; the field cannot be changed."
+  },
   "statusSyncError": {
     "message": "Last attempt ($1) failed: $2",
     "description": "$1 is a date and time, $2 the error message."
@@ -96,9 +125,12 @@
   },
   "unknownDate": { "message": "unknown" },
   "importExportHeading": { "message": "Import / export" },
-  "importHeading": { "message": "Import" },
-  "importIntro": { "message": "From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. This does not touch the shared configuration." },
-  "chooseFile": { "message": "Choose file..." },
+  "importExportIntro": { "message": "Move your own rules, styles and Web client settings in one file." },
+  "importButton": { "message": "Import from file..." },
+  "importNote": {
+    "message": "Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client settings in the file replace yours. The shared configuration is not touched.",
+    "description": "Note under the Import and Export buttons in the Settings panel."
+  },
   "importFailed": {
     "message": "Failed: $1",
     "description": "$1 is the reason the import failed."
@@ -124,9 +156,7 @@
     "message": "nothing changed",
     "description": "Stands in for the summary in importDone when the file changed nothing."
   },
-  "exportHeading": { "message": "Export" },
-  "exportIntro": { "message": "Exports your own rules only, in the format this extension also reads." },
-  "exportButton": { "message": "Export" },
+  "exportButton": { "message": "Export to file" },
   "exportDone": {
     "message": "Exported $1 rule(s) to bc-buddy.json.",
     "description": "$1 is a number of rules. bc-buddy.json is a file name and stays as it is."
@@ -135,13 +165,9 @@
     "message": "Name (e.g. TEST)",
     "description": "Placeholder in the name field of a rule. TEST is an example of what somebody might call an environment."
   },
-  "ruleOn": {
-    "message": "On",
-    "description": "Label on the on/off switch of a rule. Keep it short: the switch is narrow."
-  },
   "ruleActiveTitle": { "message": "Rule active" },
   "toggleDetails": { "message": "Show or hide details" },
-  "dragToReorder": { "message": "Drag to reorder (or arrow up/down)" },
+  "toggleOrDrag": { "message": "Click to show or hide details, drag to reorder" },
   "duplicate": { "message": "Duplicate" },
   "deleteRule": { "message": "Delete" },
   "deleteConfirm": {
@@ -149,21 +175,13 @@
     "description": "Asked before a rule is deleted. $1 is the name the user gave it."
   },
   "matchYes": {
-    "message": "Matches the test URL",
-    "description": "Shown on a rule that matches the test URL filled in above."
-  },
-  "matchNo": {
-    "message": "Does not match the test URL",
-    "description": "Shown on a rule that does not match the test URL filled in above."
+    "message": "Used for the test URL",
+    "description": "Read out by a screen reader on the rule that wins for the test URL filled in above."
   },
   "newRuleName": { "message": "New rule" },
   "copySuffix": {
     "message": "$1 (copy)",
-    "description": "Name of a duplicated rule or layout. $1 is the name of the original."
-  },
-  "previewPageBc": {
-    "message": "Business Central page",
-    "description": "Caption on the mock Business Central page in the preview."
+    "description": "Name of a duplicated rule or style. $1 is the name of the original."
   },
   "previewTitle": {
     "message": "Company Information",
@@ -171,6 +189,7 @@
   },
   "conditionsHeading": { "message": "Conditions" },
   "addCondition": { "message": "Add condition" },
+  "conditionRepeated": { "message": "This condition is already in the rule above, so it adds nothing." },
   "removeCondition": { "message": "Remove condition" },
   "conditionValuePlaceholder": {
     "message": "e.g. Sandbox, CRONUS BE or a full URL",
@@ -183,6 +202,14 @@
   "conditionNoMatch": {
     "message": "Does not match",
     "description": "Choice in a condition: the rule applies when the condition is false."
+  },
+  "regexInvalid": {
+    "message": "This RegEx is not valid, so the condition never matches.",
+    "description": "Shown on a condition whose regular expression has a syntax error."
+  },
+  "regexTooHeavy": {
+    "message": "This RegEx is too complex to check safely on this URL, so the condition does not match. Start it with ^, or use fewer *, + and ?.",
+    "description": "Shown on a condition whose regular expression could freeze the page. ^, *, + and ? are RegEx symbols and stay as they are."
   },
   "fieldUrl": {
     "message": "Url",
@@ -202,7 +229,7 @@
   },
   "opContains": {
     "message": "contains",
-    "description": "Operator in a condition, read as one line: environment contains TEST. Lowercase on purpose, it sits in the middle of that line."
+    "description": "Operator in a condition, read as one line: environment contains TEST. The value may also be a comma-separated list: environment contains DEV, UAT, QA. Lowercase on purpose, it sits in the middle of that line."
   },
   "opEquals": {
     "message": "equals",
@@ -222,36 +249,45 @@
   },
   "opNotContains": {
     "message": "does not contain",
-    "description": "Operator in a condition, read as one line: environment does not contain TEST. Lowercase on purpose, it sits in the middle of that line."
-  },
-  "displayHeading": {
-    "message": "Appearance",
-    "description": "Heading above everything that decides what a marked page looks like."
+    "description": "Operator in a condition, read as one line: environment does not contain TEST. The value may also be a comma-separated list: environment does not contain PROD, LIVE. Lowercase on purpose, it sits in the middle of that line."
   },
   "colour": { "message": "Colour" },
   "customColour": { "message": "Pick a custom colour" },
-  "textColour": { "message": "Text colour" },
-  "textAuto": {
-    "message": "Automatic",
-    "description": "Choice for the text colour: the extension picks black or white itself, whichever reads better on the chosen colour."
-  },
-  "textWhite": { "message": "White" },
-  "textBlack": { "message": "Black" },
   "ribbonToggle": {
     "message": "Ribbon",
-    "description": "Switch for a diagonal coloured strip across a corner of the page. This is NOT the Office or Business Central ribbon toolbar: do not use that term."
+    "description": "Switch for colouring the bar at the very top of the Business Central client (the one with the product name). This is NOT the Office ribbon toolbar: do not use that term."
   },
   "ribbonText": {
     "message": "Ribbon text",
     "description": "The text printed on the diagonal corner strip, see ribbonToggle."
   },
+  "ribbonHint": {
+    "message": "BC\u0027s top bar in the rule\u0027s colour",
+    "description": "Tooltip on Ribbon on a style. BC is short for Business Central and stays as it is."
+  },
+  "borderHint": {
+    "message": "A coloured border around the window",
+    "description": "Tooltip on Frame on a style."
+  },
+  "bannerHint": {
+    "message": "A bar or corner ribbon with text",
+    "description": "Tooltip on Banner on a style: a bar along the bottom, or a diagonal strip across a corner."
+  },
+  "titleHint": {
+    "message": "Text in the browser tab",
+    "description": "Tooltip on Tab title on a style."
+  },
+  "faviconHint": {
+    "message": "Coloured tab icon with letters",
+    "description": "Tooltip on Replace the favicon on a style."
+  },
   "borderToggle": {
-    "message": "Frame around the page",
+    "message": "Frame",
     "description": "Switch for a coloured border drawn around the whole page."
   },
   "borderWidth": {
-    "message": "Thickness (px)",
-    "description": "Thickness of that border. px is a unit and stays as it is."
+    "message": "Thickness",
+    "description": "Caption of a slider for the thickness of that border."
   },
   "bannerToggle": {
     "message": "Banner",
@@ -260,6 +296,10 @@
   "bannerPosition": {
     "message": "Position",
     "description": "Where that bar sits."
+  },
+  "posTop": {
+    "message": "Bar at the top",
+    "description": "Position of the banner: a full-width bar above Business Central's own top bar; the page moves down to make room."
   },
   "posBottom": {
     "message": "Bar at the bottom",
@@ -286,8 +326,12 @@
     "description": "The text on the banner, see bannerToggle."
   },
   "bannerFontSize": {
-    "message": "Text size (0 = auto)",
-    "description": "Size of the banner text. Zero means the extension works it out itself."
+    "message": "Size",
+    "description": "Caption of a slider for the size of the banner text."
+  },
+  "bannerFontSizeHint": {
+    "message": "Text size. All the way left the text shrinks until it fits; further right it is larger and fixed.",
+    "description": "Tooltip on the banner Size slider."
   },
   "bannerOpacity": { "message": "Opacity" },
   "titleToggle": {
@@ -306,60 +350,31 @@
     "message": "Letters",
     "description": "The one or two letters drawn on that tab icon."
   },
-  "tokensAria": {
-    "message": "Which tokens can you use?",
-    "description": "Opens the list of tokens, see tokensHeading."
-  },
-  "tokensHeading": {
-    "message": "Tokens",
-    "description": "A token here is a placeholder the user types into a text, such as {name}, and the extension fills in. Nothing to do with a security token."
-  },
+  "faviconLettersHint": { "message": "The one or two letters on the coloured icon in the browser tab, so you can tell this environment apart among your tabs. Left empty, the icon shows the first two letters of the rule name." },
   "tokenName": {
     "message": "name of the rule",
-    "description": "Explains the {name} token, see tokensHeading. Lowercase: it is read after the token itself."
+    "description": "Explains the {name} token. A token here is a placeholder the user types into a text, such as {name}, and the extension fills in; nothing to do with a security token. Lowercase: it is read after the token itself."
   },
   "tokenEnvironment": {
     "message": "environment",
-    "description": "Explains the {environment} token, see tokensHeading. Lowercase: it is read after the token itself."
+    "description": "Explains the {environment} token, see tokenName. Lowercase: it is read after the token itself."
   },
   "tokenCompany": {
     "message": "company",
-    "description": "Explains the {company} token, see tokensHeading. Lowercase: it is read after the token itself."
+    "description": "Explains the {company} token, see tokenName. Lowercase: it is read after the token itself."
+  },
+  "tokenTenant": {
+    "message": "tenant",
+    "description": "Explains the {tenant} token, see tokenName. Business Central's own term for the customer's subscription. Lowercase: it is read after the token itself."
   },
   "tokenTitle": {
     "message": "original tab title",
-    "description": "Explains the {title} token, see tokensHeading. Lowercase: it is read after the token itself."
+    "description": "Explains the {title} token, see tokenName. Lowercase: it is read after the token itself."
   },
   "tokensFooter": {
     "message": "A token that stays empty disappears together with the separator next to it.",
     "description": "Closing line under the list of tokens."
   },
-  "tokenOr": {
-    "message": "or",
-    "description": "Joins two token names that mean the same thing, as in {name} or {rule}."
-  },
-  "popupOwnRule": {
-    "message": "own rule",
-    "description": "Says where the rule in force came from. A fragment that follows other text, hence lowercase."
-  },
-  "popupShared": {
-    "message": "shared configuration",
-    "description": "Says where the rule in force came from. A fragment that follows other text, hence lowercase."
-  },
-  "popupDisabled": { "message": "Extension is off" },
-  "popupBcNoMatch": { "message": "No matching rule" },
-  "popupNotBc": {
-    "message": "Not Business Central",
-    "description": "Shown in the popup when the tab is not a Business Central page."
-  },
-  "popupEnabledMsg": { "message": "Enabled." },
-  "popupDisabledMsg": { "message": "Disabled." },
-  "openOptions": { "message": "Options" },
-  "syncShort": {
-    "message": "Sync",
-    "description": "Short form of syncNow for the popup, where the button is narrow."
-  },
-  "syncFailedShort": { "message": "Syncing failed." },
   "errNoHostedUrl": { "message": "No shared URL configured." },
   "errNotActive": { "message": "The shared configuration is off." },
   "errNoUrl": { "message": "No URL configured." },
@@ -395,122 +410,396 @@
     "message": "This file belongs to another application ($1).",
     "description": "$1 is the name of the application the file says it belongs to."
   },
-  "importLayouts": {
-    "message": " Layouts: $1.",
-    "description": "Appended to importDone, which is why it starts with a space. $1 is a number of layouts, see layoutsHeading."
+  "importStyles": {
+    "message": " Styles: $1.",
+    "description": "Appended to importDone, which is why it starts with a space. $1 is a number of styles, see stylesHeading."
   },
-  "emptyLayouts": { "message": "No layouts yet. Add one to reuse the same appearance across several rules." },
-  "layoutsIntro": {
+  "importWebClient": {
+    "message": " Web client: $1 setting(s) changed.",
+    "description": "Appended to importDone, which is why it starts with a space. $1 is how many switches or sliders on the Web client panel (see webClientHeading) the file changed."
+  },
+  "emptyStyles": { "message": "No styles yet. Add one to reuse the same appearance across several rules." },
+  "stylesIntro": {
     "message": "What a marker looks like: ribbon, frame, banner, tab title and favicon.",
-    "description": "Explains what a layout holds, see layoutsHeading."
+    "description": "Explains what a style holds, see stylesHeading."
   },
-  "deleteLayout": { "message": "Delete layout" },
-  "deleteLayoutConfirm": {
-    "message": "Delete layout \"$1\"? $2 rule(s) will fall back to their own settings.",
-    "description": "$1 is the name of the layout, $2 a number of rules that were using it."
+  "deleteStyle": { "message": "Delete style" },
+  "deleteStyleConfirm": {
+    "message": "Delete style \"$1\"? $2 rule(s) will fall back to their own settings.",
+    "description": "$1 is the name of the style, $2 a number of rules that were using it."
   },
-  "layoutsHeading": {
-    "message": "Layouts",
-    "description": "A layout here is this extension\u0027s own idea: a saved set of appearance settings that several rules can share. It is not a Business Central report layout."
+  "stylesHeading": {
+    "message": "Styles",
+    "description": "A style here is this extension\u0027s own idea: a saved set of appearance settings that several rules can share. It is not a Business Central report layout, nor the style Business Central gives a field (such as Favorable or Unfavorable)."
   },
-  "newLayoutName": {
-    "message": "New layout",
-    "description": "The name a freshly added layout gets, see layoutsHeading."
+  "newStyleName": {
+    "message": "New style",
+    "description": "The name a freshly added style gets, see stylesHeading."
   },
-  "copiedLayouts": {
-    "message": " Also copied $1 layout(s).",
-    "description": "Appended to copiedToOwn, which is why it starts with a space. $1 is a number of layouts."
+  "copiedStyles": {
+    "message": " Also copied $1 style(s).",
+    "description": "Appended to copiedToOwn, which is why it starts with a space. $1 is a number of styles."
   },
-  "layoutPreviewNote": { "message": "Sample colour; every rule keeps its own." },
-  "layoutLabel": {
-    "message": "Layout",
-    "description": "Label on the field that picks a layout for a rule, see layoutsHeading."
+  "styleLabel": {
+    "message": "Style",
+    "description": "Label on the field that picks a style for a rule, see stylesHeading."
   },
-  "layoutNamePlaceholder": {
+  "styleNamePlaceholder": {
     "message": "Name (e.g. Default)",
-    "description": "Placeholder in the name field of a layout. Default is an example of what somebody might call one."
+    "description": "Placeholder in the name field of a style. Default is an example of what somebody might call one."
   },
-  "addLayout": { "message": "Add layout" },
-  "navMaximize": {
-    "message": "Maximize",
-    "description": "Navigation item leading to the maximize panel."
+  "addStyle": { "message": "Add style" },
+  "navWebClient": {
+    "message": "Web client",
+    "description": "Navigation item leading to the panel with tweaks to the Business Central web client itself (maximize, dropdown size, current line). Use the term the Business Central documentation uses for the web client in this language."
   },
-  "maximizeHeading": { "message": "Maximize" },
-  "maximizeIntro": {
-    "message": "Automatically expands every Business Central page to wide layout and switches tile pages to list view.",
-    "description": "Explains what the maximize feature does. Shown at the top of the Maximize panel."
+  "webClientHeading": { "message": "Web client" },
+  "webClientIntro": {
+    "message": "Small fixes for the Business Central screens you use every day.",
+    "description": "One line under the Web client heading in the options."
+  },
+  "webClientStandard": {
+    "message": "Works straight away",
+    "description": "Heading above the Web client switches that are on from the start."
+  },
+  "webClientExtras": {
+    "message": "Extras",
+    "description": "Heading above the Web client switches that start off, for people who want more."
+  },
+  "maximizeDesc": {
+    "message": "Every page opens in wide layout; tile pages open as a list.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "maximizeToggle": {
     "message": "Maximize pages",
     "description": "Label on the on/off switch for the maximize feature."
   },
+  "pinActionBarDesc": {
+    "message": "The actions under a page's tabs stay in view.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "pinActionBarToggle": {
+    "message": "Pin the action bar",
+    "description": "Label on the on/off switch for the pin action bar feature. Use Business Central's own wording for its 'Pin action bar' button in this language."
+  },
+  "hideFactBoxDesc": {
+    "message": "Closes the FactBox pane on pages you open for the first time.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "hideFactBoxToggle": {
+    "message": "Hide the FactBox pane",
+    "description": "Label on the on/off switch that closes the FactBox pane on pages where nobody opened or closed it yet. Use Business Central's own word for the FactBox pane in this language."
+  },
+  "dropdownHeading": {
+    "message": "Dropdown size",
+    "description": "Heading of the setting that gives the list opening under a lookup field (the dropdown) more room."
+  },
+  "dropdownDesc": {
+    "message": "More room for the list that opens under a field.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "highlightRowToggle": {
+    "message": "Highlight the current line",
+    "description": "Label on the on/off switch that tints the line you are on in editable lists. Line is the Business Central term for a row on a document or journal (sales line, journal line)."
+  },
+  "highlightRowDesc": {
+    "message": "A light tint on the line you are on in sales lines and journals.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "stripeRowsToggle": {
+    "message": "Striped rows",
+    "description": "Label on the on/off switch that gives every other row in a list a light grey, so the eye stays on the right line."
+  },
+  "stripeRowsDesc": {
+    "message": "Every other row in a list gets a light grey, so you stay on the right line.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "noAnimationsToggle": {
+    "message": "Turn off animations",
+    "description": "Label on the on/off switch that makes Business Central pages, FastTabs and panes appear at once instead of sliding or fading in."
+  },
+  "noAnimationsDesc": {
+    "message": "Pages and panes appear at once instead of sliding in.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "resizePanesToggle": {
+    "message": "Resize panes",
+    "description": "Label on the on/off switch that lets you drag the left edge of the Help, Copilot, Page Inspection and Personalization panes in Business Central to make them wider or narrower."
+  },
+  "resizePanesDesc": {
+    "message": "Drag the edge of Help, Copilot or Page Inspection to make it wider.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "copyValuesToggle": {
+    "message": "Copy values",
+    "description": "Label on the on/off switch that shows a copy icon on read-only values in Business Central lists, FactBoxes and the Page Inspection pane, and on read-only links on cards."
+  },
+  "copyValuesDesc": {
+    "message": "Rest the mouse on a value and click the icon to copy it.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "copyValue": {
+    "message": "Copy value",
+    "description": "Tooltip and accessible name of the copy icon shown on a value in Business Central."
+  },
+  "copiedValue": {
+    "message": "Copied",
+    "description": "Tooltip of the copy icon right after the value was copied."
+  },
+  "weekNumbersToggle": {
+    "message": "Week numbers in the date picker",
+    "description": "Label on the on/off switch that shows the week number in front of each week in the Business Central date picker (the calendar that opens from a date field)."
+  },
+  "weekNumbersDesc": {
+    "message": "The calendar of a date field shows week numbers.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "hideNotificationsToggle": {
+    "message": "Hide the notifications icon",
+    "description": "Label on the on/off switch that hides the bell icon in the Business Central top bar. Notifications is what Business Central calls the pane that bell opens: use the word the Business Central UI uses in this language."
+  },
+  "hideNotificationsDesc": {
+    "message": "Hides the bell at the top right of Business Central.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "dropdownWidth": {
+    "message": "Width",
+    "description": "Label beside the slider that sets the maximum width of a dropdown."
+  },
+  "dropdownHeight": {
+    "message": "Height",
+    "description": "Label beside the slider that sets the maximum height of a dropdown."
+  },
+  "webClientMore": {
+    "message": "More about these settings",
+    "description": "Link under the Web client settings to the documentation page that explains them."
+  },
+  "resetWebClient": { "message": "Reset to defaults" },
+  "resetWebClientTitle": { "message": "Puts the Web client settings back to how BC Buddy starts out." },
+  "resetWebClientTeam": {
+    "message": "Reset to your team's defaults",
+    "description": "Same button as resetWebClient, when a shared file sets Web client settings."
+  },
+  "resetWebClientTeamTitle": { "message": "Puts the Web client settings back to what your team's shared file says, and the rest to how BC Buddy starts out." },
+  "resetWebClientDone": {
+    "message": "$1 setting(s) reset.",
+    "description": "$1 is a number of settings. Followed by an Undo link."
+  },
+  "resetWebClientNone": { "message": "These settings are already at their defaults." },
+  "resetWebClientUndone": { "message": "Your settings are back as they were." },
+  "undo": { "message": "Undo" },
+  "environmentsMore": {
+    "message": "More about rules and styles",
+    "description": "Link under the Environments panel to the documentation page that explains rules and styles."
+  },
+  "dropdownStandard": {
+    "message": "BC standard",
+    "description": "Shown beside a dropdown size slider at its lowest step, where Business Central keeps its own size. BC is short for Business Central and stays as it is."
+  },
   "navEnvironments": {
     "message": "Environments",
     "description": "Navigation item leading to the rules, one per Business Central environment."
   },
-  "navEnvironment": {
-    "message": "Environment",
-    "description": "Navigation item leading to the environment marking rules and layouts."
+  "navHelp": {
+    "message": "Help",
+    "description": "Last item in the options page navigation. It opens the BC Buddy documentation website in a new tab."
   },
-  "navHelpdesk": {
-    "message": "Helpdesk",
-    "description": "Navigation item leading to the helpdesk / support panel settings."
-  },
-  "navAbout": { "message": "About" },
   "navSettings": { "message": "Settings" },
+  "shortcutsToggle": {
+    "message": "Keyboard shortcuts",
+    "description": "Label on the on/off switch that adds a keyboard icon to the top bar of Business Central, which shows the keyboard shortcuts."
+  },
+  "shortcutsDesc": {
+    "message": "A keyboard icon in the top bar lists the shortcuts that work where you are.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "commandShortcuts": {
+    "message": "Show the keyboard shortcuts for this Business Central page",
+    "description": "Name of the browser keyboard shortcut people can set for the panel, shown on the browser page where extension shortcuts are set."
+  },
+  "scIconLabel": {
+    "message": "Keyboard shortcuts",
+    "description": "Tooltip of the keyboard icon BC Buddy adds to the top bar of Business Central."
+  },
+  "scTitle": {
+    "message": "Keyboard shortcuts Buddy",
+    "description": "Heading of the keyboard shortcuts panel. Buddy stays in English in every language."
+  },
+  "scClose": {
+    "message": "Close",
+    "description": "Tooltip of the close button of the keyboard shortcuts panel."
+  },
+  "scPage": {
+    "message": "On this page",
+    "description": "Heading above the actions of the current Business Central page that have a shortcut, read from the page."
+  },
+  "scLines": {
+    "message": "In these lines",
+    "description": "Heading above the shortcuts for editable lines: journal lines or the lines of a sales order. Lines is the Business Central term."
+  },
+  "scList": {
+    "message": "In this list",
+    "description": "Heading above the shortcuts for a Business Central list."
+  },
+  "scCard": {
+    "message": "On this card",
+    "description": "Heading above the shortcuts for a Business Central card or document page. Card is the Business Central term."
+  },
+  "scDate": {
+    "message": "In this date field",
+    "description": "Heading above the shortcuts that fill in a date field."
+  },
+  "scAnywhere": {
+    "message": "Anywhere",
+    "description": "Heading above the shortcuts that work on every Business Central page."
+  },
+  "scCopyAbove": {
+    "message": "Copy the value from the line above",
+    "description": "What F8 does in editable lines."
+  },
+  "scNewLine": {
+    "message": "Insert a new line",
+    "description": "What Ctrl+Insert does."
+  },
+  "scDeleteLine": {
+    "message": "Delete this line",
+    "description": "What Ctrl+Delete does."
+  },
+  "scOpenList": {
+    "message": "Open the dropdown list or look up a value",
+    "description": "What Alt+Down does: opens the dropdown or lookup of a field."
+  },
+  "scSearch": {
+    "message": "Search the list",
+    "description": "What F3 does in a list."
+  },
+  "scFilterValue": {
+    "message": "Filter to this value, or clear that filter",
+    "description": "What Alt+F3 does in a list."
+  },
+  "scFilterPane": {
+    "message": "Open or close the filter pane",
+    "description": "What Shift+F3 does in a list."
+  },
+  "scResetFilters": {
+    "message": "Reset the filters",
+    "description": "What Ctrl+Shift+Alt+F3 does in a list."
+  },
+  "scSort": {
+    "message": "Sort this column",
+    "description": "What Alt+F7 does in a list."
+  },
+  "scCopyRows": {
+    "message": "Select and copy all rows, for Excel",
+    "description": "What Ctrl+A followed by Ctrl+C does in a list."
+  },
+  "scFirstLast": {
+    "message": "Go to the first or last row",
+    "description": "What Ctrl+Home and Ctrl+End do in a list."
+  },
+  "scFastTabs": {
+    "message": "Next or previous FastTab",
+    "description": "What F6 and Shift+F6 do on a card. FastTab is the Business Central term: use the word the Business Central UI uses in this language."
+  },
+  "scFoldFastTab": {
+    "message": "Collapse or expand this FastTab",
+    "description": "What Alt+F6 does on a card."
+  },
+  "scNextRecord": {
+    "message": "Next or previous record",
+    "description": "What Ctrl+Down and Ctrl+Up do on a card."
+  },
+  "scSaveClose": {
+    "message": "Save and close",
+    "description": "What Ctrl+Enter does on a card."
+  },
+  "scNewWindow": {
+    "message": "Open in a new window",
+    "description": "What Alt+Shift+W does on a card."
+  },
+  "scToday": {
+    "message": "Enter the current date",
+    "description": "What typing t does in a date field."
+  },
+  "scWorkDate": {
+    "message": "Enter the work date",
+    "description": "What typing w does in a date field. Work date is the Business Central term."
+  },
+  "scCalendar": {
+    "message": "Open the calendar",
+    "description": "What Alt+Down does in a date field."
+  },
+  "scTellMe": {
+    "message": "Tell me: find a page or report",
+    "description": "What Alt+Q does. Tell me is the name of the Business Central search: use the name the Business Central UI uses in this language."
+  },
+  "scNew": {
+    "message": "Create a new record",
+    "description": "What Alt+N does."
+  },
+  "scCompany": {
+    "message": "Switch company",
+    "description": "What Ctrl+O does."
+  },
+  "scFactBox": {
+    "message": "Show or hide the FactBox pane",
+    "description": "What Alt+F2 does. FactBox is the Business Central term."
+  },
+  "scRefresh": {
+    "message": "Update the data",
+    "description": "What F5 does in Business Central."
+  },
+  "scKeyTips": {
+    "message": "Show access keys for the actions",
+    "description": "What pressing Alt alone does: Business Central shows a letter on each action. Access keys is the Business Central term."
+  },
+  "scNotListed": {
+    "message": "Actions in menus you have not opened yet are not listed.",
+    "description": "Note at the bottom of the shortcuts panel."
+  },
+  "scDocsAll": {
+    "message": "All keyboard shortcuts",
+    "description": "Link to Microsoft's article with every Business Central keyboard shortcut."
+  },
+  "gearMenuSettings": {
+    "message": "Settings",
+    "description": "Link under the BC Buddy heading in Business Central's gear menu (Settings pane). Opens the options page."
+  },
   "navSections": { "message": "Sections" },
-  "defaultLayoutName": {
+  "defaultStyleName": {
     "message": "Default",
-    "description": "The name of the layout that is there from the start. A name somebody sees in a list, not the word standard as a setting."
+    "description": "The name of the style that is there from the start. A name somebody sees in a list, not the word standard as a setting."
   },
-  "lastLayout": {
-    "message": "The last layout cannot be removed: there must always be one.",
-    "description": "Shown when somebody tries to delete the only layout left."
+  "fullStyleName": {
+    "message": "Full",
+    "description": "Name of a ready-made style that shows every marking: bar at the top, frame, banner, tab title and tab icon. A name in a list, given once when the style is added; renaming it later is up to the user."
   },
-  "aboutIntro": {
-    "message": "BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.",
-    "description": "Business Central, production and sandbox are Business Central terms: use the words the Business Central UI uses in this language."
+  "subtleStyleName": {
+    "message": "Subtle",
+    "description": "Name of a ready-made style that only colours the bar at the top: a quiet marking, the opposite of fullStyleName. A name in a list, given once when the style is added."
   },
-  "aboutIntroMaximize": {
-    "message": "It also automatically expands every page to wide layout and switches tile pages to list view.",
-    "description": "Second paragraph in the About panel, describing the maximize feature."
+  "lastStyle": {
+    "message": "The last style cannot be removed: there must always be one.",
+    "description": "Shown when somebody tries to delete the only style left, own and shared together."
   },
-  "aboutContact": { "message": "Contact" },
-  "aboutDocs": { "message": "Documentation" },
-  "aboutSource": { "message": "Source code" },
   "clearShared": {
     "message": "Clear shared rules and stop updating",
     "description": "Button that throws away the shared rules and stops the daily update."
   },
   "sharedRules": { "message": "Shared rules" },
+  "sharedStyles": {
+    "message": "Shared styles",
+    "description": "Group label in the style list on a rule, above the styles that come from the shared file."
+  },
   "sharedCleared": { "message": "Shared rules cleared. They are no longer updated." },
   "copyShared": {
     "message": "Make your own copy of this rule",
     "description": "Turns a shared rule into a copy the user owns and can edit."
   },
-  "logSupport": {
-    "message": "Log Support Request",
-    "description": "Button in the popup that opens the floating support-request panel."
-  },
-  "logSupportNoTab": {
-    "message": "No active tab found.",
-    "description": "Shown in the popup when there is no tab to open the support panel on."
-  },
-  "logSupportFailed": {
-    "message": "Could not open the support panel.",
-    "description": "Shown in the popup when injecting the support panel fails."
-  },
-  "supportHeading": {
-    "message": "Support",
-    "description": "Heading of the Support section on the Settings panel."
-  },
-  "helpdeskEmailLabel": {
-    "message": "Helpdesk email address",
-    "description": "Label on the field where the user enters the support team's email address."
-  },
-  "helpdeskColorLabel": {
-    "message": "Colour",
-    "description": "Label on the colour picker for the helpdesk support panel accent colour."
+
+  "navHelpdesk": {
+    "message": "Helpdesk",
+    "description": "Navigation item leading to the helpdesk / support panel settings."
   },
   "supportIntro": {
     "message": "Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.",
@@ -519,6 +808,14 @@
   "helpdeskEnabledToggle": {
     "message": "Enable Helpdesk",
     "description": "Master switch for the helpdesk feature on the Helpdesk panel."
+  },
+  "helpdeskEmailLabel": {
+    "message": "Helpdesk email address",
+    "description": "Label on the field where the user enters the support team's email address."
+  },
+  "helpdeskColorLabel": {
+    "message": "Colour",
+    "description": "Label on the colour picker for the helpdesk support panel accent colour."
   },
   "ribbonSupportLink": {
     "message": "Report a problem",
@@ -735,5 +1032,8 @@
   "spReportSystem": {
     "message": "System",
     "description": "Label in the HTML report for OS, browser and screen size."
+  },
+  "helpdeskEmailInvalid": {
+    "message": "Enter one email address, such as helpdesk@example.com."
   }
 }

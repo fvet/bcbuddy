@@ -76,6 +76,11 @@ function Save-Resized([string]$sourcePng, [int]$size, [string]$target) {
 
 $bigPng = Render-Svg 'logo.svg'
 
+# The 512 px render itself, for the marketing deck. Not in the package.
+$logo512 = Join-Path $iconDir 'icon512.png'
+Copy-Item $bigPng $logo512 -Force
+Write-Host ("icon512.png  ({0} bytes)" -f (Get-Item $logo512).Length) -ForegroundColor Green
+
 $targets = @(
     @{ Size = 128; Png = $bigPng },
     @{ Size = 48;  Png = $bigPng },

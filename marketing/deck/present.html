@@ -1,0 +1,451 @@
+<!doctype html>
+<!-- Template for present.html. Edit this file, not present.html, and run
+     build-present.ps1 to rebuild. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BC Buddy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0B0F14; }
+  #stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1920px; height: 1080px;
+    transform: translate(-50%, -50%) scale(var(--scale, 1));
+  }
+  /* The slide format: a fixed 1920x1080 canvas, padding inside the box,
+     no default margins, and these tag defaults. */
+  #stage *, #stage *::before, #stage *::after { box-sizing: border-box; }
+  #stage > section {
+    position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  #stage > section.current { opacity: 1; pointer-events: auto; }
+  #stage h1, #stage h2, #stage h3, #stage p, #stage ul, #stage ol { margin: 0; }
+  #stage h1 { font-size: 96px; font-weight: 600; line-height: 1.1; }
+  #stage h2 { font-size: 64px; font-weight: 600; line-height: 1.15; }
+  #stage h3 { font-size: 44px; font-weight: 600; line-height: 1.2; }
+  #stage p { font-size: 32px; line-height: 1.4; }
+  #stage img, #stage svg { display: block; }
+  #stage aside { display: none; }
+  body.idle { cursor: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+<section id="cover" data-transition="fade" style="background:#16222E;color:#F5F4EF;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between">
+<img src="../../icons/icon512.png" alt="BC Buddy logo" style="width:200px;height:200px;object-fit:contain">
+<div style="display:flex;flex-direction:column;gap:28px">
+<h1 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:160px;font-weight:600;line-height:1;color:#F5F4EF">BC Buddy</h1>
+<p style="font-size:56px;line-height:1.2;color:#BFD3D6">Business Central, easier to work in</p>
+</div><aside>BC Buddy is a free browser extension for Chrome and Edge. It makes the Business Central web client easier to work in, and gives every environment its own colour so nobody posts in production by mistake. This deck shows where it sits in the architecture of Business Central, and what it changes for the people who use BC every day.</aside>
+</section>
+<section id="layers" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Architecture</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">BC Buddy works on the top layer only</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px">
+<div style="flex:1;display:flex;flex-direction:row;gap:16px">
+<div style="width:220px;background:#00747A;border-radius:16px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:4px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:48px;font-weight:600;line-height:1.1;color:#F5F4EF">UI</h3>
+<p style="font-size:24px;line-height:1.3;color:#D7ECEB">Screens &amp; connections</p>
+</div>
+<div style="flex:1;background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;justify-content:center">
+<div style="display:flex;flex-direction:row;flex-wrap:wrap;gap:10px">
+<p style="font-size:24px;font-weight:600;line-height:1.3;padding:6px 14px;border-radius:24px;background:#00747A;color:#F5F4EF">Web client</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Tablet &amp; phone</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Windows client</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Teams &amp; Outlook</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Copilot &amp; agents</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">MCP</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">API &amp; OData</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">SOAP</p>
+</div>
+</div>
+<div style="width:520px;background:#E2F1F0;border:3px solid #00747A;border-radius:16px;padding:20px 28px;display:flex;flex-direction:column;justify-content:center;gap:6px">
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#00747A">Customised with</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:36px;font-weight:600;line-height:1.2;color:#16222E">BC Buddy, in the web client</h3>
+<p style="font-size:24px;line-height:1.4;color:#3F4A55">A browser extension, per person.<br>Nothing is installed in BC.</p>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:16px">
+<div style="width:220px;background:#2F4858;border-radius:16px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:4px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:48px;font-weight:600;line-height:1.1;color:#F5F4EF">AL</h3>
+<p style="font-size:24px;line-height:1.3;color:#D3DCE2">Business logic</p>
+</div>
+<div style="flex:1;background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;justify-content:center">
+<div style="display:flex;flex-direction:row;flex-wrap:wrap;gap:10px">
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Posting &amp; validation</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Pages &amp; reports</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Workflows &amp; approvals</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Permissions</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Integrations</p>
+</div>
+</div>
+<div style="width:520px;background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:20px 28px;display:flex;flex-direction:column;justify-content:center;gap:6px">
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#5B6670">Customised with</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:36px;font-weight:600;line-height:1.2;color:#16222E">AL extensions</h3>
+<p style="font-size:24px;line-height:1.4;color:#3F4A55">Apps or partner code. Developer work, re-tested at every BC update.</p>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:16px">
+<div style="width:220px;background:#16222E;border-radius:16px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:4px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:48px;font-weight:600;line-height:1.1;color:#F5F4EF">SQL</h3>
+<p style="font-size:24px;line-height:1.3;color:#BFCAD3">Database</p>
+</div>
+<div style="flex:1;background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:20px 24px;display:flex;flex-direction:column;justify-content:center">
+<div style="display:flex;flex-direction:row;flex-wrap:wrap;gap:10px">
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Tables &amp; fields</p>
+<p style="font-size:24px;line-height:1.3;padding:6px 14px;border-radius:24px;background:#ECEEEB;color:#24313D">Company data</p></div>
+</div>
+<div style="width:520px;background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:20px 28px;display:flex;flex-direction:column;justify-content:center;gap:6px">
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#5B6670">Customised with</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:36px;font-weight:600;line-height:1.2;color:#16222E">No direct changes</h3>
+<p style="font-size:24px;line-height:1.4;color:#3F4A55">New fields come in through AL table extensions.</p>
+</div>
+</div>
+</div>
+<p style="font-size:26px;line-height:1.4;color:#3F4A55">The closer to the data, the more development, testing and upgrade work.</p>
+<aside>Business Central has three layers. At the bottom, the database: in the cloud Microsoft runs it and nobody changes it directly. In the middle, the business logic in AL: posting, validation, pages and reports. That is where partners and AppSource apps customise BC with extensions, which means development, testing and re-testing at every BC update. On top, everything that uses BC: the web client, the tablet and phone apps, Teams, Copilot and agents, MCP, APIs and SOAP. BC Buddy only touches one of those: the web client, inside each person's own browser. It adds no code to BC and has no effect on the other layers or on other users.</aside>
+</section>
+<section id="safe" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Why it's safe</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Nothing changes inside Business Central</h2>
+</div>
+<div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:32px">
+<div style="background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:40px;display:flex;flex-direction:column;gap:16px">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:#00747A;width:48px;height:48px"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:600;line-height:1.2;color:#16222E">Nothing to install in BC</h3>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">No extension to deploy, no partner project.</p>
+</div>
+<div style="background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:40px;display:flex;flex-direction:column;gap:16px">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:#00747A;width:48px;height:48px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:600;line-height:1.2;color:#16222E">Data stays on the PC</h3>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">No account, no server, no tracking.<br>It only changes how BC looks in the browser.</p>
+</div>
+<div style="background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:40px;display:flex;flex-direction:column;gap:16px">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:#00747A;width:48px;height:48px"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 12 0v1"/><circle cx="17" cy="9" r="3"/><path d="M16 14.2a5 5 0 0 1 6 4.8v2"/></svg>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:600;line-height:1.2;color:#16222E">Each person decides</h3>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Every improvement has its own switch, and one switch pauses it all.</p>
+</div>
+<div style="background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:40px;display:flex;flex-direction:column;gap:16px">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:#00747A;width:48px;height:48px"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:600;line-height:1.2;color:#16222E">Free and quick to roll out</h3>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Chrome Web Store, for Chrome and Edge.<br>English, Dutch and French.<br>Online and on-premises.</p>
+</div>
+</div>
+<aside>The first question is usually: does it touch our ERP? No. BC Buddy runs in the browser, on top of the page Business Central already shows. There is no extension to install in BC, no partner involvement and no upgrade risk. It has no account and no server, and it sends nothing anywhere. Each person can switch every improvement on or off, and one switch pauses all of it. It is free, comes from the Chrome Web Store, and works in Chrome and Edge, for BC online and on-premises.</aside>
+</section>
+<section id="copy" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Copy values</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Any value, copied in one click</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="display:flex;flex-direction:row;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<div style="position:relative;width:808px;height:328px">
+<img src="../screenshots/crop-without-copy-values.png" alt="Customer list in Business Central; the customer numbers are links" style="width:808px;height:328px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">A No. or an amount is a link: clicking it opens a page instead of selecting it.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<div style="position:relative;width:808px;height:328px">
+<img src="../screenshots/crop-with-copy-values.png" alt="The same customer list with a copy icon next to customer number 20000" style="width:808px;height:328px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+<div style="position:absolute;left:109px;top:136px;width:60px;height:60px;border:4px solid #E8590C;border-radius:50%"></div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Point at a value,<br>click the copy icon,<br>paste it anywhere.</p>
+</div>
+</div>
+</div>
+<aside>Copying a customer number or an amount out of Business Central is surprisingly hard: most values in a list are links, so clicking one opens a page instead of selecting it. With BC Buddy, resting the mouse on a value shows a small copy icon, circled here next to customer 20000. One click copies the value exactly as BC shows it, ready to paste into Excel, an email or Teams. It works in lists, in FactBoxes and on link fields on a card.</aside>
+</section>
+<section id="maximize" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Maximize pages</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Every page uses the full screen</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<img src="../screenshots/without-maximize.jpg" alt="Customer card in Business Central's default narrow layout, opened as a window over the customer list, with labels cut off" style="width:808px;height:424px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">The card opens as a narrow window over the list.<br>Labels get cut off.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<img src="../screenshots/with-maximize.jpg" alt="The same customer card in wide layout, using the full width of the screen" style="width:808px;height:424px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Every page opens in wide layout:<br>more room for fields, nothing cut off.</p>
+</div>
+</div>
+<aside>By default Business Central opens a card as a narrow window over the list you came from. Long labels such as Balance (LCY) As Vendor get cut off and you see fewer fields. BC Buddy opens every page in wide layout, and tile pages as a list. If someone switches a page back to narrow, BC Buddy respects that choice.</aside>
+</section>
+<section id="pin" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Pin the action bar</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Actions always in reach</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:48px">
+<div style="display:flex;flex-direction:row;gap:40px;align-items:center">
+<div style="width:400px;display:flex;flex-direction:column;gap:16px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">The actions hide<br>behind the tabs:<br>one more click, every time.</p>
+</div>
+<img src="../screenshots/crop-without-pin-action-bar.png" alt="Sales order 101004 with only the tab names Home, Prepare, Print/Send, Request Approval and Order; no actions are shown" style="width:1180px;height:240px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+</div>
+<div style="display:flex;flex-direction:row;gap:40px;align-items:center">
+<div style="width:400px;display:flex;flex-direction:column;gap:16px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">The action bar is pinned:<br>Post, Release and more<br>stay in view.</p>
+</div>
+<img src="../screenshots/crop-with-pin-action-bar.png" alt="The same sales order with the action bar pinned, showing Post, Release, Create Warehouse Shipment, Create Inventory Put-away/Pick and Archive Document" style="width:1180px;height:240px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+</div>
+</div>
+<aside>Under the tabs of a page sits a row of actions such as Post and Release. Business Central often hides that row: you click a tab first, and only then see the actions. BC Buddy pins the action bar the first time a page opens, so the actions stay in view. Business Central remembers a page you pinned or unpinned yourself, and BC Buddy leaves that choice alone.</aside>
+</section>
+<section id="dropdown" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Dropdown size</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Dropdowns that show every column</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;flex-direction:row;gap:40px;align-items:center">
+<div style="width:360px;display:flex;flex-direction:column;gap:16px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Only No. and Description fit. The rest hides behind a sideways scrollbar.</p>
+</div>
+<img src="../screenshots/crop-without-dropdown.png" alt="Item dropdown on a sales line showing only the No. and Description columns, with a horizontal scrollbar" style="width:1264px;height:323px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+</div>
+<div style="display:flex;flex-direction:row;gap:40px;align-items:center">
+<div style="width:360px;display:flex;flex-direction:column;gap:16px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">As wide as its columns need: unit, price and inventory at a glance.</p>
+</div>
+<img src="../screenshots/crop-with-dropdown.png" alt="The same item dropdown, wide enough to show No., Description, Base Unit of Measure, Unit Price and Inventory" style="width:1264px;height:323px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+</div>
+</div>
+<aside>When you pick an item on a sales line, Business Central shows a small dropdown with room for two columns. Unit, price and inventory are there, but you have to scroll sideways to see them. BC Buddy makes the dropdown as wide as its columns need, so you choose the right item at once. Width and height each have a slider in the settings.</aside>
+</section>
+<section id="weeks" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Week numbers in the date picker</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Week numbers, right in the calendar</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<div style="flex:1;background:#E6E9E7;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+<img src="../screenshots/crop-without-week-numbers.png" alt="Business Central date picker for June 2026 without week numbers" style="width:450px;height:481px;object-fit:contain;border:1px solid #D3D8DC;border-radius:8px">
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Planning talks in weeks, but BC's calendar doesn't show them.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<div style="flex:1;background:#E6E9E7;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+<img src="../screenshots/crop-with-week-numbers.png" alt="The same date picker with week numbers 23 to 27 in front of each week" style="width:450px;height:481px;object-fit:contain;border:1px solid #D3D8DC;border-radius:8px">
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">The week number in front of each week, counted the way BC counts weeks.</p>
+</div>
+</div>
+<aside>Delivery dates, production and holidays are planned in weeks, but the calendar of a date field in Business Central doesn't show week numbers. BC Buddy adds them in front of each week. They are counted the way Business Central counts weeks everywhere else: weeks start on Monday, and week 1 is the week with the first Thursday of the year.</aside>
+</section>
+<section id="line" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Highlight the current line</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Never lose your place on a line</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="display:flex;flex-direction:row;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<div style="position:relative;width:808px;height:332px">
+<img src="../screenshots/crop-without-current-line.png" alt="Sales order lines; only a small arrow at the far left marks the third line as the current one" style="width:808px;height:332px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+<div style="position:absolute;left:0px;top:150px;width:808px;height:50px;border:3px solid #E8590C;border-radius:6px"></div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Only a small arrow at the far left<br>shows which line you are on.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<div style="position:relative;width:808px;height:332px">
+<img src="../screenshots/crop-with-current-line.png" alt="The same lines; the third line has a light tint across its full width" style="width:808px;height:332px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+<div style="position:absolute;left:0px;top:150px;width:808px;height:50px;border:3px solid #E8590C;border-radius:6px"></div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">The whole line gets a light tint,<br>edge to edge.</p>
+</div>
+</div>
+</div>
+<aside>On the lines of a sales order or in a journal, Business Central marks the line you are on with only a small arrow at the far left. On a wide line with many columns it is easy to lose your place. BC Buddy gives the whole line a light tint, from the first column to the last. The tint is deliberately soft so it doesn't distract while you type; the orange frame on this slide only points it out.</aside>
+</section>
+<section id="shortcuts" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Keyboard shortcuts</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">The shortcuts for where you are, one click away</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:64px;align-items:center">
+<div style="flex:1;display:flex;flex-direction:column;gap:32px">
+<p style="font-size:32px;line-height:1.4;color:#3F4A55">Business Central hides its shortcuts at the end of a button's tooltip. BC Buddy puts a keyboard icon in the top bar that lists them:</p>
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-size:28px;line-height:1.4;color:#3F4A55"><b>On this page:</b> the page's own actions, such as Post (F9)</p>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55"><b>Where your cursor is:</b> the lines, the list, the card or the date field</p>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55"><b>Anywhere:</b> a few that always work, such as Alt+Q</p>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">The panel stays open while you work and changes along with the page.</p>
+</div>
+<div style="width:760px;height:640px;background:#E6E9E7;border-radius:16px;display:flex;align-items:center;justify-content:center">
+<img src="../screenshots/crop-with-keyboard-shortcuts.png" alt="The top right of a sales order with BC Buddy's keyboard icon in the top bar and its shortcuts panel open: the order's own actions, what works in the lines, and shortcuts that work anywhere" style="width:520px;height:600px;object-fit:contain;border:1px solid #D3D8DC;border-radius:8px">
+</div>
+</div>
+<aside>Keyboard shortcuts save a lot of clicks, but Business Central keeps them out of sight: the only place it shows one is at the end of a button's tooltip, and the full list is a long article on Microsoft's site. BC Buddy adds a keyboard icon to the top bar. One click opens a panel with the shortcuts that work where you are: the page's own actions, such as Post with F9, what works in the lines, the list or the date field you are in, and a few that work anywhere. The panel stays open and changes along when you open another page. This one starts off: each person switches it on in the settings.</aside>
+</section>
+<section id="stripes" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Striped rows</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Read across a wide list without slipping a row</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<div style="flex:1;background:#E6E9E7;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+<img src="../screenshots/crop-without-striped-rows.png" alt="Sales order list with every row the same colour" style="width:760px;height:413px;object-fit:contain;border:1px solid #D3D8DC;border-radius:8px">
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Every row is white. Halfway across, your eye slips to the next one.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<div style="flex:1;background:#E6E9E7;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+<img src="../screenshots/crop-with-striped-rows.png" alt="The same list with every other row in a light grey" style="width:760px;height:413px;object-fit:contain;border:1px solid #D3D8DC;border-radius:8px">
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Every other row a light grey, from the first column to the last.</p>
+</div>
+</div>
+<aside>In a wide list such as General Ledger Entries, every row is white, and by the time you read the amount at the far right it is easy to land on the row below. BC Buddy gives every other row a light grey, so your eye stays on the right line. The line you are on and the lines you select keep Business Central's own colours. The grey is deliberately light, so it is easier to see on a screen than on a projector. This one starts off: each person switches it on in the settings.</aside>
+</section>
+<section id="factbox" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Hide the FactBox pane</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Give the page the room, not the side pane</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<div style="flex:1;background:#E6E9E7;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+<img src="../screenshots/crop-without-hide-factbox.png" alt="A customer card with the FactBox pane open on the right, the fields squeezed into one column" style="width:760px;height:413px;object-fit:contain;border:1px solid #D3D8DC;border-radius:8px">
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">The FactBox pane takes half the card. The fields squeeze into one column.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<div style="flex:1;background:#E6E9E7;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+<img src="../screenshots/crop-with-hide-factbox.png" alt="The same card with the pane closed and the fields in two columns" style="width:760px;height:413px;object-fit:contain;border:1px solid #D3D8DC;border-radius:8px">
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">The pane stays closed. The fields use the whole width.</p>
+</div>
+</div>
+<aside>Cards, documents and lists open with the FactBox pane on the right: pictures, statistics, sales history. Handy now and then, but it takes the room the page itself needs. With this switch on, a page opens with the pane closed the first time. Need the details? The i button at the top right opens it, and Business Central remembers that for the page, so BC Buddy leaves it open there from then on. This one starts off: each person switches it on in the settings.</aside>
+</section>
+<section id="envcolours" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Environment colours</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">See at a glance where you are</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#DADDDF;color:#2C3640">Without BC Buddy</p>
+<img src="../screenshots/without-env-colours.jpg" alt="Business Central customer list with the company's usual top bar, which says nothing about the environment" style="width:808px;height:424px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Test and production look exactly alike. Nothing says where you are.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<p style="align-self:start;font-size:24px;font-weight:600;padding:8px 18px;border-radius:24px;background:#00747A;color:#F5F4EF">With BC Buddy</p>
+<img src="../screenshots/with-env-colours.jpg" alt="The same list with a green top bar reading CRONUS BE (Production), a green frame around the window and a green PRODUCTION banner in the bottom-left corner" style="width:808px;height:424px;object-fit:contain;border:1px solid #D3D8DC;border-radius:12px">
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Production in green: its name in the top bar,<br>a frame and a banner in the corner.</p>
+</div>
+</div>
+<aside>Without BC Buddy every environment shows the same top bar, so a test environment and the real one look exactly alike. One wrong tab and you post for real. BC Buddy colours the top bar per environment, with your own text, and can add a frame, a banner, a marking in the tab title and a coloured tab icon. You choose the colour per environment, per company or per customer. One person sets the colours up and shares them with the team in one file; everyone gets later changes automatically.</aside>
+</section>
+<section id="proposal" data-transition="fade" style="background:#F5F4EF;color:#16222E;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#00747A">Getting started</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:60px;font-weight:600;line-height:1.1;color:#16222E">Up and running in minutes</h2>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:32px">
+<div style="flex:1;background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:40px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:600;line-height:1.1;color:#00747A">01</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:600;line-height:1.2;color:#16222E">Install</h3>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Add BC Buddy from the Chrome Web Store, in Chrome or Edge. The web client improvements work straight away.</p>
+</div>
+<div style="flex:1;background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:40px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:600;line-height:1.1;color:#00747A">02</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:600;line-height:1.2;color:#16222E">Colour your environments</h3>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Give each environment its own colour, so production never looks like a test.</p>
+</div>
+<div style="flex:1;background:#FDFDFB;border:1px solid #DCDFDD;border-radius:16px;padding:40px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:600;line-height:1.1;color:#00747A">03</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:600;line-height:1.2;color:#16222E">Share with your team</h3>
+<p style="font-size:28px;line-height:1.4;color:#3F4A55">Export your settings to one file. Colleagues add its address once and get every later change automatically.</p>
+</div>
+</div>
+<div style="background:#16222E;border-radius:16px;padding:32px 40px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:24px">
+<p style="font-size:32px;font-weight:600;color:#F5F4EF">Free</p>
+<p style="font-size:32px;font-weight:600;color:#F5F4EF">Nothing installed in Business Central</p>
+<p style="font-size:32px;font-weight:600;color:#F5F4EF">Off with one switch</p>
+</div>
+<aside>Getting started takes three steps. Install BC Buddy from the Chrome Web Store; the web client improvements work at once, with nothing to set up. Then give each environment its own colour on the settings page, so production never looks like a test environment. Finally, export the settings to one file and share its address with your team: everyone gets the same colours and web client settings, including later changes. BC Buddy is free, installs nothing in Business Central, and one switch turns it off.</aside>
+</section>
+</div>
+<script>
+  // Keys: Right, Down, Page Down, Space or a click = next; Left, Up, Page Up =
+  // back; Home / End = first / last; F = full screen. The slide number is
+  // kept in the address (#3), so a reload stays on the same slide.
+  var slides = Array.prototype.slice.call(document.querySelectorAll('#stage > section'));
+  var current = 0;
+
+  function show(n) {
+    current = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, i) { s.classList.toggle('current', i === current); });
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  function fit() {
+    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    document.getElementById('stage').style.setProperty('--scale', scale);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === ' ') show(current + 1);
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') show(current - 1);
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    } else return;
+    e.preventDefault();
+  });
+  document.addEventListener('click', function () { show(current + 1); });
+
+  // Hide the pointer after two seconds without moving it.
+  var idleTimer;
+  document.addEventListener('mousemove', function () {
+    document.body.classList.remove('idle');
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () { document.body.classList.add('idle'); }, 2000);
+  });
+
+  function fromHash() { return (parseInt(location.hash.slice(1), 10) || 1) - 1; }
+  window.addEventListener('hashchange', function () { if (fromHash() !== current) show(fromHash()); });
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.documentElement);
+  fit();
+  show(fromHash());
+</script>
+</body>
+</html>

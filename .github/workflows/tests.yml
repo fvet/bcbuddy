@@ -6,12 +6,16 @@ on:
   pull_request:
   workflow_dispatch:
 
+# The suites only read the code; a pull request from a fork gets nothing more.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # The suites drive a real headless browser, so it is worth recording which
       # one ran: a failure that only shows up here is usually a browser change.

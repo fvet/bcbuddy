@@ -24,6 +24,10 @@
   var IS_TOP = window.top === window.self;
 
   var FRAME_ID = 'bcb-frame';
+  var ROW_ATTR = 'data-bcb-row';
+  var CALM_ATTR = 'data-bcb-calm';
+  var NO_BELL_ATTR = 'data-bcb-no-bell';
+  var STRIPES_ATTR = 'data-bcb-stripes';
   var BANNER_ID = 'bcb-banner';
   var FAVICON_REL = 'icon';
 
@@ -56,6 +60,14 @@
   // background BC added to a node that stayed in place is picked up again.
   var REPAINT_SWEEP_MS = 2000;
 
+  // BC online without ?company= in the address: how often to look for the
+  // company on the page until it is found (see companyFromPage()).
+  var COMPANY_RETRY_MS = 2000;
+
+  // On <html> in the top window while the banner is a bar at the top: the
+  // page moves down to make room for it (content.css).
+  var TOP_BAR_ATTR = 'data-bcb-top-bar';
+
   var state = {
     settings: null,
     rule: null,
@@ -74,6 +86,8 @@
     // ever found one (then this is Business Central).
     lastBrandSearch: 0,
     bcSeen: false,
+    // When we last looked for the company on the page (companyFromPage()).
+    lastCompanyLook: 0,
     // Ribbon elements whose own background we turn off.
     painted: [],
     // Ribbon elements already found to paint nothing, and when that memory was
@@ -81,37 +95,156 @@
     // and it has no business showing up in someone else's DOM.
     unpainted: new WeakSet(),
     lastPaintSweep: 0,
-    // Maximize: reset on every URL change so a new BC page triggers it again.
-    maximizeApplied: false,
+    // Maximize: the BC pages already handled, keyed by their form.
+    maximized: new WeakMap(),
+    // Pin the action bar: the forms of the BC pages already decided.
+    pinned: new WeakSet(),
+    // Hide the FactBox pane: per BC page form, whether its toggle is still
+    // awaited (see factbox.js).
+    factBoxes: new WeakMap(),
+    // Dropdown sizer handle, and the settings it was started with ('' = off).
+    dropdowns: null,
+    dropdownKey: '',
+    // Drag handles on BC's side panes (panes.js), while the switch is on.
+    panes: null,
+    // Copy icon handle while the switch is on.
+    copyValues: null,
+    // Ctrl+click and middle-click handler (newtab.js, beta).
+    newTab: null,
+    // Week numbers in the date picker: its storage listener while the switch is on.
+    weekNumbers: null,
+    // Keyboard shortcuts icon and panel (shortcuts.js), while the switch is on.
+    shortcuts: null,
+    // Handle of the BC Buddy section in BC's gear menu, while it is attached.
+    gearMenu: null,
+    // The language picked on the options page has been looked up (see
+    // applyLanguage()).
+    language: false,
     // MutationObserver that reapplies ribbon inline styles if Dark Reader
     // overrides them. Disconnected whenever the ribbon is released.
-    ribbonGuard: null
+    ribbonGuard: null,
+    // Whether the web client tweaks apply in this frame, worked out once per
+    // apply() by webClientHere().
+    webClient: false,
+    // This document showed Business Central's own elements (BC_PAGE_CLASSES).
+    bcPage: false,
+    // The look for those elements on a BC-like address: its timer, when it
+    // started, and until when it runs (0 = not started, -1 = gave up on this
+    // address).
+    probeTimer: 0,
+    probeFrom: 0,
+    probeUntil: 0
   };
 
-  // Selectors for the BC wide-layout toggle and list-view chooser.
-  var WIDE_TOGGLE_SEL = 'button.ms-nav-layout-wide-toggle-button';
-  var LIST_CHOOSER_SEL = 'div[data-control-id="ListLayoutChooser"]:not([data-is-focusable="false"])';
-  var LIST_OPTION_SEL = 'div[data-control-id="0"]';
-  var LIST_ACTIVE_SEL = 'i.icon-NotBrickView:not([data-is-focusable="false"])';
-  var FOCUSABLE_BTN_SEL = 'button[data-is-focusable="true"]';
+  // Where the web client tweaks (maximize, dropdown size, current row) apply:
+  // BC online and common on-prem URL shapes, not the rest of Dynamics 365.
+  // Checked against the top window's href, even when running inside an iframe.
+  var isWebClientTarget = BCBuddy.isWebClientTarget;
 
-  // Match BC SaaS and common on-prem URL shapes. Checked against the top
-  // window's href, even when running inside an iframe.
-  var MAXIMIZE_SAAS_RE = /(\.|^)dynamics\.com$/i;
+  // Classes only the Business Central web client uses: the frame it runs in
+  // (in the top window) and the container its pages stack in (inside that
+  // frame). On-prem runs the same client, so it has them too.
+  var BC_PAGE_CLASSES = ['designer-client-frame', 'spa-container'];
 
-  function isMaximizeTarget(href) {
-    var u;
-    try { u = new URL(href); } catch (e) { return false; }
-    var host = u.hostname.toLowerCase();
-    if (MAXIMIZE_SAAS_RE.test(host)) return true;           // *.dynamics.com
-    if (/(?:^|\.)bc[^.]*(?:\.|$)/.test(host)) return true;   // hostname label starts with 'bc' (bc, bcdev, bcprod, …)
-    if (/^\/bc/i.test(u.pathname)) return true;             // path starts with /BC (on-prem)
+  // A page with a BC-like address that shows neither is looked at again: every
+  // second while the client is usually still loading, then less often. The
+  // client builds its frame with script as the page finishes loading, so the
+  // look ends 10 s after the load event (or after the address changed, for a
+  // page that loaded long before), and after a minute in any case.
+  var BC_PROBE_LIMIT_MS = 60000;
+  var BC_AFTER_LOAD_MS = 10000;
+
+  function probeDelay(elapsed) {
+    if (elapsed < 10000) return 1000;
+    return elapsed < 30000 ? 2000 : 5000;
+  }
+
+  /**
+   * Whether the web client tweaks apply in this frame. The address must look
+   * like Business Central, and on any host but BC online the page must prove
+   * it: BC's own elements, or the brand name in its ribbon (state.bcSeen). A
+   * site that only looks like BC by its address, such as a host name starting
+   * with "bc", gets no tweak.
+   */
+  function webClientHere() {
+    if (!isWebClientTarget(state.href)) return false;
+    if (state.bcPage || state.bcSeen || (state.ctx && state.ctx.isbc)) return true;
+    if (hasBCElements()) return true;
+    probeForBC();
     return false;
+  }
+
+  /**
+   * Live collections from getElementsByClassName, made once: the browser
+   * keeps their answer until the page changes, so a look at a page that did
+   * not change costs next to nothing, and one after a change walks the page
+   * once (2 ms for 60,000 elements, measured).
+   */
+  var bcMarks = null;
+
+  function hasBCElements() {
+    if (!bcMarks) {
+      bcMarks = BC_PAGE_CLASSES.map(function (name) { return document.getElementsByClassName(name); });
+    }
+    for (var i = 0; i < bcMarks.length; i++) {
+      if (bcMarks[i].length) {
+        state.bcPage = true;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Looks for BC's elements on a timer, without waking the observer and the
+   * poll. Found, it runs apply(), which starts the tweaks; not found by 10 s
+   * after the page loaded, it stops. A look-alike page gets about ten looks.
+   */
+  function probeForBC() {
+    if (state.probeTimer || state.probeUntil === -1) return;
+    var now = Date.now();
+    if (!state.probeUntil) {
+      state.probeFrom = now;
+      state.probeUntil = now + BC_PROBE_LIMIT_MS;
+    }
+    state.probeTimer = setTimeout(function () {
+      state.probeTimer = 0;
+      if (hasBCElements()) apply();
+      else if (probeGoesOn()) probeForBC();
+      else state.probeUntil = -1;
+    }, probeDelay(now - state.probeFrom));
+  }
+
+  function probeGoesOn() {
+    var now = Date.now();
+    if (now >= state.probeUntil) return false;
+    var loaded = loadedAt();
+    return !loaded || now < Math.max(loaded, state.probeFrom) + BC_AFTER_LOAD_MS;
+  }
+
+  /** When this page's load event fired, or 0 while it is still loading. */
+  function loadedAt() {
+    if (document.readyState !== 'complete') return 0;
+    var nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+    // loadEventEnd is still 0 while load handlers run.
+    return nav && nav.loadEventEnd ? Math.round(performance.timeOrigin + nav.loadEventEnd) : Date.now();
   }
 
   init();
 
   function init() {
+    // The browser shortcut for the keyboard shortcuts panel arrives from the
+    // service worker, in the top frame only.
+    if (IS_TOP) {
+      try {
+        chrome.runtime.onMessage.addListener(function (message, sender) {
+          if (!message || message.type !== 'bcb:toggle-shortcuts') return;
+          if (!sender || sender.id !== chrome.runtime.id || sender.tab) return;
+          if (state.shortcuts) state.shortcuts.toggle();
+        });
+      } catch (e) { /* extension reloaded */ }
+    }
+
     read().then(function (settings) {
       state.settings = settings;
       start();
@@ -119,6 +252,9 @@
 
     try {
       chrome.storage.onChanged.addListener(function (changes, area) {
+        if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY] && state.language) {
+          BCBuddy.loadLanguage().then(relabel);
+        }
         if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
         state.settings = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue);
         clearAll();
@@ -148,6 +284,23 @@
       rulesCache.rules = BCBuddy.effectiveRules(settings);
     }
     return rulesCache.rules;
+  }
+
+  /**
+   * The rule for this page. Matching only looks at the URL, and state.ctx is
+   * replaced whenever that changes, so the answer is kept until the URL or the
+   * rules change: a RegEx condition runs once per page, not on every pass.
+   */
+  var matchCache = { rules: null, ctx: null, rule: null };
+
+  function matchingRule(settings) {
+    var rules = effectiveRules(settings);
+    if (matchCache.rules !== rules || matchCache.ctx !== state.ctx) {
+      matchCache.rules = rules;
+      matchCache.ctx = state.ctx;
+      matchCache.rule = BCBuddy.findRule(rules, state.ctx);
+    }
+    return matchCache.rule;
   }
 
   function start() {
@@ -211,13 +364,17 @@
    */
   function shouldWatch(settings, rule) {
     if (!settings || !settings.enabled) return false;
-    var hasMaximize = settings.maximize && settings.maximize.enabled;
-    var hasLink = !!settings.helpdeskEnabled;
-    if (!effectiveRules(settings).length && !hasMaximize && !hasLink) return false;
+    // The current-row tint is not here on purpose: it is one attribute, set
+    // once, and needs no watching.
+    var clicksBC = BCBuddy.maximizeOn(settings) || BCBuddy.pinActionBarOn(settings) ||
+      BCBuddy.hideFactBoxOn(settings);
+    // The Report a problem link has to come back when BC redraws its top bar.
+    var supportLink = !!settings.helpdeskEnabled;
+    if (!effectiveRules(settings).length && !clicksBC && !supportLink) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
-    if ((hasMaximize || hasLink) && isMaximizeTarget(state.href)) return true;
+    if ((clicksBC || supportLink) && state.webClient) return true;
     return false;
   }
 
@@ -246,15 +403,18 @@
       // search immediately.
       state.lastBrandSearch = 0;
       state.bcSeen = false;
-      state.maximizeApplied = false;
+      state.lastCompanyLook = 0;
+      // A new address may be BC where the old one was not: look again. Once
+      // this document showed BC's elements, that stays true.
+      if (state.probeUntil === -1) state.probeUntil = 0;
     }
+    state.webClient = webClientHere();
+    if (state.webClient && state.ctx.isbc && !state.ctx.company) companyFromPage();
 
     // Rules apply on every site. From the URL alone you cannot tell that a
     // custom host runs Business Central, so filtering on the BC host would
     // shut out on-prem installs.
-    var rule = settings.enabled
-      ? BCBuddy.findRule(effectiveRules(settings), state.ctx)
-      : null;
+    var rule = settings.enabled ? matchingRule(settings) : null;
 
     var changed = !sameRule(rule, state.rule);
     if (changed) {
@@ -268,11 +428,25 @@
     if (rule) {
       setVariables(rule);
       reassert(rule);
-    } else {
-      applyStandaloneSupportLink();
     }
 
+    // Before maximize: its wide click stores the pane as open (factbox.js).
+    applyHideFactBox();
     applyMaximize();
+    applyPinActionBar();
+    applyDropdowns();
+    applyPanes();
+    applyHighlightRow();
+    applyListLook();
+    applyNoAnimations();
+    applyHideNotifications();
+    applyLanguage();
+    applyCopyValues();
+    applyNewTab();
+    applyWeekNumbers();
+    applyGearMenu();
+    applyShortcuts();
+    applySupportLink();
   }
 
   function sameRule(a, b) {
@@ -294,12 +468,19 @@
 
   function setVariables(rule) {
     var root = document.documentElement;
-    var text = rule.textColor === 'auto' ? BCBuddy.idealText(rule.color) : rule.textColor;
+    // A bar at the top has the page below it, not behind it: always solid.
+    var opacity = rule.banner.position === 'top' ? 1 : rule.banner.opacity;
+    // The banner's text is picked for the colour you see through it: over a
+    // page Dark Reader made dark, that is the rule's colour over dark grey.
+    var under = root.getAttribute('data-darkreader-scheme') === 'dark' ? '#181a1b' : '#ffffff';
     root.style.setProperty('--bcb-color', rule.color);
-    root.style.setProperty('--bcb-text', text);
+    root.style.setProperty('--bcb-text', BCBuddy.idealText(rule.color));
     root.style.setProperty('--bcb-border-width', rule.border.width + 'px');
-    root.style.setProperty('--bcb-bar-bg', BCBuddy.toRgba(rule.color, rule.banner.opacity));
+    root.style.setProperty('--bcb-bar-bg', BCBuddy.toRgba(rule.color, opacity));
+    root.style.setProperty('--bcb-bar-text', BCBuddy.idealText(rule.color, opacity, under));
     root.style.setProperty('--bcb-bar-font-size', (rule.banner.fontSize || 13) + 'px');
+    // Room for one line of the largest automatic size (14px) or the fixed one.
+    root.style.setProperty('--bcb-top-height', Math.round((rule.banner.fontSize || 14) * 1.35) + 8 + 'px');
   }
 
   /* ---------------------------------------------------------------- frame */
@@ -325,6 +506,12 @@
 
   function applyBanner(rule) {
     var el = document.getElementById(BANNER_ID);
+    var root = document.documentElement;
+    var top = rule.banner.enabled && rule.banner.position === 'top';
+    if (top !== root.hasAttribute(TOP_BAR_ATTR)) {
+      if (top) root.setAttribute(TOP_BAR_ATTR, '');
+      else root.removeAttribute(TOP_BAR_ATTR);
+    }
     if (!rule.banner.enabled) {
       if (el) el.remove();
       return;
@@ -380,7 +567,6 @@
   function applyRibbon(rule) {
     if (!rule.ribbon.enabled) {
       releaseRibbon();
-      applyStandaloneSupportLink();
       return;
     }
     var brand = getBrandElement();
@@ -400,23 +586,28 @@
     if (!band) return;
     if (!band.hasAttribute('data-bcb-ribbon')) band.setAttribute('data-bcb-ribbon', '');
     clearRibbonPaint(band);
-    applySupportLink(brand);
     guardRibbon(band, rule);
   }
 
   /**
    * "Report a problem" next to the brand name. This is how a user who never
-   * pinned the toolbar icon finds the panel: it sits in the ribbon they look
-   * at all day. Lives in the top window only — the panel opens there too.
+   * pinned the toolbar icon finds the helpdesk panel: it sits in the ribbon
+   * they look at all day, coloured by a rule or not. Top window only, where
+   * the panel opens too. Costs one lookup per apply() once it is in place;
+   * the brand search only runs while it is missing.
    */
-  function applySupportLink(brand) {
+  function applySupportLink() {
+    var settings = state.settings;
     var link = document.querySelector('[data-bcb-support]');
-    var wanted = IS_TOP && state.settings && state.settings.helpdeskEnabled;
-    if (!wanted) {
-      removeSupportLink();
+    var want = IS_TOP && state.webClient && settings && settings.enabled && settings.helpdeskEnabled;
+    if (!want) {
+      if (link) link.remove();
       return;
     }
-    if (link && link.isConnected && link.previousElementSibling === brand) return;
+    var prev = link && link.isConnected ? link.previousElementSibling : null;
+    if (prev && (prev.hasAttribute('data-bcb-brand') || isBrandText((prev.textContent || '').trim()))) return;
+    var brand = getBrandElement();
+    if (!brand || !brand.parentNode) return;
     if (link) link.remove();
 
     link = document.createElement('span');
@@ -428,6 +619,8 @@
       // The brand sits inside BC's own home link; keep that from firing.
       e.preventDefault();
       e.stopPropagation();
+      // A page cannot open the panel by firing a click on the link.
+      if (!e.isTrusted) return;
       try { chrome.runtime.sendMessage({ type: 'bcb:open-support' }); } catch (err) { /* extension reloaded */ }
     };
     link.addEventListener('click', open);
@@ -439,30 +632,6 @@
   }
 
   /**
-   * The link without a rule: on a page the Maximize feature recognises as
-   * Business Central (same URL rules), the brand name is found and the link
-   * put next to it, ribbon uncoloured. So a user with no rules still has a
-   * way in besides the toolbar icon.
-   */
-  function applyStandaloneSupportLink() {
-    var settings = state.settings;
-    var wanted = IS_TOP && settings && settings.enabled && settings.helpdeskEnabled &&
-      isMaximizeTarget(state.href);
-    if (!wanted) { removeSupportLink(); return; }
-    var link = document.querySelector('[data-bcb-support]');
-    var prev = link && link.isConnected ? link.previousElementSibling : null;
-    // Already in place next to the brand name: no need to comb the page again.
-    if (prev && isBrandText((prev.textContent || '').trim())) return;
-    var brand = getBrandElement();
-    if (brand) applySupportLink(brand);
-  }
-
-  function removeSupportLink() {
-    var link = document.querySelector('[data-bcb-support]');
-    if (link) link.remove();
-  }
-
-  /**
    * Dark Reader (and similar extensions) can override our CSS rule by injecting
    * their own !important stylesheet after ours. Setting the color as an inline
    * style on the element itself bypasses that: inline !important beats any
@@ -471,7 +640,7 @@
    */
   function guardRibbon(band, rule) {
     var color = rule.color;
-    var text = rule.textColor === 'auto' ? BCBuddy.idealText(rule.color) : rule.textColor;
+    var text = BCBuddy.idealText(rule.color);
 
     function paint() {
       band.style.setProperty('background-color', color, 'important');
@@ -685,7 +854,7 @@
 
     if (existing && existing.getAttribute('data-bcb-favicon') === signature) return;
 
-    var href = drawFavicon(rule.color, label);
+    var href = BCBuddy.drawFavicon(rule.color, label);
     if (!href) return;
 
     var link = existing || document.createElement('link');
@@ -714,80 +883,288 @@
     }
   }
 
-  function drawFavicon(color, label) {
-    try {
-      var size = 32;
-      var canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      var ctx2d = canvas.getContext('2d');
-      if (!ctx2d) return null;
-
-      ctx2d.fillStyle = color;
-      roundRect(ctx2d, 0, 0, size, size, 6);
-      ctx2d.fill();
-
-      var initials = label.replace(/[^\p{L}\p{N}]/gu, '').slice(0, 2).toUpperCase();
-      if (initials) {
-        ctx2d.fillStyle = BCBuddy.idealText(color);
-        ctx2d.font = 'bold ' + (initials.length > 1 ? 17 : 22) + 'px "Segoe UI", Arial, sans-serif';
-        ctx2d.textAlign = 'center';
-        ctx2d.textBaseline = 'middle';
-        ctx2d.fillText(initials, size / 2, size / 2 + 1);
-      }
-      return canvas.toDataURL('image/png');
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function roundRect(ctx2d, x, y, w, h, r) {
-    ctx2d.beginPath();
-    ctx2d.moveTo(x + r, y);
-    ctx2d.arcTo(x + w, y, x + w, y + h, r);
-    ctx2d.arcTo(x + w, y + h, x, y + h, r);
-    ctx2d.arcTo(x, y + h, x, y, r);
-    ctx2d.arcTo(x, y, x + w, y, r);
-    ctx2d.closePath();
-  }
-
   /* ------------------------------------------------------------- maximize */
 
   /**
-   * Clicks the wide-layout toggle and switches tile pages to list view.
-   * Runs in every frame; only acts when the BC UI controls are present.
-   * Skips silently after the first successful attempt per URL change.
+   * Wide layout and list view for the BC page on screen; see maximize.js.
+   * Runs in every frame; only acts where the BC toolbar is.
    */
   function applyMaximize() {
+    if (!BCBuddy.maximizeOn(state.settings)) return;
+    if (!state.webClient) return;
+    BCBuddy.Maximize.apply(document, state.maximized, bcStorage());
+  }
+
+  /* ------------------------------------------------------ pin action bar */
+
+  /**
+   * Pins the action bar of a BC page that opens with it floating, unless
+   * someone set it on that page before; see actionbar.js. Like maximize it
+   * runs in every frame and only acts where the page is: one query in the page
+   * on screen per pass, and a look in BC's storage once per page.
+   */
+  function applyPinActionBar() {
+    if (!BCBuddy.pinActionBarOn(state.settings)) return;
+    if (!state.webClient) return;
+    BCBuddy.ActionBar.apply(document, state.pinned, bcStorage());
+  }
+
+  /* ------------------------------------------------------ FactBox pane */
+
+  /**
+   * Closes the FactBox pane of a BC page that opens with it, unless someone set
+   * that page before; see factbox.js. Like maximize it runs in every frame and
+   * only acts where the page is: one or two queries in the page on screen per
+   * pass, and a look in BC's storage once per page.
+   */
+  function applyHideFactBox() {
+    if (!BCBuddy.hideFactBoxOn(state.settings)) return;
+    if (!state.webClient) return;
+    BCBuddy.FactBox.apply(document, state.factBoxes, bcStorage());
+  }
+
+  /**
+   * The localStorage of this frame, where BC keeps the choices made on each
+   * page. Null where the browser blocks it; BC cannot store anything there
+   * either.
+   */
+  function bcStorage() {
+    try { return window.localStorage; } catch (e) { return null; }
+  }
+
+  /* ---------------------------------------------------------- current row */
+
+  /**
+   * Tints the row you are on in BC's editable grids; the rules are in
+   * content.css. All this does is set one attribute on <html>, in every frame.
+   * BC leaves the root element of its frame alone, so it is set once - when
+   * the page loads, the URL changes or the settings do - and costs nothing
+   * while you scroll or type.
+   */
+  function applyHighlightRow() {
+    var root = document.documentElement;
+    if (!root) return;
+    var on = BCBuddy.highlightRowOn(state.settings) && state.webClient;
+    if (on === root.hasAttribute(ROW_ATTR)) return;
+    if (on) root.setAttribute(ROW_ATTR, '');
+    else root.removeAttribute(ROW_ATTR);
+  }
+
+  /* ------------------------------------------------------------ list look */
+
+  /**
+   * Striped rows in BC's lists and editable grids; the rules are in
+   * content.css. Like the row tint this is one attribute on <html>, set once
+   * per page load, URL change or settings change, so it costs nothing while
+   * you scroll or type.
+   */
+  function applyListLook() {
+    var root = document.documentElement;
+    if (!root) return;
+    var on = isWebClientTarget(state.href) && BCBuddy.stripeRowsOn(state.settings);
+    toggleRootAttr(root, STRIPES_ATTR, on);
+  }
+
+  function toggleRootAttr(root, name, on) {
+    if (on === root.hasAttribute(name)) return;
+    if (on) root.setAttribute(name, '');
+    else root.removeAttribute(name);
+  }
+
+  /* ----------------------------------------------------------- animations */
+
+  /**
+   * Shortens BC's animations; the rules are in content.css, and calm.js
+   * (page world) does the same for element.animate(). Like the row tint
+   * this only sets one attribute on <html>, once per page load, URL change or
+   * settings change, so it costs nothing while you scroll or type.
+   */
+  function applyNoAnimations() {
+    var root = document.documentElement;
+    if (!root) return;
+    var on = BCBuddy.noAnimationsOn(state.settings) && state.webClient;
+    if (on === root.hasAttribute(CALM_ATTR)) return;
+    if (on) root.setAttribute(CALM_ATTR, '');
+    else root.removeAttribute(CALM_ATTR);
+  }
+
+  /* -------------------------------------------------------- notifications */
+
+  /**
+   * Hides the notifications bell in BC's top bar; the rule is in content.css.
+   * Like the row tint this only sets one attribute on <html>, once per page
+   * load, URL change or settings change.
+   */
+  function applyHideNotifications() {
+    var root = document.documentElement;
+    if (!root) return;
+    var on = BCBuddy.hideNotificationsOn(state.settings) && state.webClient;
+    if (on === root.hasAttribute(NO_BELL_ATTR)) return;
+    if (on) root.setAttribute(NO_BELL_ATTR, '');
+    else root.removeAttribute(NO_BELL_ATTR);
+  }
+
+  /* ------------------------------------------------------------- language */
+
+  /**
+   * Only the web client tweaks put text on a page, so only there do we look
+   * up the language picked on the options page: once per page, not in every
+   * frame of every site. Until it arrives the texts are in the browser's
+   * language; then the tweaks with text are attached again.
+   */
+  function applyLanguage() {
+    if (state.language) return;
+    if (!state.webClient && !(IS_TOP && isWebClientTarget(state.href))) return;
+    state.language = true;
+    BCBuddy.loadLanguage().then(function (lang) {
+      if (lang) relabel();
+    });
+  }
+
+  /** Detaches the tweaks that show our texts, so apply() attaches them anew. */
+  function relabel() {
+    if (state.copyValues) state.copyValues.detach();
+    if (state.gearMenu) state.gearMenu.detach();
+    if (state.shortcuts) state.shortcuts.detach();
+    state.copyValues = state.gearMenu = state.shortcuts = null;
+    apply();
+  }
+
+  /* ---------------------------------------------------------- copy values */
+
+  /**
+   * Starts or stops the copy icon when the settings call for it. Like the
+   * dropdown sizer it keeps its own listener, attached once and left alone
+   * until the switch changes, so this costs one comparison per apply().
+   */
+  function applyCopyValues() {
+    var want = BCBuddy.copyValuesOn(state.settings) && state.webClient;
+    if (want === !!state.copyValues) return;
+    if (state.copyValues) state.copyValues.detach();
+    state.copyValues = want ? BCBuddy.CopyValues.attach(document, {
+      copy: BCBuddy.t('copyValue'),
+      copied: BCBuddy.t('copiedValue')
+    }) : null;
+  }
+
+  /* --------------------------------------------------------- week numbers */
+
+  /**
+   * Turns on Business Central's own week numbers in the date picker where
+   * nobody chose yet; see weeknumbers.js. It looks once when the switch turns
+   * on and then only listens for storage events, so this costs one comparison
+   * per apply(). Switching it off stops that; numbers already on stay, as BC
+   * keeps them.
+   */
+  function applyWeekNumbers() {
+    var want = BCBuddy.weekNumbersOn(state.settings) && state.webClient;
+    if (want === !!state.weekNumbers) return;
+    if (state.weekNumbers) state.weekNumbers.detach();
+    state.weekNumbers = want ? BCBuddy.WeekNumbers.attach(window) : null;
+  }
+
+  /* ---------------------------------------------------- open in a new tab */
+
+  /**
+   * Starts or stops Ctrl+click / middle-click to open a link in a new tab.
+   * Beta and undocumented on purpose, with no switch of its own: see the top
+   * of newtab.js. It follows the master switch only. Its click listeners are
+   * attached once and left alone until that changes, so this costs one
+   * comparison per apply().
+   */
+  function applyNewTab() {
+    var want = !!(state.settings && state.settings.enabled) && state.webClient;
+    if (want === !!state.newTab) return;
+    if (state.newTab) state.newTab.detach();
+    state.newTab = want ? BCBuddy.NewTab.attach(document, openTab) : null;
+  }
+
+  /**
+   * Hands an address to the service worker, which opens it in a new tab next
+   * to this one: in the background, like Ctrl+click on a link, or in front.
+   */
+  function openTab(url, active) {
+    try {
+      chrome.runtime.sendMessage({ type: 'bcb:open-tab', url: url, active: !!active });
+    } catch (e) { /* extension reloaded; nothing to open it with */ }
+  }
+
+  /* ------------------------------------------------------------ dropdowns */
+
+  /**
+   * Starts or stops the dropdown sizer when the settings call for it. It keeps
+   * its own narrow observer, independent of the idle/watch cycle above, so it
+   * is attached once and left alone until the settings change.
+   */
+  function applyDropdowns() {
     var settings = state.settings;
-    if (!settings || !settings.maximize || !settings.maximize.enabled) return;
-    if (state.maximizeApplied) return;
-    if (!isMaximizeTarget(state.href)) return;
+    var want = !!settings && settings.enabled && BCBuddy.Dropdowns.isOn(settings.dropdown) &&
+      state.webClient;
+    var key = want ? settings.dropdown.width + 'x' + settings.dropdown.height : '';
+    if (key === state.dropdownKey) return;
 
-    var wideBtn = document.querySelector(WIDE_TOGGLE_SEL);
-    var chooser = document.querySelector(LIST_CHOOSER_SEL);
-    if (!wideBtn && !chooser) return; // not the frame that hosts the BC toolbar
+    if (state.dropdowns) state.dropdowns.detach();
+    state.dropdowns = want ? BCBuddy.Dropdowns.attach(document, settings.dropdown) : null;
+    state.dropdownKey = key;
+  }
 
-    state.maximizeApplied = true;
+  /* ---------------------------------------------------------------- panes */
 
-    if (wideBtn && !wideBtn.classList.contains('is-checked') &&
-        wideBtn.getAttribute('aria-pressed') !== 'true') {
-      try { wideBtn.click(); } catch (e) {}
-    }
+  /**
+   * Drag handles on the left edge of Help, Copilot, Page Inspection and the
+   * Personalization field list; see panes.js. In every frame: Page Inspection
+   * is in the top window, Help in the client frame. One pointerdown listener,
+   * attached once and left alone until the switch changes, so this costs one
+   * comparison per apply().
+   */
+  function applyPanes() {
+    var want = BCBuddy.resizePanesOn(state.settings) && state.webClient;
+    if (want === !!state.panes) return;
+    if (state.panes) state.panes.detach();
+    state.panes = want ? BCBuddy.Panes.attach(document) : null;
+  }
 
-    if (!document.querySelector(LIST_ACTIVE_SEL) && chooser) {
-      var menuBtn = chooser.querySelector(FOCUSABLE_BTN_SEL);
-      if (menuBtn && menuBtn.getAttribute('aria-expanded') !== 'true') {
-        try { menuBtn.click(); } catch (e) {}
-        setTimeout(function () {
-          var listDiv = document.querySelector(LIST_OPTION_SEL);
-          if (listDiv) {
-            var optBtn = listDiv.querySelector(FOCUSABLE_BTN_SEL);
-            if (optBtn) { try { optBtn.click(); } catch (e) {} }
-          }
-        }, 50);
-      }
-    }
+  /* ------------------------------------------------------------ gear menu */
+
+  /**
+   * Adds a BC Buddy section with a Settings link to BC's gear menu; see
+   * gearmenu.js. Like the dropdown sizer it keeps its own narrow observer and
+   * is attached once. It does not follow the on/off switch: when BC Buddy is
+   * off, this link is the quickest way back to turning it on.
+   */
+  function applyGearMenu() {
+    var want = IS_TOP && state.webClient;
+    if (want === !!state.gearMenu) return;
+    if (state.gearMenu) state.gearMenu.detach();
+    state.gearMenu = want
+      ? BCBuddy.GearMenu.attach(document, { label: BCBuddy.t('gearMenuSettings'), onOpen: openOptions })
+      : null;
+  }
+
+  /* ------------------------------------------------------------ shortcuts */
+
+  /**
+   * The keyboard icon in BC's top bar and the panel it opens; see
+   * shortcuts.js. Top window only: from there it reads BC's client frame.
+   * Attached once, like the gear menu, so this costs one comparison per
+   * apply().
+   */
+  function applyShortcuts() {
+    var want = IS_TOP && BCBuddy.shortcutsOn(state.settings) && isWebClientTarget(state.href);
+    if (want === !!state.shortcuts) return;
+    if (state.shortcuts) state.shortcuts.detach();
+    state.shortcuts = want
+      ? BCBuddy.Shortcuts.attach(document, { t: BCBuddy.t, icon: true })
+      : null;
+  }
+
+  function openOptions() {
+    // A content script cannot open the options page itself; the service
+    // worker does it. After an extension update this page still runs the old
+    // script, whose messages go nowhere until the tab is reloaded.
+    try {
+      chrome.runtime.sendMessage({ type: 'bcb:open-options' }).catch(function () {});
+    } catch (e) { /* extension reloaded */ }
   }
 
   /* ------------------------------------------------------------- cleanup */
@@ -797,8 +1174,8 @@
     if (frame) frame.remove();
     var banner = document.getElementById(BANNER_ID);
     if (banner) banner.remove();
+    document.documentElement.removeAttribute(TOP_BAR_ATTR);
     releaseRibbon();
-    removeSupportLink();
 
     if (state.titleApplied && document.title === state.titleApplied) {
       document.title = state.titleOriginal;
@@ -812,12 +1189,65 @@
     }
 
     var root = document.documentElement;
-    ['--bcb-color', '--bcb-text', '--bcb-border-width',
-      '--bcb-bar-bg', '--bcb-bar-font-size'].forEach(function (v) {
+    ['--bcb-color', '--bcb-text', '--bcb-border-width', '--bcb-bar-bg',
+      '--bcb-bar-text', '--bcb-bar-font-size', '--bcb-top-height'].forEach(function (v) {
       root.style.removeProperty(v);
     });
 
-    state.maximizeApplied = false;
+    state.maximized = new WeakMap();
+    state.pinned = new WeakSet();
+    state.factBoxes = new WeakMap();
+  }
+
+  /* -------------------------------------------------------------- company */
+
+  /**
+   * BC online opens your default company without ?company= in the address.
+   * The company then comes from the page: the environment button in BC's top
+   * bar, whose title reads "Cronus België, Environment: Sandbox", or else the
+   * Role Center heading in the client frame. Both show the company's display
+   * name. Only on BC online, only while the address names no company, and at
+   * most every COMPANY_RETRY_MS until found: one lookup by id, and an
+   * attribute search only when the button gave nothing. Once found it is part
+   * of state.ctx until the address changes, so rules and texts use it.
+   */
+  function companyFromPage() {
+    var now = Date.now();
+    if (now - state.lastCompanyLook < COMPANY_RETRY_MS) return;
+    state.lastCompanyLook = now;
+
+    var company = '';
+    var shell = sameOriginDocument(IS_TOP ? window : window.top);
+    var launcher = shell && shell.getElementById('BC_EnvironmentLauncher');
+    var button = launcher && launcher.querySelector('button[title]');
+    if (button) company = BCBuddy.companyFromLauncher(button.getAttribute('title'));
+    if (!company) {
+      var client = IS_TOP ? clientDocument() : document;
+      var home = client && client.querySelector('a[data-home-node="true"] [role="heading"] [aria-label]');
+      // aria-label, not the text: the heading holds the caption twice.
+      if (home) company = BCBuddy.tidyCompany(home.getAttribute('aria-label'));
+    }
+    if (!company) return;
+
+    var ctx = {};
+    Object.keys(state.ctx).forEach(function (key) { ctx[key] = state.ctx[key]; });
+    ctx.company = company;
+    state.ctx = ctx;
+  }
+
+  /** The document of a window on this origin; null across origins. */
+  function sameOriginDocument(win) {
+    try {
+      return win.document;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /** The BC client frame's document, from the top window. */
+  function clientDocument() {
+    var frame = document.querySelector('iframe.designer-client-frame');
+    return frame ? sameOriginDocument(frame.contentWindow) : null;
   }
 
   /* --------------------------------------------------------------- helpers */

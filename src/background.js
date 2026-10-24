@@ -7,8 +7,12 @@ importScripts('/src/lib/i18n.js', '/src/lib/match.js', '/src/lib/settings.js');
 var BCBuddy = self.BCBuddy;
 var ALARM_SYNC = 'bcb-sync';
 
-// A shared file that never answers must not leave the options page or the
-// popup on "Synchronising..." with no way out.
+// The language someone picked on the options page, for the error messages
+// this worker writes. Reloaded when the choice changes.
+var languageReady = BCBuddy.loadLanguage();
+
+// A shared file that never answers must not leave the options page on
+// "Synchronising..." with no way out.
 var FETCH_TIMEOUT_MS = 15000;
 
 // Far more than any realistic set of rules needs, and well under the storage
@@ -16,11 +20,78 @@ var FETCH_TIMEOUT_MS = 15000;
 // with a readable message instead of failing later on chrome.storage.local.
 var MAX_HOSTED_SIZE = 1024 * 1024;
 
+chrome.runtime.onInstalled.addListener(function (details) {
+  var install = details.reason === 'install';
+  // The samples go in before the policy's address starts the first sync, so
+  // that sync finds them and its shared rules can take over (syncHosted).
+  (install ? seedSamples() : Promise.resolve()).then(enforcePolicy).then(function () {
+    scheduleSync();
+    if (install) welcome();
+    else syncHosted({ reason: 'install' });
+  });
+});
+
 /**
- * Opens the "Report a problem" panel in a tab. Used by the toolbar icon, the
+ * The packaged samples file, the same file Load samples reads, with its
+ * styles named in the picked language.
+ */
+function packagedSamples() {
+  return languageReady.then(function () {
+    return fetch(chrome.runtime.getURL(BCBuddy.SAMPLES_PATH));
+  }).then(function (response) {
+    if (!response.ok) throw new Error(String(response.status));
+    return response.text();
+  }).then(function (text) {
+    return BCBuddy.localizeSamples(BCBuddy.parseImport(text));
+  });
+}
+
+/**
+ * A first install starts with the samples, their rules switched off (see
+ * BCBuddy.seedSamples). Never fails: without them BC Buddy keeps its built-in
+ * Default.
+ */
+function seedSamples() {
+  return packagedSamples().then(function (samples) {
+    return BCBuddy.loadSettings().then(function (settings) {
+      if (BCBuddy.seedSamples(settings, samples)) return BCBuddy.saveSettings(settings);
+    });
+  }).catch(function () {});
+}
+
+/**
+ * A first install opens the options page, unless IT installed BC Buddy by
+ * policy: then it lands on hundreds of laptops at once, and a tab nobody asked
+ * for is the last thing those people need. getSelf needs no permission.
+ */
+function welcome() {
+  Promise.resolve().then(function () {
+    return chrome.management.getSelf();
+  }).then(function (info) {
+    if (info.installType !== 'admin') chrome.runtime.openOptionsPage();
+  }, function () {
+    chrome.runtime.openOptionsPage();
+  });
+}
+
+// The toolbar icon has no popup. With the helpdesk on, a click opens the
+// Report a problem panel in the tab; otherwise, or on a page we cannot script,
+// it opens the options page on the Web client panel, or brings an open one to
+// the front and switches it there.
+chrome.action.onClicked.addListener(function (tab) {
+  BCBuddy.loadSettings().then(function (settings) {
+    if (!settings.enabled || !settings.helpdeskEnabled || !tab || tab.id === undefined) return false;
+    return openSupportPanel(tab.id);
+  }).catch(function () { return false; }).then(function (opened) {
+    if (!opened) openOptions('webclient');
+  });
+});
+
+/**
+ * Opens the Report a problem panel in a tab. Used by the toolbar icon, the
  * link in the Business Central ribbon, and the re-injection after a navigation
  * while a report is in progress. Resolves false when the tab cannot be
- * scripted (a chrome:// page, the Web Store, ...).
+ * scripted (a chrome:// page, the Web Store, ...). Top frame only.
  */
 function openSupportPanel(tabId) {
   return chrome.scripting.insertCSS({
@@ -34,60 +105,8 @@ function openSupportPanel(tabId) {
   }).then(function () { return true; }, function () { return false; });
 }
 
-chrome.action.onClicked.addListener(function (tab) {
-  var url = (tab && tab.url) || '';
-  var tabId = tab && tab.id;
-  var injectable = !!tabId && !!url
-    && url.indexOf('chrome://') !== 0
-    && url.indexOf('chrome-extension://') !== 0
-    && url.indexOf('about:') !== 0;
-
-  if (!injectable) { chrome.runtime.openOptionsPage(); return; }
-  openSupportPanel(tabId).then(function (ok) {
-    if (!ok) chrome.runtime.openOptionsPage();
-  });
-});
-
-chrome.runtime.onInstalled.addListener(function (details) {
-  applyManaged().then(function (managed) {
-    scheduleSync();
-    if (details.reason === 'install') {
-      // Someone whose organisation set the URL by policy has nothing to fill
-      // in, so the options page would only be in the way.
-      if (!managed.url) chrome.runtime.openOptionsPage();
-    } else if (!managed.changed) {
-      syncHosted({ reason: 'install' });
-    }
-  });
-});
-
-chrome.runtime.onStartup.addListener(function () {
-  applyManaged().then(function (managed) {
-    scheduleSync();
-    if (!managed.changed) syncHosted({ reason: 'startup' });
-  });
-});
-
-chrome.alarms.onAlarm.addListener(function (alarm) {
-  if (alarm.name === ALARM_SYNC) syncHosted({ reason: 'alarm' });
-});
-
-chrome.storage.onChanged.addListener(function (changes, area) {
-  // The organisation changed its policy while the browser was running.
-  if (area === 'managed') { applyManaged(); return; }
-  if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
-  var before = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].oldValue).hosted;
-  var after = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue).hosted;
-  if (before.url !== after.url || before.active !== after.active) {
-    scheduleSync();
-    if (after.url && before.url !== after.url) {
-      syncHosted({ reason: 'url-changed', force: true });
-    }
-  }
-});
-
 // In-progress reports, keyed by tab id. Intentionally not persisted to
-// storage — the data is large (base64 PNGs) and only needs to survive a
+// storage: the data is large (screenshots) and only needs to survive a
 // navigation, which happens within seconds of the last screenshot.
 var supportSessions = {};
 
@@ -96,56 +115,137 @@ var supportSessions = {};
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
   if (changeInfo.status !== 'complete' || !supportSessions[tabId]) return;
   openSupportPanel(tabId).then(function (ok) {
-    // Restricted page — drop the session so we do not retry on every load.
+    // Restricted page: drop the session so we do not retry on every load.
     if (!ok) delete supportSessions[tabId];
   });
 });
 
 chrome.tabs.onRemoved.addListener(function (tabId) { delete supportSessions[tabId]; });
 
+/**
+ * The Report a problem messages, from the panel or the ribbon link: both are
+ * our own scripts in a tab's top frame. Returns true for an async answer,
+ * false when the message is not one of these.
+ */
+function handleSupportMessage(message, sender, sendResponse) {
+  var tab = sender && sender.tab;
+  if (!tab || tab.id === undefined || sender.id !== chrome.runtime.id || sender.frameId !== 0) return false;
+  switch (message.type) {
+    case 'bcb:support-screenshot':
+      // Only the extension can capture; the page cannot ask for it, since a
+      // page cannot send our messages.
+      chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' })
+        .then(function (dataUrl) { sendResponse({ ok: true, dataUrl: dataUrl }); })
+        .catch(function (err) { sendResponse({ ok: false, error: String(err && err.message || err) }); });
+      return true;
+    case 'bcb:support-save-session':
+      supportSessions[tab.id] = message.session || null;
+      sendResponse({ ok: true });
+      return true;
+    case 'bcb:support-restore-session':
+      sendResponse({ ok: true, session: supportSessions[tab.id] || null });
+      return true;
+    case 'bcb:support-clear-session':
+      delete supportSessions[tab.id];
+      sendResponse({ ok: true });
+      return true;
+    case 'bcb:open-support':
+      BCBuddy.loadSettings().then(function (settings) {
+        if (!settings.enabled || !settings.helpdeskEnabled) return false;
+        return openSupportPanel(tab.id);
+      }).catch(function () { return false; }).then(function (ok) { sendResponse({ ok: ok }); });
+      return true;
+  }
+  return false;
+}
+
+/**
+ * Opens the options page on `panel`. openOptionsPage() takes no address, so
+ * the panel goes through session storage: a page that loads reads it, and a
+ * page that is already open hears it change. Opened any other way, the page
+ * shows the panel it was last left on.
+ */
+function openOptions(panel) {
+  var request = {};
+  request[BCBuddy.OPEN_PANEL_KEY] = panel;
+  chrome.storage.session.set(request).catch(function () {}).then(function () {
+    chrome.runtime.openOptionsPage();
+  });
+}
+
+chrome.runtime.onStartup.addListener(function () {
+  enforcePolicy().then(function () {
+    scheduleSync(true);
+    syncHosted({ reason: 'startup' });
+  });
+});
+
+chrome.alarms.onAlarm.addListener(function (alarm) {
+  if (alarm.name === ALARM_SYNC) syncHosted({ reason: 'alarm' });
+});
+
+chrome.storage.onChanged.addListener(function (changes, area) {
+  // IT set, changed or removed the policy.
+  if (area === 'managed') {
+    enforcePolicy();
+    return;
+  }
+  if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY]) languageReady = BCBuddy.loadLanguage();
+  if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
+  var before = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].oldValue).hosted;
+  var after = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue).hosted;
+  if (before.url !== after.url || before.active !== after.active) {
+    scheduleSync(!!(after.url && before.url !== after.url));
+    if (after.url && before.url !== after.url) {
+      syncHosted({ reason: 'url-changed', force: true });
+    }
+    // The address or the on/off state moved away from what the policy says,
+    // e.g. an options page that was open before the policy arrived.
+    enforcePolicy();
+  } else if (BCBuddy.syncIntervalMinutes(before) !== BCBuddy.syncIntervalMinutes(after)) {
+    // A try just ended: the first sync worked, a working one started to
+    // fail, or a failing one failed again and waits longer.
+    scheduleSync(true);
+  }
+});
+
+// The browser shortcut someone set for the keyboard shortcuts panel (Chrome:
+// chrome://extensions/shortcuts). It has no key of its own, so it never
+// takes one from Business Central. Only the tab's top frame listens.
+chrome.commands.onCommand.addListener(function (command, tab) {
+  if (command !== 'show-shortcuts' || !tab || tab.id === undefined) return;
+  chrome.tabs.sendMessage(tab.id, { type: 'bcb:toggle-shortcuts' }, { frameId: 0 })
+    .catch(function () { /* no BC Buddy in that tab */ });
+});
+
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
-
-  // Screenshot capture for the Log Support Request panel. Accepted from any
-  // content script in a real tab (sender.tab present), because captureVisibleTab
-  // must be called from the extension context, not from the page.
-  if (message.type === 'bcb:support-screenshot' && sender.tab) {
-    chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' })
-      .then(function (dataUrl) { sendResponse({ ok: true, dataUrl: dataUrl }); })
-      .catch(function (err) { sendResponse({ ok: false, error: String(err && err.message || err) }); });
+  // The Report a problem messages are checked in handleSupportMessage().
+  // The three other messages a content script may send: Open in a new tab, the
+  // Settings link in BC's gear menu (gearmenu.js), which can only ask for our
+  // own options page, and the texts of the language picked on the options
+  // page, which are our own packaged files (see i18n.js).
+  if (message.type === 'bcb:messages') {
+    if (!sender || sender.id !== chrome.runtime.id) return;
+    BCBuddy.readMessages(message.lang).then(sendResponse);
     return true; // async response
   }
-
-  // Report persistence across navigations.
-  if (message.type === 'bcb:support-save-session' && sender.tab) {
-    supportSessions[sender.tab.id] = message.session || null;
-    sendResponse({ ok: true });
+  if (message.type === 'bcb:open-tab') {
+    openTab(message, sender);
     return;
   }
-  if (message.type === 'bcb:support-restore-session' && sender.tab) {
-    sendResponse({ ok: true, session: supportSessions[sender.tab.id] || null });
+  if (message.type.indexOf('bcb:support-') === 0 || message.type === 'bcb:open-support') {
+    return handleSupportMessage(message, sender, sendResponse) || undefined;
+  }
+  if (message.type === 'bcb:open-options') {
+    // The panel's gear asks for the Helpdesk panel; anything else, such as
+    // the gear menu link, gets Web client.
+    if (sender && sender.id === chrome.runtime.id) {
+      openOptions(message.panel === 'helpdesk' ? 'helpdesk' : 'webclient');
+    }
     return;
   }
-  if (message.type === 'bcb:support-clear-session' && sender.tab) {
-    delete supportSessions[sender.tab.id];
-    sendResponse({ ok: true });
-    return;
-  }
-
-  // The "Report a problem" link in the ribbon (content script) asks us to
-  // open the panel: only the extension can inject into the tab.
-  if (message.type === 'bcb:open-support' && sender.tab) {
-    openSupportPanel(sender.tab.id).then(function (ok) { sendResponse({ ok: ok }); });
-    return true; // async response
-  }
-
-  if (message.type === 'bcb:open-options' && sender.tab) {
-    chrome.runtime.openOptionsPage();
-    sendResponse({ ok: true });
-    return;
-  }
-
-  // Only options/popup (extension pages). Content scripts share our id but
+  // Only the options page (an extension page). Content scripts share our id but
   // their sender.url is the page they run in — refuse those.
   if (!isExtensionPage(sender)) return;
   if (message.type === 'bcb:sync') {
@@ -153,6 +253,31 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     return true; // async response
   }
 });
+
+/**
+ * Open in a new tab (beta, undocumented; see lib/newtab.js): a content script
+ * hands over the address Business Central showed for a link. It opens next to the tab that asked, and only when it is
+ * on the same site as that tab, so a page cannot use this to open anything
+ * else. Opening a tab needs no permission; reading the tab's address is what
+ * the host permission already allows.
+ */
+function openTab(message, sender) {
+  var tab = sender && sender.tab;
+  if (!tab || sender.id !== chrome.runtime.id) return;
+  var url, from;
+  try {
+    url = new URL(String(message.url));
+    from = new URL(tab.url || sender.url);
+  } catch (e) { return; }
+  if (!/^https?:$/.test(url.protocol) || url.origin !== from.origin) return;
+  chrome.tabs.create({
+    url: url.href,
+    windowId: tab.windowId,
+    index: tab.index + 1,
+    openerTabId: tab.id,
+    active: !!message.active
+  }).catch(function () { /* the window closed meanwhile */ });
+}
 
 /** True when the message came from one of our own extension pages. */
 function isExtensionPage(sender) {
@@ -164,43 +289,32 @@ function isExtensionPage(sender) {
 /* ------------------------------------------------------------------ sync */
 
 /**
- * Copies the URL the organisation set by policy (see schema.json) into the
- * shared configuration and makes sure it is active. Resolves with the policy
- * URL ('' when there is none) and whether anything had to change. A changed
- * URL is fetched by the storage listener above, the way a typed one is; a
- * mere re-activation — someone clicked the X on the shared rules — is fetched
- * here, since the URL itself did not move.
+ * Applies the address IT set by policy, if any (see BCBuddy.applyPolicy). The
+ * resulting settings change starts the sync through the listener above. Never
+ * rejects: startup must go on without a policy, or without managed storage.
  */
-function applyManaged() {
-  return BCBuddy.loadManaged().then(function (managed) {
-    if (!managed.url) return { url: '', changed: false };
+function enforcePolicy() {
+  return BCBuddy.readPolicy().then(function (policy) {
+    if (!BCBuddy.policyUrl(policy)) return;
     return BCBuddy.loadSettings().then(function (settings) {
-      var hosted = settings.hosted;
-      var urlChanged = hosted.url !== managed.url;
-      if (!urlChanged && hosted.active) return { url: managed.url, changed: false };
-      hosted.url = managed.url;
-      hosted.active = true;
-      return BCBuddy.saveSettings(settings).then(function () {
-        if (!urlChanged) return syncHosted({ reason: 'managed', force: true });
-      }).then(function () {
-        return { url: managed.url, changed: true };
-      });
+      if (BCBuddy.applyPolicy(settings, policy)) return BCBuddy.saveSettings(settings);
     });
-  }).catch(function () {
-    // Same story as scheduleSync(): nobody to tell. Without a policy answer
-    // the extension behaves as if none were set, and the next startup retries.
-    return { url: '', changed: false };
-  });
+  }).catch(function () {});
 }
 
-function scheduleSync() {
+/**
+ * Sets the sync alarm. afterTry: a sync just ran or is running, so the first
+ * alarm waits a whole interval; otherwise it fires in a minute.
+ */
+function scheduleSync(afterTry) {
   return BCBuddy.loadSettings().then(function (settings) {
     // clearAll also drops any alarm name left by an older build.
     return chrome.alarms.clearAll().then(function () {
       if (!settings.hosted.url || !settings.hosted.active) return;
+      var period = BCBuddy.syncIntervalMinutes(settings.hosted);
       return chrome.alarms.create(ALARM_SYNC, {
-        delayInMinutes: 1,
-        periodInMinutes: BCBuddy.SYNC_INTERVAL_MINUTES
+        delayInMinutes: afterTry ? period : 1,
+        periodInMinutes: period
       });
     });
   }).catch(function () {
@@ -232,9 +346,16 @@ function fetchHosted(url) {
       // guard, and errs on the safe side for multi-byte text.
       if (tooLarge(text.length)) throw oversized();
       var parsed = BCBuddy.parseImport(text);
-      parsed.hash = BCBuddy.hash(text);
-      parsed.url = target;
-      return parsed;
+      return {
+        ok: true,
+        rules: parsed.rules,
+        styles: parsed.styles,
+        webClient: parsed.webClient,
+        helpdesk: parsed.helpdesk,
+        name: parsed.name,
+        hash: BCBuddy.hash(text),
+        url: target
+      };
     })
     .catch(function (err) {
       // AbortSignal.timeout() rejects with a TimeoutError whose own message
@@ -256,40 +377,54 @@ function oversized() {
 }
 
 /**
- * Fetches the shared configuration and stores it as 'hosted.rules'.
- * Own rules are left alone; they take priority when matching.
+ * Fetches the shared configuration and stores its rules and styles under
+ * 'hosted'. Own rules are left alone; they take priority when matching. The
+ * file's Web client settings are defaults: only the ones that changed in the
+ * file since the last sync are passed on (see applySharedWebClient()).
  */
 function syncHosted(options) {
   options = options || {};
-  return BCBuddy.loadSettings().then(function (settings) {
+  // Wait for the picked language: the errors below end up on the options page.
+  return languageReady.then(function () {
+    return BCBuddy.loadSettings();
+  }).then(function (settings) {
     if (!settings.hosted.url) return { ok: false, error: BCBuddy.t('errNoHostedUrl') };
     // If the shared configuration is off, only a manual sync runs.
     if (!options.force && !settings.hosted.active) {
       return { ok: false, error: BCBuddy.t('errNotActive') };
     }
     return fetchHosted(settings.hosted.url).then(function (result) {
+      // The first shared rules take over from the samples nobody edited.
+      var firstRules = !settings.hosted.rules.length && result.rules.length;
+      return (firstRules ? packagedSamples().catch(function () { return null; }) : Promise.resolve(null))
+        .then(function (samples) {
+          if (samples) BCBuddy.dropSamples(settings, samples);
+          return result;
+        });
+    }).then(function (result) {
       var unchanged = result.hash === settings.hosted.lastHash;
       // Syncing turns the shared configuration on immediately: from now on it
       // is updated every day, until you clear it or empty the URL.
       settings.hosted.active = true;
       settings.hosted.rules = result.rules;
-      settings.hosted.layouts = result.layouts;
-      settings.hosted.sourceName = result.name;
+      settings.hosted.styles = result.styles;
+      BCBuddy.applySharedWebClient(settings, result.webClient);
       // The helpdesk settings in the file are the team's, so they win over
-      // whatever was typed here — the same way an import treats them. A file
-      // that does not mention them leaves the local choice alone.
-      if (result.helpdeskEmail) settings.helpdeskEmail = result.helpdeskEmail;
-      if (result.helpdeskColor) settings.helpdeskColor = result.helpdeskColor;
-      if (result.helpdeskRibbonLink !== null) settings.helpdeskRibbonLink = result.helpdeskRibbonLink;
+      // whatever was typed here, the way an import treats them. A file that
+      // does not mention them leaves the local choice alone.
+      BCBuddy.applyHelpdesk(settings, result.helpdesk);
+      settings.hosted.sourceName = result.name;
       settings.hosted.lastHash = result.hash;
       settings.hosted.lastSync = new Date().toISOString();
       settings.hosted.lastError = null;
+      settings.hosted.failures = 0;
       return BCBuddy.saveSettings(settings).then(function () {
         return { ok: true, count: result.rules.length, unchanged: unchanged, name: result.name };
       });
     }, function (err) {
       settings.hosted.lastError = String(err && err.message || err);
       settings.hosted.lastSync = new Date().toISOString();
+      settings.hosted.failures = (settings.hosted.failures || 0) + 1;
       return BCBuddy.saveSettings(settings).then(function () {
         return { ok: false, error: settings.hosted.lastError };
       });

@@ -2,9 +2,12 @@
   Builds the ZIP file for the Chrome Web Store / Edge Add-ons.
 
   Only what the extension needs for the user goes in: manifest, the policy
-  schema, src, _locales and the PNG icons. Tests, samples, the SVG sources and
-  the icon build script stay out — they only make the package larger and give
-  the reviewer files to read that do nothing.
+  schema IT sets the shared file with, src, _locales, the PNG icons, the
+  setting icons in icons/settings/ that the options page shows, and
+  examples/bc-buddy.json, which Load samples on the options page reads. Tests,
+  the other examples, the logo SVG and the icon build script stay out —
+  they only make the package larger and give the reviewer files to read that
+  do nothing.
 
   LICENSE is the exception to that rule. The ZIP is a copy of the software, and
   MIT asks for the notice to travel with every copy; at a kilobyte it is not
@@ -27,14 +30,17 @@ if (-not $version) { throw 'No version in manifest.json.' }
 # What goes into the package.
 $include = @(
   'manifest.json',
-  'schema.json',
+  'managed_schema.json',
   'LICENSE',
   'src',
   '_locales',
+  'examples\bc-buddy.json',
   'icons\icon16.png',
   'icons\icon32.png',
   'icons\icon48.png',
-  'icons\icon128.png'
+  'icons\icon128.png',
+  # The tiles in front of the Web client settings on the options page.
+  'icons\settings'
 )
 
 $staging = Join-Path ([System.IO.Path]::GetTempPath()) ("bcbuddy-pkg-" + [guid]::NewGuid().ToString('N'))

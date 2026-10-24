@@ -16,11 +16,175 @@
    --md-typeset-a-color with !important for the slate scheme, so an override of
    equal or even higher specificity loses without it. */
 [data-md-color-scheme='default'] {
-  --md-typeset-a-color: #00808a !important;
+  --md-typeset-a-color: #007a83 !important;
 }
 
 [data-md-color-scheme='slate'] {
-  --md-typeset-a-color: #2ad3de !important;
+  --md-typeset-a-color: #3cc8d1 !important;
+}
+
+/* The options page's look ---------------------------------------------- */
+
+/* The site follows src/options/options.css so the two read as one product:
+   the same fonts, the same neutral greys in dark mode, semibold headings,
+   rounder corners and a teal primary button. Values are copied from its
+   custom properties; change them there first. */
+:root {
+  --md-text-font: "Segoe UI", system-ui, -apple-system, Roboto, Arial;
+  --md-code-font: Consolas, "Cascadia Mono";
+  --bcb-radius: 0.5rem;
+  --bcb-radius-small: 0.35rem;
+}
+
+[data-md-color-scheme='default'] {
+  --md-typeset-color: #1b1e23;
+  --bcb-border: #d9dde3;
+  --bcb-surface-2: #f0f2f5;
+}
+
+/* Slate is blue-grey; the options page's dark mode is neutral. */
+[data-md-color-scheme='slate'] {
+  --md-default-bg-color: #16181d;
+  --md-default-fg-color: #e7eaee;
+  --md-default-fg-color--light: #9aa3b0;
+  --md-typeset-color: #e7eaee;
+  --md-code-bg-color: #262a31;
+  --md-footer-bg-color: #1e2127;
+  --md-footer-bg-color--dark: #16181d;
+  --bcb-border: #363b44;
+  --bcb-surface: #1e2127;
+  --bcb-surface-2: #262a31;
+}
+
+/* Black header in light mode, the surface with a border in dark mode, as on
+   the options page. */
+[data-md-color-scheme='slate'] .md-header {
+  background-color: var(--bcb-surface);
+  border-bottom: 1px solid var(--bcb-border);
+}
+
+.md-typeset h1,
+.md-typeset h2 {
+  color: var(--md-typeset-color);
+  font-weight: 600;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+}
+
+.md-typeset .md-button {
+  border-radius: var(--bcb-radius-small);
+  font-weight: 600;
+}
+
+/* Primary is the accent, not the black of the header. */
+.md-typeset .md-button--primary,
+.md-typeset .md-button--primary:hover,
+.md-typeset .md-button--primary:focus {
+  background-color: var(--md-typeset-a-color);
+  border-color: var(--md-typeset-a-color);
+  color: var(--md-default-bg-color);
+}
+
+.md-typeset .md-button--primary:hover {
+  filter: brightness(1.08);
+}
+
+.md-typeset :not(pre) > code {
+  background-color: var(--bcb-surface-2);
+  border: 1px solid var(--bcb-border);
+  border-radius: 0.2rem;
+}
+
+.md-typeset .admonition,
+.md-typeset details:not(.faq),
+.md-typeset pre > code,
+.md-typeset .highlight,
+.md-typeset .tabbed-set {
+  border-radius: var(--bcb-radius-small);
+}
+
+.md-typeset table:not([class]) {
+  border-color: var(--bcb-border);
+  border-radius: var(--bcb-radius-small);
+}
+
+.md-search__form {
+  border-radius: var(--bcb-radius-small);
+}
+
+/* The menu on the left: the current page as a pill, like the options page's
+   menu. Only where the menu is a sidebar; in the narrow-screen drawer
+   Material's own look fits better. */
+@media screen and (min-width: 76.25em) {
+  /* The site name above Home repeats the header. On narrow screens it heads
+     the drawer, so it stays there. */
+  .md-nav--primary > .md-nav__title {
+    display: none;
+  }
+
+  .md-nav--primary .md-nav__link {
+    border: 1px solid transparent;
+    border-radius: var(--bcb-radius-small);
+    margin-left: -0.6rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .md-nav--primary .md-nav__link:hover {
+    background-color: var(--bcb-surface-2);
+  }
+
+  /* The icons from tools/mkdocs_nav_icons.py: outlines in the muted text
+     colour, at the options page's 16px so the 1.3 stroke stays as fine, with
+     its gap. The current page's icon takes the text colour, as there.
+     Material fills an icon in the menu, so that is undone; a shaded part
+     keeps its own fill. */
+  /* Centred on the text: Material lines a link's content up at the top,
+     which leaves an icon smaller than the line high. */
+  .md-nav--primary .md-nav__link > svg {
+    align-self: center;
+    color: var(--md-default-fg-color--light);
+    fill: none;
+    height: 0.8rem;
+    margin-right: 0.5rem;
+    width: 0.8rem;
+  }
+
+  .md-nav--primary .md-nav__link--active > svg {
+    color: inherit;
+  }
+
+  /* The pages under a section line up with the section's title, not with
+     its icon. */
+  .md-nav--primary .md-nav[data-md-level='1'] > .md-nav__list {
+    padding-left: 1.9rem;
+  }
+
+  /* 0.6rem wider than Material's, so Sharing with your team still fits on
+     one line next to its icon. Material keeps the menu 11.5rem wide inside
+     the sidebar with a padding, so both grow. */
+  .md-sidebar--primary {
+    width: 12.7rem;
+  }
+
+  .md-sidebar--primary .md-sidebar__inner {
+    padding-right: calc(100% - 12.1rem);
+  }
+
+  .md-nav--primary .md-nav__link--active {
+    background-color: var(--bcb-surface, var(--md-default-bg-color));
+    border-color: var(--bcb-border);
+    color: var(--md-typeset-color);
+    font-weight: 600;
+  }
+}
+
+/* No menu icons in the narrow-screen drawer, which has its own look. */
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__link > svg {
+    display: none;
+  }
 }
 
 /* Home page ------------------------------------------------------------- */
@@ -41,7 +205,8 @@
 }
 
 /* Screenshots read as part of the page, not as floating images. */
-.md-typeset figure img {
+.md-typeset figure img,
+.md-typeset .tabbed-block img {
   border: 1px solid var(--md-default-fg-color--lightest);
   border-radius: 0.2rem;
 }
@@ -53,27 +218,47 @@
   max-width: none;
 }
 
-/* A ribbon the way the extension draws it, for the example on the home page. */
-.bcb-ribbon {
-  border-radius: 0.2rem;
-  color: #fff;
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  margin: 1.2rem 0;
-  padding: 0.7rem 1rem;
-}
-
-.bcb-ribbon.bcb-production {
-  background: #c62828;
-}
-
-.bcb-ribbon.bcb-sandbox {
-  background: #2e7d32;
-}
-
 /* Header ------------------------------------------------------------------ */
+
+/* The wordmark from overrides/partials/logo.html, at the size of the options
+   page's, is the only name in the header: no "BC Buddy" title beside it, and
+   no page title in its place on scroll. The title keeps its room, so the
+   buttons stay on the right. */
+.md-header__button.md-logo .bcb-wordmark {
+  display: block;
+  height: 1.8rem;
+  width: auto;
+}
+
+.md-header__title {
+  visibility: hidden;
+}
+
+/* Material shows the logo only where the menu is a sidebar, and the title on
+   narrow screens. With no title, the wordmark stays, after the menu button. */
+@media screen and (max-width: 76.234375em) {
+  .md-header__button.md-logo {
+    display: block;
+  }
+
+  .md-header__button[for='__drawer'] {
+    order: -1;
+  }
+
+  /* The drawer's top: the wordmark at the header's size, without the site
+     name as text under it. Font size 0 hides only that text; the wordmark
+     is sized in rem. */
+  .md-nav--primary > .md-nav__title {
+    font-size: 0;
+    height: 3.4rem;
+  }
+
+  .md-nav--primary > .md-nav__title .md-logo .bcb-wordmark {
+    display: block;
+    height: 1.8rem;
+    width: auto;
+  }
+}
 
 /* Hide the GitHub repo link and star/fork counts: not useful chrome for a
    BC-admin audience, and the source is still reachable via the edit pencil.
@@ -82,4 +267,131 @@
 .md-header__source,
 .md-nav__source {
   display: none;
+}
+
+/* Collapsible cards ----------------------------------------------------- */
+
+/* The questions on Troubleshooting and the For advanced use section of Rules
+   ("??? faq"), and the features on Web client
+   (<details class="faq" id="..." markdown>, so the table can link to them):
+   a plain card with the title in bold and the chevron on the right, instead
+   of Material's coloured admonition look. "faq" is not one of Material's
+   types, so nothing else picks it up. Material opens a closed card when a
+   link points at its id. */
+.md-typeset details.faq {
+  background-color: var(--md-default-bg-color);
+  border: 1px solid var(--bcb-border);
+  border-radius: 0.6rem;
+  box-shadow: none;
+  font-size: inherit;
+  margin: 0.6rem 0;
+  padding: 0 1.2rem;
+  transition: border-color 125ms;
+}
+
+.md-typeset details.faq:hover,
+.md-typeset details.faq[open] {
+  border-color: var(--md-accent-fg-color);
+}
+
+.md-typeset details.faq:focus-within {
+  box-shadow: 0 0 0 0.2rem var(--md-accent-fg-color--transparent);
+}
+
+.md-typeset details.faq > summary {
+  background-color: transparent;
+  border-radius: 0.6rem;
+  margin: 0 -1.2rem;
+  padding: 0.8rem 3rem 0.8rem 1.2rem;
+}
+
+.md-typeset details.faq > summary::before {
+  display: none;
+}
+
+.md-typeset details.faq > summary::after {
+  background-color: var(--md-accent-fg-color);
+  right: 1.2rem;
+  top: 50%;
+  margin-top: -0.5rem;
+  transform: rotate(90deg);
+}
+
+.md-typeset details.faq[open] > summary::after {
+  transform: rotate(-90deg);
+}
+
+.md-typeset details.faq[open] > summary {
+  margin-bottom: -0.2rem;
+}
+
+/* Web client: the one-line "what you get" under the feature name, visible
+   while the card is closed, and whether the feature starts on or off. */
+.md-typeset details.faq .bcb-summary-text {
+  color: var(--md-default-fg-color--light);
+  display: block;
+  font-weight: 400;
+  margin-top: 0.15rem;
+}
+
+.md-typeset .bcb-starts {
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 1rem;
+  color: var(--md-default-fg-color--light);
+  display: inline-block;
+  font-size: 0.7rem;
+  margin: 0.4rem 0 0;
+  padding: 0.05rem 0.6rem;
+}
+
+.md-typeset .bcb-starts--on {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-typeset-a-color);
+}
+
+/* Web client: the setting's icon in a tile in front of the name and the
+   one-liner, the same icon and colours as on the options page. The SVGs come
+   from icons/settings/ through :settings-...: (pymdownx.emoji). They carry a
+   fixed colour for the README; here the tile's colour wins, and Material's
+   fill on .twemoji svg is undone so only the shaded parts are filled. Rules:
+   the Setting icons section of DEVELOPMENT.md. */
+:root {
+  --bcb-icon-bg: #e3f6f8;
+  --bcb-icon-border: #bfe8ec;
+}
+
+[data-md-color-scheme='slate'] {
+  --bcb-icon-bg: rgba(0, 183, 195, 0.14);
+  --bcb-icon-border: rgba(0, 183, 195, 0.32);
+}
+
+.md-typeset details.faq > summary:has(.bcb-setting-icon) {
+  column-gap: 0.8rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+}
+
+.md-typeset .bcb-setting-icon {
+  align-items: center;
+  align-self: center;
+  background: var(--bcb-icon-bg);
+  border: 1px solid var(--bcb-icon-border);
+  border-radius: 0.4rem;
+  /* The link colour, set per scheme above on body, not on :root. */
+  color: var(--md-typeset-a-color);
+  display: inline-flex;
+  grid-row: 1 / span 2;
+  height: 1.8rem;
+  justify-content: center;
+  width: 1.8rem;
+}
+
+.md-typeset .bcb-setting-icon .twemoji {
+  height: 1.1rem;
+}
+
+.md-typeset .bcb-setting-icon .twemoji svg {
+  color: inherit;
+  fill: none;
+  width: 1.1rem;
 }

@@ -4,46 +4,78 @@
   <meta charset="utf-8">
   <title>BC Buddy - options</title>
   <link rel="stylesheet" href="options.css">
+  <!-- Before the body, so the page paints in the chosen theme straight away. -->
+  <script src="theme.js"></script>
 </head>
 <body>
   <header class="topbar">
+    <div class="topbar__inner">
     <div class="topbar__brand">
-      <svg class="brand" viewBox="0 0 128 128" role="img" aria-labelledby="brandTitle">
-        <title id="brandTitle">BC Buddy</title>
-        <mask id="brandBite">
-          <rect width="128" height="128" fill="#fff"></rect>
-          <circle cx="98" cy="91" r="27" fill="#000"></circle>
-        </mask>
-        <g mask="url(#brandBite)">
-          <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
-                letter-spacing="-4" fill="var(--brand-mark)">BC</text>
-        </g>
-        <circle id="brandDot" cx="98" cy="91" r="20" fill="#00b7c3"></circle>
-      </svg>
-      <div>
-        <h1>BC Buddy</h1>
-        <p class="muted" data-i18n="tagline">Tell your Business Central environments apart with colour, a frame and your own ribbon.</p>
-      </div>
+      <!-- The mark from icons/logo.svg, unchanged in its own 128 x 128 box, with
+           "Buddy" set after it in the same letters, size and baseline. The view
+           starts at y -16 so the letters (y 18 to 78), not letters and dot
+           together, sit on the header's centre line; the dot still fits. -->
+      <h1>
+        <svg class="brand" viewBox="0 -16 360 128" role="img" aria-labelledby="brandTitle">
+          <title id="brandTitle">BC Buddy</title>
+          <svg viewBox="0 0 128 128" width="128" height="128">
+            <mask id="brandBite">
+              <rect width="128" height="128" fill="#fff"></rect>
+              <circle cx="98" cy="91" r="27" fill="#000"></circle>
+            </mask>
+            <g mask="url(#brandBite)">
+              <text x="51" y="78" text-anchor="middle" font-size="84" font-weight="600"
+                    letter-spacing="-4" fill="var(--brand-mark)">BC</text>
+            </g>
+            <circle id="brandDot" cx="98" cy="91" r="20" fill="#00b7c3"></circle>
+          </svg>
+          <text x="130" y="78" font-size="84" font-weight="600"
+                letter-spacing="-4" fill="var(--brand-mark)">Buddy</text>
+        </svg>
+      </h1>
     </div>
     <div class="topbar__actions">
       <span class="status" id="status" role="status" aria-live="polite"></span>
+      <!-- Dark mode on or off; until clicked it follows the system (theme.js).
+           The moon shows in light mode, the sun in dark mode. -->
+      <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false"
+              data-i18n-title="themeTitle" data-i18n-label="themeLabel" aria-label="Dark mode">
+        <svg class="theme-toggle__icon theme-toggle__moon" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M13.6 9.9A5.9 5.9 0 0 1 6.1 2.4a5.9 5.9 0 1 0 7.5 7.5z"/>
+        </svg>
+        <svg class="theme-toggle__icon theme-toggle__sun" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.9"/>
+          <path d="M8 1.3v1.6M8 13.1v1.6M1.3 8h1.6M13.1 8h1.6M3.3 3.3l1.1 1.1M11.6 11.6l1.1 1.1M3.3 12.7l1.1-1.1M11.6 4.4l1.1-1.1"/>
+        </svg>
+      </button>
+      <!-- Starts on the language Chrome picked; a choice here overrules it. The
+           names stay in their own language. -->
+      <label class="language" data-i18n-title="languageTitle">
+        <select id="language" data-i18n-label="languageLabel" aria-label="Language">
+          <option value="en" lang="en">English</option>
+          <option value="nl" lang="nl">Nederlands</option>
+          <option value="fr" lang="fr">Français</option>
+        </select>
+      </label>
+    </div>
     </div>
   </header>
 
   <div class="layout">
     <nav class="nav" data-i18n-label="navSections" aria-label="Sections">
-      <button type="button" class="nav__item" data-panel="maximize">
+      <button type="button" class="nav__item" data-panel="webclient">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M2 2h4M2 2v4M14 2h-4M14 2v4M2 14h4M2 14v-4M14 14h-4M14 14v-4"/>
+          <rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/>
+          <path d="M1.5 5.5h13M4 8.5h5M4 11h3"/>
         </svg>
-        <span data-i18n="navMaximize">Maximize</span>
+        <span data-i18n="navWebClient">Web client</span>
       </button>
       <button type="button" class="nav__item" data-panel="environments" aria-current="page">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/>
           <path d="M5 13.5h6"/>
         </svg>
-        <span data-i18n="navEnvironment">Environment</span>
+        <span data-i18n="navEnvironments">Environments</span>
       </button>
       <button type="button" class="nav__item" data-panel="helpdesk">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -53,73 +85,200 @@
         </svg>
         <span data-i18n="navHelpdesk">Helpdesk</span>
       </button>
-      <button type="button" class="nav__item" data-panel="about">
+      <button type="button" class="nav__item" data-panel="settings">
+        <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.4"/>
+          <path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1"/>
+        </svg>
+        <span data-i18n="navSettings">Settings</span>
+      </button>
+      <!-- Not a section: help is the documentation site, in a new tab. -->
+      <a class="nav__item" href="https://fvet.github.io/bcbuddy/" target="_blank" rel="noopener noreferrer">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <circle cx="8" cy="8" r="6.2"/>
-          <path d="M8 7.3v4"/>
-          <circle cx="8" cy="4.9" r=".7" fill="currentColor" stroke="none"/>
+          <path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.5"/>
+          <circle cx="8" cy="11.4" r=".7" fill="currentColor" stroke="none"/>
         </svg>
-        <span data-i18n="navAbout">About</span>
-      </button>
+        <span data-i18n="navHelp">Help</span>
+        <svg class="nav__icon nav__external" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M6.5 3.5h-3v9h9v-3M9.5 2.5h4v4M13.5 2.5 7.5 8.5"/>
+        </svg>
+      </a>
 
-      <!-- Below the nav, separate from the sections: the master switch. -->
+      <!-- Below the nav, separate from the sections: the master switch, with
+           a dot that is green while BC Buddy is on. -->
       <label class="switch nav__toggle">
         <input type="checkbox" class="toggle" id="globalEnabled">
-        <span data-i18n="extensionActive">Extension active</span>
+        <span class="nav__state">
+          <span class="nav__dot" aria-hidden="true"></span>
+          <span data-i18n="extensionActive">Active</span>
+        </span>
       </label>
     </nav>
 
     <main>
-    <div class="panel" data-panel="maximize" hidden>
+    <div class="panel" data-panel="webclient" hidden>
     <section>
       <div class="section-head">
-        <h2 data-i18n="maximizeHeading">Maximize</h2>
+        <h2 data-i18n="webClientHeading">Web client</h2>
+        <div class="row">
+          <!-- The label says where the defaults come from; see renderWebClient(). -->
+          <button type="button" class="btn btn--icon" id="resetWebClient" data-i18n-title="resetWebClientTitle">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M11.9 1.5v2.6H9.3"/>
+            </svg>
+            <span id="resetWebClientLabel" data-i18n="resetWebClient">Reset to defaults</span>
+          </button>
+        </div>
       </div>
-      <p class="muted small" data-i18n="maximizeIntro">Automatically expands every Business Central page to wide layout and switches tile pages to list view.</p>
-      <div class="card">
-        <label class="switch">
-          <input type="checkbox" id="maximizeEnabled">
-          <span data-i18n="maximizeToggle">Maximize pages</span>
+      <p class="muted small" data-i18n="webClientIntro">Small fixes for the Business Central screens you use every day.</p>
+      <!-- Two lists: the switches that start on, then the extras that start
+           off. A row has the name with one line below it and the control on
+           the right; the docs link below has the rest. -->
+      <div class="setting-group">
+      <h3 class="setting-group__title" data-i18n="webClientStandard">Works straight away</h3>
+      <div class="card card--list">
+        <label class="setting">
+          <span class="setting__icon setting__icon--copy-values" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="copyValuesToggle">Copy values</span>
+            <span class="setting__desc" data-i18n="copyValuesDesc">Rest the mouse on a value and click the icon to copy it.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="copyValuesEnabled">
         </label>
+        <label class="setting">
+          <span class="setting__icon setting__icon--maximize" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="maximizeToggle">Maximize pages</span>
+            <span class="setting__desc" data-i18n="maximizeDesc">Every page opens in wide layout; tile pages open as a list.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="maximizeEnabled">
+        </label>
+        <label class="setting">
+          <span class="setting__icon setting__icon--pin-action-bar" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="pinActionBarToggle">Pin the action bar</span>
+            <span class="setting__desc" data-i18n="pinActionBarDesc">The actions under a page's tabs stay in view.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="pinActionBarEnabled">
+        </label>
+        <label class="setting">
+          <span class="setting__icon setting__icon--highlight-row" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="highlightRowToggle">Highlight the current line</span>
+            <span class="setting__desc" data-i18n="highlightRowDesc">A light tint on the line you are on in sales lines and journals.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="highlightRowEnabled">
+        </label>
+        <div class="setting setting--wrap">
+          <span class="setting__icon setting__icon--dropdown" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="dropdownHeading">Dropdown size</span>
+            <span class="setting__desc" data-i18n="dropdownDesc">More room for the list that opens under a field.</span>
+          </span>
+          <span class="setting__sliders">
+            <label class="slider">
+              <span data-i18n="dropdownWidth">Width</span>
+              <input type="range" id="dropdownWidth" min="1" max="5" step="1">
+            </label>
+            <label class="slider">
+              <span data-i18n="dropdownHeight">Height</span>
+              <input type="range" id="dropdownHeight" min="1" max="5" step="1">
+            </label>
+          </span>
+        </div>
+        <label class="setting">
+          <span class="setting__icon setting__icon--resize-panes" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="resizePanesToggle">Resize panes</span>
+            <span class="setting__desc" data-i18n="resizePanesDesc">Drag the edge of Help, Copilot or Page Inspection to make it wider.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="resizePanesEnabled">
+        </label>
+        <label class="setting">
+          <span class="setting__icon setting__icon--week-numbers" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="weekNumbersToggle">Week numbers in the date picker</span>
+            <span class="setting__desc" data-i18n="weekNumbersDesc">The calendar of a date field shows week numbers.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="weekNumbersEnabled">
+        </label>
+      </div>
+      </div>
+      <!-- Off from the start; a new one goes above Turn off animations,
+           which stays last. -->
+      <div class="setting-group">
+      <h3 class="setting-group__title" data-i18n="webClientExtras">Extras</h3>
+      <div class="card card--list">
+        <label class="setting">
+          <span class="setting__icon setting__icon--shortcuts" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="shortcutsToggle">Keyboard shortcuts</span>
+            <span class="setting__desc" data-i18n="shortcutsDesc">A keyboard icon in the top bar lists the shortcuts that work where you are.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="shortcutsEnabled">
+        </label>
+        <label class="setting">
+          <span class="setting__icon setting__icon--stripe-rows" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="stripeRowsToggle">Striped rows</span>
+            <span class="setting__desc" data-i18n="stripeRowsDesc">Every other row in a list gets a light grey, so you stay on the right line.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="stripeRowsEnabled">
+        </label>
+        <label class="setting">
+          <span class="setting__icon setting__icon--hide-fact-box" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="hideFactBoxToggle">Hide the FactBox pane</span>
+            <span class="setting__desc" data-i18n="hideFactBoxDesc">Closes the FactBox pane on pages you open for the first time.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="hideFactBoxEnabled">
+        </label>
+        <label class="setting">
+          <span class="setting__icon setting__icon--hide-notifications" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="hideNotificationsToggle">Hide the notifications icon</span>
+            <span class="setting__desc" data-i18n="hideNotificationsDesc">Hides the bell at the top right of Business Central.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="hideNotificationsEnabled">
+        </label>
+        <label class="setting">
+          <span class="setting__icon setting__icon--no-animations" aria-hidden="true"></span>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>
+            <span class="setting__desc" data-i18n="noAnimationsDesc">Pages and panes appear at once instead of sliding in.</span>
+          </span>
+          <input type="checkbox" class="toggle" id="noAnimationsEnabled">
+        </label>
+      </div>
+      </div>
+      <div class="section-foot">
+        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/web-client/"
+           target="_blank" rel="noopener noreferrer" data-i18n="webClientMore">More about these settings</a></p>
+        <p class="sync-status" id="resetStatus"></p>
       </div>
     </section>
     </div>
 
     <div class="panel" data-panel="environments">
-    <section class="card tester">
-      <div class="tester__row">
-        <label for="testUrl"><span data-i18n="testUrlLabel">Test URL</span>
-          <span class="muted" data-i18n="testUrlHint">(drives the previews below)</span></label>
-        <div class="row">
-          <input type="text" id="testUrl" spellcheck="false"
-                 placeholder="https://businesscentral.dynamics.com/{tenant}/Sandbox?company=CRONUS%20BE&amp;page=1">
-          <button type="button" class="btn" id="useCurrentTab"
-                  data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
-        </div>
-      </div>
-      <dl class="parsed" id="parsed"></dl>
-    </section>
-
     <section>
       <div class="section-head">
-        <h2 data-i18n="layoutsHeading">Layouts</h2>
-        <div class="row">
-          <button type="button" class="btn" id="addLayout" data-i18n="addLayout">Add layout</button>
+        <div class="section-title">
+          <h2 data-i18n="rulesHeading">Rules</h2>
+          <button type="button" class="icon-btn icon-btn--add" id="addRule"
+                  data-i18n-title="addRule" data-i18n-label="addRule">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+          </button>
         </div>
-      </div>
-      <p class="muted small" data-i18n="layoutsIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>
-      <div class="rules">
-        <div id="layoutList" class="rules"></div>
-        <div id="hostedLayoutList" class="rules rules--readonly"></div>
-      </div>
-      <p class="empty" id="emptyLayouts" data-i18n="emptyLayouts" hidden>No layouts yet. Add one to reuse the same appearance across several rules.</p>
-    </section>
-
-    <section>
-      <div class="section-head">
-        <h2 data-i18n="rulesHeading">Rules</h2>
         <div class="row">
-          <button type="button" class="btn btn--primary" id="addRule" data-i18n="addRule">Add rule</button>
+          <!-- Hidden when IT manages BC Buddy: the team's rules come from the shared file. -->
+          <button type="button" class="btn btn--icon" id="loadSamples"
+                  data-i18n-title="loadSamplesTitle" hidden>
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M11.9 1.5v2.6H9.3"/>
+            </svg>
+            <span data-i18n="loadSamples">Load samples</span>
+          </button>
         </div>
       </div>
       <p class="muted small" data-i18n="rulesIntro">Which environment gets which colour. The first matching rule wins.</p>
@@ -132,55 +291,54 @@
         </div>
         <div id="hostedList" class="rules rules--readonly"></div>
       </div>
-      <p class="empty" id="emptyRules" data-i18n="emptyRules" hidden>No rules yet. Click Add rule or import a configuration.</p>
+      <!-- Filled by renderEmptyState(): the words name actions and are links. -->
+      <p class="empty" id="emptyRules" hidden></p>
+      <p class="sync-status" id="samplesStatus"></p>
     </section>
 
     <section>
       <div class="section-head">
-        <h2 data-i18n="sharedHeading">Shared configuration</h2>
+        <div class="section-title">
+          <h2 data-i18n="stylesHeading">Styles</h2>
+          <button type="button" class="icon-btn icon-btn--add" id="addStyle"
+                  data-i18n-title="addStyle" data-i18n-label="addStyle">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+          </button>
+        </div>
       </div>
-      <p class="muted small" data-i18n="sharedIntro">Host a JSON file on a public HTTPS URL (e.g. a raw GitHub link) so everyone in the company uses the same markers.</p>
-      <p class="trust-note" data-i18n="sharedTrust">Only use a URL you control (for example your team's repository). The file can define rules that mark any site.</p>
-
-      <div class="card">
-        <div class="grid grid--hosted">
-          <label class="field field--wide">
-            <span data-i18n="hostedUrlLabel">URL of the shared file</span>
-            <input type="url" id="hostedUrl" spellcheck="false"
-                   placeholder="https://raw.githubusercontent.com/fvet/bcbuddy/main/examples/bc-buddy.json">
-          </label>
-        </div>
-        <p class="muted small" id="hostedManagedNote" data-i18n="hostedManaged" hidden>Set by your organisation. The URL cannot be changed here; the shared configuration is loaded on every browser start.</p>
-        <div class="row row--wrap">
-          <button type="button" class="btn btn--primary" id="syncNow" data-i18n="syncNow">Synchronise</button>
-        </div>
-        <p class="sync-status" id="hostedStatus"></p>
+      <p class="muted small" data-i18n="stylesIntro">What a marker looks like: ribbon, frame, banner, tab title and favicon.</p>
+      <div class="rules">
+        <div id="styleList" class="rules"></div>
+        <div id="hostedStyleList" class="rules rules--readonly"></div>
+      </div>
+      <p class="empty" id="emptyStyles" data-i18n="emptyStyles" hidden>No styles yet. Add one to reuse the same appearance across several rules.</p>
+      <div class="section-foot">
+        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#environments"
+           target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and styles</a></p>
+        <p class="sync-status" id="stylesStatus"></p>
       </div>
     </section>
 
     <section>
       <div class="section-head">
-        <h2 data-i18n="importExportHeading">Import / export</h2>
+        <h2 data-i18n="testUrlHeading">Test</h2>
       </div>
-      <div class="grid grid--two">
-        <div class="card">
-          <h3 data-i18n="importHeading">Import</h3>
-          <p class="muted small" data-i18n="importIntro">From a file. Rules you already have are overwritten, new ones are added, and rules that are not in the file are left alone. This does not touch the shared configuration.</p>
-          <div class="row row--wrap">
-            <input type="file" id="importFile" accept="application/json,.json" hidden>
-            <button type="button" class="btn btn--primary" id="importFileBtn" data-i18n="chooseFile">Choose file...</button>
-          </div>
-          <p class="sync-status" id="importStatus"></p>
-        </div>
+      <p class="muted small" data-i18n="testUrlIntro">Drives the previews of the rules and styles above.</p>
 
-        <div class="card">
-          <h3 data-i18n="exportHeading">Export</h3>
-          <p class="muted small" data-i18n="exportIntro">Exports your own rules only, in the format this extension also reads.</p>
-          <div class="row row--wrap">
-            <button type="button" class="btn btn--primary" id="exportDownload" data-i18n="exportButton">Export</button>
+      <div class="card tester">
+        <div class="field">
+          <!-- The label is the placeholder, to save a line; aria-label keeps it
+               once the field is filled in. The action sits inside the field's
+               frame as a link, the way the empty rules list words its actions. -->
+          <div class="inset">
+            <input type="text" id="testUrl" spellcheck="false"
+                   data-i18n-placeholder="testUrlLabel" data-i18n-label="testUrlLabel"
+                   placeholder="URL of a Business Central page">
+            <button type="button" class="inset__action" id="useCurrentTab"
+                    data-i18n="useOpenTab" data-i18n-title="useOpenTabTitle">From open tab</button>
           </div>
-          <p class="sync-status" id="exportStatus"></p>
         </div>
+        <dl class="parsed" id="parsed"></dl>
       </div>
     </section>
 
@@ -192,77 +350,108 @@
         <h2 data-i18n="navHelpdesk">Helpdesk</h2>
       </div>
       <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the link in the ribbon opens a small panel that collects a description and screenshots and hands them to the email app.</p>
-      <div class="card">
-        <label class="switch">
-          <input type="checkbox" id="helpdeskEnabled">
-          <span data-i18n="helpdeskEnabledToggle">Enable Helpdesk</span>
+      <div class="card card--list">
+        <label class="setting">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="helpdeskEnabledToggle">Enable Helpdesk</span>
+          </span>
+          <input type="checkbox" class="toggle" id="helpdeskEnabled">
         </label>
         <div id="helpdeskConfig" hidden>
-          <div class="grid grid--style">
-            <label class="field field--wide">
-              <span data-i18n="helpdeskEmailLabel">Helpdesk email address</span>
-              <input type="email" id="helpdeskEmail" spellcheck="false"
-                     placeholder="helpdesk@example.com">
-            </label>
-            <div class="field field--colour">
-              <span data-i18n="helpdeskColorLabel">Colour</span>
-              <div class="palette">
-                <input type="color" id="helpdeskColor" class="palette__custom"
-                       data-i18n-title="customColour">
-              </div>
-            </div>
+          <label class="setting setting--wrap">
+            <span class="setting__text">
+              <span class="setting__name" data-i18n="helpdeskEmailLabel">Helpdesk email address</span>
+            </span>
+            <input type="email" id="helpdeskEmail" spellcheck="false" maxlength="254"
+                   placeholder="helpdesk@example.com">
+          </label>
+          <label class="setting">
+            <span class="setting__text">
+              <span class="setting__name" data-i18n="helpdeskColorLabel">Colour</span>
+            </span>
+            <input type="color" id="helpdeskColor" data-i18n-title="customColour">
+          </label>
+        </div>
+      </div>
+    </section>
+    </div>
+
+    <div class="panel" data-panel="settings" hidden>
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="sharedHeading">Shared configuration</h2>
+      </div>
+      <p class="muted small" data-i18n="sharedIntro">One file over HTTPS gives the whole team the same rules.</p>
+
+      <div class="card">
+        <div class="field">
+          <label for="hostedUrl" data-i18n="hostedUrlLabel">URL of the shared file</label>
+          <div class="row">
+            <input type="url" id="hostedUrl" spellcheck="false"
+                   placeholder="https://raw.githubusercontent.com/fvet/bcbuddy/main/examples/bc-buddy.json">
+            <button type="button" class="btn btn--primary btn--icon" id="syncNow">
+              <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2.5 8a5.5 5.5 0 0 1 9.4-3.9M13.5 8a5.5 5.5 0 0 1-9.4 3.9M11.9 1.5v2.6H9.3M4.1 14.5v-2.6h2.6"/>
+              </svg>
+              <span data-i18n="syncNow">Synchronise</span>
+            </button>
           </div>
         </div>
+        <p class="muted small" id="hostedManaged" data-i18n="hostedManaged" hidden>Set by your organisation.</p>
+        <p class="sync-status" id="hostedStatus"></p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2 data-i18n="importExportHeading">Import / export</h2>
+      </div>
+      <p class="muted small" data-i18n="importExportIntro">Move your own rules, styles and Web client settings in one file.</p>
+
+      <!-- Two equal buttons; what an import does is on the page, not in a
+           tooltip, because it overwrites things. -->
+      <div class="card">
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <div class="transfer">
+          <button type="button" class="btn btn--tile" id="importFileBtn">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 10.5V2M4.8 5.2 8 2l3.2 3.2M2.5 10.5v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2"/>
+            </svg>
+            <span data-i18n="importButton">Import from file...</span>
+          </button>
+          <button type="button" class="btn btn--tile" id="exportDownload">
+            <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 2v8.5M4.8 7.3 8 10.5l3.2-3.2M2.5 10.5v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2"/>
+            </svg>
+            <span data-i18n="exportButton">Export to file</span>
+          </button>
+        </div>
+        <p class="note" data-i18n="importNote">Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client settings in the file replace yours. The shared configuration is not touched.</p>
+        <p class="sync-status" id="transferStatus"></p>
       </div>
     </section>
 
     </div>
 
-    <div class="panel" data-panel="about" hidden>
-      <section>
-        <div class="section-head">
-          <h2 data-i18n="navAbout">About</h2>
-        </div>
-        <div class="card">
-          <p data-i18n="aboutIntro">BC Buddy gives every Business Central environment its own colour: ribbon, frame, banner, tab title and favicon. One glance tells you whether you are in production, a sandbox or a demo, so you never change the wrong environment by accident.</p>
-          <p data-i18n="aboutIntroMaximize">It also automatically expands every page to wide layout and switches tile pages to list view.</p>
-          <dl class="parsed">
-            <div>
-              <dt data-i18n="aboutContact">Contact</dt>
-              <dd><a href="mailto:frederic.vercaemst@outlook.com">frederic.vercaemst@outlook.com</a></dd>
-            </div>
-            <div>
-              <dt data-i18n="aboutDocs">Documentation</dt>
-              <dd><a href="https://fvet.github.io/bcbuddy/" target="_blank"
-                     rel="noopener noreferrer">fvet.github.io/bcbuddy</a></dd>
-            </div>
-            <div>
-              <dt data-i18n="aboutSource">Source code</dt>
-              <dd><a href="https://github.com/fvet/bcbuddy" target="_blank"
-                     rel="noopener noreferrer">github.com/fvet/bcbuddy</a></dd>
-            </div>
-          </dl>
-        </div>
-      </section>
-    </div>
   </main>
   </div>
 
   <template id="ruleTemplate">
     <article class="rule">
       <div class="rule__head">
-        <button type="button" class="icon-btn rule__grip" data-action="grip" data-grip
-                data-i18n-title="dragToReorder">&#10303;</button>
-        <!-- The colour swatch is also the button that expands and collapses the rule. -->
-        <button type="button" class="rule__swatch" data-swatch data-action="toggle"
-                aria-expanded="false" data-i18n-title="toggleDetails"></button>
+        <!-- The same triangle as on a style: a click expands or collapses the
+             rule, a drag moves it. The colour swatch beside it does the same. -->
+        <button type="button" class="icon-btn rule__toggle rule__grip" data-action="toggle" data-grip
+                aria-expanded="false" data-i18n-title="toggleOrDrag">&#9654;</button>
+        <span class="rule__swatch rule__grip" data-swatch data-grip aria-hidden="true"
+              data-i18n-title="toggleOrDrag"></span>
         <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="ruleNamePlaceholder">
-        <!-- The glyph is decorative; role+aria-label carry the state instead,
-             so it is not a tick that only sighted users can read. -->
-        <span class="match" data-match role="img"></span>
+        <!-- The rule that wins has a border all round (.rule--wins); this says
+             the same to a screen reader. -->
+        <span class="sr-only" data-match></span>
         <div class="rule__tools">
           <label class="switch switch--compact" data-i18n-title="ruleActiveTitle">
-            <input type="checkbox" class="toggle" data-path="enabled"><span data-i18n="ruleOn">On</span>
+            <input type="checkbox" class="toggle" data-path="enabled" data-i18n-label="ruleActiveTitle">
           </label>
           <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
           <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteRule">&#10005;</button>
@@ -271,34 +460,31 @@
 
       <div class="rule__body" data-body>
         <div class="rule__section">
-          <h4 data-i18n="conditionsHeading">Conditions</h4>
+          <div class="section-title">
+            <h4 data-i18n="conditionsHeading">Conditions</h4>
+            <button type="button" class="icon-btn icon-btn--add" data-action="add-condition"
+                    data-i18n-title="addCondition" data-i18n-label="addCondition">
+              <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+            </button>
+          </div>
           <div class="conditions" data-conditions></div>
-          <button type="button" class="btn btn--small" data-action="add-condition"
-                  data-i18n="addCondition">Add condition</button>
         </div>
 
+        <!-- No section heading: Colour is the heading, on the same line as the
+             labels beside it, so the section takes one row less. -->
         <div class="rule__section">
-          <h4 data-i18n="displayHeading">Appearance</h4>
           <div class="grid grid--style">
             <div class="field field--colour">
-              <span data-i18n="colour">Colour</span>
+              <h4 data-i18n="colour">Colour</h4>
               <div class="palette" data-palette>
                 <input type="color" class="palette__custom" data-custom-color
                        data-path="color" data-i18n-title="customColour"></div>
             </div>
-            <label class="field">
-              <span data-i18n="textColour">Text colour</span>
-              <select data-path="textColor">
-                <option value="auto" data-i18n="textAuto">Automatic</option>
-                <option value="#ffffff" data-i18n="textWhite">White</option>
-                <option value="#000000" data-i18n="textBlack">Black</option>
-              </select>
+            <label class="field field--style">
+              <span data-i18n="styleLabel">Style</span>
+              <select data-path="styleId" data-style-picker></select>
             </label>
-            <label class="field field--layout">
-              <span data-i18n="layoutLabel">Layout</span>
-              <select data-path="layoutId" data-layout-picker></select>
-            </label>
-            <label class="field field--narrow" data-favicon-letters hidden>
+            <label class="field field--narrow" data-favicon-letters data-i18n-title="faviconLettersHint" hidden>
               <span data-i18n="faviconLetters">Letters</span>
               <input type="text" data-path="favicon.text" maxlength="2">
             </label>
@@ -312,102 +498,109 @@
   <template id="displayTemplate">
     <div class="display">
           <div class="option" data-option="ribbon">
-            <label class="switch"><input type="checkbox" data-path="ribbon.enabled"><span data-i18n="ribbonToggle">Ribbon</span></label>
+            <span class="option__name" data-i18n="ribbonToggle" data-i18n-title="ribbonHint">Ribbon</span>
             <div class="option__body">
-              <label class="field field--wide">
-                <span><span data-i18n="ribbonText">Ribbon text</span>
-                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
-                </span>
-                <input type="text" data-path="ribbon.text" spellcheck="false">
-              </label>
+              <input type="text" data-path="ribbon.text" spellcheck="false" data-i18n-label="ribbonText">
             </div>
+            <input type="checkbox" class="toggle" data-path="ribbon.enabled" data-i18n-label="ribbonToggle">
           </div>
 
           <div class="option">
-            <label class="switch"><input type="checkbox" data-path="border.enabled"><span data-i18n="borderToggle">Frame around the page</span></label>
+            <span class="option__name" data-i18n="borderToggle" data-i18n-title="borderHint">Frame</span>
             <div class="option__body">
               <label class="field field--narrow">
-                <span data-i18n="borderWidth">Thickness (px)</span>
+                <span data-i18n="borderWidth">Thickness</span>
                 <input type="range" data-path="border.width" min="1" max="5" step="1">
               </label>
             </div>
+            <input type="checkbox" class="toggle" data-path="border.enabled" data-i18n-label="borderToggle">
           </div>
 
           <div class="option">
-            <label class="switch"><input type="checkbox" data-path="banner.enabled"><span data-i18n="bannerToggle">Banner</span></label>
+            <span class="option__name" data-i18n="bannerToggle" data-i18n-title="bannerHint">Banner</span>
             <div class="option__body">
-              <label class="field field--narrow">
-                <span data-i18n="bannerPosition">Position</span>
-                <select data-path="banner.position">
-                  <option value="bottom" data-i18n="posBottom">Bar at the bottom</option>
-                  <option value="top-right" data-i18n="posTopRight">Ribbon top right</option>
-                  <option value="top-left" data-i18n="posTopLeft">Ribbon top left</option>
-                  <option value="bottom-right" data-i18n="posBottomRight">Ribbon bottom right</option>
-                  <option value="bottom-left" data-i18n="posBottomLeft">Ribbon bottom left</option>
-                </select>
-              </label>
+              <!-- No caption: each choice says where the banner goes. -->
+              <select data-path="banner.position" data-i18n-label="bannerPosition">
+                <option value="top" data-i18n="posTop">Bar at the top</option>
+                <option value="bottom" data-i18n="posBottom">Bar at the bottom</option>
+                <option value="top-right" data-i18n="posTopRight">Ribbon top right</option>
+                <option value="top-left" data-i18n="posTopLeft">Ribbon top left</option>
+                <option value="bottom-right" data-i18n="posBottomRight">Ribbon bottom right</option>
+                <option value="bottom-left" data-i18n="posBottomLeft">Ribbon bottom left</option>
+              </select>
               <label class="field field--wide">
-                <span><span data-i18n="bannerText">Text</span>
-                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
-                </span>
+                <span data-i18n="bannerText">Text</span>
                 <input type="text" data-path="banner.text" spellcheck="false">
               </label>
-              <label class="field field--narrow">
-                <span data-i18n="bannerFontSize">Text size (0 = auto)</span>
-                <input type="number" data-path="banner.fontSize" min="0" max="72" step="1">
+              <label class="field field--narrow" data-i18n-title="bannerFontSizeHint">
+                <span data-i18n="bannerFontSize">Size</span>
+                <!-- The first step is 0, automatic: the text shrinks until it
+                     fits. The others are fixed sizes in px. -->
+                <input type="range" data-path="banner.fontSize" min="1" max="5" step="1"
+                       data-steps="0 11 14 18 22">
               </label>
-              <label class="field field--narrow">
+              <!-- Hidden for the bar at the top, which is always solid. -->
+              <label class="field field--narrow" data-banner-opacity>
                 <span data-i18n="bannerOpacity">Opacity</span>
-                <input type="range" data-path="banner.opacity" min="0.1" max="1" step="0.05">
+                <!-- Five steps like the frame thickness. What is saved is the
+                     opacity itself, so exports and shared files stay as they are. -->
+                <input type="range" data-path="banner.opacity" min="1" max="5" step="1"
+                       data-steps="0.2 0.35 0.5 0.75 1">
               </label>
             </div>
+            <input type="checkbox" class="toggle" data-path="banner.enabled" data-i18n-label="bannerToggle">
           </div>
 
           <div class="option">
-            <label class="switch"><input type="checkbox" data-path="title.enabled"><span data-i18n="titleToggle">Tab title</span></label>
+            <span class="option__name" data-i18n="titleToggle" data-i18n-title="titleHint">Tab title</span>
             <div class="option__body">
-              <label class="field field--wide">
-                <span><span data-i18n="titleText">Title</span>
-                  <button type="button" class="hint" data-action="hint" data-i18n-label="tokensAria">?<span class="hint__bubble" data-tokens></span></button>
-                </span>
-                <input type="text" data-path="title.text" spellcheck="false">
-              </label>
+              <input type="text" data-path="title.text" spellcheck="false" data-i18n-label="titleText">
             </div>
+            <input type="checkbox" class="toggle" data-path="title.enabled" data-i18n-label="titleToggle">
           </div>
 
-          <div class="option option--plain">
-            <label class="switch"><input type="checkbox" data-path="favicon.enabled"><span data-i18n="faviconToggle">Replace the favicon</span></label>
+          <div class="option">
+            <span class="option__name" data-i18n="faviconToggle" data-i18n-title="faviconHint">Replace the favicon</span>
+            <div class="option__body">
+              <!-- The icon a BC tab gets, drawn by the same code (drawFavicon). -->
+              <img class="preview__favicon" data-preview-favicon alt="" width="24" height="24">
+            </div>
+            <input type="checkbox" class="toggle" data-path="favicon.enabled" data-i18n-label="faviconToggle">
           </div>
+
+          <!-- Last: one line for the tokens every text above can use, instead
+               of a question mark beside each text field. -->
+          <p class="tokens" data-token-line></p>
     </div>
   </template>
 
-  <template id="layoutTemplate">
-    <article class="rule rule--layout">
+  <template id="styleTemplate">
+    <article class="rule rule--style">
       <div class="rule__head">
         <button type="button" class="icon-btn rule__toggle" data-action="toggle"
                 aria-expanded="false" data-i18n-title="toggleDetails">&#9654;</button>
-        <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="layoutNamePlaceholder">
+        <input type="text" class="rule__name" data-path="name" data-i18n-placeholder="styleNamePlaceholder">
         <div class="rule__tools">
           <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
-          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteLayout">&#10005;</button>
+          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteStyle">&#10005;</button>
         </div>
       </div>
 
       <div class="rule__body" data-body>
         <div class="preview" data-preview>
+          <!-- The bar at the top goes above BC's ribbon, as on the page. -->
+          <div class="preview__topbar" data-preview-topbar hidden></div>
           <div class="preview__ribbon" data-preview-ribbon>
             <span class="preview__brand" data-preview-brand></span>
           </div>
           <div class="preview__frame" data-preview-frame>
-            <span class="preview__page" data-preview-page></span>
             <span class="preview__banner" data-preview-banner></span>
           </div>
         </div>
 
-        <p class="muted small" data-i18n="layoutPreviewNote">Sample colour; every rule keeps its own.</p>
-
+        <!-- No heading: a style card has this one section only. A rule card
+             has two, so there Conditions and Colour keep theirs. -->
         <div class="rule__section">
-          <h4 data-i18n="displayHeading">Appearance</h4>
           <div data-display></div>
         </div>
       </div>
@@ -428,6 +621,7 @@
   <script src="../lib/i18n.js"></script>
   <script src="../lib/match.js"></script>
   <script src="../lib/settings.js"></script>
+  <script src="../lib/dropdowns.js"></script>
   <script src="options-helpers.js"></script>
   <script src="options-cards.js"></script>
   <script src="options-hosted.js"></script>

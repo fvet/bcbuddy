@@ -1,19 +1,47 @@
-If you work across several customers or environments, all your Business Central tabs start to look the same. Posting in production while you thought you were in a sandbox is easily done.
+Business Central, easier to work in.
 
-BC Buddy gives every environment its own colour, so you can see at a glance where you are:
+Copy any value in one click, see every page full width, and always know which environment you are in, right in the Microsoft Dynamics 365 Business Central web client. BC Buddy takes the small frustrations out of your working day.
 
-- The bar at the top of the client takes your colour and your text, for example "PRODUCTION - CRONUS BE".
-- A coloured frame around the window.
-- A banner along the bottom, or a ribbon in the corner.
-- The tab title, for example "[TEST] Company Information".
-- A coloured icon on the tab, so you find the right one among ten others.
+Free. Works the moment you install it.
 
-Every page automatically expands to wide layout and tile pages switch to list view. Turn it off in one click if you prefer it off.
+⚡ Get through your work faster
 
-You decide when each colour appears: per environment, per company or per customer. Production green, test orange, sandbox red - or whatever suits you.
+No more clicking the same buttons on every page.
 
-Working in a team? Everyone can use the same markings. Set them up once and your colleagues get them automatically, including later changes.
+• One-click copy: any amount, No. or link, even the ones you could never select
+• Every page full width, with the action bar pinned
+• Lists instead of tiles
+• Dropdowns that show all their columns: no more scrolling sideways
+• Help, Copilot and Page Inspection as wide as you drag them
+• Week numbers in the date picker
+• The line you are on stands out in journals and orders
 
-Business Central online and on-premises are both recognised. The extension is available in Dutch and English.
+Your choices win: set a page back to narrow, and BC Buddy leaves it that way.
 
-Everything stays on your own machine: no server, no analytics, no tracking.
+Want more? Switch on striped rows, a panel with the keyboard shortcuts for the page you are on, hide the FactBox pane or the notifications bell, or turn off animations. Every improvement has its own switch.
+
+🎨 Never post in the wrong environment
+
+Ten tabs open, one of them Production: one wrong click and a test order is posted for real. Production and sandbox look exactly alike. With BC Buddy, they don't.
+
+• The top bar in your colour, with your text: "PRODUCTION - CRONUS BE"
+• A coloured frame around the window
+• A bar above Business Central, a banner at the bottom, or a ribbon in the corner
+• A marked tab title and a coloured tab icon, easy to spot among ten tabs
+
+Choose a colour per environment, per company or per customer. Ready-made samples are included: switch them on in one click.
+
+👥 Set it up once for the whole team
+
+One person picks the colours, everyone else gets them automatically, later changes included.
+
+🔒 Your data stays yours
+
+No account. No server. No tracking. BC Buddy changes how Business Central looks, never your records.
+
+✓ Business Central online and on your own server
+✓ Chrome and Edge
+✓ English, Dutch and French
+✓ Free and open source
+
+BC Buddy is an independent project, not affiliated with or endorsed by Microsoft. Microsoft, Dynamics 365 and Business Central are trademarks of the Microsoft group of companies.

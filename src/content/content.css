@@ -36,11 +36,29 @@
   overflow: hidden;
   text-overflow: ellipsis;
   background-color: var(--bcb-bar-bg, #c4314b);
-  color: var(--bcb-text, #ffffff);
+  color: var(--bcb-bar-text, #ffffff);
   text-shadow: none;
 }
 
 .bcb-bar--bottom { bottom: 0; }
+
+/* The bar at the top sits above BC's own top bar: the page moves down by the
+   bar's height instead of being covered. BC's shell hangs off <html>
+   (position: absolute), so a relative <html> with a margin takes all of it
+   along. Dialogs BC places against the window stay where they are, under the
+   bar's height at most. One attribute on <html>, set in the top window only. */
+html[data-bcb-top-bar] {
+  position: relative !important;
+  margin-top: var(--bcb-top-height, 26px) !important;
+  height: calc(100% - var(--bcb-top-height, 26px)) !important;
+}
+
+.bcb-bar--top {
+  top: 0;
+  height: var(--bcb-top-height, 26px);
+  padding-top: 0;
+  padding-bottom: 0;
+}
 
 /* Diagonal ribbon in a corner of the window. */
 .bcb-corner {
@@ -63,7 +81,7 @@
   white-space: nowrap;
   overflow: hidden;
   background-color: var(--bcb-bar-bg, #c4314b);
-  color: var(--bcb-text, #ffffff);
+  color: var(--bcb-bar-text, #ffffff);
   box-shadow: 0 2px 12px rgba(0, 0, 0, .35);
   text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
 }
@@ -97,6 +115,321 @@
   background-color: transparent !important;
 }
 
+/* Dropdown size. BC caps its lookup dropdown, and three containers inside it,
+   with a fixed max-width and max-height. On a dropdown the content script has
+   sized, those caps come from the variables it set on that dropdown. BC keeps
+   positioning the popup itself. A record card (.spa-preview-lookup) never
+   takes them, even if BC were to turn a sized popup into one. */
+[data-bcb-dropdown]:not(.spa-preview-lookup),
+[data-bcb-dropdown]:not(.spa-preview-lookup) > .ms-nav-lookupform,
+[data-bcb-dropdown]:not(.spa-preview-lookup) > .ms-nav-lookupform > .ms-nav-content-box .ms-nav-content,
+[data-bcb-dropdown]:not(.spa-preview-lookup) > .ms-nav-lookupform > .ms-nav-content-box .ms-nav-content .ms-nav-lookupform {
+  max-width: var(--bcb-dropdown-width) !important;
+  max-height: var(--bcb-dropdown-height) !important;
+}
+/* Room for the vertical scrollbar, on the rows and on the header alike, so
+   their columns line up. BC decides on the header's room before we widen the
+   dropdown, and leaves it out when the list did not fit at its own size; the
+   header then stretches over the scrollbar and drifts from the rows. A list
+   too short to scroll keeps an empty strip of the same width on both. */
+[data-bcb-dropdown]:not(.spa-preview-lookup) .ms-nav-scrollable.scroll-source {
+  scrollbar-gutter: stable;
+}
+[data-bcb-dropdown]:not(.spa-preview-lookup) table.ms-nav-grid-header-table {
+  padding-right: var(--bcb-dropdown-gutter) !important;
+}
+
+/* Current row. In an editable grid (document lines in edit mode, journals)
+   BC marks the row you are on with only an arrow and the three-dot cell at
+   the far left, and a list part in view mode does the same. That row gets a
+   light tint across its full width. The field you are typing in keeps BC's
+   own border.
+   Read-only list pages already fill the current row; their grid is never
+   inside a card form, so they are left as BC draws them.
+   The tint is a see-through layer over the cell's own background rather than
+   a new background colour: BC's three-dot cell and focus colour stay
+   underneath, and so does a page that Dark Reader has darkened. Dark Reader
+   never sees this stylesheet, so a solid light colour would stay light under
+   its light text. */
+html[data-bcb-row] {
+  --bcb-row: 0 132 137; /* BC's own teal */
+  --bcb-row-tint: rgb(var(--bcb-row) / .12);
+}
+
+html[data-bcb-row][data-darkreader-scheme="dark"] {
+  --bcb-row: 64 196 204;
+  --bcb-row-tint: rgb(var(--bcb-row) / .12);
+}
+
+html[data-bcb-row] table.ms-nav-grid-edit > tbody > tr.real-current > td,
+html[data-bcb-row] form.ms-nav-cardform table.ms-nav-grid-view > tbody > tr.real-current > td {
+  background-image: linear-gradient(var(--bcb-row-tint), var(--bcb-row-tint)) !important;
+}
+
+/* Striped rows. Every other row in a list gets a faint grey. BC renders only
+   the rows in view and reuses the same <tr> elements while you scroll, and it
+   keeps the current row as the first child even when it is far out of view,
+   so :nth-child would make the stripes flip. aria-rowindex is the row's own
+   number in the list: an odd last digit is an odd row, whichever <tr> shows
+   it. A see-through colour, so it darkens whatever is underneath, also under
+   Dark Reader. It is a background-image, because in read-only list parts BC
+   puts a transparent background-color with !important on every cell, which
+   would wipe out a background-color. An image lies on top of BC's own
+   colours, so selected rows are left out. Hovered rows are not: in a grid
+   you type in, BC's hover colours only the cell under the mouse, and the rest
+   of the row would turn white; elsewhere the stripe darkens BC's hover a
+   touch. On the current line the tint, also an image but with !important,
+   takes its place. */
+html[data-bcb-stripes] {
+  --bcb-stripe: rgb(0 0 0 / .045);
+}
+
+html[data-bcb-stripes][data-darkreader-scheme="dark"] {
+  --bcb-stripe: rgb(255 255 255 / .05);
+}
+
+html[data-bcb-stripes] table.ms-nav-grid-data-table > tbody > tr:is(
+  [aria-rowindex$="1"], [aria-rowindex$="3"], [aria-rowindex$="5"],
+  [aria-rowindex$="7"], [aria-rowindex$="9"]):not([aria-selected="true"]) > td {
+  background-image: linear-gradient(var(--bcb-stripe), var(--bcb-stripe));
+}
+
+/* No animations. BC does not honour prefers-reduced-motion, so these rules
+   do it instead. Shorten rather than remove: with `transition: none` the
+   transitionend and animationend events never fire, and BC may wait for them
+   before it finishes opening a page or FastTab. 0.01ms keeps them firing.
+   Delays go to zero as well; the page fade-in waits 0.3s before it starts.
+   Classes come from the live client. BC opts an element into motion with
+   `.animate`; the layout regions below are what Maximize and the FactBox
+   pane (I) move. Hashed class names (`animate-flex--…`) change with every BC
+   build, so only stable names are used.
+   Progress indicators stay animated, or a busy client looks frozen:
+   `.busy-indicator` (its fade-in delay stops it flashing on quick actions),
+   the spinners (`.ios-spinner--animate`, `.android-spinner--animate`) and
+   the pulsing `.ghosted` and `.pending-cell` are left out. */
+html[data-bcb-calm] .animate:not(.busy-indicator),
+html[data-bcb-calm] .spa-overlay,
+html[data-bcb-calm] .ms-nav-layout-page,
+html[data-bcb-calm] .ms-nav-layout-content,
+html[data-bcb-calm] .ms-nav-layout-gutter-left,
+html[data-bcb-calm] .ms-nav-layout-gutter-right,
+html[data-bcb-calm] .ms-nav-layout-gutter-left > .ms-Button,
+html[data-bcb-calm] .ms-nav-layout-gutter-right > .ms-Button,
+html[data-bcb-calm] .ms-nav-layout-aside-right,
+html[data-bcb-calm] .ms-nav-edit-control-container,
+html[data-bcb-calm] .importance-promoted-container,
+html[data-bcb-calm] .show-more-fields-button,
+html[data-bcb-calm] .ms-nav-columns-caption::after,
+html[data-bcb-calm] .ms-nav-collapsible-part-caption::after,
+html[data-bcb-calm] .booleancontrol-toggle-switch,
+html[data-bcb-calm] form.ms-nav-root-form.prompt-dialog > .task-dialog,
+html[data-bcb-calm] .ms-nav-appbar .group,
+html[data-bcb-calm] .ms-nav-appbar > .ms-list-itemLink,
+html[data-bcb-calm] .ms-nav-appbar > .systemaction,
+html[data-bcb-calm] .ms-Image {
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+}
+
+/* FastTabs slide with element.animate(), which CSS cannot shorten; calm.js
+   handles those. */
+
+/* No notifications bell. BC's top bar keeps the bell in one container with a
+   fixed id, so a single id rule hides it in whichever frame it lives. */
+html[data-bcb-no-bell] #notifications_container {
+  display: none !important;
+}
+
+/* Resize panes: a grab zone on the left edge of Page Inspection, the
+   Personalization field list (top window) and Help or Copilot (client frame);
+   see panes.js. A ::before, so nothing is added to BC's DOM. Help's pane is
+   found by BC's own inline --panel-width, as its classes are hashed. Sized
+   and coloured like BC's own FactBox handle (BC 28: a 2px bar in the theme
+   accent, --bc-sldaccn, with a 10px grab area). A pseudo-element cannot know
+   it is hovered apart from its pane, so the bar shows while dragging only.
+   Width of the zone must match HANDLE in panes.js. */
+html[data-bcb-panes] body > div[style*="--panel-width"] {
+  position: relative;
+}
+html[data-bcb-panes] .designer > .pane-content > .designer-design-pane.expanded::before,
+html[data-bcb-panes] body > div[style*="--panel-width"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  width: 12px;
+  cursor: col-resize;
+}
+html[data-bcb-pane-drag] .designer > .pane-content > .designer-design-pane.expanded::before,
+html[data-bcb-pane-drag] body > div[style*="--panel-width"]::before {
+  background: linear-gradient(to right, var(--bc-sldaccn, #00838f) 2px, transparent 2px);
+}
+html[data-bcb-pane-drag] body {
+  user-select: none;
+}
+
+/* A saved width, kept clear of the page beside it in a narrow window. Only
+   while one is saved: BC's own width otherwise. */
+html[data-bcb-pane-inspect] .designer.inspector > .pane-content > .designer-design-pane.expanded {
+  width: clamp(240px, var(--bcb-pane-inspect), calc(100vw - 240px));
+}
+html[data-bcb-pane-design] .designer:not(.inspector) > .pane-content > .designer-design-pane.expanded {
+  width: clamp(240px, var(--bcb-pane-design), calc(100vw - 240px));
+}
+html[data-bcb-pane-side] body > div[style*="--panel-width"] {
+  --panel-width: clamp(240px, var(--bcb-pane-side), calc(100vw - 240px)) !important;
+}
+
+/* Copy values: the one icon, our own element in body, placed with a
+   transform by copyvalues.js. Nothing here touches BC's cells. Neutral like
+   BC's own icon buttons; a green tick after a copy. `all: initial` keeps BC's
+   button styles off it. Size must match SIZE in copyvalues.js. */
+#bcb-copy {
+  all: initial;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, .16);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #605e5c;
+  cursor: pointer;
+}
+#bcb-copy[hidden] { display: none; }
+#bcb-copy:hover { background: #f3f2f1; color: #201f1e; }
+#bcb-copy > svg { width: 14px; height: 14px; fill: currentColor; pointer-events: none; }
+#bcb-copy > svg.bcb-copy__done { display: none; }
+#bcb-copy.bcb-copy--done { color: #107c10; }
+#bcb-copy.bcb-copy--done > svg.bcb-copy__copy { display: none; }
+#bcb-copy.bcb-copy--done > svg.bcb-copy__done { display: block; }
+
+/* Open in a new tab (beta, undocumented; see newtab.js): while newtab.js lets
+   BC open a link to move it to a new tab, for a second or so, the page BC opens stays out of sight above the
+   page you are on. BC
+   stacks its pages as siblings and keeps the ones below rendered, so the page
+   you were on simply stays in view. The attribute on <html> is only there
+   during that second; the rest of the time this rule matches nothing. */
+html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
+  visibility: hidden !important;
+}
+
+/* Keyboard shortcuts (shortcuts.js). The panel is our own element in the top
+   window's body, under BC's top bar. `all: initial` keeps the shell's styles
+   off it. */
+#bcb-keys {
+  all: initial;
+  display: block;
+  position: fixed;
+  right: 16px;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  overflow: auto;
+  padding: 16px 18px 14px;
+  border-radius: 8px;
+  background: #fff;
+  color: #201f1e;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .24);
+  font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
+}
+#bcb-keys:focus { outline: none; }
+#bcb-keys .bcb-keys__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  /* The grip the panel is dragged by (shortcuts.js, draggable). */
+  cursor: move; user-select: none; touch-action: none;
+}
+#bcb-keys h2 { margin: 0; font: 600 17px/1.3 "Segoe UI", system-ui, sans-serif; }
+#bcb-keys h3 {
+  margin: 16px 0 8px;
+  font: 600 12px/1.3 "Segoe UI", system-ui, sans-serif;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #00718c;
+}
+#bcb-keys .bcb-keys__close {
+  all: unset;
+  cursor: pointer;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 24px;
+  color: #605e5c;
+}
+#bcb-keys .bcb-keys__close:hover { background: #f3f2f1; color: #201f1e; }
+#bcb-keys .bcb-keys__close:focus-visible { outline: 2px solid #00718c; }
+#bcb-keys dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 7px 14px;
+  align-items: center;
+  margin: 0;
+}
+#bcb-keys dt { white-space: nowrap; }
+#bcb-keys dd { margin: 0; }
+#bcb-keys kbd {
+  display: inline-block;
+  min-width: 16px;
+  padding: 1px 6px;
+  border: 1px solid #c8c6c4;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: #faf9f8;
+  font: 600 12px/18px Consolas, "Cascadia Mono", monospace;
+  text-align: center;
+  color: #201f1e;
+}
+#bcb-keys .bcb-keys__plus,
+#bcb-keys .bcb-keys__sep { color: #8a8886; margin: 0 2px; }
+#bcb-keys .bcb-keys__info {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font: 600 11px/16px "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+  vertical-align: 1px;
+  cursor: help;
+}
+#bcb-keys .bcb-keys__info:focus-visible { outline: 2px solid #00718c; outline-offset: 1px; }
+/* The note itself, shown under the (?) while it is hovered or focused. */
+#bcb-keys .bcb-keys__info:hover::after,
+#bcb-keys .bcb-keys__info:focus::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: 22px;
+  left: -8px;
+  z-index: 1;
+  width: 240px;
+  padding: 6px 9px;
+  border-radius: 4px;
+  background: #323130;
+  color: #ffffff;
+  font: 400 13px/1.35 "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+}
+#bcb-keys .bcb-keys__foot { margin-top: 16px; color: #605e5c; font-size: 13px; }
+#bcb-keys .bcb-keys__foot p { margin: 4px 0 0; }
+#bcb-keys a { color: #00718c; text-decoration: underline; cursor: pointer; }
+
+
 /* "Report a problem" next to the brand name in the ribbon. Same colour as the
    ribbon text, lighter weight so the brand still reads as the brand. */
 [data-bcb-support] {
@@ -105,7 +438,7 @@
   font-weight: 400 !important;
   font-size: 12px;
   line-height: 1;
-  color: var(--bcb-text, inherit) !important;
+  color: inherit !important;
   opacity: 0.85;
   text-decoration: underline;
   text-underline-offset: 2px;

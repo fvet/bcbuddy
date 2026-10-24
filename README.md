@@ -1,215 +1,174 @@
 # BC Buddy
 
-> **Tell your Business Central environments apart** 🎨
+> **Business Central, easier to work in** ✨
 
-If you work across several customers or environments, all your Business Central
-tabs start to look the same. Posting in production while you thought you were in
-a sandbox is easily done.
+BC Buddy is a free extension for Chrome and Edge. It makes the Business Central
+web client easier to work in, and gives every environment its own colour, so
+you never post in production by mistake.
 
-BC Buddy gives every environment its own colour. The most visible part is the
-bar at the top of the BC client, which takes your colour and your own text:
+- **An easier web client**, straight away: copy any value with one click, wide
+  pages, bigger dropdowns, week numbers in the date picker and more.
+- **A colour for every environment**: production green, sandbox red, or
+  whatever suits you.
 
-```
-Dynamics 365 Business Central - CRONUS BE (Sandbox)
-```
-
-Alongside that it can draw a coloured frame around the window, a banner, a
-marked tab title and a coloured tab icon. It also automatically expands every
-page to wide layout and switches tile pages to list view.
-
-![Business Central with a red ribbon reading "CRONUS BE (Sandbox)", a red frame around the window and a diagonal Sandbox banner in the bottom-left corner](store/screenshot-1-1280x800.png)
-
-A Chrome/Edge extension (Manifest V3). The full documentation is on the website:
-**<https://fvet.github.io/bcbuddy/>**. What changed in each version is in
-[CHANGELOG.md](CHANGELOG.md), and working on the extension itself is covered in
-[DEVELOPMENT.md](DEVELOPMENT.md).
+Full documentation: **<https://fvet.github.io/bcbuddy/>** · What's new in each
+version: [CHANGELOG.md](CHANGELOG.md)
 
 ## 📥 Installing
 
-**From the store:** [Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl) — one click, options page opens automatically.
-
-**From source:**
-
-1. Open `chrome://extensions` (or `edge://extensions`).
-2. Turn on **Developer mode**.
-3. Click **Load unpacked** and pick the folder of this repository.
-4. The options page opens automatically on first install.
+Install it from the
+[Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl)
+and click **Add to Chrome**. Edge first asks whether to allow extensions from
+other stores; say yes. You need Chrome or Edge 111 or newer.
 
 ## 🚀 Getting started
 
-The options page opens on **Environments**. To mark your first environment:
+1. **Install BC Buddy.** Its settings page opens by itself. Later, click the
+   BC Buddy icon in the toolbar to open it again, or in Business Central click
+   the gear icon at the top right and choose **Settings** under **BC Buddy**.
+2. **Open Business Central**, or reload a tab where it was already open. The
+   web client improvements below are already working.
+3. **Give your environments a colour.** On the settings page, go to
+   **Environments**. Four sample rules are already there, switched off. Click
+   **Load samples** to switch them on: Production turns green, test
+   environments red. Or switch on only the ones you want.
 
-1. Click **Add rule**.
-2. Give it a name — that name is what `{name}` produces in your texts, so
-   something like `PRODUCTION` or the customer's name works well.
-3. Set a condition. The simplest is *environment* *equals* `Production`. If you
-   are unsure what to match on, paste a real BC URL into the **Test URL** field
-   at the top; the page shows you which environment, company and tenant it read
-   out of it, and previews the result live.
-4. Pick a colour — green for production.
-5. Add a second rule for your sandbox in red.
+Not sure what your environment is called? Open **Environments** while a
+Business Central tab is open: under **Test**, at the bottom, BC Buddy shows
+the environment and company of that tab.
 
-![The Rules list with rules for Production, Sandbox, QA, UAT and Cronus UK. The QA rule is expanded, showing its condition environment equals QA, the colour palette, text colour, layout and favicon letters](store/screenshot-3-1280x800.png)
+## 🖥️ Web client
 
-Order decides priority: the first rule that fits is applied, so put your most
-specific rules at the top.
+No setup needed. Each improvement has its own switch under **Web client** on
+the settings page.
 
-## 🎯 How matching works
+| Improvement | What you get in Business Central | Starts |
+|---|---|---|
+| <img src="icons/settings/copy-values.svg" width="18" height="18" alt=""> **Copy values** | A copy icon on any value in a list or FactBox, and on links on a card | On |
+| <img src="icons/settings/maximize.svg" width="18" height="18" alt=""> **Maximize pages** | Every page in wide layout, tile pages as a list | On |
+| <img src="icons/settings/pin-action-bar.svg" width="18" height="18" alt=""> **Pin the action bar** | Every page opens with the row of actions under its tabs pinned | On |
+| <img src="icons/settings/dropdown.svg" width="18" height="18" alt=""> **Dropdown size** | The list under a field as wide as its columns need, and taller if you like | On |
+| <img src="icons/settings/resize-panes.svg" width="18" height="18" alt=""> **Resize panes** | Drag Help, Copilot, Page Inspection and the Personalization field list wider or narrower | On |
+| <img src="icons/settings/week-numbers.svg" width="18" height="18" alt=""> **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
+| <img src="icons/settings/highlight-row.svg" width="18" height="18" alt=""> **Highlight the current line** | The line you are on in a journal or order stands out | On |
+| <img src="icons/settings/shortcuts.svg" width="18" height="18" alt=""> **Keyboard shortcuts** | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
+| <img src="icons/settings/stripe-rows.svg" width="18" height="18" alt=""> **Striped rows** | Every other row in a list a light grey | Off |
+| <img src="icons/settings/hide-fact-box.svg" width="18" height="18" alt=""> **Hide the FactBox pane** | Pages open without the FactBox pane on the right, so the page gets the room | Off |
+| <img src="icons/settings/hide-notifications.svg" width="18" height="18" alt=""> **Hide the notifications icon** | No bell in the top bar | Off |
+| <img src="icons/settings/no-animations.svg" width="18" height="18" alt=""> **Turn off animations** | Pages, dialogs and FastTabs appear at once instead of sliding in | Off |
 
-A rule consists of one or more **conditions**; all of them must hold. A URL is
-broken down into fields you can match on:
+**Reset to defaults**, above the list, puts every switch and slider back to
+how BC Buddy starts out. When your team shares a file, the button reads
+**Reset to your team's defaults** and takes the team's choices from that file.
+Clicked by mistake? **Undo** sits right next to the message.
 
-| Field | From this example URL |
-|---|---|
-| `url` | the full, decoded URL |
-| `environment` | `Sandbox` |
-| `company` | `CRONUS BE` |
-| `tenant` | `c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811` |
+Looking for a dark theme or a blue light filter? BC Buddy leaves those to tools
+that do them well: [Dark Reader](https://darkreader.org/) for dark mode, and
+**Night light** in Windows for a warmer screen.
 
-```
-https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE&page=1
-```
+What each one does, in detail:
+[Web client](https://fvet.github.io/bcbuddy/web-client/) on the website.
 
-So you can match on a value that simply occurs *somewhere in the URL* (`url` +
-`contains`), or more precisely on environment or company. Operators: contains,
-equals, starts with, ends with, RegEx, does not contain.
+## 🎨 Environment colours
 
-Both Business Central online and on-premises are recognised. On-prem the server
-instance sits where the environment would be (`/BC240/?company=...`) and the
-tenant comes from the query.
+Ten tabs open, one of them is Production, and a test order gets posted in the
+live company. It happens because a test environment and the real one look
+exactly alike. BC Buddy colours the bar at the top of Business Central, with
+your own text, and can add a bar above it, a coloured frame, a banner, a
+marked tab title and a coloured tab icon.
 
-Rules apply on every site, not only on `businesscentral.dynamics.com`. That is
-not a luxury: an on-prem installation runs on your own host, so the URL alone
-does not reveal that it is Business Central. If you want only BC marked, put
-that in the conditions of your rule (for example `url` `contains`
-`businesscentral.dynamics.com`).
+![The Sales Orders list in Business Central with a green bar reading "CRONUS BE (Production)", a green frame around the window and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts panel is open on the right](store/screenshot-4-sales-orders-1280x800.png)
 
-## 🗂️ Rules and layouts
+You set this up under **Environments** on the settings page:
 
-The options page has a navigation on the left: **Maximize** (auto-wide layout),
-**Environments** (layouts and rules), **Settings** (shared configuration,
-import/export) and **About**.
+- A **rule** says which environment gets which colour, for example
+  **Environment** **equals** `Production`. The first rule that fits wins.
+- A **style** says what the marking looks like. *Full* shows every marking,
+  *Subtle* only colours the bar at the top.
 
-The difference between the two lists:
+BC Buddy comes with four sample rules, switched off: Production green, test
+environments red, development blue and master data companies yellow.
+**Load samples** switches them on. When your team's shared file brings rules,
+those take the place of the samples you did not change.
 
-- A **rule** says *which* environment you recognise and *which colour* it gets:
-  name, conditions, colour, text colour and the letters on the tab icon.
-- A **layout** says *how* a marking looks: ribbon, frame, banner, tab title and
-  whether there is a tab icon. Several rules can use the same layout, so you
-  maintain those settings in one place.
-
-There is always at least one layout; new rules get *Default*. Delete a layout
-and the rules that hung on it fall back to the first one in the list.
-
-## ✨ What a layout can show
-
-- **Ribbon** — the bar at the top of the BC client takes the colour of the rule
-  and a text of your own.
-- **Frame** — coloured border around the whole window (width 1 to 5 px, 3 by
-  default).
-- **Banner** — a bar along the bottom or a diagonal ribbon in one of the four
-  corners.
-- **Tab title** — e.g. `[TEST] Company Information`.
-- **Favicon** — coloured tab icon with the first letters, so you spot the right
-  tab straight away in a row of tabs.
-
-![The Default layout in the options page, with a live preview at the top and checkboxes below for ribbon, frame thickness, banner position, text and opacity, and tab title](store/screenshot-2-1280x800.png)
-
-The preview at the top of a layout updates as you change it, so you can see what
-a marking will look like before you meet it in the client.
-
-Text colour is *automatic* by default: white or black, depending on what is
-readable on the chosen colour.
-
-### 🔤 Tokens
-
-You can use tokens in every text:
-
-`{name}` `{environment}` (or `{env}`) `{company}` `{title}` (the original tab
-title)
-
-Empty tokens are cleaned up: if there is no company in the URL, no stray dashes
-or empty brackets are left behind.
+More on the website: [Rules](https://fvet.github.io/bcbuddy/matching/) ·
+[Styles](https://fvet.github.io/bcbuddy/styles/).
 
 ## 👥 Sharing settings with your team
 
-Everyone in the team can work from the same markings, so a colleague opening a
-customer's production environment sees the same green you do.
+One person sets up the colours and everyone else gets them automatically.
 
-1. Set up your layouts and rules and click **Export**; that produces
-   `bc-buddy.json`, layouts included.
-2. Put that file somewhere everyone can reach it over HTTPS — a repository, for
-   instance. Only use a URL you control: the file can define rules that mark
-   any site.
-3. Everyone fills in the URL on the options page under **Shared configuration**.
-   An ordinary `github.com/.../blob/...` link is fine; it is converted to the
-   raw variant automatically. Plain HTTP is refused. There is a worked example
-   to try first: `https://fvet.github.io/bcbuddy/examples/bc-buddy.json`.
-4. A click on **Synchronise** fetches the file and thereby switches the shared
-   configuration on right away: from then on it is updated every day. There is
-   no separate toggle — synchronising is the toggle.
-5. The `X` next to *Shared rules* clears what came in and switches them off
-   again, otherwise they are simply back the next day. The URL stays, so one
-   click on synchronise is enough to start over.
+1. Click **Export to file** on the settings page. That saves `bc-buddy.json`,
+   with your rules, styles and **Web client** settings.
+2. Put it somewhere everyone can open it over `https://`, such as a
+   repository. Only use an address you control: the file decides what BC Buddy
+   colours.
+3. Your colleagues paste that address under **Settings** > **Shared
+   configuration** and click **Synchronise**. BC Buddy checks for changes every
+   day.
 
-Shared rules sit at the bottom of the list and cannot be edited. To adjust one,
-use the copy button on that rule: you get your own version, with its layout
-alongside, and that takes precedence over the shared one. An example file is in
-[`examples/bc-buddy.json`](examples/bc-buddy.json).
+To try it out, use `https://fvet.github.io/bcbuddy/examples/bc-buddy.json`, the
+same file as [`examples/bc-buddy.json`](examples/bc-buddy.json).
 
-Importing goes through **Import / export > Choose file** and works as a merge: a
-rule you already have is overwritten in place, new rules are added, and rules
-that are not in the file are left alone.
+IT can install BC Buddy on every computer and set the shared file for everyone
+with Intune or Group Policy; the scripts are in
+[`examples/intune/`](examples/intune/).
 
-## 🏢 Deploying for your organisation
-
-IT can roll BC Buddy out so that nobody types the URL: push the extension
-through browser policy and set the extension policy `hostedUrl` to the URL of
-your `bc-buddy.json`. The extension picks the URL up on first install and at
-every browser start, shows it as *Set by your organisation* on the options
-page, and skips opening the options page after installing. Intune, Group
-Policy and the Google Admin console are covered step by step on the site:
-[Deploying for your organisation](https://fvet.github.io/bcbuddy/deploying/).
-
-## 🌍 Languages
-
-The extension is available in Dutch and English. It follows the language of your
-browser: if that is set to Dutch you see the Dutch texts, otherwise the
-English ones. There is no switch and no setting.
-
-What is *not* translated: the texts you fill in yourself in a rule. Whatever you
-put in the ribbon, the banner or the tab title appears exactly as you type it.
-
-Would you like BC Buddy in your own language? Contributions are welcome —
-[TRANSLATING.md](TRANSLATING.md) says what is involved.
-
-## 🔒 Privacy
-
-Everything stays on your own machine. No server, no analytics, no tracking. The
-only network request BC Buddy makes is fetching the shared configuration file
-from the URL you configure yourself; leave that empty and no traffic leaves your
-machine at all. Full text in [PRIVACY.md](PRIVACY.md).
+More on the website: [Team file](https://fvet.github.io/bcbuddy/sharing/) ·
+[Install with Intune](https://fvet.github.io/bcbuddy/intune/).
 
 ## 🛟 Troubleshooting
 
-**The ribbon keeps its original colour.** The ribbon is found by its text
-("Dynamics 365 Business Central"), so a BC client that renders it differently
-can escape detection. The frame, banner, tab title and tab icon are unaffected
-and still mark the environment.
+**Nothing changed after installing.** Reload the Business Central tab (F5), and
+check that **Active**, below the menu on the left of the settings page, is on.
 
-**Nothing is marked at all.** Check the rule's conditions against a real URL
-using the **Test URL** field on the options page — it shows what it managed to
-read. A rule whose conditions never all hold at once never fires.
+**A page stays narrow, in tiles or with the action bar unpinned.** BC Buddy only
+changes a page nobody set yet. Business Central remembers your own choice per
+page, and BC Buddy leaves it.
 
-**A shared rule will not change.** Shared rules are read-only by design. Use the
-copy button to get your own editable version, which takes precedence.
+**Nothing is coloured.** Open **Environments** with your Business Central tab
+still open. The rule that tab gets has a border all round in its colour; no
+such border means none of your rules fits it.
 
-**The URL of the shared file is greyed out.** It was set by your organisation
-through browser policy, and only IT can change it. Your own rules still work
-on top of the shared ones.
+**Something stopped working after a Business Central update.** Please
+[open an issue](https://github.com/fvet/bcbuddy/issues).
+
+More on the website: [Troubleshooting](https://fvet.github.io/bcbuddy/troubleshooting/).
+
+## 🌍 Languages
+
+BC Buddy is in English, Dutch and French, and follows the language of your browser.
+To use another one, pick it in the language list at the top right of the BC Buddy
+settings. Business Central keeps its own language. The texts you type yourself in a rule or style appear exactly as you type
+them. Would you like it in your own language? See
+[TRANSLATING.md](TRANSLATING.md).
+
+## 🔒 Privacy
+
+Everything stays on your own computer. No server, no account, no tracking. The
+only thing BC Buddy ever downloads is your team's shared file, from the address
+you enter yourself. Full text in [PRIVACY.md](PRIVACY.md).
+
+## 🛠️ For developers
+
+Working on the extension itself is covered in [DEVELOPMENT.md](DEVELOPMENT.md).
+To run it from source: open `chrome://extensions` (or `edge://extensions`), turn
+on **Developer mode**, click **Load unpacked** and pick a clone of this
+repository or an unpacked `bcbuddy-*.zip` from the
+[releases page](https://github.com/fvet/bcbuddy/releases/latest).
 
 ## 📄 Licence
 
 MIT — the full text is in [LICENSE](LICENSE). Use it, change it and pass it on,
 inside a company as well; the copyright notice and the licence text have to
 travel with it.
+
+## ⚖️ Disclaimer
+
+BC Buddy is an independent open-source project. It is not affiliated with,
+endorsed by or supported by Microsoft. Microsoft, Dynamics 365 and Business
+Central are trademarks of the Microsoft group of companies.
+
+BC Buddy is provided as is, without warranty of any kind, and its authors are
+not liable for any damage that comes from using it. The full terms are in
+[LICENSE](LICENSE).

@@ -1,53 +1,155 @@
-# Rules and matching
+# Rules
 
-A rule consists of one or more **conditions**; all of them must hold before the
-rule applies. A URL is broken down into fields you can match on.
+A **rule** tells BC Buddy which environment to colour, and in which colour. You
+find your rules on the settings page under **Environments**.
 
-Take this URL:
+Each rule has:
 
-```
-https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE&page=1
-```
+- a **name**, such as `PRODUCTION` or the name of a customer;
+- one or more **conditions**, which say when the rule applies;
+- a **colour**;
+- a **style**, which decides what the marking looks like: the coloured bar,
+  a frame, a banner. See [Styles](styles.md).
 
-BC Buddy reads it as:
+<figure markdown>
+![The Environments page with the four sample rules: Master Data in yellow, Production in green, UAT in red and Development in blue. Production has a green border all round because it is the rule the open Business Central tab gets. Below them, the Default style with its preview](assets/screenshot-6-environments-1280x800.png)
+<figcaption>The rule the open Business Central tab gets has a border all round in its colour.</figcaption>
+</figure>
 
-| Field | Value |
+## Conditions
+
+A condition looks at the web address of the Business Central page you are on.
+The simplest ones:
+
+| To colour… | Condition |
 |---|---|
-| `url` | the full, decoded URL |
-| `environment` | `Sandbox` |
-| `company` | `CRONUS BE` |
-| `tenant` | `c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811` |
+| The Production environment | **Environment** **equals** `Production` |
+| Every sandbox | **Environment** **contains** `Sandbox` |
+| One company | **Company** **equals** `CRONUS BE` |
+| Several test environments in one colour | **Environment** **contains** `DEV, UAT, QA` |
 
-So you can match on a value that simply occurs *somewhere in the URL* (`url`
-plus `contains`), or more precisely on environment or company.
+A rule with more than one condition applies only when all of them fit. To give
+one company in production its own colour, use **Environment** **equals**
+`Production` and **Company** **equals** `CRONUS BE` in the same rule.
 
-## Operators
+An address without an environment, such as
+`businesscentral.dynamics.com/contoso.com`, opens your default environment.
+BC Buddy reads it as **Production**, so your Production rule covers it too.
 
-`contains` · `equals` · `starts with` · `ends with` · `RegEx` ·
-`does not contain`
+!!! tip "Check a rule before you rely on it"
 
-!!! tip "Test before you trust it"
+    Open **Environments** while a Business Central tab is open: **Test**
+    at the bottom already holds that tab's address. BC Buddy shows the
+    environment and company it reads, and the rule that wins has a border all
+    round in its colour.
+    Opened another tab since? Click **From open tab**, or paste the address of
+    a Business Central page into **Test**.
 
-    The **Test URL** field at the top of the options page shows you exactly
-    which environment, company and tenant BC Buddy reads out of a URL, and
-    previews the marking live. A rule whose conditions never all hold at once
-    never fires, and this is the quickest way to see that coming.
+## The first rule that fits wins
 
-## On-premises
+BC Buddy goes through your rules from top to bottom and uses the first one that
+fits. Drag a rule up or down to change the order.
 
-Both Business Central online and on-premises are recognised. On-prem the server
-instance sits where the environment would be, and the tenant comes from the
-query string:
+So put specific rules above general ones: a rule for one customer's production
+environment belongs above a rule for "anything called Production".
 
-```
-https://bc.example.local/BC240/?company=CRONUS%20BE&tenant=default
-```
+## Start from the samples { #samples }
 
-## Why rules apply everywhere
+BC Buddy comes with four sample rules, switched off, so nothing gets a colour
+until you decide. Click **Load samples** next to **Rules** to switch them all
+on, or switch on only the ones you want:
 
-Rules apply on every site, not only on `businesscentral.dynamics.com`. That is
-not a luxury: an on-premises installation runs on your own host, so the URL
-alone does not reveal that it is Business Central.
+| Rule | Colour | Fits when |
+|---|---|---|
+| **Master Data** | yellow | **Company** **contains** `masterdata, master data, template` |
+| **Production** | green | **Environment** **contains** `production` |
+| **UAT** | red | **Environment** **contains** `uat, test, qa, sandbox` |
+| **Development** | blue | **Environment** **contains** `dev` |
 
-If you want only BC marked, put that in the conditions of your rule — for
-example `url` `contains` `businesscentral.dynamics.com`.
+They are ordinary rules: change the colours, the names or the conditions, drag
+them into another order, or delete the ones you do not need. Master Data comes
+first, so a master data company shows yellow even in production. They use the
+[*Full* style](styles.md); pick *Subtle* on a rule for a quieter marking.
+
+Rules you already have stay as they are. A sample with the same name as one of
+your rules is skipped, so clicking **Load samples** twice adds nothing, and a
+sample you changed while it was off stays off. Deleted a sample? Click **Load
+samples** again and it comes back in its old place. A missing *Full* or
+*Subtle* style comes back too, even when you already have every sample rule.
+
+When your [team's shared file](sharing.md) brings rules for the first time,
+they take over from the samples: every sample you did not change goes,
+switched on or not. Samples you changed stay.
+
+!!! note "No Load samples button?"
+
+    Then your IT department installed BC Buddy or set a shared file for your
+    team. Your colours come from there, and rules of your own would be checked
+    before theirs, so the samples are left out.
+
+## For advanced use
+
+??? faq "What BC Buddy reads from a web address"
+
+    Take this address:
+
+    ```
+    https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/Sandbox?company=CRONUS%20BE&page=1
+    ```
+
+    BC Buddy reads it as:
+
+    | Field | Value |
+    |---|---|
+    | **Url** | the full address |
+    | **Environment** | `Sandbox` |
+    | **Company** | `CRONUS BE` |
+    | **Tenant** | `c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811` |
+
+    **Url** with **contains** matches a piece of text anywhere in the address.
+    The tenant identifies your organisation's Business Central subscription,
+    which helps when you work for several customers.
+
+    Right after you sign in, Business Central online often opens your default
+    company without `company=` in the address. BC Buddy then reads the
+    company from the page itself: from the environment button at the top
+    right, or else from the heading of your Role Center. That is the
+    company's display name, which can differ from its name in the address:
+    `Cronus België` instead of `CRONUS BE`. To be safe, use **contains** with
+    a part both share, or list both: `CRONUS BE, Cronus België`. **Test** on
+    the settings page only reads the address, so it shows no company then.
+
+??? faq "All ways to compare"
+
+    **contains** · **equals** · **starts with** · **ends with** ·
+    **does not contain** · **RegEx** (a regular expression, for complex
+    patterns)
+
+    **contains** and **does not contain** also take a list separated by
+    commas, such as `DEV, UAT, QA`. **contains** then fits when any of them
+    appears, **does not contain** when none of them does. Capitals do not
+    matter.
+
+    A RegEx that is not valid, or so complex that checking it could slow
+    the page down, never matches. The condition then says why. Starting the
+    pattern with `^` often helps.
+
+??? faq "Business Central on your own server (on-premises)"
+
+    BC Buddy recognises it too. There the server instance sits where the
+    environment would be, and the tenant comes from the end of the address:
+
+    ```
+    https://bc.example.local/BC240/?company=CRONUS%20BE&tenant=default
+    ```
+
+    Outside Business Central online, `tenant=` is the only place BC Buddy
+    reads a tenant from.
+
+??? faq "Why rules also apply outside Business Central"
+
+    Rules apply on every website, because a Business Central on your own
+    server has an address BC Buddy cannot recognise by itself. If a rule ever
+    colours a website that is not Business Central, add the condition **Url**
+    **contains** `businesscentral.dynamics.com`, or the name of your own
+    Business Central server.
