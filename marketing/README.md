@@ -97,9 +97,12 @@ Areas (x0, y0, x1, y1 on the 1512×794 screenshot): copy values 40, 140, 620,
 current line 100, 590, 1045, 794, then keep only the first 525 px (Type to
 Description; the columns further right have red error marks in CRONUS) ·
 pin action bar: cropped from the JPEG at 90, 55, size 910 × 185.
-Keyboard shortcuts and striped rows were taken later in a 1568×735 window:
-keyboard shortcuts 1000, 0, 1560, 645 (the top bar icon and the panel) ·
-striped rows 45, 135, 1085, 700. Hide the FactBox pane was taken in an
+Striped rows was taken later in a 1568×735 window: 45, 135, 1085, 700.
+Keyboard shortcuts needs the browser's side panel, which the Chrome tool
+cannot capture: the maintainer takes the window (page plus side panel,
+without tab strip and address bar, 1508×800), the logo, name and picture
+are painted over in the bar's colour, and the crop is 880, 0, 1508, 800
+(the top bar icon and the side panel). Hide the FactBox pane was taken in an
 894×848 window, cropped to the page under the top bar: 60, 60, 834, 660 (this
 also leaves out an environment-colour frame or banner). Zoom at full scale: `scale` below 1 also
 shrinks the PNG it saves.
