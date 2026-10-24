@@ -22,7 +22,6 @@ src/
   lib/actionbar.js     pin the action bar on BC's own pin button
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
-  lib/gearmenu.js      the BC Buddy section in BC's gear menu (Settings pane)
   lib/logo.js          the logo as data for the top bar icon; written by
                        icons/build-icons.ps1, never edited by hand
   lib/shortcuts.js     keyboard shortcuts: the top bar icon, its panel and
@@ -34,7 +33,7 @@ src/
   content/content.js   draws frame, banner, ribbon, title and favicon;
                        starts maximize, the dropdown sizer, the pane
                        handles, the copy icon, week numbers, the row tint,
-                       the gear menu section and the keyboard shortcuts icon
+                       the keyboard shortcuts icon
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted;
@@ -835,45 +834,6 @@ Runtime cost: one attribute per frame, class-keyed CSS, and one
 After a BC update, open a card, toggle a FastTab, Maximize and the FactBox
 pane (I), and log `transitionrun` and `getAnimations()` for anything slow.
 
-## ⚙️ Gear menu
-
-In BC online the gear icon opens the Settings pane of the Microsoft 365 shell.
-That pane is in the **top window**, not in BC's client iframe, and it is built
-from scratch on every open: `div#FlexPane_Overflow_Container` is added as a
-direct child of `body` and removed again on close. Inside it,
-`div#O365_Settings_navbardatalinks` holds the *Dynamics 365 Business Central*
-section; `gearmenu.js` inserts `#bcb-gear-section` right after it, above
-*Microsoft 365*.
-
-- **No hard-coded classes.** The shell's class names are hashed and change with
-  its releases. The section copies, element by element, the classes of BC's own
-  section (heading, list, link) and the divider of the Microsoft 365 section, so
-  it looks native on whatever release is live. Ids are not copied.
-- **Cost.** One `childList` observer on `body` (no subtree), top window only,
-  where `state.webClient` is true. Only while the pane is open, a second observer
-  watches the pane's own subtree — a few dozen elements — because the shell can
-  switch between Settings, Help and Notifications without closing it.
-- **Always on.** It does not follow the extension's on/off switch and has no
-  switch of its own: when BC Buddy is off, this link is the quickest way back.
-- **Opening the options.** A content script cannot call
-  `chrome.runtime.openOptionsPage()`, so the link sends `bcb:open-options` to
-  the service worker, which accepts it from a content script, as it does
-  `bcb:messages` (the texts of the language picked on the options page, from
-  our own `_locales/`, which a content script cannot read itself); messages
-  that change something, such as `bcb:sync`, must come from an extension page. The link ignores clicks and
-  keys with `isTrusted` false, so the BC page itself cannot open the options.
-
-On-prem has no Microsoft 365 shell; there the `body` observer never finds a
-pane. After a shell update, open the gear menu and check that **BC Buddy** sits
-between the two sections with the same heading and link style. If it is gone,
-compare the live markup with `gearPane()` in `test-core.html`:
-
-```js
-var a = document.getElementById('O365_Settings_navbardatalinks');
-[!!document.getElementById('FlexPane_Overflow_Container'), !!a,
-  a && a.outerHTML.slice(0, 600), a && a.nextElementSibling.outerHTML.slice(0, 300)];
-```
-
 ## ⌨️ Keyboard shortcuts
 
 `shortcuts.js` adds a keyboard button to BC's top bar that opens the
@@ -922,8 +882,10 @@ the button opens the floating panel in the page instead.
 - **Where.** BC online shows the client in `iframe.designer-client-frame`,
   same origin, under the Microsoft 365 top bar. Icon and panel live in the top
   window; the panel reads the client's document directly. The icon goes just
-  before `#O365_MainLink_Help_container` and copies its classes and those of
-  the Help button, element by element, like the gear menu section does.
+  before the Settings gear (`#O365_MainLink_Settings_container`), so the bar reads
+  notifications, BC Buddy, gear, Help; when the gear is not a sibling of Help it
+  goes before `#O365_MainLink_Help_container`. It copies the classes of Help and
+  of the Help button, element by element.
 - **What it lists.** *On this page* comes from the page itself: BC ends an
   action's tooltip with its shortcut, `"... (F9)"`, and `tooltipKey()` takes
   that, so it is right for the BC version, the language and any extension.

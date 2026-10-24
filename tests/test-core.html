@@ -106,7 +106,6 @@ window.chrome = {
 <script src="../src/lib/copyvalues.js"></script>
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
-<script src="../src/lib/gearmenu.js"></script>
 <script src="../src/lib/logo.js"></script>
 <script src="../src/lib/shortcuts.js"></script>
 
@@ -864,7 +863,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     document.body.appendChild(actions);
     var handle = S.attach(document, { t: function (k) { return '[' + k + ']'; }, icon: true });
     var icon = document.getElementById(S.ICON_ID);
-    check('shortcuts icon: before Help', !!icon && icon.nextElementSibling.id, 'O365_MainLink_Help_container');
+    check('shortcuts icon: before the Settings gear', !!icon && icon.nextElementSibling.id, 'O365_MainLink_Settings_container');
     var button = icon && icon.querySelector('button');
     check('shortcuts icon: shaped like Help, without its ids',
       [icon.className, icon.firstElementChild.className, button.className, !!button.querySelector('.o365cs-base > svg'),
@@ -2155,28 +2154,6 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     });
   }
 
-  // The Settings pane of the Microsoft 365 shell as BC online renders it,
-  // with its hashed class names shortened.
-  function gearPane(withBcSection) {
-    var container = document.createElement('div');
-    container.id = 'FlexPane_Overflow_Container';
-    container.innerHTML =
-      '<div id="O365fpcontainerid"><div id="flexPaneScrollRegion"><div>' +
-      '<div id="FlexPane_Settings"><h2 class="ttl">Settings</h2><div class="wrap">' +
-      '<div id="SettingsFlexPane">' +
-      (withBcSection
-        ? '<div id="O365_Settings_navbardatalinks"><div class="box">' +
-          '<div><h3 class="hd fnt">Dynamics 365 Business Central</h3></div>' +
-          '<div aria-label="Dynamics 365 Business Central"><ul class="lst">' +
-          '<li><a role="link" id="Personalize" tabindex="0" target="_top" class="lnk acc">Personalize</a></li>' +
-          '</ul></div></div></div>'
-        : '') +
-      '<div><div class="rule thin"></div><h3 class="hd2">Microsoft 365</h3>' +
-      '<div aria-label="Microsoft 365"><div id="o365sectionexpandlink" role="button">View all</div></div></div>' +
-      '</div></div></div></div></div></div>';
-    return container;
-  }
-
   /**
    * The language picked on the options page. On a test page i18n.js is not in
    * an extension context, so it asks the "service worker" (this sendMessage).
@@ -2224,61 +2201,6 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       check('language: back to the browser', lang + '|' + BCBuddy.t('newRuleName'), '|' + chrome.i18n.getMessage('newRuleName'));
     }, function (err) {
       return restore().then(function () { throw err; });
-    });
-  }
-
-  function gearDom() {
-    var G = BCBuddy.GearMenu;
-    function tick() { return new Promise(function (resolve) { setTimeout(resolve, 0); }); }
-    function section() { return document.getElementById(G.SECTION_ID); }
-    var opened = 0;
-    var menu = G.attach(document, { label: 'Settings', onOpen: function () { opened++; } });
-    var pane = gearPane(true);
-    document.body.appendChild(pane);
-    return tick().then(function () {
-      var sec = section();
-      truthy('gear menu: section added when the Settings pane opens', !!sec);
-      check('gear menu: right after the Business Central section',
-        sec && sec.previousElementSibling && sec.previousElementSibling.id, G.ANCHOR_ID);
-      check('gear menu: heading and link text',
-        sec && [sec.querySelector('h3').textContent, sec.querySelector('a').textContent], ['BC Buddy', 'Settings']);
-      check('gear menu: looks like BC section (classes copied)',
-        sec && [sec.firstElementChild.className, sec.querySelector('.box > div > h3').className,
-          sec.querySelector('.box > div > ul').className, sec.querySelector('a').className],
-        ['rule thin', 'hd fnt', 'lst', 'lnk acc']);
-      check('gear menu: no copied ids and its own label',
-        sec && [sec.querySelectorAll('[id]').length, sec.querySelector('[aria-label]').getAttribute('aria-label')],
-        [0, 'BC Buddy']);
-      var link = sec.querySelector('a');
-      check('gear menu: link is focusable', [link.getAttribute('role'), link.tabIndex], ['link', 0]);
-      link.click();
-      link.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-      check('gear menu: clicks and keys the page made up do not open the options', opened, 0);
-
-      // The shell swaps the pane's content without closing it.
-      document.getElementById('SettingsFlexPane').firstElementChild.remove();
-      sec.remove();
-      return tick();
-    }).then(function () {
-      check('gear menu: nothing added to a pane without the BC section', section(), null);
-      pane.remove();
-      return tick();
-    }).then(function () {
-      pane = gearPane(true);
-      document.body.appendChild(pane);
-      return tick();
-    }).then(function () {
-      truthy('gear menu: added again when the pane reopens', !!section());
-      check('gear menu: only once', document.querySelectorAll('#' + G.SECTION_ID).length, 1);
-      menu.detach();
-      check('gear menu: detach takes the section out', section(), null);
-      pane.remove();
-      pane = gearPane(true);
-      document.body.appendChild(pane);
-      return tick();
-    }).then(function () {
-      check('gear menu: nothing added after detach', section(), null);
-      pane.remove();
     });
   }
 
@@ -2963,9 +2885,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
           results.push('FAIL  copy values DOM: ' + err.message);
         }).then(newTabFlowDom).then(null, function (err) {
           results.push('FAIL  new tab flow DOM: ' + err.message);
-        }).then(gearDom).then(null, function (err) {
-          results.push('FAIL  gear menu DOM: ' + err.message);
-        }).then(shortcutsDom).then(null, function (err) {
+                }).then(shortcutsDom).then(null, function (err) {
           results.push('FAIL  shortcuts DOM: ' + err.message);
         }).then(bannerPositionsDom).then(null, function (err) {
           results.push('FAIL  banner DOM: ' + err.message);

@@ -1,7 +1,8 @@
 /*
  * BC Buddy - the keyboard shortcuts that work where you are.
  *
- * BC Buddy's logo in BC's top bar, just before Help, opens a panel with three
+ * BC Buddy's logo in BC's top bar, just before the Settings gear (so:
+ * notifications, BC Buddy, gear, Help; before Help when the gear is not there), opens a panel with three
  * kinds of shortcut:
  *
  *   - This page's own actions. BC writes an action's shortcut only at the end
@@ -38,6 +39,7 @@
   var ICON_ID = 'bcb-keys_container';
   var PANEL_ID = 'bcb-keys';
   var HELP_ID = 'O365_MainLink_Help_container';
+  var GEAR_ID = 'O365_MainLink_Settings_container';
   var CLIENT_FRAME = 'iframe.designer-client-frame';
   var CONTAINER_SEL = '.spa-container';
   var VIEW_SEL = '.spa-container > .spa-view:not(.spa-lookup)';
@@ -496,7 +498,10 @@
       var help = doc.getElementById(HELP_ID);
       if (!help || !help.parentNode) return;
       var icon = buildIcon(doc, help, t(options.iconLabel || 'scIconLabel'), options.onIcon || toggle);
-      if (icon) help.parentNode.insertBefore(icon, help);
+      if (!icon) return;
+      // Just before the Settings gear when it sits next to Help, else before Help.
+      var gear = doc.getElementById(GEAR_ID);
+      help.parentNode.insertBefore(icon, gear && gear.parentNode === help.parentNode ? gear : help);
     }
 
     function setExpanded(value) {

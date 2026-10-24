@@ -117,8 +117,6 @@
     shortcuts: null,
     // Browser side panels showing this tab's shortcuts: [{ port, stop }].
     panelPorts: [],
-    // Handle of the BC Buddy section in BC's gear menu, while it is attached.
-    gearMenu: null,
     // The language picked on the options page has been looked up (see
     // applyLanguage()).
     language: false,
@@ -458,7 +456,6 @@
     applyCopyValues();
     applyNewTab();
     applyWeekNumbers();
-    applyGearMenu();
     applyShortcuts();
   }
 
@@ -995,9 +992,8 @@
   /** Detaches the tweaks that show our texts, so apply() attaches them anew. */
   function relabel() {
     if (state.copyValues) state.copyValues.detach();
-    if (state.gearMenu) state.gearMenu.detach();
     dropShortcuts();
-    state.copyValues = state.gearMenu = null;
+    state.copyValues = null;
     apply();
   }
 
@@ -1095,23 +1091,6 @@
     state.panes = want ? BCBuddy.Panes.attach(document) : null;
   }
 
-  /* ------------------------------------------------------------ gear menu */
-
-  /**
-   * Adds a BC Buddy section with a Settings link to BC's gear menu; see
-   * gearmenu.js. Like the dropdown sizer it keeps its own narrow observer and
-   * is attached once. It does not follow the on/off switch: when BC Buddy is
-   * off, this link is the quickest way back to turning it on.
-   */
-  function applyGearMenu() {
-    var want = IS_TOP && state.webClient;
-    if (want === !!state.gearMenu) return;
-    if (state.gearMenu) state.gearMenu.detach();
-    state.gearMenu = want
-      ? BCBuddy.GearMenu.attach(document, { label: BCBuddy.t('gearMenuSettings'), onOpen: openOptions })
-      : null;
-  }
-
   /* ------------------------------------------------------------ shortcuts */
 
   /**
@@ -1119,7 +1098,7 @@
    * start view, and the shortcuts it feeds that panel; see shortcuts.js. The
    * logo is there while the keyboard shortcuts or Help & feedback is on: it
    * is how people find both. Top window only: from there it reads BC's
-   * client frame. Attached once, like the gear menu, so this costs one
+   * client frame. Attached once, so this costs one
    * comparison per apply().
    */
   function applyShortcuts() {
@@ -1193,15 +1172,6 @@
 
   function postToPanel(port, message) {
     try { port.postMessage(message); } catch (e) { /* the panel closed */ }
-  }
-
-  function openOptions() {
-    // A content script cannot open the options page itself; the service
-    // worker does it. After an extension update this page still runs the old
-    // script, whose messages go nowhere until the tab is reloaded.
-    try {
-      chrome.runtime.sendMessage({ type: 'bcb:open-options' }).catch(function () {});
-    } catch (e) { /* extension reloaded */ }
   }
 
   /* ------------------------------------------------------------- cleanup */
