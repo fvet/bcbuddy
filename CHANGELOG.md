@@ -31,14 +31,14 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Help & feedback.** Send a support request to your helpdesk without
   leaving Business Central: a panel opens next to the page, in the browser's
   side panel. Describe what went wrong, add up to nine screenshots, point
-  things out on them with arrows, a pen or a box, blur what others
-  must not see, give a problem a priority, and click **Send to
-  support**: your email app opens with the report ready to paste. The report
-  stays while you move around Business Central or close the panel. Click the
-  BC Buddy logo in Business Central's top bar, or the BC Buddy icon in the
-  toolbar, and pick **Report a problem** or **Feedback or a suggestion**.
-  Off until you switch it on under **Help & feedback**; the address and
-  colour can come with your team's shared file.
+  things out on them with arrows, a pen or a box, blur what others must not
+  see, give a problem a priority, and click **Email**: your email
+  app opens with the report ready to paste. **Copy** and **Download** are
+  there too. The report stays while you move around Business Central or
+  close the panel. Click the BC Buddy logo in Business Central's top bar, or
+  the BC Buddy icon in the toolbar, and pick **Report a problem** or
+  **Feedback or a suggestion**. Off until you switch it on under **Help &
+  feedback**; the address can come with your team's shared file.
 
 ### Changed
 

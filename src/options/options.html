@@ -92,14 +92,12 @@
         </svg>
         <span data-i18n="navSettings">Settings</span>
       </button>
-      <!-- Not a section: help is the documentation site, in a new tab. -->
+      <!-- Not a section: the documentation site, in a new tab. -->
       <a class="nav__item" href="https://fvet.github.io/bcbuddy/" target="_blank" rel="noopener noreferrer">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="8" r="6.2"/>
-          <path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.5"/>
-          <circle cx="8" cy="11.4" r=".7" fill="currentColor" stroke="none"/>
+          <path d="M8 4.2C6.6 3.2 4.6 2.8 2.5 3v9.3c2.1-.2 4.1.2 5.5 1.2 1.4-1 3.4-1.4 5.5-1.2V3c-2.1-.2-4.1.2-5.5 1.2zM8 4.2v9.3"/>
         </svg>
-        <span data-i18n="navHelp">Help</span>
+        <span data-i18n="navDocs">Documentation</span>
         <svg class="nav__icon nav__external" viewBox="0 0 16 16" aria-hidden="true">
           <path d="M6.5 3.5h-3v9h9v-3M9.5 2.5h4v4M13.5 2.5 7.5 8.5"/>
         </svg>
@@ -358,18 +356,12 @@
           <input type="checkbox" class="toggle" id="feedbackEnabled">
         </label>
         <div id="feedbackConfig" hidden>
-          <label class="setting setting--wrap">
+          <label class="setting">
             <span class="setting__text">
-              <span class="setting__name" data-i18n="feedbackEmailLabel">Helpdesk email address</span>
+              <span class="setting__name" data-i18n="feedbackEmailLabel">Email</span>
             </span>
             <input type="email" id="feedbackEmail" spellcheck="false" maxlength="254"
                    placeholder="helpdesk@example.com">
-          </label>
-          <label class="setting">
-            <span class="setting__text">
-              <span class="setting__name" data-i18n="feedbackColorLabel">Colour</span>
-            </span>
-            <input type="color" id="feedbackColor" data-i18n-title="customColour">
           </label>
         </div>
       </div>

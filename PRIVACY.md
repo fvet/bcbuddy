@@ -16,8 +16,7 @@ Everything BC Buddy knows lives in `chrome.storage.local`, on your own machine:
 - your web client preferences (whether pages are maximized, and the dropdown
   size steps),
 - the widths you dragged Business Central's side panes to,
-- your Help & feedback settings (on or off, the helpdesk email address, the
-  panel colour),
+- your Help & feedback settings (on or off, the helpdesk email address),
 - the URL of a shared configuration file, if you configured one, plus the
   rules it returned and the timestamp of the last synchronisation.
 
@@ -49,8 +48,8 @@ screenshots, your description and the details of the page (environment,
 company, browser, screen size) stay in your browser while you work on the
 report: in the browser's session storage, so the report survives closing the
 panel, and is gone when you send it, throw it away or close the browser.
-*Send to support* opens your own email app and puts the report on your
-clipboard; *Save report* saves it as a file. BC Buddy itself sends the report
+*Email* opens your own email app and puts the report on your clipboard;
+*Copy* only puts it on your clipboard; *Download* saves it as a file. BC Buddy itself sends the report
 nowhere.
 
 ## Network requests

@@ -62,7 +62,6 @@
     page.el.feedbackConfig.hidden = !s.feedbackEnabled;
     // Not while someone is typing in it: a half-typed address is not saved yet.
     if (document.activeElement !== page.el.feedbackEmail) page.el.feedbackEmail.value = s.feedbackEmail;
-    page.el.feedbackColor.value = s.feedbackColor;
   };
 
   page.renderWebClient = function () {
@@ -403,7 +402,7 @@
       'resizePanesEnabled', 'hideFactBoxEnabled',
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
       'dropdownWidth', 'dropdownHeight',
-      'feedbackEnabled', 'feedbackConfig', 'feedbackEmail', 'feedbackColor'
+      'feedbackEnabled', 'feedbackConfig', 'feedbackEmail'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     bindLanguage();
@@ -524,11 +523,6 @@
         return;
       }
       state.settings.feedbackEmail = valid;
-      page.save();
-    });
-
-    el.feedbackColor.addEventListener('input', function () {
-      state.settings.feedbackColor = el.feedbackColor.value;
       page.save();
     });
 

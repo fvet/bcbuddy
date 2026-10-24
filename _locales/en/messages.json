@@ -600,8 +600,8 @@
     "message": "Environments",
     "description": "Navigation item leading to the rules, one per Business Central environment."
   },
-  "navHelp": {
-    "message": "Help",
+  "navDocs": {
+    "message": "Documentation",
     "description": "Last item in the options page navigation. It opens the BC Buddy documentation website in a new tab."
   },
   "navSettings": { "message": "Settings" },
@@ -814,12 +814,8 @@
     "description": "Master switch on the Help & feedback settings panel."
   },
   "feedbackEmailLabel": {
-    "message": "Helpdesk email address",
-    "description": "Label on the field where the user enters the support team's email address."
-  },
-  "feedbackColorLabel": {
-    "message": "Colour",
-    "description": "Label on the colour picker for the Help & feedback panel accent colour."
+    "message": "Email",
+    "description": "Label on the field where the user enters the support team's email address. Kept short: the field sits on the same line."
   },
   "bpTitle": {
     "message": "BC Buddy",
@@ -918,16 +914,28 @@
     "description": "Shown instead of the intro when the limit is hit. $1 is the limit."
   },
   "spSend": {
-    "message": "Send to support",
-    "description": "Primary button of the support panel."
+    "message": "Email",
+    "description": "Primary button of the support panel: opens the email app with the report on the clipboard."
+  },
+  "spSendHint": {
+    "message": "Open your email app with the report on the clipboard, ready to paste",
+    "description": "Tooltip of the Email button."
+  },
+  "spCopy": {
+    "message": "Copy",
+    "description": "Button that puts the report on the clipboard."
+  },
+  "spCopyHint": {
+    "message": "Put the report on the clipboard, to paste it anywhere",
+    "description": "Tooltip of the Copy button."
   },
   "spSaveReport": {
-    "message": "Save report",
-    "description": "Button in the done view that saves the report as a file."
+    "message": "Download",
+    "description": "Button that saves the report as an HTML file."
   },
   "spSaveReportHint": {
-    "message": "Save the report as a file instead of emailing it",
-    "description": "Tooltip of the save icon next to the send button."
+    "message": "Save the report as an HTML file",
+    "description": "Tooltip of the Download button."
   },
   "spEdit": {
     "message": "Draw on this screenshot",
@@ -1002,16 +1010,12 @@
     "description": "Last step in the done view."
   },
   "spDoneFallback": {
-    "message": "No email opened? Save the report and attach it to an email yourself.",
+    "message": "No email opened? Download the report and attach it to an email yourself.",
     "description": "Fallback text in the done view."
   },
   "spDoneWebmail": {
-    "message": "Using Gmail or Outlook on the web? Pictures often do not paste there: use Save report and attach the file.",
+    "message": "Using Gmail or Outlook on the web? Pictures often do not paste there: use Download and attach the file.",
     "description": "Note in the done view for webmail users."
-  },
-  "spCopyAgain": {
-    "message": "Copy again",
-    "description": "Button in the done view that puts the report on the clipboard again."
   },
   "spCopied": {
     "message": "Copied. Paste it with Ctrl+V.",
@@ -1020,6 +1024,10 @@
   "spCopyFailed": {
     "message": "Copying failed. The report was saved as a file instead: attach it to the email.",
     "description": "Status when the clipboard is not available."
+  },
+  "spCopyFailedPlain": {
+    "message": "Copying failed. Use Download and attach the file instead.",
+    "description": "Status when the Copy button cannot reach the clipboard."
   },
   "spSaved": {
     "message": "Saved to your Downloads folder.",

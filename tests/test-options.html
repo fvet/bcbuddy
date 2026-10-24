@@ -1479,9 +1479,9 @@ function assertNav() {
     document.getElementById('feedbackEmail').closest('.panel').dataset.panel, 'feedback');
   check('nav: no About panel any more',
     document.querySelector('.panel[data-panel="about"]'), null);
-  check('nav: help is a link, not a section', items[4].tagName, 'A');
-  check('nav: help is called Help',
-    items[4].textContent.trim(), chrome.i18n.getMessage('navHelp'));
+  check('nav: docs is a link, not a section', items[4].tagName, 'A');
+  check('nav: docs is called Documentation',
+    items[4].textContent.trim(), chrome.i18n.getMessage('navDocs'));
   check('nav: help opens in a new tab', items[4].getAttribute('target'), '_blank');
   check('nav: help gives the site no opener',
     items[4].getAttribute('rel'), 'noopener noreferrer');

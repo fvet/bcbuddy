@@ -3,10 +3,11 @@
  *
  * The start view opens it as a problem report (type Bug, with a priority) or
  * as feedback or a suggestion (type Improvement, no priority). Describe it, add screenshots of the tab in front (an area or
- * the whole visible page), draw on them, then one "Send to support" button:
- * the email app opens with the address and subject filled in and the full
- * report goes on the clipboard; the done view walks the user through the
- * paste, with copy-again and save-as-file fallbacks.
+ * the whole visible page), draw on them, then Email: the email app opens with
+ * the address and subject filled in and the full report goes on the
+ * clipboard; the done view walks the user through the paste. Copy puts the
+ * report on the clipboard only, Download saves it as an HTML file; both are
+ * also on the done view as fallbacks.
  *
  * The panel lives next to the page, so it is never in a screenshot and stays
  * open while the user moves around Business Central. Two steps need the page
@@ -105,6 +106,7 @@
     $('help-add-full').addEventListener('click', trusted(addScreen));
     $('help-send').addEventListener('click', trusted(sendReport));
     $('help-dl').addEventListener('click', trusted(downloadReport));
+    $('help-copy').addEventListener('click', trusted(copyReport));
     $('help-dl-done').addEventListener('click', trusted(function () {
       downloadFile(lastHtml);
       setStatus('help-done-status', t('spSaved'));
@@ -177,16 +179,6 @@
     // used, and without it nothing is (no address, the default colour).
     var s = BCBuddy.normalize(raw);
     cachedEmail = s.feedbackEmail || '';
-    // The default is the panel's own teal, which has a lighter shade in dark
-    // mode; only a colour someone picked overrules it.
-    var accent = s.feedbackColor;
-    if (accent && accent !== BCBuddy.DEFAULT_FEEDBACK_COLOR) {
-      document.body.style.setProperty('--accent', accent);
-      document.body.style.setProperty('--on-accent', BCBuddy.idealText(accent));
-    } else {
-      document.body.style.removeProperty('--accent');
-      document.body.style.removeProperty('--on-accent');
-    }
     $('help-noaddr').hidden = !!cachedEmail;
     updateButtons();
   }
@@ -323,6 +315,7 @@
     // above says so. Saving the report as a file stays possible.
     $('help-send').disabled = !ok || !cachedEmail;
     $('help-dl').disabled = !ok;
+    $('help-copy').disabled = !ok;
     $('help-add-area').disabled = !canShoot;
     $('help-add-full').disabled = !canShoot;
     $('help-notbc').hidden = here.webClient;
@@ -585,6 +578,16 @@
     if (!hasContent()) return;
     downloadFile(buildHtml(pageContext(), $('help-desc').value.trim()));
     setStatus('help-status', t('spSaved'));
+  }
+
+  /** The report on the clipboard, to paste wherever the user likes. */
+  function copyReport() {
+    if (!hasContent()) return;
+    copyToClipboard(buildHtml(pageContext(), $('help-desc').value.trim())).then(function () {
+      setStatus('help-status', t('spCopied'));
+    }, function () {
+      setStatus('help-status', t('spCopyFailedPlain'), true);
+    });
   }
 
   function showDone() {

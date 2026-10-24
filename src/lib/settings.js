@@ -12,10 +12,6 @@
   var OPEN_PANEL_KEY = 'openPanel';
   var EXPORT_APP = 'bc-buddy';
   var SCHEMA_VERSION = 2;
-  // Accent of the Help & feedback panel: the settings page's teal. Neutral
-  // on purpose: the panel is opened by someone who just hit an error, and a
-  // red box does not help.
-  var DEFAULT_FEEDBACK_COLOR = '#007a83';
   // RFC 5321 caps an address at 254 characters.
   var MAX_EMAIL_LENGTH = 254;
 
@@ -426,11 +422,6 @@
     return /^[^\s@<>()",;:?&=%\/\\]+@[^\s@<>()",;:?&=%\/\\]+$/.test(s) ? s : '';
   }
 
-  function feedbackColor(value) {
-    var s = str(value);
-    return s ? BCBuddy.toHex(s) : DEFAULT_FEEDBACK_COLOR;
-  }
-
   /**
    * The Help & feedback part of an import or a shared file: only what it names, each
    * value checked, so a file that leaves it out leaves the local choice alone.
@@ -447,17 +438,13 @@
       picked = picked || {};
       picked.feedbackEmail = feedbackEmail(data.feedbackEmail);
     }
-    if (str(data.feedbackColor)) {
-      picked = picked || {};
-      picked.feedbackColor = feedbackColor(data.feedbackColor);
-    }
     return picked;
   }
 
   /** Takes over what readFeedback() found. */
   function applyFeedback(settings, incoming) {
     if (!incoming) return;
-    ['feedbackEnabled', 'feedbackEmail', 'feedbackColor'].forEach(function (key) {
+    ['feedbackEnabled', 'feedbackEmail'].forEach(function (key) {
       if (key in incoming) settings[key] = incoming[key];
     });
   }
@@ -478,7 +465,6 @@
     WEB_CLIENT_KEYS.forEach(function (key) { result[key] = webClient[key]; });
     result.feedbackEnabled = bool(s.feedbackEnabled, false);
     result.feedbackEmail = feedbackEmail(s.feedbackEmail);
-    result.feedbackColor = feedbackColor(s.feedbackColor);
     if (hostedRules.length || hostedStyles.length) withDefaultStyle(hostedStyles, hostedRules);
     // Own rules may pick a shared style too, so those count as available.
     result.rules = rules;
@@ -627,7 +613,6 @@
     if (s.feedbackEnabled || s.feedbackEmail) {
       result.feedbackEnabled = s.feedbackEnabled;
       if (s.feedbackEmail) result.feedbackEmail = s.feedbackEmail;
-      result.feedbackColor = s.feedbackColor;
     }
     return result;
   }
@@ -1086,7 +1071,6 @@
   BCBuddy.SAMPLES_PATH = 'examples/bc-buddy.json';
   BCBuddy.applyWebClient = applyWebClient;
   BCBuddy.applySharedWebClient = applySharedWebClient;
-  BCBuddy.DEFAULT_FEEDBACK_COLOR = DEFAULT_FEEDBACK_COLOR;
   BCBuddy.applyFeedback = applyFeedback;
   BCBuddy.webClientDefaults = webClientDefaults;
   BCBuddy.webClientOf = webClientOf;
