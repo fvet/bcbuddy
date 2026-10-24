@@ -106,7 +106,7 @@
 
 .bcb-sp-eb-tool { width: 32px !important; background: transparent !important; color: #8a95a3 !important; }
 .bcb-sp-eb-tool:hover { background: rgba(255,255,255,0.1) !important; color: #ffffff !important; }
-.bcb-sp-eb-tool.bcb-sp-eb-on { background: #0f6cbd !important; color: #ffffff !important; }
+.bcb-sp-eb-tool.bcb-sp-eb-on { background: #007a83 !important; color: #ffffff !important; }
 
 .bcb-sp-eb-color {
   width: 22px !important; height: 22px !important;
@@ -120,13 +120,14 @@
 
 .bcb-sp-eb-sep { width: 1px !important; height: 20px !important; background: rgba(255, 255, 255, 0.12) !important; margin: 0 4px !important; flex-shrink: 0 !important; }
 
-/* Save carries a word: it is the one button a first-time user must find. */
+/* Save carries a word: it is the one button a first-time user must find.
+   The BC Buddy teal, as on the side panel's buttons. */
 .bcb-sp-eb-ok {
   padding: 0 12px 0 10px !important; gap: 6px !important;
-  background: #107c10 !important; color: #ffffff !important;
+  background: #007a83 !important; color: #ffffff !important;
   font: 600 13px/1 "Segoe UI", system-ui, Arial, sans-serif !important;
 }
-.bcb-sp-eb-ok:hover { background: #0d6b0d !important; }
+.bcb-sp-eb-ok:hover { background: #00676f !important; }
 
 .bcb-sp-eb-no { width: 32px !important; background: #2e3440 !important; color: #8a95a3 !important; }
 .bcb-sp-eb-no:hover { background: #c4314b !important; color: #ffffff !important; }

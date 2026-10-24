@@ -49,8 +49,8 @@ company, browser, screen size) stay in your browser while you work on the
 report: in the browser's session storage, so the report survives closing the
 panel, and is gone when you send it, throw it away or close the browser.
 *Email* opens your own email app and puts the report on your clipboard;
-*Copy* only puts it on your clipboard; *Download* saves it as a file. BC Buddy itself sends the report
-nowhere.
+*Copy* only puts it on your clipboard; *Download* saves it as a file, an
+email draft or a web page. BC Buddy itself sends the report nowhere.
 
 ## Network requests
 

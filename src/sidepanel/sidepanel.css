@@ -193,21 +193,29 @@ kbd {
 .btn:disabled { opacity: .45; cursor: default; }
 .btn.square { flex: none; width: 32px; padding: 0; }
 .btn.primary { border-color: var(--accent-color); background: var(--accent-color); color: var(--on-accent-color); font-weight: 600; }
-.btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
+.btn.primary:hover:not(:disabled) { background: var(--accent-color); filter: brightness(1.08); }
 
-/* Three per row. The remove and edit badges hang 7px outside each thumbnail,
-   so the gaps leave room for them. */
-.thumbs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px 14px;
-  padding: 7px 7px 4px 0;
+/* One screenshot per line: the thumbnail, and next to it a note that goes
+   with it into the report. The remove and edit badges hang 7px outside each
+   thumbnail; the padding leaves room for them. */
+.thumbs { display: flex; flex-direction: column; }
+.shot { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; }
+.shot + .shot { border-top: 1px solid var(--card-line); }
+.thumb { position: relative; flex: none; width: 104px; }
+.shot-note {
+  flex: 1;
+  min-width: 0;
+  height: 64px;
+  padding: 5px 8px;
+  resize: vertical;
+  font-size: 12.5px;
+  line-height: 1.4;
 }
-.thumb { position: relative; min-width: 0; }
+.shot-note::placeholder { color: var(--faint); }
 .thumb-img {
   display: block;
   width: 100%;
-  height: 56px;
+  height: 64px;
   object-fit: cover;
   border: 1px solid var(--card-line);
   border-radius: 5px;
@@ -302,6 +310,13 @@ kbd {
 }
 .dd-opt:hover, .dd-opt:focus-visible { background: var(--hover); outline: none; }
 .dd-opt[aria-checked="true"] { font-weight: 600; }
+/* The Download button's menu: opens upwards, the panel ends just below. */
+.dd.dl { flex: none; }
+.dd.dl.grow { flex: 1; }
+.dd.dl.grow > .btn { width: 100%; }
+.dd-menu.up { top: auto; bottom: calc(100% + 2px); left: auto; width: max-content; max-width: 280px; }
+.dd-opt-text { display: flex; flex-direction: column; gap: 1px; white-space: normal; }
+.dd-opt-note { font-size: 11.5px; color: var(--muted); }
 .prio-unset { color: var(--faint); }
 .prio-High { color: #ca5010; }
 .prio-Critical { color: #c4314b; font-weight: 700; }

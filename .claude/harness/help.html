@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Help panel harness</title>
+<link rel="stylesheet" href="../../src/sidepanel/sidepanel.css">
+<link rel="stylesheet" href="../../src/support/support-overlay.css">
+<style>
+  /* The side panel is ~360px wide; the rest stands in for the BC tab. */
+  html, body { height: 100%; }
+  body { display: flex; margin: 0; min-height: 0; }
+  #page { flex: 1; background: linear-gradient(135deg, #e8f1fb, #fdf3e7); padding: 24px; font: 14px Segoe UI; }
+  #panel { width: 360px; border-left: 1px solid #ccc; overflow: auto; background: var(--ground); }
+</style>
+<script>
+// Stub of the chrome.* APIs the side panel uses. The "tab" is this page:
+// captures draw #page, executeScript runs the function right here, where
+// support-overlay.js is loaded too.
+(function () {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '../../_locales/' + (new URLSearchParams(location.search).get('lang') || 'en') + '/messages.json', false); xhr.send();
+  var msgs = JSON.parse(xhr.responseText);
+  var local = { settings: { enabled: true, feedbackEnabled: true, feedbackEmail: 'help@example.com' } };
+  var session = {};
+  window.__log = [];
+  function area(store) {
+    return {
+      get: function (k) { var o = {}; if (typeof k === 'string') { if (k in store) o[k] = store[k]; } else Object.assign(o, store); return Promise.resolve(o); },
+      set: function (o) { Object.assign(store, JSON.parse(JSON.stringify(o))); return Promise.resolve(); },
+      remove: function (k) { delete store[k]; return Promise.resolve(); }
+    };
+  }
+  function evt() { var l = []; return { addListener: function (f) { l.push(f); }, fire: function () { var a = arguments; l.forEach(function (f) { f.apply(null, a); }); } }; }
+  window.chrome = {
+    i18n: {
+      getMessage: function (k, subs) { var m = msgs[k]; if (!m) return ''; var s = m.message; (subs || []).forEach(function (v, i) { s = s.split('$' + (i + 1)).join(v); }); return s; },
+      getUILanguage: function () { return 'en'; }
+    },
+    runtime: {
+      id: 'x', getURL: function (p) { return location.origin + '/' + String(p).replace(/^\//, ''); },
+      sendMessage: function (m) { __log.push(['runtime', m]); return Promise.resolve(null); },
+      connect: function () {
+        var onMsg = evt(), onDis = evt();
+        var port = { onMessage: onMsg, onDisconnect: onDis,
+          postMessage: function (m) { __log.push(['port', m]); if (m.type === 'hello') setTimeout(function () { onMsg.fire({ type: 'view', view: 'help' }); }, 10); },
+          disconnect: function () {} };
+        return port;
+      },
+      lastError: null
+    },
+    storage: { local: area(local), session: area(session), onChanged: evt() },
+    windows: { getCurrent: function () { return Promise.resolve({ id: 1 }); } },
+    tabs: {
+      query: function () { return Promise.resolve([{ id: 7, windowId: 1, url: 'https://businesscentral.dynamics.com/contoso.com/Production/?company=CRONUS&page=42', title: 'Sales Order 1001' }]); },
+      get: function () { return chrome.tabs.query({}).then(function (t) { return t[0]; }); },
+      sendMessage: function (id, m) { __log.push(['tab', m]); return Promise.resolve(m.type === 'bcb:support-context' ? { webClient: true, tenant: 'contoso.com', environment: 'Production', company: 'CRONUS' } : null); },
+      connect: function () { return { onMessage: evt(), onDisconnect: evt(), postMessage: function () {}, disconnect: function () {} }; },
+      getZoom: function () { return Promise.resolve(1); },
+      onZoomChange: evt(), onActivated: evt(), onUpdated: evt(),
+      captureVisibleTab: function () {
+        var c = document.createElement('canvas'); c.width = innerWidth; c.height = innerHeight;
+        var x = c.getContext('2d'); x.fillStyle = '#e8f1fb'; x.fillRect(0, 0, c.width, c.height);
+        x.fillStyle = '#c4314b'; x.font = '28px Segoe UI'; x.fillText('Sales Order 1001 - error here', 40, 80);
+        return Promise.resolve(c.toDataURL('image/png'));
+      }
+    },
+    scripting: {
+      insertCSS: function () { return Promise.resolve(); },
+      executeScript: function (o) {
+        __log.push(['exec', o.files || String(o.func).slice(0, 60)]);
+        if (o.files) return Promise.resolve([{ result: undefined }]);
+        return Promise.resolve(o.func.apply(null, o.args || [])).then(function (r) { return [{ result: r }]; });
+      }
+    }
+  };
+})();
+</script>
+</head>
+<body>
+<div id="page"><h2>Business Central (stand-in)</h2><p>The tab in front.</p></div>
+<div id="panel"></div>
+<script>
+// Move the side panel's body markup in from the real file, so the harness
+// always shows what ships.
+(function () {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '../../src/sidepanel/sidepanel.html', false); xhr.send();
+  var doc = new DOMParser().parseFromString(xhr.responseText, 'text/html');
+  var panel = document.getElementById('panel');
+  Array.prototype.forEach.call(doc.body.children, function (n) { if (n.tagName !== 'SCRIPT') panel.appendChild(document.importNode(n, true)); });
+  ['../../src/lib/i18n.js', '../../src/lib/match.js', '../../src/lib/settings.js', '../../src/lib/shortcuts.js', '../../src/sidepanel/help.js', '../../src/sidepanel/sidepanel.js', '../../src/support/support-overlay.js']
+    .forEach(function (src) { var s = document.createElement('script'); s.src = src; s.async = false; document.body.appendChild(s); });
+})();
+</script>
+</body>
+</html>

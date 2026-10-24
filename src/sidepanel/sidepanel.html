@@ -128,10 +128,23 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
           <span data-i18n="spCopy">Copy</span>
         </button>
-        <button type="button" class="btn" id="help-dl" disabled data-i18n-title="spSaveReportHint">
-          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v8M4.5 7 7.5 10 10.5 7M2.5 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span data-i18n="spSaveReport">Download</span>
-        </button>
+        <div class="dd dl">
+          <button type="button" class="btn" id="help-dl" aria-haspopup="menu" aria-expanded="false" data-i18n-title="spSaveReportHint">
+            <svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v8M4.5 7 7.5 10 10.5 7M2.5 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="spSaveReport">Download</span>
+            <svg class="dd-caret" width="8" height="5" viewBox="0 0 8 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 1 4 4 7 1"/></svg>
+          </button>
+          <div class="dd-menu up" id="help-dl-menu" role="menu" hidden>
+            <button type="button" class="dd-opt" role="menuitem" data-value="eml">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7 12 13 2 7"/></svg>
+              <span class="dd-opt-text"><span data-i18n="spDlEml">Email draft (.eml)</span><span class="dd-opt-note" data-i18n="spDlEmlNote">Opens as a new email, screenshots included</span></span>
+            </button>
+            <button type="button" class="dd-opt" role="menuitem" data-value="html">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m10 13-2 2 2 2M14 13l2 2-2 2"/></svg>
+              <span class="dd-opt-text"><span data-i18n="spDlHtml">Web page (.html)</span><span class="dd-opt-note" data-i18n="spDlHtmlNote">To open in the browser or attach to an email</span></span>
+            </button>
+          </div>
+        </div>
       </div>
       <p class="status" id="help-status" role="status"></p>
     </div>
@@ -160,10 +173,23 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
           <span data-i18n="spCopy">Copy</span>
         </button>
-        <button type="button" class="btn grow" id="help-dl-done" data-i18n-title="spSaveReportHint">
-          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v8M4.5 7 7.5 10 10.5 7M2.5 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span data-i18n="spSaveReport">Download</span>
-        </button>
+        <div class="dd dl grow">
+          <button type="button" class="btn grow" id="help-dl-done" aria-haspopup="menu" aria-expanded="false" data-i18n-title="spSaveReportHint">
+            <svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v8M4.5 7 7.5 10 10.5 7M2.5 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="spSaveReport">Download</span>
+            <svg class="dd-caret" width="8" height="5" viewBox="0 0 8 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 1 4 4 7 1"/></svg>
+          </button>
+          <div class="dd-menu up" id="help-dl-done-menu" role="menu" hidden>
+            <button type="button" class="dd-opt" role="menuitem" data-value="eml">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7 12 13 2 7"/></svg>
+              <span class="dd-opt-text"><span data-i18n="spDlEml">Email draft (.eml)</span><span class="dd-opt-note" data-i18n="spDlEmlNote">Opens as a new email, screenshots included</span></span>
+            </button>
+            <button type="button" class="dd-opt" role="menuitem" data-value="html">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m10 13-2 2 2 2M14 13l2 2-2 2"/></svg>
+              <span class="dd-opt-text"><span data-i18n="spDlHtml">Web page (.html)</span><span class="dd-opt-note" data-i18n="spDlHtmlNote">To open in the browser or attach to an email</span></span>
+            </button>
+          </div>
+        </div>
       </div>
       <button type="button" class="btn primary" id="help-new" data-i18n="spNewReport">New report</button>
       <p class="status" id="help-done-status" role="status"></p>

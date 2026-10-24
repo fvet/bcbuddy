@@ -211,14 +211,16 @@
     return new Promise(function (resolve) {
       var annotations = [];
       var tool    = 'arrow';
-      var color   = '#e31f26';
+      var color   = '#c4314b';
       var drawing = false;
       var arrowStart = null;
       var freePath   = null;
       var colPop     = null;
       var cleared    = null;
 
-      var COLOURS = ['#f5c400', '#222222', '#2563eb', '#2da44e', '#ff8c00', '#e31f26'];
+      // Six of the environment colours (PALETTE in settings.js), so a
+      // drawing looks like the rest of BC Buddy.
+      var COLOURS = ['#c4314b', '#d83b01', '#eaa300', '#107c10', '#038387', '#0f6cbd'];
 
       var ed = document.createElement('div');
       ed.id = 'bcb-sp-ed';
@@ -445,24 +447,34 @@
     });
   }
 
+  // A slim head with a notched back and rounded corners, and a soft shadow
+  // that keeps it readable on a busy screen.
   function paintArrow(ctx, x1, y1, x2, y2, color) {
-    var dist    = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-    var headLen = Math.max(18, Math.min(34, dist * 0.3));
-    var angle   = Math.atan2(y2 - y1, x2 - x1);
-    var shaftX  = x2 - Math.cos(angle) * headLen * 0.55;
-    var shaftY  = y2 - Math.sin(angle) * headLen * 0.55;
+    var dx = x2 - x1, dy = y2 - y1;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    var ux = dx / dist, uy = dy / dist;        // along the arrow
+    var nx = -uy, ny = ux;                     // across it
+    var head  = Math.max(14, Math.min(26, dist * 0.25));
+    var half  = head * 0.42;
+    var baseX = x2 - ux * head, baseY = y2 - uy * head;
+    var notchX = x2 - ux * head * 0.72, notchY = y2 - uy * head * 0.72;
 
     ctx.save();
     ctx.strokeStyle = color; ctx.fillStyle = color;
-    ctx.lineWidth = 4.5; ctx.lineCap = 'round';
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+    ctx.lineWidth = 3.5;
     ctx.beginPath();
-    ctx.moveTo(x1, y1); ctx.lineTo(shaftX, shaftY);
+    ctx.moveTo(x1, y1); ctx.lineTo(notchX, notchY);
     ctx.stroke();
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
-    ctx.closePath(); ctx.fill();
+    ctx.lineTo(baseX + nx * half, baseY + ny * half);
+    ctx.lineTo(notchX, notchY);
+    ctx.lineTo(baseX - nx * half, baseY - ny * half);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.restore();
   }
 

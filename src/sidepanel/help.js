@@ -3,11 +3,12 @@
  *
  * The start view opens it as a problem report (type Bug, with a priority) or
  * as feedback or a suggestion (type Improvement, no priority). Describe it, add screenshots of the tab in front (an area or
- * the whole visible page), draw on them, then Email: the email app opens with
- * the address and subject filled in and the full report goes on the
- * clipboard; the done view walks the user through the paste. Copy puts the
- * report on the clipboard only, Download saves it as an HTML file; both are
- * also on the done view as fallbacks.
+ * the whole visible page), draw on them and give each a note, then Email: the
+ * email app opens with the address and subject filled in and the full report
+ * goes on the clipboard; the done view walks the user through the paste. Copy
+ * puts the report on the clipboard only. Download saves it as an email draft
+ * (.eml, the screenshots inside, which Outlook opens as a new email) or as an
+ * HTML page; both are also on the done view as fallbacks.
  *
  * The panel lives next to the page, so it is never in a screenshot and stays
  * open while the user moves around Business Central. Two steps need the page
@@ -29,7 +30,7 @@
 
   var BCBuddy = self.BCBuddy;
 
-  // Nine fills three rows of three thumbnails exactly.
+  // Enough to walk through a problem, few enough for a mail server.
   var MAX_SHOTS = 9;
   // Nine whole-screen PNGs from a large monitor run to tens of megabytes,
   // more than a mail server accepts. A helpdesk reads a BC screen fine at
@@ -41,6 +42,7 @@
   var MAX_IMAGE_CHARS = 24 * 1024 * 1024;
   var IMAGE_RE = /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+=*$/;
   var MAX_TEXT = 300;
+  var MAX_NOTE = 2000;
   var SAVE_DELAY_MS = 400;
 
   var TYPES = ['Bug', 'Improvement'];
@@ -105,12 +107,9 @@
     $('help-add-area').addEventListener('click', trusted(addArea));
     $('help-add-full').addEventListener('click', trusted(addScreen));
     $('help-send').addEventListener('click', trusted(sendReport));
-    $('help-dl').addEventListener('click', trusted(downloadReport));
     $('help-copy').addEventListener('click', trusted(copyReport));
-    $('help-dl-done').addEventListener('click', trusted(function () {
-      downloadFile(lastHtml);
-      setStatus('help-done-status', t('spSaved'));
-    }));
+    dropdown($('help-dl'), $('help-dl-menu'), function (v) { downloadReport(v, 'help-status'); });
+    dropdown($('help-dl-done'), $('help-dl-done-menu'), function (v) { downloadReport(v, 'help-done-status'); });
     $('help-copy-again').addEventListener('click', trusted(function () {
       copyToClipboard(lastHtml).then(
         function () { setStatus('help-done-status', t('spCopied')); },
@@ -209,7 +208,9 @@
     if (!d || typeof d !== 'object') return;
     if (Array.isArray(d.shots)) {
       shots = d.shots.filter(function (s) { return s && validImage(s.dataUrl); }).slice(0, MAX_SHOTS)
-        .map(function (s) { return { dataUrl: s.dataUrl, title: text(s.title), url: text(s.url, 4096) }; });
+        .map(function (s) {
+          return { dataUrl: s.dataUrl, title: text(s.title), url: text(s.url, 4096), note: text(s.note, MAX_NOTE) };
+        });
     }
     if (typeof d.desc === 'string') $('help-desc').value = d.desc.slice(0, 20000);
     if (TYPES.indexOf(d.type) !== -1) setType(d.type);
@@ -268,8 +269,11 @@
   }
 
   function closeMenus() {
-    $('help-prio-menu').hidden = true;
-    $('help-prio-btn').setAttribute('aria-expanded', 'false');
+    [['help-prio-btn', 'help-prio-menu'], ['help-dl', 'help-dl-menu'], ['help-dl-done', 'help-dl-done-menu']]
+      .forEach(function (pair) {
+        $(pair[1]).hidden = true;
+        $(pair[0]).setAttribute('aria-expanded', 'false');
+      });
   }
 
   function setType(val) {
@@ -333,6 +337,7 @@
     $('help-add-lbl').textContent = t(shots.length ? 'spAddAnotherShot' : 'spAddShot');
 
     shots.forEach(function (shot, i) {
+      var row  = document.createElement('div'); row.className = 'shot';
       var wrap = document.createElement('div'); wrap.className = 'thumb';
       var img  = document.createElement('img');
       img.src = shot.dataUrl; img.alt = t('spShotAlt', i + 1); img.className = 'thumb-img';
@@ -352,7 +357,17 @@
         renderThumbs();
       }));
       wrap.appendChild(img); wrap.appendChild(edit); wrap.appendChild(del);
-      box.appendChild(wrap);
+      // The note goes with this screenshot into the report; left empty, the
+      // report shows the screenshot alone.
+      var note = document.createElement('textarea');
+      note.className = 'field shot-note';
+      note.maxLength = MAX_NOTE;
+      note.placeholder = t('spShotNote');
+      note.setAttribute('aria-label', t('spShotNoteLabel', i + 1));
+      note.value = shot.note || '';
+      note.addEventListener('input', function () { shot.note = note.value; saveLater(); });
+      row.appendChild(wrap); row.appendChild(note);
+      box.appendChild(row);
     });
 
     updateButtons();
@@ -457,7 +472,7 @@
   function addShot(dataUrl, from) {
     shrink(dataUrl, function (small) {
       if (shots.length >= MAX_SHOTS) return;
-      shots.push({ dataUrl: small, title: from.title, url: from.url });
+      shots.push({ dataUrl: small, title: from.title, url: from.url, note: '' });
       renderThumbs();
     });
   }
@@ -545,11 +560,15 @@
     }
   }
 
-  function openMailto(ctx, toEmail) {
+  function subjectLine(ctx) {
     var env     = ctx && ctx.environment ? ' – ' + ctx.environment : '';
     var prioTag = priority ? '[' + priority + '] ' : '';
     var typeTag = type ? type + ' - ' : '';
-    var subject = encodeURIComponent(prioTag + typeTag + t('spSubject') + env);
+    return prioTag + typeTag + t('spSubject') + env;
+  }
+
+  function openMailto(ctx, toEmail) {
+    var subject = encodeURIComponent(subjectLine(ctx));
     var body    = encodeURIComponent(t('spMailBody'));
     var a = document.createElement('a');
     a.href = 'mailto:' + (toEmail || '') + '?subject=' + subject + '&body=' + body;
@@ -557,27 +576,98 @@
   }
 
   /** bc-support-request-20260913-141502.html: one file per report, nothing overwritten. */
-  function reportFileName() {
+  function reportFileName(ext) {
     var d = new Date();
     function two(n) { return (n < 10 ? '0' : '') + n; }
     return 'bc-support-request-' +
       d.getFullYear() + two(d.getMonth() + 1) + two(d.getDate()) + '-' +
-      two(d.getHours()) + two(d.getMinutes()) + two(d.getSeconds()) + '.html';
+      two(d.getHours()) + two(d.getMinutes()) + two(d.getSeconds()) + '.' + (ext || 'html');
   }
 
-  function downloadFile(html) {
-    var blob = new Blob([html], { type: 'text/html' });
+  function downloadFile(content, ext) {
+    var blob = new Blob([content], { type: ext === 'eml' ? 'message/rfc822' : 'text/html' });
     var url  = URL.createObjectURL(blob);
     var a    = document.createElement('a');
-    a.href = url; a.download = reportFileName();
+    a.href = url; a.download = reportFileName(ext);
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
-  function downloadReport() {
-    if (!hasContent()) return;
-    downloadFile(buildHtml(pageContext(), $('help-desc').value.trim()));
-    setStatus('help-status', t('spSaved'));
+  /** As an email draft (eml) or a web page (html), from the Download menu. */
+  function downloadReport(kind, statusId) {
+    var desc = $('help-desc').value.trim();
+    if (!shots.length && !desc) return;
+    var ctx = pageContext();
+    if (kind === 'eml') {
+      downloadFile(buildEml(ctx, desc), 'eml');
+      setStatus(statusId, t('spSavedEml'));
+    } else {
+      downloadFile(buildHtml(ctx, desc), 'html');
+      setStatus(statusId, t('spSaved'));
+    }
+  }
+
+  // ------------------------------------------------------------------ eml
+
+  /*
+   * An unsent email as one MIME file: X-Unsent makes Outlook open it as a
+   * new email to send, not as one received. The report is the HTML part and
+   * each screenshot an inline image it points at with cid:, so the pictures
+   * arrive even where pasting into webmail loses them. Every header value is
+   * fixed, the address normalize() let through (no spaces, no line breaks),
+   * or base64 in an encoded word, so nothing from the page can add a header
+   * or a part.
+   */
+  var CRLF = '\r\n';
+
+  function base64Utf8(s) {
+    var bytes = new TextEncoder().encode(s), bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(bin);
+  }
+
+  /** Base64 in lines of 76, as MIME wants. */
+  function wrap76(b64) {
+    return b64.replace(/.{76}/g, '$&' + CRLF);
+  }
+
+  function buildEml(ctx, desc) {
+    var boundary = 'bcb-' + Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(12)),
+      function (b) { return (b < 16 ? '0' : '') + b.toString(16); }).join('');
+    var images = [];
+    var html = buildHtml(ctx, desc, function (shot, i) {
+      var m = /^data:(image\/(?:png|jpeg));base64,([A-Za-z0-9+/]+=*)$/.exec(shot.dataUrl);
+      if (!m) return '';
+      var name = 'screenshot-' + (i + 1) + (m[1] === 'image/png' ? '.png' : '.jpg');
+      var cid  = 'shot' + (i + 1) + '@bcbuddy';
+      images.push([
+        '--' + boundary,
+        'Content-Type: ' + m[1] + '; name="' + name + '"',
+        'Content-Transfer-Encoding: base64',
+        'Content-ID: <' + cid + '>',
+        'Content-Disposition: inline; filename="' + name + '"',
+        '',
+        wrap76(m[2])
+      ].join(CRLF));
+      return 'cid:' + cid;
+    });
+    var head = [];
+    if (cachedEmail) head.push('To: ' + cachedEmail);
+    head.push(
+      'Subject: =?UTF-8?B?' + base64Utf8(subjectLine(ctx)) + '?=',
+      'X-Unsent: 1',
+      'MIME-Version: 1.0',
+      'Content-Type: multipart/related; type="text/html"; boundary="' + boundary + '"'
+    );
+    return head.join(CRLF) + CRLF + CRLF + [
+      '--' + boundary,
+      'Content-Type: text/html; charset=utf-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      wrap76(base64Utf8(html))
+    ].concat(images).join(CRLF) + CRLF + '--' + boundary + '--' + CRLF;
   }
 
   /** The report on the clipboard, to paste wherever the user likes. */
@@ -661,7 +751,7 @@
    * a mail editor. Type and priority go in the subject only; the system line
    * sits after the screenshots, where it does not get in the way.
    */
-  function buildHtml(ctx, desc) {
+  function buildHtml(ctx, desc, srcFor) {
     var p = 'margin:0 0 6px;font-size:13px;line-height:1.5';
     var head = '';
     if (ctx && ctx.environment) head += '<p style="' + p + '"><b>' + esc(t('labelEnvironment')) + ':</b> ' + esc(ctx.environment) + '</p>';
@@ -670,15 +760,20 @@
     var body = '<p style="' + p + ';margin-top:14px"><b>' + esc(t('spReportDescription')) + '</b></p>' +
       '<p style="' + p + ';margin-bottom:24px">' + (desc ? esc(desc).replace(/\n/g, '<br>') : '—') + '</p>';
 
-    var imgs = shots.map(function (shot) {
+    var imgs = shots.map(function (shot, i) {
+      var src = srcFor ? srcFor(shot, i) : shot.dataUrl;
+      if (!src) return '';
       var href = /^https?:\/\//i.test(shot.url) ? shot.url : '';
       var link = shot.title
         ? '<p style="margin:0 0 6px">' + (href
           ? '<a href="' + esc(href) + '" style="color:#0f6cbd;font-weight:600;text-decoration:none">' + esc(shot.title) + '</a>'
           : '<b>' + esc(shot.title) + '</b>') + '</p>'
         : '';
-      return '<div style="margin-bottom:24px">' + link +
-        '<img src="' + shot.dataUrl + '" style="max-width:100%;border:1px solid #d9dde3;border-radius:6px;display:block">' +
+      var note = shot.note && shot.note.trim()
+        ? '<p style="' + p + '">' + esc(shot.note.trim()).replace(/\n/g, '<br>') + '</p>'
+        : '';
+      return '<div style="margin-bottom:24px">' + link + note +
+        '<img src="' + esc(src) + '" style="max-width:100%;border:1px solid #d9dde3;border-radius:6px;display:block">' +
         '</div>';
     }).join('');
 

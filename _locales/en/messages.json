@@ -934,8 +934,24 @@
     "description": "Button that saves the report as an HTML file."
   },
   "spSaveReportHint": {
-    "message": "Save the report as an HTML file",
+    "message": "Save the report as an email draft or a web page",
     "description": "Tooltip of the Download button."
+  },
+  "spDlEml": {
+    "message": "Email draft (.eml)",
+    "description": "Download menu: save the report as an unsent email with the screenshots inside."
+  },
+  "spDlEmlNote": {
+    "message": "Opens in Outlook as a new email, screenshots included",
+    "description": "Second line under the email draft choice."
+  },
+  "spDlHtml": {
+    "message": "Web page (.html)",
+    "description": "Download menu: save the report as an HTML page."
+  },
+  "spDlHtmlNote": {
+    "message": "To open in the browser or attach to an email",
+    "description": "Second line under the web page choice."
   },
   "spEdit": {
     "message": "Draw on this screenshot",
@@ -948,6 +964,14 @@
   "spShotAlt": {
     "message": "Screenshot $1",
     "description": "Alt text of a thumbnail. $1 is its number."
+  },
+  "spShotNote": {
+    "message": "Note (optional)",
+    "description": "Placeholder of the note field next to each screenshot."
+  },
+  "spShotNoteLabel": {
+    "message": "Note for screenshot $1",
+    "description": "Accessible name of the note field. $1 is the screenshot number."
   },
   "spCaptureFailed": {
     "message": "Could not take the screenshot. Please try again.",
@@ -1010,7 +1034,7 @@
     "description": "Last step in the done view."
   },
   "spDoneFallback": {
-    "message": "No email opened? Download the report and attach it to an email yourself.",
+    "message": "No email opened? Use Download, Email draft (.eml), and open the file.",
     "description": "Fallback text in the done view."
   },
   "spDoneWebmail": {
@@ -1032,6 +1056,10 @@
   "spSaved": {
     "message": "Saved to your Downloads folder.",
     "description": "Status after saving the report as a file."
+  },
+  "spSavedEml": {
+    "message": "Saved to your Downloads folder. Open the file to get the email.",
+    "description": "Status after saving the email draft."
   },
   "spDiscardConfirm": {
     "message": "Throw away this report?",
