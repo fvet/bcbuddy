@@ -18,7 +18,7 @@ Fini de cliquer sur les mêmes boutons à chaque page.
 
 Vos choix priment : remettez une page en mode étroit, et BC Buddy la laisse ainsi.
 
-Envie de plus ? Activez les lignes alternées, un panneau avec les raccourcis clavier de la page où vous êtes, masquez le volet Récapitulatif ou la cloche des notifications, ou désactivez les animations. Chaque amélioration a son propre interrupteur.
+Envie de plus ? Activez les lignes alternées, un panneau latéral avec les raccourcis clavier de la page où vous êtes, masquez le volet Récapitulatif ou la cloche des notifications, ou désactivez les animations. Chaque amélioration a son propre interrupteur.
 
 🎨 Ne validez plus jamais dans le mauvais environnement
 

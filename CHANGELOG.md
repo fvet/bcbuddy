@@ -29,6 +29,14 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   Buddy now reads it from the page, for `{company}` and for rules on
   **Company**.
 
+### Changed
+
+- **Keyboard shortcuts in a side panel.** The keyboard icon in the top bar
+  now opens the shortcuts in the browser's side panel, next to Business
+  Central instead of on top of it. It follows you from page to page, has a
+  gear for the BC Buddy settings, and closes by itself when you leave
+  Business Central.
+
 ### Fixed
 
 - **No red on hover in the top bar.** Pointing at the **Environment** button

@@ -51,7 +51,7 @@ the settings page.
 | <img src="icons/settings/resize-panes.svg" width="18" height="18" alt=""> **Resize panes** | Drag Help, Copilot, Page Inspection and the Personalization field list wider or narrower | On |
 | <img src="icons/settings/week-numbers.svg" width="18" height="18" alt=""> **Week numbers in the date picker** | Business Central's own week numbers in the calendar of a date field; Shift+Home turns them off | On |
 | <img src="icons/settings/highlight-row.svg" width="18" height="18" alt=""> **Highlight the current line** | The line you are on in a journal or order stands out | On |
-| <img src="icons/settings/shortcuts.svg" width="18" height="18" alt=""> **Keyboard shortcuts** | A keyboard icon in the top bar that shows the shortcuts for where you are | Off |
+| <img src="icons/settings/shortcuts.svg" width="18" height="18" alt=""> **Keyboard shortcuts** | A keyboard icon in the top bar that opens the shortcuts for where you are in a side panel | Off |
 | <img src="icons/settings/stripe-rows.svg" width="18" height="18" alt=""> **Striped rows** | Every other row in a list a light grey | Off |
 | <img src="icons/settings/hide-fact-box.svg" width="18" height="18" alt=""> **Hide the FactBox pane** | Pages open without the FactBox pane on the right, so the page gets the room | Off |
 | <img src="icons/settings/hide-notifications.svg" width="18" height="18" alt=""> **Hide the notifications icon** | No bell in the top bar | Off |
@@ -77,7 +77,7 @@ exactly alike. BC Buddy colours the bar at the top of Business Central, with
 your own text, and can add a bar above it, a coloured frame, a banner, a
 marked tab title and a coloured tab icon.
 
-![The Sales Orders list in Business Central with a green bar reading "CRONUS BE (Production)", a green frame around the window and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts panel is open on the right](store/screenshot-4-sales-orders-1280x800.png)
+![The Sales Orders list in Business Central with a green top bar, a green frame around the page and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts side panel is open on the right](store/screenshot-4-sales-orders-1280x800.png)
 
 You set this up under **Environments** on the settings page:
 

@@ -135,13 +135,52 @@ chrome.storage.onChanged.addListener(function (changes, area) {
 // takes one from Business Central. Only the tab's top frame listens.
 chrome.commands.onCommand.addListener(function (command, tab) {
   if (command !== 'show-shortcuts' || !tab || tab.id === undefined) return;
-  chrome.tabs.sendMessage(tab.id, { type: 'bcb:toggle-shortcuts' }, { frameId: 0 })
-    .catch(function () { /* no BC Buddy in that tab */ });
+  toggleSidePanel(tab).then(function (ok) {
+    if (ok) return;
+    return chrome.tabs.sendMessage(tab.id, { type: 'bcb:toggle-shortcuts' }, { frameId: 0 });
+  }).catch(function () { /* no BC Buddy in that tab */ });
 });
+
+// The keyboard shortcuts side panel (src/sidepanel/) open in each window, by
+// window id: the port it connected with. Only our own extension pages count.
+var sidePanels = {};
+
+chrome.runtime.onConnect.addListener(function (port) {
+  if (port.name !== 'bcb-sidepanel' || !isExtensionPage(port.sender)) return;
+  var windowId = null;
+  port.onMessage.addListener(function (message) {
+    if (!message || message.type !== 'hello' || typeof message.windowId !== 'number') return;
+    windowId = message.windowId;
+    sidePanels[windowId] = port;
+  });
+  port.onDisconnect.addListener(function () {
+    if (windowId !== null && sidePanels[windowId] === port) delete sidePanels[windowId];
+  });
+});
+
+/**
+ * Opens the shortcuts side panel in the tab's window, or closes it there
+ * when it is open. sidePanel.open() only works during a click or a key
+ * press, so it is called straight away, before anything asynchronous.
+ * Resolves false when the browser has no side panel to open.
+ */
+function toggleSidePanel(tab) {
+  var port = sidePanels[tab.windowId];
+  if (port) {
+    try {
+      port.postMessage({ type: 'close' });
+      return Promise.resolve(true);
+    } catch (e) { delete sidePanels[tab.windowId]; }
+  }
+  if (!chrome.sidePanel || !chrome.sidePanel.open) return Promise.resolve(false);
+  return chrome.sidePanel.open({ windowId: tab.windowId })
+    .then(function () { return true; }, function () { return false; });
+}
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
-  // The three messages a content script may send: Open in a new tab, the
+  // The four messages a content script may send: the keyboard icon toggling
+  // the side panel, Open in a new tab, the
   // Settings link in BC's gear menu (gearmenu.js), which can only ask for our
   // own options page, and the texts of the language picked on the options
   // page, which are our own packaged files (see i18n.js).
@@ -153,6 +192,13 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (message.type === 'bcb:open-tab') {
     openTab(message, sender);
     return;
+  }
+  // The keyboard icon in BC's top bar, from a tab's top frame.
+  if (message.type === 'bcb:toggle-side-panel') {
+    var tab = sender && sender.tab;
+    if (!tab || tab.windowId === undefined || sender.id !== chrome.runtime.id || sender.frameId !== 0) return;
+    toggleSidePanel(tab).then(function (ok) { sendResponse({ ok: ok }); });
+    return true; // async response
   }
   if (message.type === 'bcb:open-options') {
     if (sender && sender.id === chrome.runtime.id) openOptions('webclient');

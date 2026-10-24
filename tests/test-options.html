@@ -177,7 +177,7 @@ var FILES = [
   'src/lib/weeknumbers.js', 'src/lib/gearmenu.js', 'src/lib/shortcuts.js',
   'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
-  'src/options/options-hosted.js', 'src/options/options.js'
+  'src/options/options-hosted.js', 'src/options/options.js', 'src/sidepanel/sidepanel.js'
 ];
 
 Promise.all(FILES.map(function (f) {
@@ -343,7 +343,7 @@ function messageText(locale, key) {
 }
 
 function assertMessages() {
-  var sources = FILES.concat(['src/lib/i18n.js', 'src/options/options.html', 'manifest.json']);
+  var sources = FILES.concat(['src/lib/i18n.js', 'src/options/options.html', 'src/sidepanel/sidepanel.html', 'manifest.json']);
   return localeFolders().then(function (codes) {
     return Promise.all([
       fetch(ROOT + 'manifest.json').then(function (r) { return r.json(); }),

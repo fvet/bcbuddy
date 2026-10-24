@@ -40,7 +40,7 @@ window, a banner, a marked tab title and a coloured tab icon. You choose the col
 company or per customer.
 
 <figure markdown>
-![The Sales Orders list in Business Central with a green bar reading "CRONUS BE (Production)", a green frame around the window and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts panel is open on the right](assets/screenshot-4-sales-orders-1280x800.png)
+![The Sales Orders list in Business Central with a green top bar, a green frame around the page and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts side panel is open on the right](assets/screenshot-4-sales-orders-1280x800.png)
 <figcaption>Production marked in green: the bar at the top, a frame and a corner banner.</figcaption>
 </figure>
 

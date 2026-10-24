@@ -761,6 +761,10 @@
     "message": "All keyboard shortcuts",
     "description": "Link to Microsoft's article with every Business Central keyboard shortcut."
   },
+  "scPanelEmpty": {
+    "message": "Open a Business Central page to see its shortcuts.",
+    "description": "Shown in the browser's side panel when the tab in front is not Business Central, or is still loading."
+  },
   "gearMenuSettings": {
     "message": "Settings",
     "description": "Link under the BC Buddy heading in Business Central's gear menu (Settings pane). Opens the options page."
