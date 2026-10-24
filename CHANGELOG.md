@@ -31,6 +31,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Fixed
 
+- **No red on hover in the top bar.** Pointing at the **Environment** button
+  in a coloured top bar showed Business Central's own red. It now keeps the
+  rule's colour.
 - **Readable banner text.** On a see-through banner or corner ribbon, the text
   is now black or white for the colour you actually see. Before, a dark colour
   at half opacity got white text on what looked like light pink.
