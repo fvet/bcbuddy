@@ -216,6 +216,7 @@
       var arrowStart = null;
       var freePath   = null;
       var colPop     = null;
+      var cleared    = null;
 
       var COLOURS = ['#f5c400', '#222222', '#2563eb', '#2da44e', '#ff8c00', '#e31f26'];
 
@@ -251,11 +252,18 @@
       var btnDraw = toolBtn('bcb-sp-eb-tool', t('spToolPen'),
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>');
 
-      [btnArrow, btnDraw].forEach(function (btn, i) {
-        btn.addEventListener('click', function () {
-          tool = i === 0 ? 'arrow' : 'draw';
-          btnArrow.classList.toggle('bcb-sp-eb-on', i === 0);
-          btnDraw.classList.toggle('bcb-sp-eb-on',  i === 1);
+      var btnBox = toolBtn('bcb-sp-eb-tool', t('spToolBox'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/></svg>');
+      var btnBlur = toolBtn('bcb-sp-eb-tool', t('spToolBlur'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="4" height="4" rx="0.5"/><rect x="10" y="4" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="16" y="4" width="4" height="4" rx="0.5"/><rect x="4" y="10" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="10" y="10" width="4" height="4" rx="0.5"/><rect x="16" y="10" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="4" y="16" width="4" height="4" rx="0.5"/><rect x="10" y="16" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="16" y="16" width="4" height="4" rx="0.5"/></svg>');
+
+      var TOOLS = [['arrow', btnArrow], ['draw', btnDraw], ['box', btnBox], ['blur', btnBlur]];
+      TOOLS.forEach(function (entry) {
+        entry[1].addEventListener('click', function () {
+          tool = entry[0];
+          TOOLS.forEach(function (other) {
+            other[1].classList.toggle('bcb-sp-eb-on', other[0] === tool);
+          });
         });
       });
 
@@ -302,7 +310,25 @@
 
       var btnUndo = toolBtn('bcb-sp-eb-tool', t('spUndo'),
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>');
-      btnUndo.addEventListener('click', function () { annotations.pop(); render(); });
+      btnUndo.addEventListener('click', undo);
+
+      var btnClear = toolBtn('bcb-sp-eb-tool', t('spClear'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L11 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>');
+      btnClear.addEventListener('click', function () {
+        if (!annotations.length) return;
+        // Undo right after Clear brings everything back.
+        cleared = annotations;
+        annotations = [];
+        render();
+      });
+
+      function undo() {
+        if (annotations.length) annotations.pop();
+        else if (cleared) { annotations = cleared; cleared = null; }
+        render();
+      }
+
+      function add(a) { annotations.push(a); cleared = null; }
 
       var btnOk = toolBtn('bcb-sp-eb-ok', t('spEditorSave'),
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>' +
@@ -311,10 +337,13 @@
 
       bar.appendChild(btnArrow);
       bar.appendChild(btnDraw);
+      bar.appendChild(btnBox);
+      bar.appendChild(btnBlur);
       bar.appendChild(sep());
       bar.appendChild(btnColor);
       bar.appendChild(sep());
       bar.appendChild(btnUndo);
+      bar.appendChild(btnClear);
       bar.appendChild(sep());
       bar.appendChild(btnOk);
       bar.appendChild(btnNo);
@@ -336,15 +365,19 @@
         e.preventDefault();
         drawing = true;
         var p = coords(e);
-        if (tool === 'arrow') { arrowStart = p; }
-        else { freePath = { type: 'draw', pts: [p], color: color }; }
+        if (tool === 'draw') { freePath = { type: 'draw', pts: [p], color: color }; }
+        else { arrowStart = p; }
       });
 
       canvas.addEventListener('mousemove', function (e) {
         if (!drawing) return;
         var p = coords(e);
-        if (tool === 'arrow' && arrowStart) {
-          render(); paintArrow(ctx2d, arrowStart.x, arrowStart.y, p.x, p.y, color);
+        if (arrowStart) {
+          render();
+          var s = arrowStart;
+          if (tool === 'arrow') paintArrow(ctx2d, s.x, s.y, p.x, p.y, color);
+          else if (tool === 'box') paintBox(ctx2d, s.x, s.y, p.x, p.y, color);
+          else paintBlur(ctx2d, s.x, s.y, p.x, p.y);
         } else if (freePath) {
           freePath.pts.push(p);
           render(); paintPath(ctx2d, freePath.pts, color);
@@ -355,16 +388,18 @@
         if (!drawing) return;
         drawing = false;
         var p = e ? coords(e) : null;
-        if (tool === 'arrow' && arrowStart) {
+        if (arrowStart) {
           if (p) {
             var dx = p.x - arrowStart.x, dy = p.y - arrowStart.y;
-            if (dx * dx + dy * dy > 25) {
-              annotations.push({ type: 'arrow', x1: arrowStart.x, y1: arrowStart.y, x2: p.x, y2: p.y, color: color });
+            // Box and blur need some size both ways; an arrow only length.
+            var big = tool === 'arrow' ? dx * dx + dy * dy > 25 : Math.abs(dx) > 4 && Math.abs(dy) > 4;
+            if (big) {
+              add({ type: tool, x1: arrowStart.x, y1: arrowStart.y, x2: p.x, y2: p.y, color: color });
             }
           }
           arrowStart = null;
         } else if (freePath) {
-          if (freePath.pts.length > 2) annotations.push(freePath);
+          if (freePath.pts.length > 2) add(freePath);
           freePath = null;
         }
         render();
@@ -379,6 +414,8 @@
         ctx2d.drawImage(baseImg, 0, 0);
         annotations.forEach(function (a) {
           if (a.type === 'arrow') paintArrow(ctx2d, a.x1, a.y1, a.x2, a.y2, a.color);
+          else if (a.type === 'box') paintBox(ctx2d, a.x1, a.y1, a.x2, a.y2, a.color);
+          else if (a.type === 'blur') paintBlur(ctx2d, a.x1, a.y1, a.x2, a.y2);
           else paintPath(ctx2d, a.pts, a.color);
         });
       }
@@ -401,7 +438,7 @@
       function onEdKey(e) {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); btnNo.click(); }
         else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); btnOk.click(); }
-        else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.stopPropagation(); annotations.pop(); render(); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.stopPropagation(); undo(); }
       }
       // Capture phase: the host page (BC) must not see these keys while editing.
       document.addEventListener('keydown', onEdKey, true);
@@ -426,6 +463,36 @@
     ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
     ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
     ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function paintBox(ctx, x1, y1, x2, y2, color) {
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.lineJoin = 'round';
+    ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+    ctx.restore();
+  }
+
+  // Blur that hides: the area is shrunk to blocks of about 12 pixels and
+  // stretched back, so the text under it is gone from the saved image, not
+  // just soft. It takes what is on the canvas, earlier drawings included.
+  function paintBlur(ctx, x1, y1, x2, y2) {
+    var cw = ctx.canvas.width, ch = ctx.canvas.height;
+    var x = Math.max(0, Math.round(Math.min(x1, x2)));
+    var y = Math.max(0, Math.round(Math.min(y1, y2)));
+    var w = Math.min(cw, Math.round(Math.max(x1, x2))) - x;
+    var h = Math.min(ch, Math.round(Math.max(y1, y2))) - y;
+    if (w < 1 || h < 1) return;
+    var small = document.createElement('canvas');
+    small.width  = Math.max(1, Math.round(w / 12));
+    small.height = Math.max(1, Math.round(h / 12));
+    var sctx = small.getContext('2d');
+    sctx.imageSmoothingEnabled = true;
+    sctx.imageSmoothingQuality = 'high';
+    sctx.drawImage(ctx.canvas, x, y, w, h, 0, 0, small.width, small.height);
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(small, 0, 0, small.width, small.height, x, y, w, h);
     ctx.restore();
   }
 

@@ -30,8 +30,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   **Company**.
 - **Help & feedback.** Send a support request to your helpdesk without
   leaving Business Central: a panel opens next to the page, in the browser's
-  side panel. Describe what went wrong, add up to nine screenshots and draw
-  arrows on them, give a problem a priority, and click **Send to
+  side panel. Describe what went wrong, add up to nine screenshots, point
+  things out on them with arrows, a pen or a box, blur what others
+  must not see, give a problem a priority, and click **Send to
   support**: your email app opens with the report ready to paste. The report
   stays while you move around Business Central or close the panel. Click the
   BC Buddy logo in Business Central's top bar, or the BC Buddy icon in the

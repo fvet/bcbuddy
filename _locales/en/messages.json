@@ -957,6 +957,14 @@
     "message": "Pen",
     "description": "Annotation tool tooltip."
   },
+  "spToolBox": {
+    "message": "Box",
+    "description": "Annotation tool tooltip: draws a rectangle outline."
+  },
+  "spToolBlur": {
+    "message": "Blur",
+    "description": "Annotation tool tooltip: makes an area unreadable."
+  },
   "spToolColour": {
     "message": "Colour",
     "description": "Annotation colour button tooltip."
@@ -964,6 +972,10 @@
   "spUndo": {
     "message": "Undo (Ctrl+Z)",
     "description": "Annotation undo tooltip."
+  },
+  "spClear": {
+    "message": "Clear all",
+    "description": "Annotation tooltip: removes everything drawn on the screenshot."
   },
   "spEditorSave": {
     "message": "Save (Enter)",
