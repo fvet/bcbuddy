@@ -40,12 +40,16 @@ page. [More about each improvement](web-client.md).
 
 Most companies have a *Production* environment, where postings are real, and
 one or more test environments, often called *Sandbox*. They look exactly alike.
-BC Buddy gives each its own colour, so you always know where you are.
+With ten tabs open, a test order ends up in the live company before you know
+it. BC Buddy gives each environment its own colour, so you always know where
+you are.
 
-On the settings page, go to **Environments** and click **Load samples**. You
-get four rules: **Master Data** in yellow, **Production** in green, **UAT** in
-red for anything called test, QA or sandbox, and **Development** in blue.
-Change or delete them like any other rule. [More about the samples](matching.md#samples).
+On the settings page, go to **Environments**. Four sample rules are already
+there, switched off: **Master Data** in yellow, **Production** in green,
+**UAT** in red for anything called test, QA or sandbox, and **Development** in
+blue. Click **Load samples** to switch them all on, or switch on only the ones
+you want. Change or delete them like any other rule.
+[More about the samples](matching.md#samples).
 
 Rather make your own? Then:
 
@@ -66,9 +70,9 @@ and a coloured frame runs around the window.
 
 !!! tip "Not sure what your environment is called?"
 
-    Open **Environments** while your Business Central tab is open. At the top,
-    BC Buddy shows the name of the environment and the company it reads from
-    that tab. The rule that tab gets has a border all round in its colour.
+    Open **Environments** while your Business Central tab is open. Under
+    **Test**, at the bottom, BC Buddy shows the name of the environment and
+    the company it reads from that tab. The rule that tab gets has a border all round in its colour.
 
 Does your team already use BC Buddy? Ask whether there is a shared file: then
 you get everyone's colours in one go. See

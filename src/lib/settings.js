@@ -34,10 +34,11 @@
     '#4f5b62'  // grey
   ];
 
-  // 'bottom' is a full-width bar; the rest are diagonal ribbons in a corner
-  // of the window.
-  var POSITIONS = ['bottom', 'top-right', 'top-left', 'bottom-right', 'bottom-left'];
-  var CORNER_POSITIONS = POSITIONS.slice(1);
+  // 'top' and 'bottom' are full-width bars; the rest are diagonal ribbons in a
+  // corner of the window. The bar at the top moves the page down rather than
+  // covering it.
+  var POSITIONS = ['top', 'bottom', 'top-right', 'top-left', 'bottom-right', 'bottom-left'];
+  var CORNER_POSITIONS = POSITIONS.slice(2);
 
   function isCorner(position) {
     return CORNER_POSITIONS.indexOf(position) !== -1;
@@ -187,8 +188,9 @@
       name: str(r.name, BCBuddy.t('newRuleName')),
       enabled: bool(r.enabled, true),
       conditions: conditions,
+      // No text colour: BC Buddy always picks black or white for what is on
+      // screen (BCBuddy.idealText). A textColor in an older file is dropped.
       color: BCBuddy.toHex(r.color || PALETTE[0]),
-      textColor: r.textColor === 'auto' || !r.textColor ? 'auto' : BCBuddy.toHex(r.textColor),
       // Each rule picks its own style; appearance comes from that style.
       styleId: str(r.styleId || r.layoutId),
       favicon: { text: leading(str(favicon.text, ''), 2) }
@@ -761,7 +763,14 @@
       var mine = findSame(rules, sample);
       if (mine) {
         at = rules.indexOf(mine) + 1;
-        stats.skipped++;
+        // A sample the install put there, off and as it came: Load samples
+        // switches it on, as if it had just been added.
+        if (!mine.enabled && isSample(mine, sample, styleIds)) {
+          mine.enabled = true;
+          stats.added++;
+        } else {
+          stats.skipped++;
+        }
         return;
       }
       if (at < 0) {
@@ -808,14 +817,49 @@
   }
 
   /**
-   * A first install starts with the sample styles (parsed with parseImport)
-   * instead of the bare Default. Only while nothing is set up yet: no own
-   * rules and only that Default. Returns true when the styles were replaced.
+   * A first install starts with the samples (parsed with parseImport): their
+   * styles instead of the bare Default, and their rules switched off, so
+   * nothing gets coloured until someone turns a rule on. That matters when IT
+   * installs BC Buddy on many computers at once. Only while nothing is set up
+   * yet: no own rules and only that Default. Returns true when it added them.
    */
-  function seedStyles(settings, samples) {
+  function seedSamples(settings, samples) {
     if (!untouched(settings) || !samples.styles.length) return false;
     settings.styles = samples.styles.slice();
+    settings.rules = samples.rules.map(function (sample) {
+      var rule = normalizeRule(sample);
+      rule.enabled = false;
+      return rule;
+    });
+    withDefaultStyle(settings.styles, settings.rules);
     return true;
+  }
+
+  /**
+   * Shared rules take over from the samples: the own rules that are still a
+   * sample as it came (on or off, but nothing else changed) are removed. For
+   * the sync that brings the first shared rules. Returns how many went.
+   */
+  function dropSamples(settings, samples) {
+    var before = settings.rules.length;
+    settings.rules = settings.rules.filter(function (rule) {
+      return !samples.rules.some(function (sample) {
+        return sample.id === rule.id && isSample(rule, sample);
+      });
+    });
+    return before - settings.rules.length;
+  }
+
+  /**
+   * Whether `rule` is `sample` with nothing edited but its on/off switch.
+   * `styleIds` maps a sample style to the one it was added as, if not itself.
+   */
+  function isSample(rule, sample, styleIds) {
+    function look(r, styleId) {
+      return JSON.stringify([r.name, r.conditions, r.color, styleId, r.favicon]);
+    }
+    var styleId = (styleIds && styleIds[sample.styleId]) || sample.styleId;
+    return look(normalizeRule(rule), rule.styleId) === look(normalizeRule(sample), styleId);
   }
 
   /** No own rules and only the Default that normalize() adds. */
@@ -970,7 +1014,8 @@
   BCBuddy.mergeRules = mergeRules;
   BCBuddy.mergeStyles = mergeStyles;
   BCBuddy.addSamples = addSamples;
-  BCBuddy.seedStyles = seedStyles;
+  BCBuddy.seedSamples = seedSamples;
+  BCBuddy.dropSamples = dropSamples;
   BCBuddy.localizeSamples = localizeSamples;
   // Packaged with the extension and the same file as the shared example on
   // the site, so there is one copy of the samples.

@@ -30,11 +30,13 @@ Each one has its own switch. [See them all](web-client.md).
 
 ## A colour for every environment
 
-A test environment and the real one look exactly alike. BC Buddy colours the
-bar at the top of Business Central, with your own text.
+Ten tabs open, one of them is Production, and a test order gets posted in the
+live company. It happens because a test environment and the real one look
+exactly alike. BC Buddy colours the bar at the top of Business Central, with
+your own text.
 
-It can also draw a coloured frame around the window, a banner, a marked tab
-title and a coloured tab icon. You choose the colours: per environment, per
+It can also add a bar above Business Central, a coloured frame around the
+window, a banner, a marked tab title and a coloured tab icon. You choose the colours: per environment, per
 company or per customer.
 
 <figure markdown>

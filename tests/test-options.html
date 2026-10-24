@@ -658,10 +658,10 @@ function assertOptions() {
     first.querySelectorAll('[data-body] .rule__section')[1].firstElementChild.tagName, 'DIV');
   check('options: Colour heading sits on the label row',
     first.querySelector('.field--colour > h4').getBoundingClientRect().top,
-    first.querySelector('[data-path="textColor"]').closest('.field').getBoundingClientRect().top);
+    first.querySelector('[data-path="styleId"]').closest('.field').getBoundingClientRect().top);
   check('options: palette lines up with the selects',
     Math.round(first.querySelector('[data-palette]').getBoundingClientRect().top),
-    Math.round(first.querySelector('[data-path="textColor"]').getBoundingClientRect().top));
+    Math.round(first.querySelector('[data-path="styleId"]').getBoundingClientRect().top));
 
   first.querySelector('[data-action="toggle"]').click();
   truthy('options: click again collapses', first.classList.contains('rule--collapsed'));
@@ -725,14 +725,14 @@ function assertOptions() {
     chrome.i18n.getMessage('importNote'));
   check('options: one status line for import and export',
     transfer.closest('.card').querySelectorAll('.sync-status').length, 1);
-  // The test URL heads the panel like Shared configuration heads Settings;
-  // then Rules before Styles, because that is where everyone starts
+  // Rules before Styles, because that is where everyone starts, and the test
+  // URL last, so the colours come first
   var envHeads = Array.prototype.map.call(
     document.querySelectorAll('.panel[data-panel="environments"] .section-head h2'),
     function (h) { return h.textContent; });
-  check('options: Test URL, then Rules above Styles', envHeads,
-    [chrome.i18n.getMessage('testUrlHeading'), chrome.i18n.getMessage('rulesHeading'),
-      chrome.i18n.getMessage('stylesHeading')]);
+  check('options: Rules above Styles, then the Test URL', envHeads,
+    [chrome.i18n.getMessage('rulesHeading'), chrome.i18n.getMessage('stylesHeading'),
+      chrome.i18n.getMessage('testUrlHeading')]);
   // No label line above the field: the label is the placeholder, and stays the
   // field's name once it is filled in.
   check('options: test URL label sits in the field',
@@ -790,9 +790,10 @@ function assertOptions() {
   truthy('options: present on a style', !!styleOne.querySelector('[data-path="ribbon.text"]'));
 
   var posSelect = styleOne.querySelector('select[data-path="banner.position"]');
-  check('options: banner positions without top bar',
+  check('options: banner positions, bars first',
     Array.prototype.map.call(posSelect.options, function (o) { return o.value; }),
-    ['bottom', 'top-right', 'top-left', 'bottom-right', 'bottom-left']);
+    BCBuddy.POSITIONS);
+  check('options: no text colour on a rule', first.querySelector('[data-path="textColor"]'), null);
   check('options: no opacity on frame',
     styleOne.querySelector('[data-path="border.opacity"]'), null);
   var borderWidth = styleOne.querySelector('input[data-path="border.width"]');

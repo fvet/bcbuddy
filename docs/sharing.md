@@ -13,7 +13,8 @@ Someone in your team gives you a web address that ends in `.json`. Then:
 3. Click **Synchronise**.
 
 That is all. The team's rules appear at the bottom of your list, and BC Buddy
-checks for changes every day.
+checks for changes every day. The [sample rules](matching.md#samples) you did
+not change make way for them.
 
 You cannot change a shared rule. To adjust one, click its copy button: you get
 your own version, which takes the place of the shared one.

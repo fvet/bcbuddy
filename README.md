@@ -29,13 +29,13 @@ other stores; say yes. You need Chrome or Edge 111 or newer.
 2. **Open Business Central**, or reload a tab where it was already open. The
    web client improvements below are already working.
 3. **Give your environments a colour.** On the settings page, go to
-   **Environments** and click **Load samples**: Production turns green, test
-   environments red. Or click **+** next to **Rules**, name it `PRODUCTION`, set the
-   condition **Environment** **equals** `Production` and pick green.
+   **Environments**. Four sample rules are already there, switched off. Click
+   **Load samples** to switch them on: Production turns green, test
+   environments red. Or switch on only the ones you want.
 
 Not sure what your environment is called? Open **Environments** while a
-Business Central tab is open: BC Buddy reads that tab and shows its
-environment and company at the top.
+Business Central tab is open: under **Test**, at the bottom, BC Buddy shows
+the environment and company of that tab.
 
 ## 🖥️ Web client
 
@@ -71,9 +71,11 @@ What each one does, in detail:
 
 ## 🎨 Environment colours
 
-A test environment and the real one look exactly alike. BC Buddy colours the
-bar at the top of Business Central, with your own text, and can add a coloured
-frame, a banner, a marked tab title and a coloured tab icon.
+Ten tabs open, one of them is Production, and a test order gets posted in the
+live company. It happens because a test environment and the real one look
+exactly alike. BC Buddy colours the bar at the top of Business Central, with
+your own text, and can add a bar above it, a coloured frame, a banner, a
+marked tab title and a coloured tab icon.
 
 ![The Sales Orders list in Business Central with a green bar reading "CRONUS BE (Production)", a green frame around the window and a diagonal Production banner in the bottom-left corner. The keyboard shortcuts panel is open on the right](store/screenshot-4-sales-orders-1280x800.png)
 
@@ -84,8 +86,10 @@ You set this up under **Environments** on the settings page:
 - A **style** says what the marking looks like. *Full* shows every marking,
   *Subtle* only colours the bar at the top.
 
-Not sure where to start? **Load samples** adds four rules: Production green,
-test environments red, development blue and master data companies yellow.
+BC Buddy comes with four sample rules, switched off: Production green, test
+environments red, development blue and master data companies yellow.
+**Load samples** switches them on. When your team's shared file brings rules,
+those take the place of the samples you did not change.
 
 More on the website: [Rules](https://fvet.github.io/bcbuddy/matching/) ·
 [Styles](https://fvet.github.io/bcbuddy/styles/).

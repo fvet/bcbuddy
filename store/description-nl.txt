@@ -22,14 +22,14 @@ Wil je meer? Zet gestreepte rijen aan, een paneel met de sneltoetsen voor de pag
 
 🎨 Nooit meer boeken in de verkeerde omgeving
 
-Productie en sandbox zien er precies hetzelfde uit. Met BC Buddy niet meer.
+Tien tabs open, één ervan is Productie: één verkeerde klik en een testorder wordt echt geboekt. Productie en sandbox zien er precies hetzelfde uit. Met BC Buddy niet meer.
 
 • De balk bovenaan in jouw kleur, met jouw tekst: "PRODUCTIE - CRONUS BE"
 • Een gekleurd kader rond het venster
-• Een banner, of een lint in de hoek
+• Een balk boven Business Central, een banner onderaan, of een lint in de hoek
 • Een gemarkeerde tabtitel en een gekleurd icoontje, zodat je de juiste tab vindt tussen tien andere
 
-Kies een kleur per omgeving, per bedrijf of per klant. Of begin met kant-en-klare voorbeelden, in één klik.
+Kies een kleur per omgeving, per bedrijf of per klant. Kant-en-klare voorbeelden zitten erbij: zet ze aan met één klik.
 
 👥 Een keer instellen voor het hele team
 

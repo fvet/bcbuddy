@@ -27,7 +27,7 @@
   },
   "testUrlHeading": { "message": "Test" },
   "testUrlIntro": {
-    "message": "Drives the previews of the rules and styles below.",
+    "message": "Drives the previews of the rules and styles above.",
     "description": "One line under the Test URL heading."
   },
   "testUrlLabel": { "message": "URL of a Business Central page" },
@@ -253,13 +253,6 @@
   },
   "colour": { "message": "Colour" },
   "customColour": { "message": "Pick a custom colour" },
-  "textColour": { "message": "Text colour" },
-  "textAuto": {
-    "message": "Automatic",
-    "description": "Choice for the text colour: the extension picks black or white itself, whichever reads better on the chosen colour."
-  },
-  "textWhite": { "message": "White" },
-  "textBlack": { "message": "Black" },
   "ribbonToggle": {
     "message": "Ribbon",
     "description": "Switch for colouring the bar at the very top of the Business Central client (the one with the product name). This is NOT the Office ribbon toolbar: do not use that term."
@@ -303,6 +296,10 @@
   "bannerPosition": {
     "message": "Position",
     "description": "Where that bar sits."
+  },
+  "posTop": {
+    "message": "Bar at the top",
+    "description": "Position of the banner: a full-width bar above Business Central's own top bar; the page moves down to make room."
   },
   "posBottom": {
     "message": "Bar at the bottom",

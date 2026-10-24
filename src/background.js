@@ -21,31 +21,40 @@ var FETCH_TIMEOUT_MS = 15000;
 var MAX_HOSTED_SIZE = 1024 * 1024;
 
 chrome.runtime.onInstalled.addListener(function (details) {
-  enforcePolicy().then(function () {
+  var install = details.reason === 'install';
+  // The samples go in before the policy's address starts the first sync, so
+  // that sync finds them and its shared rules can take over (syncHosted).
+  (install ? seedSamples() : Promise.resolve()).then(enforcePolicy).then(function () {
     scheduleSync();
-    if (details.reason === 'install') {
-      seedStyles().then(welcome);
-    } else {
-      syncHosted({ reason: 'install' });
-    }
+    if (install) welcome();
+    else syncHosted({ reason: 'install' });
   });
 });
 
 /**
- * A first install starts with the styles from the packaged samples file, the
- * same file Load samples reads, named in the browser's language. Never fails:
- * without them BC Buddy keeps its built-in Default.
+ * The packaged samples file, the same file Load samples reads, with its
+ * styles named in the picked language.
  */
-function seedStyles() {
+function packagedSamples() {
   return languageReady.then(function () {
     return fetch(chrome.runtime.getURL(BCBuddy.SAMPLES_PATH));
   }).then(function (response) {
     if (!response.ok) throw new Error(String(response.status));
     return response.text();
   }).then(function (text) {
-    var samples = BCBuddy.localizeSamples(BCBuddy.parseImport(text));
+    return BCBuddy.localizeSamples(BCBuddy.parseImport(text));
+  });
+}
+
+/**
+ * A first install starts with the samples, their rules switched off (see
+ * BCBuddy.seedSamples). Never fails: without them BC Buddy keeps its built-in
+ * Default.
+ */
+function seedSamples() {
+  return packagedSamples().then(function (samples) {
     return BCBuddy.loadSettings().then(function (settings) {
-      if (BCBuddy.seedStyles(settings, samples)) return BCBuddy.saveSettings(settings);
+      if (BCBuddy.seedSamples(settings, samples)) return BCBuddy.saveSettings(settings);
     });
   }).catch(function () {});
 }
@@ -297,6 +306,14 @@ function syncHosted(options) {
       return { ok: false, error: BCBuddy.t('errNotActive') };
     }
     return fetchHosted(settings.hosted.url).then(function (result) {
+      // The first shared rules take over from the samples nobody edited.
+      var firstRules = !settings.hosted.rules.length && result.rules.length;
+      return (firstRules ? packagedSamples().catch(function () { return null; }) : Promise.resolve(null))
+        .then(function (samples) {
+          if (samples) BCBuddy.dropSamples(settings, samples);
+          return result;
+        });
+    }).then(function (result) {
       var unchanged = result.hash === settings.hosted.lastHash;
       // Syncing turns the shared configuration on immediately: from now on it
       // is updated every day, until you clear it or empty the URL.

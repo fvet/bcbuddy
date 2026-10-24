@@ -54,7 +54,7 @@ Stored settings use schema version 2 (`SCHEMA_VERSION` in `settings.js`).
 Exports carry `"app": "bc-buddy"` and `"version": 2`.
 
 - A **rule** holds identity and matching: `id`, `name`, `enabled`,
-  `conditions`, `color`, `textColor`, `styleId`, and `favicon.text` (at most
+  `conditions`, `color`, `styleId`, and `favicon.text` (at most
   two letters). Appearance fields no longer live on the rule.
 - A **style** holds appearance: `border`, `banner`, `ribbon`, `title`, and
   `favicon.enabled`. Favicon letters stay on the rule; styles keep
