@@ -53,7 +53,7 @@ Setting up your first two colours takes a minute:
   else gets them automatically. See [Sharing with your team](sharing.md).
 - **Nothing leaves your computer.** No account, no tracking. See
   [Privacy](privacy.md).
-- **Chrome and Edge**, version 111 or newer, with Business Central online or
+- **Chrome and Edge**, version 116 or newer, with Business Central online or
   on your own server.
 - **In English, Dutch and French**, following the language of your browser.
   To choose another one, use the language list at the top right of the BC

@@ -19,7 +19,7 @@ version: [CHANGELOG.md](CHANGELOG.md)
 Install it from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/bc-buddy/jpgpcfecpdcocjlepdfceahamliimjdl)
 and click **Add to Chrome**. Edge first asks whether to allow extensions from
-other stores; say yes. You need Chrome or Edge 111 or newer.
+other stores; say yes. You need Chrome or Edge 116 or newer.
 
 ## 🚀 Getting started
 
