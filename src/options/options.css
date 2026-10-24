@@ -19,20 +19,6 @@
   --brand-mark: #505c6d;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 12px rgba(16, 24, 40, .05);
-  /* A black header, like the documentation site's: the grey and the cyan of
-     the logo stay legible on it, and it sets the page off from the browser. */
-  --topbar-bg: #000000;
-  --topbar-border: #000000;
-  --topbar-text: #ffffff;
-  --topbar-muted: #b4bbc5;
-  --topbar-mark: #a7adb6;
-  --topbar-ok: #6ccb5f;
-  --topbar-danger: #ff8a99;
-  --topbar-control: rgba(255, 255, 255, .28);
-  /* The select's list is drawn by the system, light or dark at its own
-     choice: give the options the page's colours, not the header's. */
-  --topbar-option-bg: #ffffff;
-  --topbar-option-text: #1b1e23;
   /* The icons in front of the Web client settings: lines in the accent, no
      tile. Rules: DEVELOPMENT.md, Setting icons. */
   --icon-fg: var(--accent);
@@ -53,16 +39,6 @@
   --accent-text: #0b1220;
   --brand-mark: #a7adb6;
   --shadow: none;
-  --topbar-bg: var(--surface);
-  --topbar-border: var(--border);
-  --topbar-text: var(--text);
-  --topbar-muted: var(--muted);
-  --topbar-mark: var(--brand-mark);
-  --topbar-ok: var(--ok);
-  --topbar-danger: var(--danger);
-  --topbar-control: var(--border);
-  --topbar-option-bg: var(--surface);
-  --topbar-option-text: var(--text);
 }
 
 * { box-sizing: border-box; }
@@ -97,23 +73,17 @@ a { color: var(--accent); }
 
 /* ------------------------------------------------------------- topbar */
 
+/* A quiet bar, like the header the browser draws over the side panel: the
+   page's own surface, a hairline below, a small logo. */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--topbar-bg);
-  border-bottom: 1px solid var(--topbar-border);
-  /* Dark in both themes, so native controls in it are too. */
-  color-scheme: dark;
-  --text: var(--topbar-text);
-  --muted: var(--topbar-muted);
-  --brand-mark: var(--topbar-mark);
-  --ok: var(--topbar-ok);
-  --danger: var(--topbar-danger);
-  color: var(--text);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
-/* The black runs the full width; what is on it keeps to the column below,
+/* The bar runs the full width; what is on it keeps to the column below,
    so the logo lines up with the menu and the language with the content's
    right edge. Widths and insets mirror .layout, .nav and main. */
 .topbar__inner {
@@ -124,7 +94,7 @@ a { color: var(--accent); }
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 14px 24px 14px 12px;
+  padding: 8px 24px 8px 24px;
 }
 .topbar__brand { display: flex; align-items: center; gap: 12px; }
 .topbar__actions { display: flex; align-items: center; gap: 16px; }
@@ -135,12 +105,12 @@ a { color: var(--accent); }
   width: auto;
   background: transparent;
   color: var(--text);
-  border-color: var(--topbar-control);
+  border-color: var(--border);
   padding: 5px 8px;
   font-size: 12.5px;
   cursor: pointer;
 }
-.language option { background: var(--topbar-option-bg); color: var(--topbar-option-text); }
+.language option { background: var(--surface); color: var(--text); }
 
 /* Light or dark: an icon button as quiet as the language picker beside it. */
 .theme-toggle {
@@ -151,7 +121,7 @@ a { color: var(--accent); }
   padding: 0;
   background: transparent;
   color: var(--muted);
-  border: 1px solid var(--topbar-control);
+  border: 1px solid var(--border);
   border-radius: 7px;
   cursor: pointer;
 }
@@ -167,7 +137,7 @@ a { color: var(--accent); }
    takes the colour of the rule that matches the test URL (see options.js). */
 .topbar__brand h1 { display: flex; }
 .brand {
-  width: 124px; height: 44px;
+  width: 68px; height: 24px;
   flex: none;
   font-family: "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
 }
@@ -187,7 +157,7 @@ a { color: var(--accent); }
 
 .nav {
   position: sticky;
-  top: 78px;
+  top: 47px;
   flex: 0 0 190px;
   display: flex;
   flex-direction: column;
