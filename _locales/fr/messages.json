@@ -172,7 +172,7 @@
   "copyValue": { "message": "Copier la valeur" },
   "copiedValue": { "message": "Copié" },
   "shortcutsToggle": { "message": "Raccourcis clavier" },
-  "shortcutsDesc": { "message": "Une icône de clavier dans la barre du haut montre les raccourcis qui fonctionnent là où vous êtes." },
+  "shortcutsDesc": { "message": "Le logo BC Buddy dans la barre du haut montre les raccourcis qui fonctionnent là où vous êtes." },
   "commandShortcuts": { "message": "Afficher les raccourcis clavier de cette page Business Central" },
   "scIconLabel": { "message": "Raccourcis clavier" },
   "scTitle": { "message": "Raccourcis clavier Buddy" },

@@ -171,7 +171,7 @@
   "copyValue": { "message": "Waarde kopiëren" },
   "copiedValue": { "message": "Gekopieerd" },
   "shortcutsToggle": { "message": "Sneltoetsen" },
-  "shortcutsDesc": { "message": "Een toetsenbordicoon in de bovenste balk toont de sneltoetsen die werken waar je bent." },
+  "shortcutsDesc": { "message": "Het BC Buddy-logo in de bovenste balk toont de sneltoetsen die werken waar je bent." },
   "commandShortcuts": { "message": "De sneltoetsen voor deze Business Central-pagina tonen" },
   "scIconLabel": { "message": "Sneltoetsen" },
   "scTitle": { "message": "Sneltoetsen Buddy" },

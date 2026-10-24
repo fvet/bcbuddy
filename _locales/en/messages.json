@@ -607,10 +607,10 @@
   "navSettings": { "message": "Settings" },
   "shortcutsToggle": {
     "message": "Keyboard shortcuts",
-    "description": "Label on the on/off switch that adds a keyboard icon to the top bar of Business Central, which shows the keyboard shortcuts."
+    "description": "Label on the on/off switch that adds the BC Buddy logo to the top bar of Business Central, which shows the keyboard shortcuts."
   },
   "shortcutsDesc": {
-    "message": "A keyboard icon in the top bar lists the shortcuts that work where you are.",
+    "message": "The BC Buddy logo in the top bar lists the shortcuts that work where you are.",
     "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "commandShortcuts": {
@@ -619,7 +619,7 @@
   },
   "scIconLabel": {
     "message": "Keyboard shortcuts",
-    "description": "Tooltip of the keyboard icon BC Buddy adds to the top bar of Business Central."
+    "description": "Tooltip of the BC Buddy logo BC Buddy adds to the top bar of Business Central."
   },
   "scTitle": {
     "message": "Keyboard shortcuts Buddy",

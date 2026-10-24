@@ -107,6 +107,7 @@ window.chrome = {
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
 <script src="../src/lib/gearmenu.js"></script>
+<script src="../src/lib/logo.js"></script>
 <script src="../src/lib/shortcuts.js"></script>
 
 <script>
@@ -867,8 +868,16 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     var button = icon && icon.querySelector('button');
     check('shortcuts icon: shaped like Help, without its ids',
       [icon.className, icon.firstElementChild.className, button.className, !!button.querySelector('.o365cs-base > svg'),
-        icon.querySelectorAll('[id]').length],
+        icon.querySelectorAll('[id]:not([id^="bcb-"])').length],
       ['hc1', 'hc2', 'hb o365sx-button', true, 0]);
+    // The logo in one colour, the top bar's: every fill outside the mask
+    // is currentColor, and the mask's own id carries our prefix.
+    var fills = button ? Array.prototype.filter.call(button.querySelectorAll('svg [fill]'),
+      function (el) { return !el.closest('mask'); }).map(function (el) { return el.getAttribute('fill'); }) : [];
+    check('shortcuts icon: the logo, in one colour',
+      [fills.length > 0 && fills.every(function (f) { return f === 'currentColor'; }),
+        !!button && !!button.querySelector('mask#bcb-logo-bite')],
+      [true, true]);
     check('shortcuts icon: named for screen readers', [button.getAttribute('aria-label'), button.title],
       ['[scIconLabel]', '[scIconLabel]']);
     button.click();

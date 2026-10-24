@@ -73,7 +73,7 @@ Click a question to see the answer.
     small window it stops growing early. Double-click the edge to go back to
     Business Central's own width.
 
-??? faq "No keyboard icon in the top bar"
+??? faq "No BC Buddy logo in the top bar"
 
     **Keyboard shortcuts** starts off. Switch it on under **Web client** on the
     settings page, and reload the Business Central tab (F5). Business Central on

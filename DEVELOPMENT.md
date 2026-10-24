@@ -23,6 +23,8 @@ src/
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
   lib/gearmenu.js      the BC Buddy section in BC's gear menu (Settings pane)
+  lib/logo.js          the logo as data for the top bar icon; written by
+                       icons/build-icons.ps1, never edited by hand
   lib/shortcuts.js     keyboard shortcuts: the top bar icon, its panel and
                        the feed for the side panel
   sidepanel/           the keyboard shortcuts in the browser side panel
@@ -95,7 +97,7 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
 - `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
   where nobody set them, on by default.
-- `shortcuts.enabled` — the keyboard icon in BC's top bar and its panel, on
+- `shortcuts.enabled` — the BC Buddy logo in BC's top bar and its panel, on
   by default.
 
 `normalize()` always ensures every rule points at a valid style: a
@@ -613,8 +615,13 @@ powershell -ExecutionPolicy Bypass -File icons/build-icons.ps1
 ```
 
 That renders the SVG at 512 px in headless Chrome and scales it back to
-`icon16/32/48/128.png`. The letters are rasterised along with it, so the
-extension does not depend on Segoe UI being present on the user's machine.
+`icon16/32/48/128.png`. It also writes `src/lib/logo.js`: the same shapes as
+data, which the keyboard shortcuts icon in BC's top bar draws in one colour.
+A content script cannot point the page at `logo.svg` without
+`web_accessible_resources`, so this is how the page gets the logo without a
+second hand-made copy. Commit it with the SVG. The letters are rasterised
+along with it, so the extension does not depend on Segoe UI being present on
+the user's machine.
 
 The same script also writes `store-icon128.png`. That one follows different
 rules: the Web Store wants the mark within 96x96 on a 128x128 canvas, with 16 px
