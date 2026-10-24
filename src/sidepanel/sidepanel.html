@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="scIconLabel">Keyboard shortcuts</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="head">
+    <h1 data-i18n="scIconLabel">Keyboard shortcuts</h1>
+    <button type="button" id="settings" class="icon-button" data-i18n-title="gearMenuSettings" data-i18n-label="gearMenuSettings">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </header>
+  <main id="list" aria-live="polite"></main>
+  <p id="empty" class="empty" data-i18n="scPanelEmpty" hidden>Open a Business Central page to see its shortcuts.</p>
+  <section class="card">
+    <a id="docs" class="link" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M4.5 2.5h7v9h-7z"/><path d="M2.5 4.5v9h7"/></svg>
+      <span data-i18n="scDocsAll">All keyboard shortcuts</span>
+    </a>
+  </section>
+  <script src="../lib/i18n.js"></script>
+  <script src="../lib/shortcuts.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

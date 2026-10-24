@@ -115,6 +115,8 @@
     weekNumbers: null,
     // Keyboard shortcuts icon and panel (shortcuts.js), while the switch is on.
     shortcuts: null,
+    // Browser side panels showing this tab's shortcuts: [{ port, stop }].
+    panelPorts: [],
     // Handle of the BC Buddy section in BC's gear menu, while it is attached.
     gearMenu: null,
     // The language picked on the options page has been looked up (see
@@ -242,6 +244,7 @@
           if (!sender || sender.id !== chrome.runtime.id || sender.tab) return;
           if (state.shortcuts) state.shortcuts.toggle();
         });
+        chrome.runtime.onConnect.addListener(panelConnected);
       } catch (e) { /* extension reloaded */ }
     }
 
@@ -980,8 +983,8 @@
   function relabel() {
     if (state.copyValues) state.copyValues.detach();
     if (state.gearMenu) state.gearMenu.detach();
-    if (state.shortcuts) state.shortcuts.detach();
-    state.copyValues = state.gearMenu = state.shortcuts = null;
+    dropShortcuts();
+    state.copyValues = state.gearMenu = null;
     apply();
   }
 
@@ -1107,10 +1110,67 @@
   function applyShortcuts() {
     var want = IS_TOP && BCBuddy.shortcutsOn(state.settings) && isWebClientTarget(state.href);
     if (want === !!state.shortcuts) return;
+    dropShortcuts();
+    if (!want) return;
+    state.shortcuts = BCBuddy.Shortcuts.attach(document, { t: BCBuddy.t, icon: true, onIcon: openSidePanel });
+    state.panelPorts.forEach(feedPanel);
+  }
+
+  function dropShortcuts() {
+    state.panelPorts.forEach(function (entry) {
+      if (entry.stop) entry.stop();
+      entry.stop = null;
+      postToPanel(entry.port, { type: 'none' });
+    });
     if (state.shortcuts) state.shortcuts.detach();
-    state.shortcuts = want
-      ? BCBuddy.Shortcuts.attach(document, { t: BCBuddy.t, icon: true })
-      : null;
+    state.shortcuts = null;
+  }
+
+  /**
+   * The keyboard icon opens the browser's side panel, or closes it when it
+   * is open; the service worker does that, as only it may. Where it cannot,
+   * such as a browser without side panels, the floating panel opens instead.
+   */
+  function openSidePanel() {
+    var fallback = function () { if (state.shortcuts) state.shortcuts.toggle(); };
+    try {
+      chrome.runtime.sendMessage({ type: 'bcb:toggle-side-panel' })
+        .then(function (answer) { if (!answer || !answer.ok) fallback(); })
+        .catch(fallback);
+    } catch (e) { fallback(); }
+  }
+
+  /**
+   * Our side panel (src/sidepanel/) connects to this tab's top frame to show
+   * its shortcuts. Only our own extension pages may: a page cannot open a
+   * port to a content script, and another frame of ours has a tab.
+   */
+  function panelConnected(port) {
+    var sender = port.sender || {};
+    if (port.name !== 'bcb-shortcuts' || sender.id !== chrome.runtime.id || sender.tab ||
+        String(sender.url || '').indexOf(chrome.runtime.getURL('/')) !== 0) {
+      port.disconnect();
+      return;
+    }
+    var entry = { port: port, stop: null };
+    state.panelPorts.push(entry);
+    port.onDisconnect.addListener(function () {
+      if (entry.stop) entry.stop();
+      state.panelPorts = state.panelPorts.filter(function (e) { return e !== entry; });
+    });
+    if (state.shortcuts) feedPanel(entry);
+    else postToPanel(port, { type: 'none' });
+  }
+
+  function feedPanel(entry) {
+    if (entry.stop || !state.shortcuts) return;
+    entry.stop = state.shortcuts.listen(function (list) {
+      postToPanel(entry.port, { type: 'sections', sections: list });
+    });
+  }
+
+  function postToPanel(port, message) {
+    try { port.postMessage(message); } catch (e) { /* the panel closed */ }
   }
 
   function openOptions() {

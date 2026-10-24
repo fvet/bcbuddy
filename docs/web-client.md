@@ -177,12 +177,13 @@ gets a light tint, so you do not lose your place on a wide line.
 </details>
 
 <details class="faq" id="keyboard-shortcuts" markdown>
-<summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">A keyboard icon in the top bar that shows the shortcuts for where you are</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">A keyboard icon in the top bar that opens the shortcuts for where you are in a side panel</span></summary>
 
 <p class="bcb-starts">Off until you switch it on</p>
 
 BC Buddy adds a keyboard icon to the top bar of Business Central, next to the
-question mark. Click it to see the shortcuts that work where you are:
+question mark. Click it to open a side panel next to Business Central with the
+shortcuts that work where you are:
 
 - **On this page**: the page's own actions that have a shortcut, such as
   **Post** (F9). Buttons in one part of a page, such as the lines of an
@@ -191,14 +192,15 @@ question mark. Click it to see the shortcuts that work where you are:
   date field, depending on where your cursor is.
 - A few that work anywhere, such as Alt+Q to find a page.
 
-The panel stays open while you work in Business Central, and changes along
-when you open another page. Drag it by its title to move it out of the way;
-it opens in that spot again until you close the tab. Click **×** or the
-keyboard icon to close it; your cursor goes back to where it was. A link at
-the bottom opens Microsoft's full list of shortcuts.
+The panel stays open while you work, and changes along when you open another
+page or move to the lines, a list or a date field, and zooms along with
+the page. The gear opens the BC Buddy settings. Click
+**×** or the keyboard icon to close it. When you leave Business Central in
+that tab, the panel closes by itself. A link at the bottom opens Microsoft's
+full list of shortcuts.
 
 <figure markdown>
-![The keyboard shortcuts panel under the keyboard icon in the top bar, listing the shortcuts on this page, in these lines and anywhere](assets/screenshots/crop-with-keyboard-shortcuts.png){ loading=lazy }
+![The keyboard shortcuts side panel next to Business Central, listing the shortcuts on this page, in these lines and anywhere](assets/screenshots/crop-with-keyboard-shortcuts.png){ loading=lazy }
 </figure>
 
 Actions in a menu you have not opened yet are not listed: Business Central only

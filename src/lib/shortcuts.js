@@ -467,8 +467,9 @@
 
   /**
    * Starts the shortcuts in this (top) document. options.t looks up a string,
-   * options.icon says whether to add the icon to BC's top bar. Returns
-   * { toggle, isOpen, detach }.
+   * options.icon says whether to add the icon to BC's top bar, options.onIcon
+   * what a click on it does instead of toggling the panel. Returns
+   * { toggle, isOpen, listen, detach }.
    */
   function attach(doc, options) {
     var t = options.t;
@@ -494,7 +495,7 @@
       if (detached || doc.getElementById(ICON_ID)) return;
       var help = doc.getElementById(HELP_ID);
       if (!help || !help.parentNode) return;
-      var icon = buildIcon(doc, help, t('scIconLabel'), toggle);
+      var icon = buildIcon(doc, help, t('scIconLabel'), options.onIcon || toggle);
       if (icon) help.parentNode.insertBefore(icon, help);
     }
 
@@ -589,6 +590,61 @@
       else show();
     }
 
+    /**
+     * Feeds the browser's side panel (src/sidepanel/): calls send(sections)
+     * now and again whenever they change, until the returned function is
+     * called. What runs while someone listens: the same page observer the
+     * panel uses (childList on each .spa-container, no subtree), and one
+     * focusin listener on BC's document that only restarts a timer; the
+     * page is read REFRESH_MS after the cursor stops moving, and nothing is
+     * sent when the result is the same.
+     */
+    function listen(send) {
+      var client = clientDoc(doc);
+      var cwin = client.defaultView || win;
+      var view = null;
+      var last = '';
+      var timer = 0;
+      var stopped = false;
+
+      function push() {
+        if (stopped || detached) return;
+        view = topView(client);
+        var list = sections(pageActions(view, client.activeElement), context(client), t);
+        var json = JSON.stringify(list);
+        if (json === last) return;
+        last = json;
+        send(list);
+      }
+      function soon() {
+        win.clearTimeout(timer);
+        timer = win.setTimeout(push, REFRESH_MS);
+      }
+      // Like pagesChanged(): wait for the new page to render.
+      function pageSwap() {
+        win.clearTimeout(timer);
+        var tries = 0;
+        (function later() {
+          timer = win.setTimeout(function () {
+            if (stopped) return;
+            var now = topView(client);
+            if (now !== view && now.querySelector('form.ms-nav-root-form')) push();
+            else if (++tries < REFRESH_TRIES) later();
+          }, REFRESH_MS);
+        })();
+      }
+
+      var pages = watchPages(client, pageSwap);
+      cwin.addEventListener('focusin', soon, true);
+      push();
+      return function stop() {
+        stopped = true;
+        win.clearTimeout(timer);
+        pages.disconnect();
+        cwin.removeEventListener('focusin', soon, true);
+      };
+    }
+
     function detach() {
       detached = true;
       hide(false);
@@ -600,6 +656,7 @@
     return {
       toggle: toggle,
       isOpen: function () { return !!open; },
+      listen: listen,
       detach: detach
     };
   }
