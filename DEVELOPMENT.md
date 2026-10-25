@@ -8,10 +8,13 @@ in [IDEAS.md](IDEAS.md).
 
 ```
 manifest.json
-managed_schema.json    the browser policy IT can set (sharedConfigUrl)
+managed_schema.json    the browser policies IT can set (shared file address,
+                       area switches, Help & feedback)
 _locales/              en (default), nl and fr; see TRANSLATING.md
 src/
-  background.js        service worker: synchronises the shared file
+  background.js        service worker: synchronises the shared file, puts
+                       policy and shared locks back after every write,
+                       opens the side panel and the options page
   lib/i18n.js          fetching translations
   lib/match.js         parsing URLs, matching rules, tokens, colour helpers
   lib/settings.js      storage, defaults, normalisation, import/export
@@ -20,26 +23,28 @@ src/
   lib/bcstate.js       reading the choices BC stores per page (localStorage)
   lib/maximize.js      maximize: wide layout and list view on BC's own controls
   lib/actionbar.js     pin the action bar on BC's own pin button
+  lib/factbox.js       hide the FactBox pane on BC's own toggle
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
-  lib/shortcuts.js     keyboard shortcuts: the top bar icon, its panel and
-                       the feed for the side panel
-  sidepanel/           the browser side panel: keyboard shortcuts and
-                       Help & feedback (help.js)
+  lib/shortcuts.js     the BC Buddy icon in the top bar, the floating
+                       shortcuts panel and the feed for the side panel
+  sidepanel/           the browser side panel: start view and keyboard
+                       shortcuts (sidepanel.js), Help & feedback (help.js)
   support/             Help & feedback's area selection and drawing editor,
                        injected into the tab only while one runs
   content/content.js   draws frame, banner, ribbon, title and favicon;
                        starts maximize, the dropdown sizer, the pane
                        handles, the copy icon, week numbers, the row tint,
-                       the keyboard shortcuts icon
+                       the BC Buddy icon in the top bar
   content/content.css  the accompanying styling
   content/calm.js      page-world half of Turn off animations (FastTabs)
   options/             options.html/css; options.js plus helpers, cards, hosted;
                        theme.js: light or dark for the options page
 examples/              bc-buddy.json: the samples Load samples adds, and the
-                       example of a shared configuration (schema version 2);
-                       intune/: scripts that set the policy for IT, and
-                       the ExtensionSettings value that limits its hosts
+                       example of a shared configuration (schema version 3);
+                       intune/: scripts and a .reg file that set the policy
+                       for IT, and the ExtensionSettings value that limits
+                       its hosts
 tests/                 test pages + runner
 icons/                 logo.svg, build-icons.ps1, the PNGs;
                        settings/: one SVG per Web client setting
@@ -54,12 +59,25 @@ docs/                  the website (its mkdocs.yml lives in the root)
 
 ## 📦 Settings model
 
-Stored settings use schema version 2 (`SCHEMA_VERSION` in `settings.js`).
-Exports carry `"app": "bc-buddy"` and `"version": 2`.
+Stored settings use schema version 3 (`SCHEMA_VERSION` in `settings.js`).
+Exports carry `"app": "bc-buddy"` and `"version": 3`.
 
-- A **rule** holds identity and matching: `id`, `name`, `enabled`,
-  `conditions`, `color`, `styleId`, and `favicon.text` (at most
-  two letters). Appearance fields no longer live on the rule.
+There is no switch for the whole extension. Each area has its own, checked
+through `webClientOn()`, `environmentsOn()` and `feedbackOn()`, which count
+only a stored `true`:
+
+- `webClientEnabled` — the Web client tweaks and the keyboard shortcuts. On
+  for a new install.
+- `environmentsEnabled` — own and shared rules, on every site. Off for a new
+  install, so nothing gets coloured until someone (or IT) turns it on.
+- `feedbackEnabled` — Help & feedback in the side panel. Off by default.
+
+- A **rule** holds identity and matching: `id`, `name`, `conditions`,
+  `color`, `styleId`, and `favicon.text` (at most two letters). Appearance
+  fields no longer live on the rule. A rule has no switch: one that exists
+  colours. `liveRules()` drops a rule an older version stored with
+  `enabled: false`, wherever rules come in (storage, an import, the shared
+  file), so a rule that was off never starts colouring by itself.
 - A **style** holds appearance: `border`, `banner`, `ribbon`, `title`, and
   `favicon.enabled`. Favicon letters stay on the rule; styles keep
   `favicon.text` empty.
@@ -69,8 +87,8 @@ Exports carry `"app": "bc-buddy"` and `"version": 2`.
 
 Beside rules and styles sit the settings for the **Web client** panel,
 listed in `WEB_CLIENT_KEYS` and normalised by `normalizeWebClient()`. They
-travel in an export and in the shared file as `webClient`; the master switch
-`enabled` does not:
+travel in an export and in the shared file as `webClient`, and each one is
+on only while `webClientEnabled` is (`tweakOn()`):
 
 - `maximize.enabled` — wide layout and list view, on by default.
 - `pinActionBar.enabled` — pin the action bar of a page that opens with it
@@ -97,21 +115,65 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
 - `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
   where nobody set them, on by default.
-- The keyboard shortcuts have no switch of their own: the BC Buddy icon in
-  BC's top bar (two people) and the shortcuts view are there while the Web
-  client area or Help & feedback is on.
+- The keyboard shortcuts have no switch of their own (`shortcutsOn()` is
+  `webClientOn()`): the BC Buddy icon in BC's top bar (two people) and the
+  shortcuts view are there while the Web client area or Help & feedback is
+  on.
+
+The **Help & feedback** settings, listed in `FEEDBACK_KEYS` and normalised by
+`normalizeFeedback()`:
+
+- `feedbackEnabled` — the area switch above.
+- `feedbackEmail` — the helpdesk address for the `mailto:` link: one plain
+  address of at most 254 characters, or `''`.
+- `feedbackPriorities` — `null` for the built-in list (*Normal*, *High*,
+  *Critical*, shown translated), `[]` for no priority field, or 1 to 6 names
+  of at most 40 characters, each once.
+- `feedbackDefaultPriority` — one value of that list, or `''` for none;
+  *Normal* when never stored.
+- `feedbackSubjectBug`, `feedbackSubjectIdea` — the email subject for a
+  problem and for feedback, one line of at most 200 characters with the
+  placeholders `{prio}` `{type}` `{company}` `{environment}` `{tenant}`
+  `{title}`, or `''` for the built-in one.
+
+Every text field goes through `plainText()`: a line break, control character
+or bidi override makes it invalid rather than repaired.
+
+`hosted` keeps what the shared file said last time: `rules`, `styles`,
+`webClient` and `areas` (defaults, see *Import format*), and `feedback`, the
+Help & feedback values it names, which are locked while the shared
+configuration is active (see *Locks* below).
 
 `normalize()` always ensures every rule points at a valid style: a
 configuration with no styles gets a Default, and a rule whose `styleId` names
 nothing follows the first style in the set. A first install replaces that bare
-Default with the styles in `examples/bc-buddy.json` (*Full* and *Subtle*):
-`seedStyles()`, called from `onInstalled` in `background.js`. **Load samples**
-does the same while nothing is set up yet. Display fields on a rule object are
-dropped. Hosted (shared) rules go through the same path.
+Default with the styles and the four rules in `examples/bc-buddy.json`
+(*Full* and *Subtle*): `seedSamples()`, called from `onInstalled` in
+`background.js`. They colour nothing, since `environmentsEnabled` starts off.
+**Load samples** adds the same while nothing is set up yet. Display fields on
+a rule object are dropped. Hosted (shared) rules go through the same path.
 
-There is no migration path from an older shape. The extension had no public
-release before schema 2, so `normalize()` reads the current schema only —
-unknown fields are dropped rather than translated.
+### Migration from schema version 2
+
+Version 2 had one master switch `enabled` for the whole extension, an
+`enabled` per rule and `shortcuts.enabled`. `isLegacy()` spots such settings
+(something stored, but no boolean `webClientEnabled`); `normalize()` passes
+them through `migrate()`, and `onInstalled` saves the result once on an
+update, so every page reads the same answer from storage:
+
+- `webClientEnabled` takes the master switch.
+- `environmentsEnabled` is on only when the master switch was and something
+  coloured: an own rule that was on, or an active shared file with rules.
+  Then the own rules that were off are dropped. With the area off, all own
+  rules stay, since they colour nothing.
+- `feedbackEnabled` stays on only when it and the master switch both were.
+- `hosted.areas` records `environmentsEnabled: true` when the shared file
+  had rules, so the next sync does not count that as new.
+- `shortcuts.enabled` is dropped: the shortcuts come with the Web client.
+
+Reading the same old settings again gives the same answer. Older shapes than
+version 2 are not migrated: the extension had no public release before it,
+and unknown fields are dropped rather than translated.
 
 ## ⚙️ How the content script behaves
 
@@ -120,8 +182,9 @@ content script is therefore fully idempotent: it re-examines the page on every
 DOM change and on URL changes, and does nothing as long as everything is already
 right.
 
-On pages that need no marking — extension off, no rules, or a non-BC host with
-no matching rule — it goes idle: the MutationObserver and the poll stop. It
+On pages that need no marking — environment colours off or no rules and no
+Web client tweak that clicks BC, or a non-BC host with no matching rule — it
+goes idle (`shouldWatch()`): the MutationObserver and the poll stop. It
 wakes again on navigation (`popstate` / `hashchange`) or when settings change.
 BC SaaS hosts and pages where a ribbon was already seen keep watching, so
 on-prem and SPA redraws are not missed.
@@ -460,20 +523,55 @@ changed since then is passed on, so a colleague's own choice survives the
 daily sync. Clearing the shared rules forgets it, so the next sync applies the
 file's settings again.
 
+The area switches `webClientEnabled` and `environmentsEnabled` may sit at the
+top level of a file (`readAreas()`). An export leaves them out: they belong to
+whoever runs the extension. IT may add them to a shared file, where they are
+team defaults just like `webClient` (`applySharedAreas()`, with
+`hosted.areas`). A shared file with rules that does not name
+`environmentsEnabled` counts as `true` (`sharedAreas()`), since that is what
+sharing rules is for. An import by hand takes them over (`applyAreas()`).
+
+The Help & feedback fields (`FEEDBACK_KEYS`) also sit at the top level
+(`readFeedback()`). An export carries them only when someone set Help &
+feedback up (`feedbackSetUp()`), and without an empty address, so a
+colleague's file does not switch it off for the team. An import by hand
+takes them over (`applyFeedback()`). From a shared file they are locks, not
+defaults: see below.
+
+### Locks
+
+`lockedKeys()` says which settings someone else decides, for the options page
+to show read-only with *Set by your organisation.*: every key the policy sets
+validly (`'policy'`), then, while the shared configuration is active, the
+Help & feedback keys the shared file names (`'shared'`). The shared file's
+area switches and Web client settings are defaults and never lock.
+`enforceLocks()` (policy first through `applyPolicy()`, then
+`applySharedLocks()`) writes the locked values over the local ones; the
+service worker runs it after every settings write, so a value changed around
+a lock (an options page open from before the policy, an edited export) is
+put back. An import passes the locked keys to `applyImported()`, which skips
+them and reports them, and the options page says *Some settings are set by
+your organisation and were not changed.*
+
 ### Shared file set by policy
 
-IT can set the shared file's address by browser policy: `sharedConfigUrl` in
-`chrome.storage.managed`, declared in `managed_schema.json` (Windows registry:
+IT can set settings by browser policy in `chrome.storage.managed`, declared
+in `managed_schema.json` (Windows registry:
 `HKLM\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\<id>\policy`, and
-`Google\Chrome` likewise). The policy itself is never stored. The service
-worker reads it on install, at browser start and when it changes, and
-`applyPolicy()` writes the address into `hosted.url` with `active` on; the
-usual settings change then starts the sync. It runs again whenever the address
-or `active` changes, so a write from an options page cannot undo it. The
-options page reads the policy too, only to lock the field, hide the clear
-button and show *Set by your organisation*. A value that does not resolve to
-HTTPS is ignored. Removing the policy changes no settings: the field unlocks
-and the address and shared rules stay.
+`Google\Chrome` likewise; `examples/intune/`). The keys are `POLICY_KEYS` in
+`settings.js`: the shared file's address `sharedConfigUrl`, the three area
+switches and the Help & feedback fields. `policyValues()` checks each like
+any other value and leaves out one that does not pass (an address that does
+not resolve to HTTPS, an invalid email address, an empty text), rather than
+locking a field on something unusable. The policy itself is never stored.
+The service worker reads it on install, at browser start, when it changes
+and after every settings write (`enforcePolicy()`), and `applyPolicy()`
+writes the address into `hosted.url` with `active` on, and the other values
+over the local ones; the usual settings change then starts the sync. So a
+write from an options page cannot undo it. The options page reads the
+policy too, only to lock the fields, hide the clear button and show *Set by
+your organisation.* Removing the policy changes no settings: the fields
+unlock and the values stay.
 
 `syncIntervalMinutes()` sets the alarm: daily once the file has loaded, hourly
 before the first try, and while it fails 1, 2, 4 and 8 hours after each failed
@@ -534,14 +632,14 @@ classes; that was reasoned from the shared code, not seen on a live server.
 ## 🧩 Adding a web client tweak
 
 Every tweak follows the shape of the existing ones: a switch in the Web client
-panel, off when the extension as a whole is off, limited to frames where
+panel, off while the Web client area is off, limited to frames where
 `state.webClient` is true, and CSS first wherever CSS can do it. A CSS rule
 that stops matching after a BC update does nothing; a script that clicks the
 wrong thing does damage. A new one brings along:
 
 - **Settings.** One `{ enabled }` object in `normalizeWebClient()`
   (`settings.js`), like `maximize` and `highlightRow`, with an `…On(settings)`
-  helper that also checks `settings.enabled`. Add its key to
+  helper built on `tweakOn()`, which also checks `webClientEnabled`. Add its key to
   `WEB_CLIENT_KEYS`, so it travels in an export and in the shared file.
 - **Options.** One card in the Web client panel (`options.html`,
   `options.js`), with strings in `_locales/en`, `_locales/nl` and `_locales/fr`.
@@ -831,10 +929,13 @@ pane (I), and log `transitionrun` and `getAnimations()` for anything slow.
 
 ## ⌨️ Keyboard shortcuts
 
-`shortcuts.js` adds a keyboard button to BC's top bar that opens the
-browser's side panel (`src/sidepanel/`) with the shortcuts for where the
-cursor is. The switch starts off. Where the browser cannot open a side panel,
-the button opens the floating panel in the page instead.
+`shortcuts.js` adds the BC Buddy icon (two people) to BC's top bar, which
+opens the browser's side panel (`src/sidepanel/`) on its start view; from
+there *Shortcuts for this page* shows the shortcuts for where the cursor is.
+It has no switch of its own: the icon is there while the Web client area or
+Help & feedback is on. BC Buddy no longer adds an entry to BC's own settings
+pane; the panel's gear opens the options page. Where the browser cannot open
+a side panel, the button opens the floating panel in the page instead.
 
 - **Side panel.** The button sends `bcb:toggle-side-panel`; the service
   worker calls `chrome.sidePanel.open({ windowId })` at once, while the click
@@ -855,7 +956,7 @@ the button opens the floating panel in the page instead.
   per thing it does, each shown only while its switch is on: *Report a
   problem* and *Feedback or a suggestion* open Help & feedback
   (`sidepanel/help.js`) as type Bug or Improvement (both with a priority), and
-  *Keyboard shortcuts* opens `shortcuts`. A back arrow in the header returns
+  *Shortcuts for this page* opens `shortcuts`. A back arrow in the header returns
   to the start view. The service worker keeps the view each window's panel
   shows: the icon in the top bar sends `bcb:toggle-side-panel`, which opens
   `home` or closes an open panel whatever it shows; the browser shortcut
@@ -924,7 +1025,7 @@ the button opens the floating panel in the page instead.
   frame loses focus; the panel then takes the focus and gives it back on
   close, unless the page changed meanwhile.
 - **Cost.** One observer on the top window's `body` (subtree) while the
-  switch is on: BC's grids live in the iframe's document, so the top window
+  icon is there: BC's grids live in the iframe's document, so the top window
   changes rarely, and each change costs one `getElementById`. Everything
   else exists only while the panel is open: the page scan, the drag
   listeners on its own header, and the `childList` observer on each
