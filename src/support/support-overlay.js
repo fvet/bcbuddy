@@ -22,6 +22,15 @@
  * resolve. It runs in the content scripts' isolated world, so the page cannot
  * call it or see its variables. Nothing here listens until a step starts,
  * and every listener goes when it ends.
+ *
+ * The isolated world hides variables, not the DOM: a canvas in the page's
+ * own tree is one toDataURL() away from the page's scripts, and the editor
+ * draws screenshots that may come from another tab (or from frames of
+ * another site). So everything this file shows lives in a closed shadow
+ * root, attached from here: the page sees one empty host element and gets
+ * no handle on what is inside. Its look comes from support-overlay.css,
+ * which the panel hands over as text (useStyle) because a stylesheet on the
+ * page does not reach into a shadow root.
  */
 (function () {
   'use strict';
@@ -57,6 +66,39 @@
     return true;
   }
 
+  // ------------------------------------------------------------------ layer
+
+  var host = null;
+  var layerRoot = null;
+  var styleEl = null;
+  var styleText = '';
+
+  /** The overlay's CSS, from the panel; kept for every step that follows. */
+  function useStyle(css) {
+    if (typeof css !== 'string') return false;
+    styleText = css;
+    if (styleEl) styleEl.textContent = ':host{all:initial!important}' + styleText;
+    return true;
+  }
+
+  /**
+   * The closed shadow root everything is drawn in, its host put back in the
+   * page when the page removed it. :host{all:initial} keeps the page's
+   * inherited styles (font, colour) out.
+   */
+  function layer() {
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'bcb-sp-host';
+      layerRoot = host.attachShadow({ mode: 'closed' });
+      styleEl = document.createElement('style');
+      layerRoot.appendChild(styleEl);
+      useStyle(styleText);
+    }
+    if (!host.isConnected) (document.body || document.documentElement).appendChild(host);
+    return layerRoot;
+  }
+
   // ------------------------------------------------------------------ tooltips
 
   // Browser tooltips are tiny and slow to appear. One shared bubble instead,
@@ -72,8 +114,8 @@
       tipEl.id = 'bcb-sp-tip';
     }
     tipEl.textContent = text;
-    // Last in the body wins at equal z-index: the bubble goes after the editor.
-    document.body.appendChild(tipEl);
+    // Last in the layer wins at equal z-index: the bubble goes after the editor.
+    layer().appendChild(tipEl);
     tipEl.hidden = false;
     var r = target.getBoundingClientRect();
     var w = tipEl.offsetWidth, h = tipEl.offsetHeight;
@@ -95,15 +137,17 @@
     if (!to || !to.closest || !to.closest('[data-bcb-tip]')) hideTip();
   }
 
+  // On the shadow root, where the targets are still the buttons themselves;
+  // at the document they read as the host.
   function tipsOn() {
-    document.addEventListener('mouseover', onTipOver);
-    document.addEventListener('mouseout', onTipOut);
+    layer().addEventListener('mouseover', onTipOver);
+    layer().addEventListener('mouseout', onTipOut);
     document.addEventListener('mousedown', hideTip, true);
   }
 
   function tipsOff() {
-    document.removeEventListener('mouseover', onTipOver);
-    document.removeEventListener('mouseout', onTipOut);
+    layer().removeEventListener('mouseover', onTipOver);
+    layer().removeEventListener('mouseout', onTipOut);
     document.removeEventListener('mousedown', hideTip, true);
     if (tipEl && tipEl.parentNode) tipEl.parentNode.removeChild(tipEl);
   }
@@ -131,7 +175,7 @@
       sel.appendChild(mL);   sel.appendChild(mR);
       sel.appendChild(sBox); sel.appendChild(chH);
       sel.appendChild(chV);  sel.appendChild(hint);
-      document.body.appendChild(sel);
+      layer().appendChild(sel);
 
       setMasks(0, 0, 0, 0);
       sBox.hidden = true;
@@ -312,7 +356,7 @@
           });
           colPop.appendChild(b);
         });
-        document.body.appendChild(colPop);
+        layer().appendChild(colPop);
         var br = btnColor.getBoundingClientRect();
         var pw = colPop.offsetWidth || 100;
         colPop.style.cssText =
@@ -375,7 +419,7 @@
 
       ed.appendChild(canvas);
       ed.appendChild(bar);
-      document.body.appendChild(ed);
+      layer().appendChild(ed);
 
       function coords(e) {
         var r = canvas.getBoundingClientRect();
@@ -547,5 +591,5 @@
     ctx.stroke(); ctx.restore();
   }
 
-  BCBuddy.SupportOverlay = { selectArea: selectArea, edit: edit, cancel: cancel };
+  BCBuddy.SupportOverlay = { selectArea: selectArea, edit: edit, cancel: cancel, useStyle: useStyle };
 }());

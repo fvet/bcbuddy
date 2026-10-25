@@ -755,6 +755,22 @@
     return chrome.tabs.captureVisibleTab(windowId, { format: 'png' });
   }
 
+  var overlayCss = null;
+
+  /**
+   * The overlay's stylesheet as text. The overlay draws in a closed shadow
+   * root, which a stylesheet on the page does not reach, so it gets the CSS
+   * handed over instead of inserted into the page.
+   */
+  function overlayStyle() {
+    if (!overlayCss) {
+      overlayCss = fetch(chrome.runtime.getURL('src/support/support-overlay.css'))
+        .then(function (r) { return r.text(); })
+        .catch(function (e) { overlayCss = null; throw e; });
+    }
+    return overlayCss;
+  }
+
   /** Makes sure the tab's top frame has the overlay (area selection, editor). */
   function overlay(tabId) {
     var target = { tabId: tabId };
@@ -763,8 +779,14 @@
       func: function () { return !!(window.BCBuddy && window.BCBuddy.SupportOverlay); }
     }).then(function (res) {
       if (res && res[0] && res[0].result === true) return;
-      return chrome.scripting.insertCSS({ target: target, files: ['src/support/support-overlay.css'] }).then(function () {
-        return chrome.scripting.executeScript({ target: target, files: ['src/support/support-overlay.js'] });
+      return Promise.all([overlayStyle(),
+        chrome.scripting.executeScript({ target: target, files: ['src/support/support-overlay.js'] })
+      ]).then(function (r) {
+        return chrome.scripting.executeScript({
+          target: target,
+          func: function (css) { return window.BCBuddy.SupportOverlay.useStyle(css); },
+          args: [r[0]]
+        });
       });
     });
   }

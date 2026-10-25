@@ -972,8 +972,14 @@ a side panel, the button opens the floating panel in the page instead.
   top frame `bcb:support-context` (BC or not, tenant, environment,
   company), keeps the report in `chrome.storage.session` per window, takes
   screenshots with `tabs.captureVisibleTab` and injects
-  `src/support/support-overlay.*` for the area selection and the drawing
-  editor, whose result comes back through `scripting.executeScript`. Esc in
+  `src/support/support-overlay.js` for the area selection and the drawing
+  editor, whose result comes back through `scripting.executeScript`. The
+  overlay draws everything inside a closed shadow root it attaches from the
+  isolated world: the page shares the DOM, and a canvas in its own tree would
+  let its scripts read a screenshot (possibly of another tab) with
+  `toDataURL()`. A page stylesheet does not reach into that root, so the
+  panel reads `support-overlay.css` and hands it over as text
+  (`SupportOverlay.useStyle()`) instead of `scripting.insertCSS`. Esc in
   the panel during an area selection calls `SupportOverlay.cancel()`; the
   editor gets the original capture and the earlier drawings, so Clear all
   goes back to the capture. The message box and the notes are

@@ -1,9 +1,10 @@
 /* BC Buddy - Help & feedback, the parts that have to be on the page itself:
-   the area selection and the drawing editor (support-overlay.js). Injected
-   on demand from the side panel; every selector is one of our own ids or
-   classes, and !important keeps the host page's styles out. */
+   the area selection and the drawing editor (support-overlay.js). The side
+   panel hands this file over as text and the overlay puts it inside its
+   closed shadow root, so it styles nothing on the page; every selector is
+   one of our own ids or classes. */
 /* ==========================================================================
-   Tooltip bubble (sits in document.body, above the editor)
+   Tooltip bubble (last in the shadow root, above the editor)
    ========================================================================== */
 
 #bcb-sp-tip {

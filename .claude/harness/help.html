@@ -5,7 +5,6 @@
 <title>Help panel harness</title>
 <script src="../../src/options/theme.js"></script>
 <link rel="stylesheet" href="../../src/sidepanel/sidepanel.css">
-<link rel="stylesheet" href="../../src/support/support-overlay.css">
 <style>
   /* The side panel is ~360px wide; the rest stands in for the BC tab. */
   html, body { height: 100%; }
@@ -167,6 +166,12 @@
   Array.prototype.forEach.call(doc.body.children, function (n) { if (n.tagName !== 'SCRIPT') panel.appendChild(document.importNode(n, true)); });
   ['../../src/lib/i18n.js', '../../src/lib/match.js', '../../src/lib/settings.js', '../../src/lib/shortcuts.js', '../../src/sidepanel/help.js', '../../src/sidepanel/sidepanel.js', '../../src/support/support-overlay.js']
     .forEach(function (src) { var s = document.createElement('script'); s.src = src; s.async = false; document.body.appendChild(s); });
+  // The overlay draws in a closed shadow root and takes its CSS as text, as
+  // the real panel hands it over after injecting it.
+  var css = fetch('../../src/support/support-overlay.css').then(function (r) { return r.text(); });
+  document.querySelector('script[src$="support-overlay.js"]').addEventListener('load', function () {
+    css.then(function (text) { window.BCBuddy.SupportOverlay.useStyle(text); });
+  });
 })();
 </script>
 </body>
