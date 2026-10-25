@@ -1040,6 +1040,10 @@
     "message": "Note for screenshot $1",
     "description": "Accessible name of the note field. $1 is the screenshot number."
   },
+  "spErrorDetails": {
+    "message": "Error details",
+    "description": "Label above the error details Business Central copied, in the panel and in the report. They come from the error dialog."
+  },
   "spCaptureFailed": {
     "message": "Could not take the screenshot. Please try again.",
     "description": "Error under the buttons."

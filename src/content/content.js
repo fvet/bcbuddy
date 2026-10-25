@@ -113,6 +113,8 @@
     newTab: null,
     // Week numbers in the date picker: its storage listener while the switch is on.
     weekNumbers: null,
+    // Report a problem link in BC's error dialogs (errorreport.js), while Help & feedback is on.
+    errorReport: null,
     // Keyboard shortcuts icon and panel (shortcuts.js), while the switch is on.
     shortcuts: null,
     // Browser side panels showing this tab's shortcuts: [{ port, stop }].
@@ -458,6 +460,7 @@
     applyNewTab();
     applyWeekNumbers();
     applyShortcuts();
+    applyErrorReport();
   }
 
   function sameRule(a, b) {
@@ -1090,6 +1093,28 @@
     if (want === !!state.panes) return;
     if (state.panes) state.panes.detach();
     state.panes = want ? BCBuddy.Panes.attach(document) : null;
+  }
+
+  /* --------------------------------------------------------- error report */
+
+  /**
+   * The Report a problem link in BC's error dialogs; see errorreport.js. In
+   * every frame: the dialogs are in the client frame. Attached once, so this
+   * costs one comparison per apply().
+   */
+  function applyErrorReport() {
+    var want = BCBuddy.feedbackOn(state.settings) && state.webClient;
+    if (want === !!state.errorReport) return;
+    if (state.errorReport) state.errorReport.detach();
+    state.errorReport = want ? BCBuddy.ErrorReport.attach(document, {
+      t: BCBuddy.t,
+      shot: function () { return chrome.runtime.sendMessage({ type: 'bcb:error-shot' }); },
+      report: function (result) {
+        return chrome.runtime.sendMessage({
+          type: 'bcb:error-report', message: result.message, details: result.details
+        });
+      }
+    }) : null;
   }
 
   /* ------------------------------------------------------------ shortcuts */

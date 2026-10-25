@@ -11,6 +11,29 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Paste a screenshot into a report.** Take a screenshot with Print Screen or
+  Win+Shift+S, click in the note box of **Report a problem** and paste: the
+  picture becomes the next step, with your note as its caption. This lets you
+  capture things that vanish when you move the mouse, such as an error
+  message that only shows while you hover its icon.
+
+- **Report a problem from an error message.** Business Central's error
+  messages now have a **Report a problem** link next to **Share details**.
+  One click opens the report with a screenshot of the error as a step, the
+  message as its note, and the error details that **Copy error details** would
+  give (session IDs, time and the AL call stack), so you no longer copy and
+  paste them yourself. A report you were already writing keeps its steps and
+  gets the error as its next one. It needs **Help & feedback** to be on, and it
+  replaces what is on your clipboard.
+
+### Fixed
+
+- **Screenshot editor: picking a colour leaves Blur.** Choosing a colour while
+  the blur tool is active now switches back to the arrow, so the cross no
+  longer stays on blur.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.1.0 — 2026-10-25

@@ -101,3 +101,37 @@ noted when the error appeared (message, time, page), the last *Copy error
 details* the user made (session ids), and the *Latest Error* page read in the
 same tab (call stack). Startup errors ("Something went wrong") print time,
 tenant, environment and operation id on the page itself.
+
+### Decided 2026-10-25: a link in the error dialog
+
+Passive capture is out: most users do not know *Copy error details* exists.
+Live findings that make the link possible (BC28, Release on a sales order
+with no lines):
+
+- The copied text also carries the AL call stack for AL errors, so the
+  *Latest Error* page is only a fallback for when the dialog is already gone.
+- The scripted-click limit is about user activation, not about scripts:
+  within ~5 s of a real click in the page, a scripted open of *Share details*
+  and click on *Copy error details* copies, and the capture listener reads
+  the text (`isTrusted: true`). Without a recent real click nothing is copied.
+  A click in the side panel does not count, because the activation must be in
+  the BC page. So the click has to be on a link in the dialog itself.
+- The dialog is `.spa-dialog` inside `.spa-container` (`P.error-dialog-caption`
+  holds the message); *Share details* is a Fluent `MenuButton` in it; the menu
+  items render in a portal outside the dialog, only while the menu is open.
+
+Decisions:
+
+- **Link:** "Report a problem" with the BC Buddy icon, right-aligned on the
+  *Share details* row (mockup 1 of 3), on every dialog that has *Share
+  details*. Tooltip errors wait for the next batch.
+- **One real click does it all:** capture the visible tab, open the menu from
+  script, click *Copy error details*, read the text, then open the report.
+  Hide the menu portal with an attribute on `<html>` while it runs, so it does
+  not flash. The clipboard is overwritten; accepted.
+- **Report flow:** the screenshot and the copied text are already in the report as a step,
+  instead of the empty "What went wrong?" start. A report in progress gets it
+  as its next step, unless a step with the same message is there.
+- **Cost and safety:** one `childList` watch on the existing `.spa-container`,
+  one trusted-click handler, nothing per row or keystroke. The copied text is
+  untrusted: `str()` with a length cap, never HTML. Gated on `state.webClient`.

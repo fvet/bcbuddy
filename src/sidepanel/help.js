@@ -46,6 +46,7 @@
 
   // Enough to walk through a problem, few enough for a mail server.
   var MAX_SHOTS = 9;
+  var MAX_PASTE_BYTES = 25 * 1024 * 1024;   // a pasted picture, before it is shrunk
   // Nine whole-screen PNGs from a large monitor run to tens of megabytes,
   // more than a mail server accepts. A helpdesk reads a BC screen fine at
   // this width, and JPEG cuts the rest by a factor of ten.
@@ -56,6 +57,10 @@
   var MAX_IMAGE_CHARS = 24 * 1024 * 1024;
   var IMAGE_RE = /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+=*$/;
   var MAX_TEXT = 300;
+  // BC's copied error details, as the service worker kept them for a report
+  // started from an error dialog (background.js errorReport()).
+  var MAX_ERROR_DETAILS = 12000;
+  var ERROR_PREFIX = 'bcbErrorReport:';
   // Characters of text per box: the message box and every note.
   var MAX_RICH = 20000;
   var MAX_RUNS = 4000;
@@ -185,9 +190,14 @@
       if (area === 'local' && changes[BCBuddy.STORAGE_KEY]) applySettings(changes[BCBuddy.STORAGE_KEY].newValue);
     });
 
+    // A report started from an error dialog may be waiting; it goes after the
+    // draft, as the first step.
     chrome.storage.session.get(draftKey).then(function (obj) {
       restore(obj && obj[draftKey]);
-    }).catch(function () { /* nothing kept */ });
+    }).catch(function () { /* nothing kept */ }).then(takeErrorReport);
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area === 'session' && changes[ERROR_PREFIX + windowId] && changes[ERROR_PREFIX + windowId].newValue) takeErrorReport();
+    });
 
     chrome.tabs.onActivated.addListener(function (info) {
       if (info.windowId === windowId) refreshHere();
@@ -560,7 +570,19 @@
     el.addEventListener('paste', function (e) {
       e.preventDefault();
       if (!e.isTrusted || !e.clipboardData) return;
-      insertPlain(e.clipboardData.getData('text/plain'));
+      var text = e.clipboardData.getData('text/plain');
+      // A screenshot on the clipboard (Print Screen, Win+Shift+S) becomes a
+      // step; copied text, as from a spreadsheet, wins over its picture.
+      if (!text) {
+        var items = e.clipboardData.items || [];
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].kind === 'file' && /^image\/(png|jpeg|gif|webp|bmp)$/.test(items[i].type)) {
+            addPasted(items[i].getAsFile());
+            return;
+          }
+        }
+      }
+      insertPlain(text);
     });
     el.addEventListener('drop', function (e) {
       e.preventDefault();
@@ -617,6 +639,7 @@
       shots = d.shots.filter(function (s) { return s && validImage(s.dataUrl); }).slice(0, MAX_SHOTS)
         .map(function (s) {
           var shot = { dataUrl: s.dataUrl, title: text(s.title), url: text(s.url, 4096), note: cleanModel(s.note) };
+          if (typeof s.error === 'string' && s.error) shot.error = text(s.error, MAX_ERROR_DETAILS);
           if (validImage(s.orig)) {
             shot.orig = s.orig;
             shot.ann = cleanAnnotations(s.ann);
@@ -628,6 +651,55 @@
     if (TYPES.indexOf(d.type) !== -1) setType(d.type);
     if (typeof d.priority === 'string') { priorityWanted = oneLine(d.priority, MAX_PRIORITY); renderPriorities(); }
     renderThumbs();
+  }
+
+  /**
+   * The Report a problem link in BC's error dialog: the error becomes a step
+   * of the report, its screenshot with the error message as its note and
+   * BC's copied details folded under it. A report in progress keeps what it
+   * has and gets the error as its next step; one that already has a step
+   * with this message gets nothing new. What arrives was read from the page,
+   * so it is capped here again and only put on the page as text.
+   */
+  var lastErrorAt = 0;
+
+  function takeErrorReport() {
+    var key = ERROR_PREFIX + windowId;
+    return chrome.storage.session.get(key).then(function (obj) {
+      var p = obj && obj[key];
+      if (!p || typeof p !== 'object') return;
+      chrome.storage.session.remove(key).catch(function () {});
+      if (typeof p.at !== 'number' || p.at <= lastErrorAt) return;
+      lastErrorAt = p.at;
+      var message = text(p.message, 1000);
+      var details = text(p.details, MAX_ERROR_DETAILS);
+      var from = { title: text(p.title), url: text(p.url, 4096) };
+      // Already in the report: as a step, or as text in the box.
+      if (message && (shots.some(function (s) { return modelText(s.note || []) === message; }) ||
+          modelText(desc.get()).indexOf(message) !== -1)) return;
+      var add = function (dataUrl) {
+        // A report in progress keeps its type; an empty one is a problem.
+        if (!hasContent() && type !== 'Bug') setType('Bug');
+        if (dataUrl) {
+          if (shots.length >= MAX_SHOTS) { updateButtons(); return; }
+          var shot = { dataUrl: dataUrl, title: from.title, url: from.url, note: cleanModel(message ? [{ t: message }] : []) };
+          if (details) shot.error = details;
+          shots.push(shot);
+          renderThumbs();
+          var list = $('help-thumbs');
+          list.scrollTop = list.scrollHeight;
+        } else {
+          // No screenshot could be taken: the text goes in the box instead,
+          // after what is there.
+          var more = message + (details ? '\n\n' + details : '');
+          desc.set(cleanModel(desc.isEmpty() ? [{ t: more }] : desc.get().concat([{ t: '\n\n' + more }])));
+          updateButtons();
+          saveLater();
+        }
+      };
+      if (!/^data:image\/png;base64,[A-Za-z0-9+/]+=*$/.test(p.dataUrl || '')) { add(''); return; }
+      return shrink(p.dataUrl).then(add, function () { add(''); });
+    }).catch(function () { /* nothing waiting, or the panel is closing */ });
   }
 
   function saveLater() {
@@ -804,7 +876,24 @@
       note.setPlaceholder(t('spShotNote'));
       noteEl.setAttribute('aria-label', t('spShotNoteLabel', i + 1));
       note.set(shot.note || []);
-      row.appendChild(wrap); row.appendChild(noteEl);
+      var body = document.createElement('div');
+      body.className = 'shot-body';
+      body.appendChild(noteEl);
+      // BC's copied error details, shown as text and folded away: they go
+      // into the report as they are.
+      if (shot.error) {
+        var fold = document.createElement('details');
+        fold.className = 'shot-error';
+        var summary = document.createElement('summary');
+        summary.textContent = t('spErrorDetails');
+        var pre = document.createElement('pre');
+        pre.textContent = shot.error;
+        fold.appendChild(summary); fold.appendChild(pre);
+        // A line of its own under the screenshot and the note, the width of both.
+        row.appendChild(wrap); row.appendChild(body); row.appendChild(fold);
+      } else {
+        row.appendChild(wrap); row.appendChild(body);
+      }
       sortable(row, wrap, shot);
       box.appendChild(row);
     });
@@ -991,6 +1080,32 @@
         setBusy(false);
         addShot(small, from);
       });
+    }).catch(function () {
+      setBusy(false);
+      setStatus('help-status', t('spCaptureFailed'), true);
+    });
+  }
+
+  /**
+   * A screenshot pasted into the box. The bytes are untrusted: shrink()
+   * decodes and redraws them as our own JPEG, and what is not an image fails.
+   * It is not tied to a Business Central tab, so an error message that only
+   * shows while hovering can be captured with the system tool first.
+   */
+  function addPasted(file) {
+    if (!file || busy || shots.length >= MAX_SHOTS) return;
+    if (file.size > MAX_PASTE_BYTES) { setStatus('help-status', t('spCaptureFailed'), true); return; }
+    setStatus('help-status', '');
+    var from = { title: here.title || '', url: here.url || '' };
+    setBusy(true);
+    new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(r.result); };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    }).then(shrink).then(function (small) {
+      setBusy(false);
+      addShot(small, from);
     }).catch(function () {
       setBusy(false);
       setStatus('help-status', t('spCaptureFailed'), true);
@@ -1530,6 +1645,12 @@
         if (src) {
           out += '<p style="' + p + '"><img src="' + esc(src) + '" alt="' + esc(t('spShotAlt', step.index + 1)) +
             '" style="max-width:100%;border:1px solid #d9dde3;display:block"></p>';
+        }
+        if (step.shot.error) {
+          out += '<p style="' + p + '"><b>' + esc(t('spErrorDetails')) + ':</b></p>' +
+            '<pre style="margin:0 0 6px;padding:8px 10px;background:#f5f6f8;border:1px solid #d9dde3;' +
+            'font:12px/1.45 Consolas,\'Courier New\',monospace;white-space:pre-wrap;word-break:break-word">' +
+            esc(step.shot.error) + '</pre>';
         }
       }
       return out;

@@ -107,6 +107,7 @@ window.chrome = {
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
 <script src="../src/lib/shortcuts.js"></script>
+<script src="../src/lib/errorreport.js"></script>
 
 <script>
 /* ---- seed settings for the content script ------------------------------- */
@@ -1166,6 +1167,24 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('normalization: bar at the top preserved', BCBuddy.normalizeStyle({ banner: { position: 'top' } }).banner.position, 'top');
   check('normalization: corner position preserved', BCBuddy.normalizeStyle({ banner: { position: 'bottom-left' } }).banner.position, 'bottom-left');
   check('normalization: empty rule gets a condition', BCBuddy.normalizeRule({}).conditions.length, 1);
+
+  // error dialog link: what is read from the page is capped and cleaned
+  var ER = BCBuddy.ErrorReport;
+  check('error report: control characters go, line breaks stay', ER.clean('a\u0000b\r\nc\u0007', 50), 'ab\r\nc');
+  check('error report: text is capped', ER.clean(new Array(30000).join('x'), ER.MAX_DETAILS).length, ER.MAX_DETAILS);
+  check('error report: not text is nothing', [ER.clean(null, 10), ER.clean({}, 10)], ['', '']);
+  (function () {
+    function menuItem(text) { var el = document.createElement('div'); el.textContent = text; return el; }
+    var items = [menuItem('Share details via Teams'), menuItem('Copy error details'), menuItem('Ask Copilot')];
+    check('error report: Teams and Copilot are never clicked', ER.pickCopyItem(items).textContent, 'Copy error details');
+    check('error report: no copy entry, nothing to click',
+      ER.pickCopyItem([menuItem('Share details via Teams'), menuItem('Ask Copilot')]), null);
+    var dlg = document.createElement('div');
+    dlg.className = 'spa-view spa-dialog';
+    check('error report: a dialog without a message is not an error dialog', ER.isErrorDialog(dlg), false);
+    dlg.innerHTML = '<p class="error-dialog-caption">x</p><div class="error-dialog-troubleshoot-container"><button class="fui-MenuButton"></button></div>';
+    check('error report: message and Share details make an error dialog', ER.isErrorDialog(dlg), true);
+  })();
 
   // dropdown size: a slider step per direction, step 1 = BC standard
   var D = BCBuddy.Dropdowns;

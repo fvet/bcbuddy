@@ -104,7 +104,9 @@ Something does not work? Click the BC Buddy icon in the top bar of Business
 Central and choose **Report a problem**. Write what you did, take a screenshot
 of each step, draw an arrow or blur what is private, and click **Email**: BC
 Buddy creates the email to your helpdesk, with the screenshots, the company
-and the environment already in it.
+and the environment already in it. On an error message, click **Report a
+problem** next to **Share details**: the screenshot and the error details are
+then in the report already.
 
 It starts off. Your IT department switches it on and sets the helpdesk
 address, or you do it yourself under **Help & feedback** on the settings page.

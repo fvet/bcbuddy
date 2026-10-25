@@ -302,6 +302,7 @@
   "spShotAlt": { "message": "Schermafbeelding $1" },
   "spShotNote": { "message": "Notitie (optioneel)" },
   "spShotNoteLabel": { "message": "Notitie bij schermafbeelding $1" },
+  "spErrorDetails": { "message": "Foutdetails" },
   "spCaptureFailed": { "message": "De schermafbeelding is niet gelukt. Probeer het opnieuw." },
   "spSelectHint": { "message": "Klik en sleep om een gebied te kiezen · Esc om te annuleren" },
   "spToolArrow": { "message": "Pijl" },

@@ -435,3 +435,33 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
 #bcb-keys .bcb-keys__foot { margin-top: 16px; color: #605e5c; font-size: 13px; }
 #bcb-keys .bcb-keys__foot p { margin: 4px 0 0; }
 #bcb-keys a { color: #00718c; text-decoration: underline; cursor: pointer; }
+
+/* Report a problem in BC's error dialog (errorreport.js): first in the Share
+   details row, floated to the right so BC's own button keeps its place. */
+.bcb-error-link {
+  float: right;
+  display: block;
+  box-sizing: border-box;
+  height: 28px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #00666f;
+  font: 600 14px/28px "Segoe UI", "Segoe UI Web (West European)", -apple-system, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.bcb-error-link:hover { background: rgb(0 0 0 / .06); }
+.bcb-error-link:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+/* Text and icon sit in one line box, centred by its line-height, so no flex
+   or span rule of BC's can move them. The icon is 14px with its drawing
+   ending 2px above the bottom of its box, so lowering it 2px puts the
+   drawing on the baseline, as tall as the capitals beside it. */
+.bcb-error-link > svg { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; }
+.bcb-error-link > span { display: inline; height: auto; min-height: 0; margin: 0; padding: 0; line-height: inherit; }
+
+/* While the details are copied, BC's Share details menu opens for a moment;
+   it stays out of sight, and out of the screenshot. */
+html[data-bcb-capturing] .fui-MenuPopover { visibility: hidden !important; }

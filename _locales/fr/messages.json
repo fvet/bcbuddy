@@ -302,6 +302,7 @@
   "spShotAlt": { "message": "Capture d'écran $1" },
   "spShotNote": { "message": "Note (facultatif)" },
   "spShotNoteLabel": { "message": "Note pour la capture $1" },
+  "spErrorDetails": { "message": "Détails de l’erreur" },
   "spCaptureFailed": { "message": "Impossible de prendre la capture d'écran. Veuillez réessayer." },
   "spSelectHint": { "message": "Cliquez et faites glisser pour sélectionner une zone · Échap pour annuler" },
   "spToolArrow": { "message": "Flèche" },
