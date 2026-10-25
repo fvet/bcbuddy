@@ -53,9 +53,9 @@ give it a value to set it and lock it.
 | `environmentsEnabled` | DWORD, 1 or 0 | Environment colours, own and shared rules, on or off |
 | `feedbackEnabled` | DWORD, 1 or 0 | [Help & feedback](help-feedback.md) on or off |
 | `feedbackEmail` | String | The one helpdesk address reports go to |
-| `feedbackPriorities` | Subkey with values `1`, `2`, … | The priorities, 1 to 6 names of at most 40 characters; an empty subkey hides the priority field |
+| `feedbackPriorities` | Subkey with values `1`, `2`, … | The priorities, 1 to 10 names of at most 40 characters; an empty subkey hides the priority field |
 | `feedbackDefaultPriority` | String | The priority a report starts on; must be one of the priorities |
-| `feedbackSubjectBug` | String | The subject for a problem, with `{prio}` `{type}` `{company}` `{environment}` `{tenant}` `{title}` |
+| `feedbackSubjectBug` | String | The subject for a problem, with `{prio}` `{company}` `{environment}` `{title}` |
 | `feedbackSubjectIdea` | String | The subject for feedback, with the same placeholders |
 | `feedbackUrgentText` | String | The message shown when someone picks the last priority, one line of at most 200 characters |
 | `feedbackUrgentLink` | String | A link on that message: an `https://` address, or `tel:` with a phone number |

@@ -191,9 +191,6 @@ a { color: var(--accent); }
 
 /* An area's dot, at the right of its nav item: green while the area is on,
    grey while it is off. An area that is off also has a fainter name. */
-/* Green while the part is on; no dot at all while it is off. */
-.nav__dot { width: 8px; height: 8px; flex: none; margin-left: auto; border-radius: 50%; background: var(--ok); visibility: hidden; }
-.nav__item--on .nav__dot { visibility: visible; }
 .nav__item--off .nav__icon, .nav__item--off [data-i18n] { opacity: .55; }
 
 .nav__icon {
@@ -269,7 +266,16 @@ label.setting { cursor: pointer; }
 .setting--wrap { flex-wrap: wrap; }
 /* A text field on the same line as its name, taking most of the row. */
 .setting > input[type="email"], .setting > input[type="text"], .setting > textarea,
-.setting > select { flex: 2 1 240px; min-width: 0; }
+.setting > .textarea-wrap, .setting > select { flex: 2 1 240px; min-width: 0; }
+/* A text box with a link inside it, bottom right (Load examples). */
+.textarea-wrap { position: relative; }
+.textarea-wrap > textarea { display: block; width: 100%; }
+.inline-link {
+  position: absolute; right: 10px; bottom: 8px;
+  padding: 0; border: 0; background: none;
+  color: var(--accent); font: inherit; font-size: 12.5px; text-decoration: underline; cursor: pointer;
+}
+.inline-link[hidden] { display: none; }
 /* A row with a taller control: the name stays at the top. */
 .setting--top { align-items: flex-start; }
 .setting__check { margin-top: 6px; font-size: 12.5px; }
@@ -726,6 +732,8 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   cursor: help;
 }
 .tokens__item { white-space: nowrap; }
+/* In a settings card the row above already draws the line. */
+.setting--note > .tokens { padding-top: 0; border-top: 0; }
 .option--off .option__body { display: none; }
 .option[hidden] { display: none; }
 

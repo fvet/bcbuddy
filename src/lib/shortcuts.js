@@ -678,6 +678,8 @@
     pageActions: pageActions,
     context: context,
     sections: sections,
-    attach: attach
+    attach: attach,
+    // The options page draws the same two people on Help & feedback.
+    peopleSvg: peopleSvg
   };
 })(typeof self !== 'undefined' ? self : this);

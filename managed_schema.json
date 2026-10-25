@@ -28,7 +28,7 @@
     },
     "feedbackPriorities": {
       "title": "Help & feedback priorities",
-      "description": "The priorities the report form offers: 1 to 6 names of at most 40 characters. An empty list hides the priority field, as it is without priorities.",
+      "description": "The priorities the report form offers: 1 to 10 names of at most 40 characters. An empty list hides the priority field, as it is without priorities.",
       "type": "array",
       "items": { "type": "string" }
     },
@@ -39,12 +39,12 @@
     },
     "feedbackSubjectBug": {
       "title": "Help & feedback subject for a problem",
-      "description": "Subject line of a problem report, at most 200 characters on one line. Placeholders: {prio} {type} {company} {environment} {tenant} {title}.",
+      "description": "Subject line of a problem report, at most 200 characters on one line. Placeholders: {prio} {company} {environment} {title}.",
       "type": "string"
     },
     "feedbackSubjectIdea": {
       "title": "Help & feedback subject for an idea",
-      "description": "Subject line of an idea, at most 200 characters on one line. Placeholders: {prio} {type} {company} {environment} {tenant} {title}.",
+      "description": "Subject line of an idea, at most 200 characters on one line. Placeholders: {prio} {company} {environment} {title}.",
       "type": "string"
     },
     "feedbackUrgentText": {

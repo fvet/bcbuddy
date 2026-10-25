@@ -20,7 +20,7 @@
 
   // Help & feedback: the priorities the report form offers, and its subjects.
   // An empty list means no priority field at all.
-  var MAX_PRIORITIES = 6;
+  var MAX_PRIORITIES = 10;
   var MAX_PRIORITY_LENGTH = 40;
   var MAX_SUBJECT_LENGTH = 200;
   // The notice shown when someone picks the most urgent priority, and the

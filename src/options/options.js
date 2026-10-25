@@ -80,7 +80,7 @@
   };
 
   /**
-   * Each area's switch, its dot in the nav and the dimming of its panel. An
+   * Each area's switch, its nav item and the dimming of its panel. An
    * area that is off stays editable: the dimming only says it does nothing
    * in Business Central right now.
    */
@@ -92,8 +92,7 @@
       document.querySelectorAll('.panel[data-area="' + key + '"]').forEach(function (panel) {
         panel.classList.toggle('area--off', !on);
       });
-      var dot = document.querySelector('[data-area-dot="' + key + '"]');
-      var item = dot && dot.closest('.nav__item');
+      var item = document.querySelector('.nav__item[data-area-nav="' + key + '"]');
       if (item) {
         item.classList.toggle('nav__item--on', on);
         item.classList.toggle('nav__item--off', !on);
@@ -135,6 +134,7 @@
     // Empty is no priority field: then the default, the urgent message and
     // its link have nothing to be about, and are not shown.
     page.fill(el.feedbackPriorities, values.join('\n'));
+    el.feedbackPrioritiesSample.hidden = values.length > 0 || page.isLocked('feedbackPriorities');
     document.querySelectorAll('[data-needs-priorities]').forEach(function (row) {
       row.hidden = !values.length;
     });
@@ -532,9 +532,16 @@
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
       'dropdownWidth', 'dropdownHeight',
       'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled', 'feedbackEmail',
-      'feedbackPriorities', 'feedbackDefaultPriority',
+      'feedbackPriorities', 'feedbackPrioritiesSample', 'feedbackDefaultPriority',
       'feedbackSubjectBug', 'feedbackSubjectIdea', 'feedbackSubjectTokens', 'feedbackUrgentText', 'feedbackUrgentLink'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
+
+    // The BC top bar's two people on Help & feedback, from the one drawing.
+    document.querySelectorAll('[data-people-icon]').forEach(function (slot) {
+      var svg = BCBuddy.Shortcuts.peopleSvg(document);
+      svg.setAttribute('class', 'nav__icon');
+      slot.replaceWith(svg);
+    });
 
     bindLanguage();
 
@@ -671,6 +678,22 @@
     // Saved when the field is left, and only when every line can be kept.
     el.feedbackPriorities.addEventListener('input', function () {
       el.feedbackPriorities.setCustomValidity('');
+      // At most MAX_PRIORITIES lines: what goes past that is cut off as it
+      // is typed or pasted, so the list never has to be refused for it.
+      var lines = el.feedbackPriorities.value.split(/\r?\n/);
+      if (lines.length > BCBuddy.MAX_PRIORITIES) {
+        el.feedbackPriorities.value = lines.slice(0, BCBuddy.MAX_PRIORITIES).join('\n');
+      }
+      el.feedbackPrioritiesSample.hidden = !!el.feedbackPriorities.value || page.isLocked('feedbackPriorities');
+    });
+    // Load examples: a starting list in the page's language, saved at once.
+    el.feedbackPrioritiesSample.addEventListener('click', function (event) {
+      if (!event.isTrusted || page.isLocked('feedbackPriorities')) return;
+      el.feedbackPriorities.value = t('feedbackPrioritiesSample');
+      el.feedbackPriorities.setCustomValidity('');
+      var list = page.readPriorities();
+      if (list) page.setPriorities(list);
+      el.feedbackPriorities.focus();
     });
     el.feedbackPriorities.addEventListener('change', function () {
       if (page.isLocked('feedbackPriorities')) {
@@ -680,7 +703,7 @@
       var list = page.readPriorities();
       if (list === undefined) {
         el.feedbackPriorities.setCustomValidity(t('feedbackPrioritiesInvalid',
-          [BCBuddy.MAX_PRIORITIES, BCBuddy.MAX_PRIORITY_LENGTH]));
+          [BCBuddy.MAX_PRIORITY_LENGTH]));
         el.feedbackPriorities.reportValidity();
         return;
       }

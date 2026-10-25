@@ -1585,9 +1585,9 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     [BCBuddy.cleanPriorities(null), BCBuddy.cleanPriorities(undefined), BCBuddy.cleanPriorities('Normal')],
     [[], [], []]);
   check('priorities: an empty list is no priority field', BCBuddy.cleanPriorities([]), []);
-  check('priorities: trimmed, each once, no empty or invalid names, at most six',
-    BCBuddy.cleanPriorities([' A ', 'a', 'B', '', 7, 'x'.repeat(41), 'C\nD', 'C', 'D', 'E', 'F', 'G']),
-    ['A', 'B', 'C', 'D', 'E', 'F']);
+  check('priorities: trimmed, each once, no empty or invalid names, at most ten',
+    BCBuddy.cleanPriorities([' A ', 'a', 'B', '', 7, 'x'.repeat(41), 'C\nD', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']),
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']);
   check('priorities: forty characters fit', BCBuddy.cleanPriorities(['x'.repeat(40)]), ['x'.repeat(40)]);
   check('priorities: a list with nothing valid is none', BCBuddy.cleanPriorities(['', 5, '‮']), []);
   check('priorities: stored as checked',

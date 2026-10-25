@@ -63,34 +63,29 @@
 
   <div class="layout">
     <nav class="nav" data-i18n-label="navSections" aria-label="Sections">
-      <button type="button" class="nav__item" data-panel="webclient">
+      <button type="button" class="nav__item" data-panel="webclient" data-area-nav="webClientEnabled">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/>
           <path d="M1.5 5.5h13M4 8.5h5M4 11h3"/>
         </svg>
         <span data-i18n="navWebClient">Web client</span>
-        <!-- Green while the area is on, grey while it is off; the hidden
-             word says the same to a screen reader (renderAreas()). -->
-        <span class="nav__dot" data-area-dot="webClientEnabled" aria-hidden="true"></span>
+        <!-- Dimmed while the area is off; the hidden word says the same to a
+             screen reader (renderAreas()). -->
         <span class="sr-only" data-area-state="webClientEnabled"></span>
       </button>
-      <button type="button" class="nav__item" data-panel="environments" aria-current="page">
+      <button type="button" class="nav__item" data-panel="environments" data-area-nav="environmentsEnabled" aria-current="page">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/>
           <path d="M5 13.5h6"/>
         </svg>
         <span data-i18n="navEnvironments">Environments</span>
-        <span class="nav__dot" data-area-dot="environmentsEnabled" aria-hidden="true"></span>
         <span class="sr-only" data-area-state="environmentsEnabled"></span>
       </button>
-      <button type="button" class="nav__item" data-panel="feedback">
-        <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="6.5" r="4"/>
-          <path d="M5.5 13.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5"/>
-          <circle cx="8" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
-        </svg>
+      <button type="button" class="nav__item" data-panel="feedback" data-area-nav="feedbackEnabled">
+        <!-- The two people of the BC Buddy icon in BC's top bar, drawn by
+             shortcuts.js (peopleSvg) so there is one drawing (options.js). -->
+        <span class="nav__icon" data-people-icon></span>
         <span data-i18n="navFeedback">Help &amp; feedback</span>
-        <span class="nav__dot" data-area-dot="feedbackEnabled" aria-hidden="true"></span>
         <span class="sr-only" data-area-state="feedbackEnabled"></span>
       </button>
       <button type="button" class="nav__item" data-panel="settings">
@@ -370,10 +365,14 @@
         <div class="setting setting--top">
           <span class="setting__text">
             <label class="setting__name" for="feedbackPriorities" data-i18n="feedbackPrioritiesLabel">Priorities</label>
-            <span class="setting__desc" data-i18n="feedbackPrioritiesDesc">One per line, up to 6. Leave it empty for no priority field.</span>
+            <span class="setting__desc" data-i18n="feedbackPrioritiesDesc">One per line.</span>
             <span class="muted small lock-note" data-lock-note="feedbackPriorities" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
           </span>
-          <textarea id="feedbackPriorities" data-lock="feedbackPriorities" rows="4" spellcheck="false"></textarea>
+          <!-- While empty, a link inside the box fills in an example list. -->
+          <div class="textarea-wrap">
+            <textarea id="feedbackPriorities" data-lock="feedbackPriorities" rows="4" spellcheck="false"></textarea>
+            <button type="button" class="inline-link" id="feedbackPrioritiesSample" data-i18n="feedbackPrioritiesSampleLoad" hidden>Load examples</button>
+          </div>
         </div>
         <!-- The three below are about the priorities: gone while there are
              none (data-needs-priorities, renderFeedback()). -->
@@ -669,6 +668,7 @@
   <script src="../lib/match.js"></script>
   <script src="../lib/settings.js"></script>
   <script src="../lib/dropdowns.js"></script>
+  <script src="../lib/shortcuts.js"></script>
   <script src="options-helpers.js"></script>
   <script src="options-cards.js"></script>
   <script src="options-hosted.js"></script>

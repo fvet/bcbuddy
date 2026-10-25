@@ -529,6 +529,7 @@ function runOptions() {
         .then(function () { return loadScript(ROOT + 'src/lib/match.js'); })
         .then(function () { return loadScript(ROOT + 'src/lib/settings.js'); })
         .then(function () { return loadScript(ROOT + 'src/lib/dropdowns.js'); })
+        .then(function () { return loadScript(ROOT + 'src/lib/shortcuts.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-helpers.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-cards.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-hosted.js'); })
@@ -1792,8 +1793,7 @@ function assertAreas() {
   var web = document.getElementById('webClientEnabled');
   var webPanel = document.querySelector('.panel[data-panel="webclient"]');
   var navItem = document.querySelector('.nav__item[data-panel="webclient"]');
-  var dot = navItem.querySelector('.nav__dot');
-  var dotOn = getComputedStyle(dot).backgroundColor;
+  check('areas: the nav has no dots', document.querySelectorAll('.nav__dot').length, 0);
   check('areas: an area that is on is not dimmed', webPanel.classList.contains('area--off'), false);
   web.click();
   return wait(400).then(function () {
@@ -1807,15 +1807,18 @@ function assertAreas() {
     check('areas: the rows are',
       getComputedStyle(webPanel.querySelector('.setting-group')).opacity, '0.55');
     truthy('areas: its nav item looks off', navItem.classList.contains('nav__item--off') &&
-      getComputedStyle(dot).visibility === 'hidden');
+      getComputedStyle(navItem.querySelector('.nav__icon')).opacity === '0.55');
     check('areas: and says so to a screen reader',
       navItem.querySelector('[data-area-state]').textContent.trim(), chrome.i18n.getMessage('navAreaOff'));
     web.click();
     return wait(400);
   }).then(function () {
     check('areas: and back on', [STORE.settings.webClientEnabled, webPanel.classList.contains('area--off'),
-      getComputedStyle(dot).backgroundColor, navItem.querySelector('[data-area-state]').textContent],
-      [true, false, dotOn, '']);
+      navItem.classList.contains('nav__item--off'), navItem.querySelector('[data-area-state]').textContent],
+      [true, false, false, '']);
+    var people = document.querySelector('.nav__item[data-panel="feedback"] svg.nav__icon');
+    check('areas: Help & feedback has the two people of the BC top bar',
+      people && people.querySelectorAll('circle, path').length, 4);
     var fbPanel = document.querySelector('.panel[data-panel="feedback"]');
     check('areas: Help & feedback is dimmed while off, its fields still there',
       [fbPanel.classList.contains('area--off'), document.getElementById('feedbackEmail').readOnly,
@@ -1846,8 +1849,8 @@ function assertFeedback() {
     field.dispatchEvent(new Event('change'));
     return wait(400);
   }
-  check('feedback: the intro says it opens the BC Buddy panel',
-    chrome.i18n.getMessage('supportIntro').indexOf('opens the BC Buddy panel') !== -1, true);
+  check('feedback: the intro is one short line',
+    chrome.i18n.getMessage('supportIntro').indexOf('BC Buddy panel'), -1);
   function needsShown() {
     return Array.prototype.map.call(document.querySelectorAll('[data-needs-priorities]'),
       function (row) { return !row.hidden; });
@@ -1861,15 +1864,25 @@ function assertFeedback() {
   check('feedback: without priorities, no default, urgent message or link', needsShown(), [false, false, false]);
   check('feedback: subjects show the built-in ones, without {prio}',
     [bug.value, idea.value], [noPrio('spSubjectDefaultBug'), noPrio('spSubjectDefaultIdea')]);
-  check('feedback: the tokens are listed, without {prio}', tokens(),
-    ['{type}', '{company}', '{environment}', '{tenant}', '{title}']);
+  check('feedback: the tokens are listed, without {prio}', tokens(), ['{company}', '{environment}', '{title}']);
+  var sample = document.getElementById('feedbackPrioritiesSample');
+  check('feedback: an empty list offers examples', sample.hidden, false);
+  var ten = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
-  return type(list, '1\n2\n3\n4\n5\n6\n7').then(function () {
-    check('feedback: seven priorities are not saved', STORE.settings.feedbackPriorities, []);
-    truthy('feedback: and the box says why', list.validationMessage.length > 0);
+  return type(list, ten.concat('11', '12').join('\n')).then(function () {
+    check('feedback: lines past ten are cut off as they are typed',
+      [list.value, STORE.settings.feedbackPriorities], [ten.join('\n'), ten]);
+    check('feedback: with a list, no examples link', sample.hidden, true);
+    return type(list, '');
+  }).then(function () {
+    sample.click();
+    return wait(400);
+  }).then(function () {
+    check('feedback: a scripted click on the examples link does nothing', STORE.settings.feedbackPriorities, []);
     return type(list, 'Low\n' + new Array(42).join('x'));
   }).then(function () {
     check('feedback: a priority over 40 characters is not saved', STORE.settings.feedbackPriorities, []);
+    truthy('feedback: and the box says why', list.validationMessage.length > 0);
     return type(list, 'Low\nlow');
   }).then(function () {
     check('feedback: the same priority twice is not saved', STORE.settings.feedbackPriorities, []);

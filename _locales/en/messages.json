@@ -370,10 +370,6 @@
     "message": "priority",
     "description": "Explains the {prio} token of the Help & feedback email subjects. Lowercase: it is read after the token itself."
   },
-  "tokenType": {
-    "message": "problem or feedback",
-    "description": "Explains the {type} token of the Help & feedback email subjects. Lowercase: it is read after the token itself."
-  },
   "tokenMessageTitle": {
     "message": "first line of the message",
     "description": "Explains the {title} token of the Help & feedback email subjects. Lowercase: it is read after the token itself."
@@ -809,7 +805,7 @@
     "description": "Navigation item leading to the Help & feedback settings."
   },
   "supportIntro": {
-    "message": "Lets users report a problem to your helpdesk straight from Business Central: the BC Buddy icon in the top bar (two people) or the toolbar icon opens the BC Buddy panel, which collects a description and screenshots and hands them to the email app.",
+    "message": "Lets users report a problem to your helpdesk straight from Business Central.",
     "description": "Intro text of the Support section on the Settings panel."
   },
   "feedbackEmailLabel": {
@@ -837,11 +833,19 @@
     "description": "Label of the box with the priorities a report can have."
   },
   "feedbackPrioritiesDesc": {
-    "message": "One per line, up to 6. Leave it empty for no priority field.",
+    "message": "One per line.",
     "description": "Line under Priorities."
   },
+  "feedbackPrioritiesSampleLoad": {
+    "message": "Load examples",
+    "description": "Link inside the empty Priorities box: fills it with feedbackPrioritiesSample."
+  },
+  "feedbackPrioritiesSample": {
+    "message": "Normal\nHigh\nCritical",
+    "description": "The example priorities, one per line, least urgent first: the last one is the most urgent."
+  },
   "feedbackPrioritiesInvalid": {
-    "message": "Up to $1 priorities, one per line, each at most $2 characters and each only once.",
+    "message": "One per line, each at most $1 characters and each only once.",
     "description": "$1 and $2 are numbers. Shown when the typed list cannot be saved."
   },
   "feedbackDefaultPriorityLabel": {
@@ -941,11 +945,11 @@
     "description": "Link in that warning."
   },
   "spDescPlaceholder": {
-    "message": "What went wrong? What were you doing…",
+    "message": "What went wrong?\nWhat were you doing…",
     "description": "Placeholder inside the empty message box of a problem report, also its accessible name. There is no label above the box."
   },
   "spDescPlaceholderImp": {
-    "message": "What would you like to improve? What would you like to see differently?",
+    "message": "What would you like to improve?\nWhat would you like to see differently?",
     "description": "Placeholder inside the empty message box of feedback or a suggestion, also its accessible name."
   },
   "spDraftNotSaved": {

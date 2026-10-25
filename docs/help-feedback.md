@@ -158,9 +158,10 @@ green.
 Then fill in:
 
 - **Email**: the helpdesk address the reports go to. Only one address.
-- **Priorities**: one per line, at most 6, for example *Normal*, *High*,
-  *Critical*. Leave it empty and there is no priority field: the three
-  settings below are then hidden too.
+- **Priorities**: one per line, for example *Normal*, *High*, *Critical*;
+  **Load examples** in the empty box fills in a list to start from. Leave it
+  empty and there is no priority field: the three settings below are then
+  hidden too.
 - **Default priority**: the priority a new report starts with.
 - **Message for urgent problems**: a short line shown above the priority when
   someone picks the last priority in the list, for example *Urgent? Call the
@@ -182,10 +183,8 @@ Buddy fills them in when the email is created:
 | Placeholder | Becomes |
 |---|---|
 | `{prio}` | the priority, only when there are priorities |
-| `{type}` | *Problem* or *Feedback* |
 | `{company}` | the company of the Business Central page |
 | `{environment}` | the environment |
-| `{tenant}` | the tenant |
 | `{title}` | the first line of the message |
 
 The standard subjects are `[BC] Problem - {prio} - {company}: {title}` and
@@ -211,7 +210,7 @@ Set it up once and give everyone the same settings:
     |---|---|
     | `feedbackEnabled` | `true` or `false` |
     | `feedbackEmail` | one address, such as `"helpdesk@example.com"` |
-    | `feedbackPriorities` | a list of 1 to 6 names of at most 40 characters; `[]` or left out for no priority field |
+    | `feedbackPriorities` | a list of 1 to 10 names of at most 40 characters; `[]` or left out for no priority field |
     | `feedbackDefaultPriority` | one of the priorities |
     | `feedbackSubjectBug` | the subject for a problem |
     | `feedbackSubjectIdea` | the subject for feedback |
@@ -227,8 +226,8 @@ Set it up once and give everyone the same settings:
       "feedbackEmail": "helpdesk@example.com",
       "feedbackPriorities": ["Low", "Normal", "Urgent"],
       "feedbackDefaultPriority": "Normal",
-      "feedbackSubjectBug": "[BC] {type} - {prio} - {company}: {title}",
-      "feedbackSubjectIdea": "[BC] {type} - {company}: {title}",
+      "feedbackSubjectBug": "[BC] Problem - {prio} - {company}: {title}",
+      "feedbackSubjectIdea": "[BC] Idea - {company}: {title}",
       "feedbackUrgentText": "Urgent? Call the helpdesk on 03 123 45 67.",
       "feedbackUrgentLink": "tel:+3231234567"
     }

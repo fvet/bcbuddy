@@ -17,8 +17,8 @@ Windows Registry Editor Version 5.00
 ;"feedbackEnabled"=dword:00000001
 ;"feedbackEmail"="helpdesk@example.com"
 ;"feedbackDefaultPriority"="Normal"
-;"feedbackSubjectBug"="[{prio}] {type} in {company} ({environment})"
-;"feedbackSubjectIdea"="{type} for {company}"
+;"feedbackSubjectBug"="[{prio}] Problem in {company} ({environment})"
+;"feedbackSubjectIdea"="Idea for {company}"
 ;"feedbackUrgentText"="Urgent? Call the helpdesk on 03 123 45 67."
 ;"feedbackUrgentLink"="tel:+3231234567"
 
@@ -34,8 +34,8 @@ Windows Registry Editor Version 5.00
 ;"feedbackEnabled"=dword:00000001
 ;"feedbackEmail"="helpdesk@example.com"
 ;"feedbackDefaultPriority"="Normal"
-;"feedbackSubjectBug"="[{prio}] {type} in {company} ({environment})"
-;"feedbackSubjectIdea"="{type} for {company}"
+;"feedbackSubjectBug"="[{prio}] Problem in {company} ({environment})"
+;"feedbackSubjectIdea"="Idea for {company}"
 ;"feedbackUrgentText"="Urgent? Call the helpdesk on 03 123 45 67."
 ;"feedbackUrgentLink"="tel:+3231234567"
 

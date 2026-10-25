@@ -1085,9 +1085,7 @@
     // The list scrolls on its own: show the step just added.
     var list = $('help-thumbs');
     list.scrollTop = list.scrollHeight;
-    var notes = list.querySelectorAll('.shot-note');
-    if (auto && notes.length) notes[notes.length - 1].focus();
-    else $('help-desc').focus();
+    $('help-desc').focus();
   }
 
   /** Cuts the selected area out of a capture; the rect is in the page's CSS pixels. */

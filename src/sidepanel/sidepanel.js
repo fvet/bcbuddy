@@ -52,11 +52,35 @@
   var helpType = 'Bug';
 
   Promise.all([BCBuddy.loadLanguage(), BCBuddy.loadSettings().catch(function () { return null; })]).then(function (r) {
-    var settings = r[1];
-    helpOn = !!(settings && (BCBuddy.feedbackOn ? BCBuddy.feedbackOn(settings) : settings.feedbackEnabled));
-    shortcutsOn = !!(settings && BCBuddy.shortcutsOn(settings));
+    takeSwitches(r[1]);
     start();
   });
+
+  function takeSwitches(settings) {
+    helpOn = !!(settings && (BCBuddy.feedbackOn ? BCBuddy.feedbackOn(settings) : settings.feedbackEnabled));
+    shortcutsOn = !!(settings && BCBuddy.shortcutsOn(settings));
+  }
+
+  /** The start view offers what is switched on. */
+  function showEntries() {
+    document.getElementById('go-bug').hidden = !helpOn;
+    document.getElementById('go-idea').hidden = !helpOn;
+    document.getElementById('go-shortcuts').hidden = !shortcutsOn;
+    document.getElementById('home-empty').hidden = helpOn || shortcutsOn;
+  }
+
+  /**
+   * A switch turned on or off on the options page (or by IT) applies here at
+   * once: the start view follows, and a view whose switch went off gives
+   * way to it. A report in progress stays in its draft.
+   */
+  function refreshSwitches() {
+    BCBuddy.loadSettings().catch(function () { return null; }).then(function (settings) {
+      takeSwitches(settings);
+      showEntries();
+      if ((view === 'help' && !helpOn) || (view === 'shortcuts' && !shortcutsOn)) setView('home');
+    });
+  }
 
   /**
    * The language picked on the options page applies here at once: the
@@ -103,13 +127,11 @@
     document.getElementById('go-shortcuts').addEventListener('click', function (event) {
       if (event.isTrusted) setView('shortcuts');
     });
-    document.getElementById('go-bug').hidden = !helpOn;
-    document.getElementById('go-idea').hidden = !helpOn;
-    document.getElementById('go-shortcuts').hidden = !shortcutsOn;
-    document.getElementById('home-empty').hidden = helpOn || shortcutsOn;
+    showEntries();
 
     chrome.storage.onChanged.addListener(function (changes, area) {
       if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY]) relocalize();
+      if ((area === 'local' && changes[BCBuddy.STORAGE_KEY]) || area === 'managed') refreshSwitches();
     });
 
     chrome.windows.getCurrent().then(function (win) {
