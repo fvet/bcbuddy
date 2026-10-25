@@ -1807,7 +1807,7 @@ function assertAreas() {
     check('areas: the rows are',
       getComputedStyle(webPanel.querySelector('.setting-group')).opacity, '0.55');
     truthy('areas: its nav item looks off', navItem.classList.contains('nav__item--off') &&
-      getComputedStyle(dot).backgroundColor !== dotOn);
+      getComputedStyle(dot).visibility === 'hidden');
     check('areas: and says so to a screen reader',
       navItem.querySelector('[data-area-state]').textContent.trim(), chrome.i18n.getMessage('navAreaOff'));
     web.click();
@@ -1832,7 +1832,6 @@ function assertAreas() {
 /* ---- the Help & feedback fields ----------------------------------------- */
 function assertFeedback() {
   var list = document.getElementById('feedbackPriorities');
-  var none = document.getElementById('feedbackNoPriority');
   var pick = document.getElementById('feedbackDefaultPriority');
   var bug = document.getElementById('feedbackSubjectBug');
   var idea = document.getElementById('feedbackSubjectIdea');
@@ -1849,29 +1848,31 @@ function assertFeedback() {
   }
   check('feedback: the intro says it opens the BC Buddy panel',
     chrome.i18n.getMessage('supportIntro').indexOf('opens the BC Buddy panel') !== -1, true);
-  check('feedback: the standard list is the placeholder, in the page language',
-    [list.value, list.placeholder], ['', ['spPrioNormal', 'spPrioHigh', 'spPrioCritical']
-      .map(function (k) { return chrome.i18n.getMessage(k); }).join('\n')]);
-  check('feedback: the default priority offers None and the standard list', options(),
-    [['', chrome.i18n.getMessage('feedbackPriorityNone')], ['Normal', chrome.i18n.getMessage('spPrioNormal')],
-      ['High', chrome.i18n.getMessage('spPrioHigh')], ['Critical', chrome.i18n.getMessage('spPrioCritical')]]);
-  check('feedback: and starts on Normal', pick.value, 'Normal');
-  check('feedback: subjects show the built-in ones as placeholder',
-    [bug.value, bug.placeholder, idea.value, idea.placeholder],
-    ['', chrome.i18n.getMessage('spSubjectDefaultBug'), '', chrome.i18n.getMessage('spSubjectDefaultIdea')]);
-  truthy('feedback: the placeholders are explained',
-    chrome.i18n.getMessage('feedbackSubjectHelp').indexOf('{title}') !== -1 &&
-    !!document.querySelector('.panel[data-panel="feedback"] details summary'));
+  function needsShown() {
+    return Array.prototype.map.call(document.querySelectorAll('[data-needs-priorities]'),
+      function (row) { return !row.hidden; });
+  }
+  function tokens() {
+    return Array.prototype.map.call(document.querySelectorAll('#feedbackSubjectTokens code'),
+      function (code) { return code.textContent; });
+  }
+  var noPrio = function (key) { return BCBuddy.fillSubject(chrome.i18n.getMessage(key), { prio: '' }); };
+  check('feedback: no priorities to start with', [list.value, STORE.settings.feedbackPriorities || []], ['', []]);
+  check('feedback: without priorities, no default, urgent message or link', needsShown(), [false, false, false]);
+  check('feedback: subjects show the built-in ones, without {prio}',
+    [bug.value, idea.value], [noPrio('spSubjectDefaultBug'), noPrio('spSubjectDefaultIdea')]);
+  check('feedback: the tokens are listed, without {prio}', tokens(),
+    ['{type}', '{company}', '{environment}', '{tenant}', '{title}']);
 
   return type(list, '1\n2\n3\n4\n5\n6\n7').then(function () {
-    check('feedback: seven priorities are not saved', STORE.settings.feedbackPriorities, null);
+    check('feedback: seven priorities are not saved', STORE.settings.feedbackPriorities, []);
     truthy('feedback: and the box says why', list.validationMessage.length > 0);
     return type(list, 'Low\n' + new Array(42).join('x'));
   }).then(function () {
-    check('feedback: a priority over 40 characters is not saved', STORE.settings.feedbackPriorities, null);
+    check('feedback: a priority over 40 characters is not saved', STORE.settings.feedbackPriorities, []);
     return type(list, 'Low\nlow');
   }).then(function () {
-    check('feedback: the same priority twice is not saved', STORE.settings.feedbackPriorities, null);
+    check('feedback: the same priority twice is not saved', STORE.settings.feedbackPriorities, []);
     return type(list, '  Low \n\nHigh\n');
   }).then(function () {
     check('feedback: one per line, trimmed, blank lines skipped', STORE.settings.feedbackPriorities, ['Low', 'High']);
@@ -1879,25 +1880,21 @@ function assertFeedback() {
       STORE.settings.feedbackDefaultPriority, '');
     check('feedback: the list follows', options(),
       [['', chrome.i18n.getMessage('feedbackPriorityNone')], ['Low', 'Low'], ['High', 'High']]);
+    check('feedback: with priorities, the default, urgent message and link show', needsShown(), [true, true, true]);
+    check('feedback: and {prio} is back, in the subjects and the tokens',
+      [bug.value, tokens()[0]], [chrome.i18n.getMessage('spSubjectDefaultBug'), '{prio}']);
     pick.value = 'High';
     pick.dispatchEvent(new Event('change'));
     return wait(400);
   }).then(function () {
     check('feedback: the default priority is saved', STORE.settings.feedbackDefaultPriority, 'High');
-    none.click();
-    return wait(400);
+    return type(bug, chrome.i18n.getMessage('spSubjectDefaultBug'));
   }).then(function () {
-    check('feedback: No priority field stores an empty list',
-      [STORE.settings.feedbackPriorities, STORE.settings.feedbackDefaultPriority], [[], '']);
-    check('feedback: and there is nothing to type or pick', [list.disabled, pick.disabled], [true, true]);
-    none.click();
-    return wait(400);
-  }).then(function () {
-    check('feedback: unticked, the typed list is back', STORE.settings.feedbackPriorities, ['Low', 'High']);
-    check('feedback: and the fields work again', [list.disabled, pick.disabled], [false, false]);
+    check('feedback: the built-in subject as shown is stored as the built-in one', STORE.settings.feedbackSubjectBug, '');
     return type(list, '');
   }).then(function () {
-    check('feedback: an empty box is the standard list', STORE.settings.feedbackPriorities, null);
+    check('feedback: an empty box is no priority field, and no default',
+      [STORE.settings.feedbackPriorities, STORE.settings.feedbackDefaultPriority], [[], '']);
     return type(bug, '  Help {prio}: {title} ');
   }).then(function () {
     check('feedback: a subject is saved, trimmed', STORE.settings.feedbackSubjectBug, 'Help {prio}: {title}');
@@ -1907,6 +1904,8 @@ function assertFeedback() {
     truthy('feedback: and the field says why', idea.validationMessage.length > 0);
     return type(idea, '');
   }).then(function () {
+    check('feedback: emptied, a subject shows the built-in one again',
+      [STORE.settings.feedbackSubjectIdea, idea.value], ['', noPrio('spSubjectDefaultIdea')]);
     return type(document.getElementById('feedbackEmail'), 'helpdesk@example.com');
   }).then(function () {
     check('feedback: the email is saved', STORE.settings.feedbackEmail, 'helpdesk@example.com');

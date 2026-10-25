@@ -23,12 +23,8 @@ The BC Buddy icon in the browser toolbar opens the same panel.
 
 The panel stays open while you move around Business Central, and it is never
 in your screenshots. Closed it by accident? Open it again: your report is
-still there. **Draft saved** under the box tells you it is kept.
-
-When you click **Report a problem**, BC Buddy takes a screenshot of the
-screen you are on straight away, as the first step: that is usually the
-screen with the problem. Type what went wrong in the box next to it. Not the
-right screen? Remove it with the **×** on the screenshot.
+still there. The bin at
+the top throws the report away and takes you back to the start.
 
 ## Three steps
 
@@ -39,7 +35,7 @@ step, for example *I open the sales order and click Post*. **Ctrl+B**,
 **Ctrl+I** and **Ctrl+U** make text bold, italic or underlined.
 
 If there is a **Priority** list, pick how urgent it is. When you pick the most
-urgent one, your IT team may show a short message under it, such as a phone
+urgent one, your IT team may show a short message above it, such as a phone
 number to call.
 
 ### 2. Take a screenshot
@@ -53,8 +49,8 @@ Your text goes with that screenshot, and the box is empty again for the next
 step. Repeat for every step: write, then take a screenshot. You can still
 change the text under each screenshot afterwards, and drag a screenshot up
 or down to change the order of the steps; its text moves with it. With many
-steps the list of screenshots scrolls, so the box and the buttons stay in
-view.
+steps the list of **Steps** scrolls, so the box and the buttons stay in
+view. **Tab** jumps from one step's text to the next.
 
 To point something out, click **Draw on this screenshot**:
 
@@ -63,7 +59,8 @@ To point something out, click **Draw on this screenshot**:
 - **Blur** to hide a name, an amount or anything else that is private,
 - **Clear all** to start the drawing over.
 
-Click **Save** (or press Enter) when you are done.
+Click **Save** (or press **Enter**) when you are done, or the **×** (or **Esc**)
+to leave the screenshot out.
 
 ### 3. Send it
 
@@ -75,7 +72,7 @@ downloads. Say yes, and from then on the email opens by itself. Said no? Then
 the email is saved in your Downloads folder: open it from the top of the
 browser.
 
-Other ways, under the arrow next to **Email**, and next to it:
+Other ways are under the arrow next to **Email**:
 
 - **Email (draft)**: opens a new email in your email app and puts the report on
   the clipboard. Click in the email and press **Ctrl+V**.
@@ -83,17 +80,20 @@ Other ways, under the arrow next to **Email**, and next to it:
   email or a ticket.
 - **Copy**: puts the report on the clipboard, to paste anywhere.
 
-When it is sent, click **Close**. That throws the report away, so the panel is
-empty for the next one.
+Once the report is out, **Email** turns into **Done**. Click it when the
+email is sent: that throws the report away, so the panel is empty for the next
+one. Need another way after all? The arrow still has them all.
 
 ## What the helpdesk receives
 
 One email with:
 
-- the date and time,
-- where you were: the tenant, the environment and the company,
+- where you were: the environment and the company,
 - the priority, if you picked one,
-- each step: the page title and its address, your text and the screenshot.
+- each step: the page title, which links to the page, your text and the
+  screenshot,
+- at the bottom: your system (Windows, Chrome or Edge), the tenant, and the
+  date and time.
 
 The subject says what kind of report it is, and starts with the first line of
 what you wrote, for example *[BC] Problem - High - CRONUS BE: Posting a sales
@@ -118,9 +118,10 @@ order fails*.
     Look at the top right of the browser for the download, and open the file
     from there: it opens in your email app.
 
-    Still nothing? Use **Email (draft)** and press **Ctrl+V** in the new email.
-    Working in Gmail or Outlook on the web? Pictures often do not paste there.
-    Then use **Download** and attach the file to your email.
+    Still nothing? Click the arrow next to the main button, choose **Email
+    (draft)** and press **Ctrl+V** in the new email. Working in Gmail or
+    Outlook on the web? Pictures often do not paste there. Then choose
+    **Download** under the same arrow and attach the file to your email.
 
 ??? faq "No BC Buddy icon in the top bar"
 
@@ -133,8 +134,8 @@ order fails*.
 
     The panel does not know where to send the report yet. Ask your helpdesk or
     IT department, or fill in the address yourself under **Help & feedback** in
-    the settings. Until then **Email** stays greyed out and **Download** is the
-    highlighted button: save the report and attach it to an email yourself.
+    the settings. Until then **Download** takes the place of **Email**: save
+    the report and attach it to an email yourself.
 
 ??? faq "I cannot take a screenshot"
 
@@ -157,29 +158,30 @@ green.
 Then fill in:
 
 - **Email**: the helpdesk address the reports go to. Only one address.
-- **Priorities**: one per line, at most 6. Leave it empty for the standard
-  list: *Normal*, *High*, *Critical*, shown in each user's own language. Tick
-  **No priority field** to leave priority out of the report.
+- **Priorities**: one per line, at most 6, for example *Normal*, *High*,
+  *Critical*. Leave it empty and there is no priority field: the three
+  settings below are then hidden too.
 - **Default priority**: the priority a new report starts with.
-- **Message for urgent problems**: a short line shown under the priority when
-  someone picks the last priority in the list (*Critical* in the standard
-  list), for example *Urgent? Call the helpdesk on 03 123 45 67.* It is only
+- **Message for urgent problems**: a short line shown above the priority when
+  someone picks the last priority in the list, for example *Urgent? Call the
+  helpdesk on 03 123 45 67.* It is only
   a hint on screen: it does not go into the report. Leave it empty for no
   message. One line, at most 200 characters.
 - **Link (optional)**: makes that message a link people can click: an address
   that starts with `https://`, such as a Teams link, or `tel:` followed by a
   phone number, such as `tel:+3231234567`. Other links are refused.
-- **Email subject for a problem** and **Email subject for feedback**: leave
-  them empty for the standard subject.
+- **Email subject for a problem** and **Email subject for feedback**: each
+  shows the standard subject until you change it. Empty it to go back to
+  the standard one.
 
 ### Email subjects
 
-A subject can hold these placeholders. BC Buddy fills them in when the email
-is created:
+A subject can hold these placeholders, listed under the subject fields. BC
+Buddy fills them in when the email is created:
 
 | Placeholder | Becomes |
 |---|---|
-| `{prio}` | the priority |
+| `{prio}` | the priority, only when there are priorities |
 | `{type}` | *Problem* or *Feedback* |
 | `{company}` | the company of the Business Central page |
 | `{environment}` | the environment |
@@ -187,8 +189,8 @@ is created:
 | `{title}` | the first line of the message |
 
 The standard subjects are `[BC] Problem - {prio} - {company}: {title}` and
-`[BC] Feedback - {prio} - {company}: {title}`. A subject is one line of at
-most 200 characters.
+`[BC] Feedback - {prio} - {company}: {title}`, without `{prio}` when there
+are no priorities. A subject is one line of at most 200 characters.
 
 ### The same settings for the whole team
 
@@ -209,7 +211,7 @@ Set it up once and give everyone the same settings:
     |---|---|
     | `feedbackEnabled` | `true` or `false` |
     | `feedbackEmail` | one address, such as `"helpdesk@example.com"` |
-    | `feedbackPriorities` | a list of 1 to 6 names of at most 40 characters; `[]` for no priority field, `null` for the standard list |
+    | `feedbackPriorities` | a list of 1 to 6 names of at most 40 characters; `[]` or left out for no priority field |
     | `feedbackDefaultPriority` | one of the priorities |
     | `feedbackSubjectBug` | the subject for a problem |
     | `feedbackSubjectIdea` | the subject for feedback |

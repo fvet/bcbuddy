@@ -7,10 +7,10 @@
  *
  *   BCBuddy.SupportOverlay.selectArea()  drag a rectangle over the page;
  *     resolves { x, y, w, h, vw, vh } in CSS pixels, or null on Esc.
- *   BCBuddy.SupportOverlay.cancel()  ends a running area selection as Esc
- *     does. The side panel calls it when Esc is pressed there: while the
- *     selection runs the panel usually still has the focus, so the page
- *     never sees that key.
+ *   BCBuddy.SupportOverlay.cancel()  ends a running area selection or
+ *     drawing editor as Esc does, and confirm() saves the editor as Enter
+ *     does. The side panel calls them when Esc or Enter is pressed there:
+ *     the panel may still have the focus, so the page never sees that key.
  *   BCBuddy.SupportOverlay.edit(dataUrl, annotations) the drawing editor
  *     over the page. dataUrl is the screenshot as it was captured and
  *     annotations what was drawn on it before, so earlier drawings can be
@@ -58,12 +58,46 @@
 
   // Only one step at a time: a second request while one is open gets null.
   var busy = false;
-  // Ends the area selection that runs, if any.
-  var cancelSelect = null;
+  // End the area selection or the editor that runs, if any.
+  var cancelStep = null;
+  var confirmStep = null;
 
   function cancel() {
-    if (cancelSelect) cancelSelect();
+    if (cancelStep) cancelStep();
     return true;
+  }
+
+  function confirm() {
+    if (confirmStep) confirmStep();
+    return true;
+  }
+
+  /**
+   * Keys for one step, before Business Central sees them. BC online keeps
+   * its focus inside its client iframe, whose keys never pass this
+   * document, so the step takes the focus (target, in the shadow root) and
+   * listens in the capture phase here and in every same-origin frame. Hands
+   * back the function that undoes it all and gives the focus back.
+   */
+  function trapKeys(target, onKey) {
+    var docs = [document];
+    var frames = document.querySelectorAll('iframe');
+    for (var i = 0; i < frames.length && i < 20; i++) {
+      try {
+        var d = frames[i].contentDocument;
+        if (d) docs.push(d);
+      } catch (e) { /* another site's frame */ }
+    }
+    var before = document.activeElement;
+    docs.forEach(function (d) { d.addEventListener('keydown', onKey, true); });
+    target.tabIndex = -1;
+    try { window.focus(); target.focus({ preventScroll: true }); } catch (e) { /* not focusable */ }
+    return function () {
+      docs.forEach(function (d) { d.removeEventListener('keydown', onKey, true); });
+      try {
+        if (before && before.isConnected && before.focus) before.focus({ preventScroll: true });
+      } catch (e) { /* gone */ }
+    };
   }
 
   // ------------------------------------------------------------------ layer
@@ -205,8 +239,8 @@
       }
 
       function finish(result) {
-        cancelSelect = null;
-        document.removeEventListener('keydown', onKey, true);
+        cancelStep = null;
+        keysOff();
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onUp);
         if (sel.parentNode) sel.parentNode.removeChild(sel);
@@ -253,12 +287,12 @@
         finish(null);
       }
 
-      cancelSelect = function () { finish(null); };
+      cancelStep = function () { finish(null); };
       sel.addEventListener('mousedown', onDown);
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
-      // Capture phase: Business Central must not see the Esc.
-      document.addEventListener('keydown', onKey, true);
+      // Business Central must not see the Esc.
+      var keysOff = trapKeys(sel, onKey);
     });
   }
 
@@ -492,7 +526,8 @@
       function close(result) {
         closeColorPicker();
         tipsOff();
-        document.removeEventListener('keydown', onEdKey, true);
+        cancelStep = confirmStep = null;
+        keysOff();
         if (ed.parentNode) ed.parentNode.removeChild(ed);
         busy = false;
         resolve(result);
@@ -515,8 +550,10 @@
         else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); save(); }
         else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.stopPropagation(); undo(); }
       }
-      // Capture phase: the host page (BC) must not see these keys while editing.
-      document.addEventListener('keydown', onEdKey, true);
+      // The host page (BC) must not see these keys while editing.
+      var keysOff = trapKeys(ed, onEdKey);
+      cancelStep = function () { close(null); };
+      confirmStep = save;
     });
   }
 
@@ -591,5 +628,5 @@
     ctx.stroke(); ctx.restore();
   }
 
-  BCBuddy.SupportOverlay = { selectArea: selectArea, edit: edit, cancel: cancel, useStyle: useStyle };
+  BCBuddy.SupportOverlay = { selectArea: selectArea, edit: edit, cancel: cancel, confirm: confirm, useStyle: useStyle };
 }());

@@ -66,12 +66,6 @@ body {
 }
 .head h1 { flex: 1; min-width: 0; margin: 0 4px 0 0; font-size: 17px; font-weight: 600; }
 
-/* The dark mode button: the options page's moon and sun. */
-.theme-toggle__icon { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
-.theme-toggle__sun,
-:root[data-theme="dark"] .theme-toggle__moon { display: none; }
-:root[data-theme="dark"] .theme-toggle__sun { display: block; }
-
 .icon-button {
   display: inline-flex;
   align-items: center;
@@ -196,11 +190,15 @@ kbd {
 .rich:empty::before { content: attr(data-placeholder); color: var(--faint); pointer-events: none; }
 .desc { min-height: calc(10 * 1.45em + 14px); max-height: 60vh; }
 .select { display: block; width: 100%; height: 32px; padding: 0 32px 0 8px; appearance: none; cursor: pointer; }
-/* The label on the same row says what the field is; the chevron is drawn
-   here, larger than the browser's own and in the theme's colour. */
-.prio { display: flex; align-items: center; gap: 10px; }
+/* The priority: one box with the label inside, before the choice, so it
+   reads as "Priority  Critical". The chevron is drawn here, larger than the
+   browser's own and in the theme's colour. */
+.prio { display: flex; align-items: center; gap: 4px; padding-left: 9px; cursor: pointer; }
 .prio[hidden] { display: none; }
-.prio-label { flex: none; font-size: 13px; font-weight: 600; color: var(--text); }
+.prio:focus-within { outline: 2px solid var(--accent-color); outline-offset: -1px; border-color: transparent; }
+.prio-label { flex: none; font-size: 13px; font-weight: 600; color: var(--muted); }
+.prio .select { border: 0; background: transparent; color: var(--text); font: inherit; }
+.prio .select:focus { outline: none; }
 .select-wrap { position: relative; flex: 1; min-width: 0; }
 .select-wrap::after {
   content: ''; position: absolute; right: 12px; top: 50%;
@@ -212,8 +210,7 @@ kbd {
 .select.unset { color: var(--faint); }
 .select option { color: var(--text); }
 .card .note { margin: 6px 0 0; }
-.hint-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.hint-row > .note { min-width: 0; }
+.hint-row { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; }
 .note.saved { flex: none; white-space: nowrap; }
 .note.saved[hidden] { display: none; }
 .note.saved.unsaved { color: var(--warn-text); }
@@ -263,7 +260,7 @@ kbd {
 .split { position: relative; gap: 0; }
 .split > .btn.grow { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .split > .caret { flex: none; width: 36px; padding: 0; margin-left: -1px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
-.split > .btn.primary + .caret.primary { border-left-color: var(--on-accent-color); }
+.split > .btn.primary:not([hidden]) ~ .caret.primary { border-left-color: var(--on-accent-color); }
 .split .dd-menu.up { right: 0; left: auto; }
 
 /* One screenshot per line: the thumbnail, and next to it a note that goes
@@ -329,6 +326,7 @@ kbd {
 }
 
 .status { margin: 0; min-height: 16px; font-size: 12px; color: var(--muted); }
+.status:empty { display: none; }
 .status-err { color: var(--error); }
 
 .steps { padding-left: 20px; }

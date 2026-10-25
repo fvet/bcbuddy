@@ -28,7 +28,7 @@
     },
     "feedbackPriorities": {
       "title": "Help & feedback priorities",
-      "description": "The priorities the report form offers: 1 to 6 names of at most 40 characters. An empty list hides the priority field. Leave unset for the built-in Normal, High, Critical.",
+      "description": "The priorities the report form offers: 1 to 6 names of at most 40 characters. An empty list hides the priority field, as it is without priorities.",
       "type": "array",
       "items": { "type": "string" }
     },

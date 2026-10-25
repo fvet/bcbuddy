@@ -31,8 +31,7 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Help & feedback.** Report a problem to your helpdesk, or send feedback or
   a suggestion, without leaving Business Central. Click the BC Buddy icon in
   the top bar, or in the browser's toolbar, and pick **Report a problem** or
-  **Feedback or a suggestion**: a panel opens next to the page. A problem
-  report starts with a screenshot of the screen you are on. Write what you
+  **Feedback or a suggestion**: a panel opens next to the page. Write what you
   did step by step, with a screenshot of each step (the whole screen or just
   the part that matters), and make words bold, italic or underlined with
   Ctrl+B, Ctrl+I or Ctrl+U. Drag a screenshot up or down to change the order
@@ -41,12 +40,13 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   all**. Give the report a priority, then click **Email**: a new email opens
   in your email app with the screenshots inside, ready to send. The first
   time, the browser asks whether BC Buddy may open the file it saves for
-  that. **Email (draft)** opens your email app and puts the report on the
-  clipboard for you to paste; **Download** saves it as a web page;
-  **Copy** puts it on the clipboard. The report says when it was made and
-  which tenant, environment and company you were in, with the page address
-  of every step. It stays while you move around Business Central or close
-  the panel (**Draft saved** says so); **Close** throws it away. Off until you switch on **Use Help &
+  that. Under the arrow next to it, **Email (draft)** opens your email app
+  and puts the report on the clipboard for you to paste; **Download** saves
+  it as a web page; **Copy** puts it on the clipboard. The report says which
+  environment and company you were in, with every step's page title linking
+  to the page, and ends with the tenant and when it was made. It stays while
+  you move around Business Central or close the panel; **Done** or the bin
+  throws it away. Off until you switch on **Use Help &
   feedback** under **Help & feedback**.
 - **Set up Help & feedback for your team.** Under **Help & feedback** you set
   the helpdesk's email address, the priorities people can pick and the one a

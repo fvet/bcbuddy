@@ -191,8 +191,9 @@ a { color: var(--accent); }
 
 /* An area's dot, at the right of its nav item: green while the area is on,
    grey while it is off. An area that is off also has a fainter name. */
-.nav__dot { width: 8px; height: 8px; flex: none; margin-left: auto; border-radius: 50%; background: var(--muted); }
-.nav__item--on .nav__dot { background: var(--ok); }
+/* Green while the part is on; no dot at all while it is off. */
+.nav__dot { width: 8px; height: 8px; flex: none; margin-left: auto; border-radius: 50%; background: var(--ok); visibility: hidden; }
+.nav__item--on .nav__dot { visibility: visible; }
 .nav__item--off .nav__icon, .nav__item--off [data-i18n] { opacity: .55; }
 
 .nav__icon {
@@ -272,6 +273,7 @@ label.setting { cursor: pointer; }
 /* A row with a taller control: the name stays at the top. */
 .setting--top { align-items: flex-start; }
 .setting__check { margin-top: 6px; font-size: 12.5px; }
+.setting[hidden] { display: none; }
 .setting--note { display: block; }
 .setting--note p { margin: 0; }
 .setting--note details { margin-top: 4px; }

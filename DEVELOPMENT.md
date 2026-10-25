@@ -126,16 +126,15 @@ The **Help & feedback** settings, listed in `FEEDBACK_KEYS` and normalised by
 - `feedbackEnabled` — the area switch above.
 - `feedbackEmail` — the helpdesk address for the `mailto:` link: one plain
   address of at most 254 characters, or `''`.
-- `feedbackPriorities` — `null` for the built-in list (*Normal*, *High*,
-  *Critical*, shown translated), `[]` for no priority field, or 1 to 6 names
-  of at most 40 characters, each once.
-- `feedbackDefaultPriority` — one value of that list, or `''` for none;
-  *Normal* when never stored.
+- `feedbackPriorities` — `[]` for no priority field (also when never
+  stored, or when nothing in it is valid), or 1 to 6 names of at most 40
+  characters, each once. There is no built-in list.
+- `feedbackDefaultPriority` — one value of that list, or `''` for none.
 - `feedbackSubjectBug`, `feedbackSubjectIdea` — the email subject for a
   problem and for feedback, one line of at most 200 characters with the
   placeholders `{prio}` `{type}` `{company}` `{environment}` `{tenant}`
   `{title}`, or `''` for the built-in one.
-- `feedbackUrgentText` — the notice the side panel shows under the priority
+- `feedbackUrgentText` — the notice the side panel shows above the priority
   while the last value of the effective priority list is picked: one line of
   at most 200 characters, or `''` for none. Shown with `textContent`, never
   put in the report.

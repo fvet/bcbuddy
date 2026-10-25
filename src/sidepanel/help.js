@@ -68,7 +68,6 @@
   var SAVE_DELAY_MS = 400;
   // The {title} in the subject: the start of the first step's text.
   var TITLE_MAX = 60;
-  var SUBJECT_MAX = 250;
   var MAX_PRIORITY = 60;
   var MAX_PRIORITIES = 20;
   var MAX_SUBJECT_TEMPLATE = 200;
@@ -79,10 +78,6 @@
   var OPEN_WAIT_MS = 3000;
 
   var TYPES = ['Bug', 'Improvement'];
-  // The built-in priorities: the value goes in the report as the label in
-  // the user's language.
-  var BUILT_IN_PRIORITIES = [['Normal', 'spPrioNormal'], ['High', 'spPrioHigh'], ['Critical', 'spPrioCritical']];
-  var PLACEHOLDERS = /\{(prio|type|company|environment|tenant|title)\}/g;
 
   var started = false;
   var windowId = null;
@@ -98,10 +93,10 @@
   var priority = '';
   // From the settings: null is the built-in list, [] hides the field.
   // urgentText and urgentLink: IT's notice for the last priority in the list.
-  var config = { priorities: null, defaultPriority: '', subjectBug: '', subjectIdea: '',
+  var config = { priorities: [], defaultPriority: '', subjectBug: '', subjectIdea: '',
     urgentText: '', urgentLink: '' };
-  // The area selection that runs: the tab it runs in, else null.
-  var selectingTab = null;
+  // The area selection or drawing editor that runs: its tab, else null.
+  var overlayTab = null;
   var desc = null;
   // Where the tab in front is: { tabId, url, title, webClient, tenant,
   // environment, company }. Refreshed when the user switches tabs or a page
@@ -120,11 +115,18 @@
     return typeof value === 'string' ? value.slice(0, max || MAX_TEXT) : '';
   }
 
-  /** Called by sidepanel.js the first time the view is shown. */
-  function start(winId) {
+  // Shows the start view (sidepanel.js).
+  var onHome = null;
+
+  /**
+   * Called by sidepanel.js the first time the view is shown; home shows the
+   * start view.
+   */
+  function start(winId, home) {
     if (started) return;
     started = true;
     windowId = winId;
+    onHome = typeof home === 'function' ? home : null;
     draftKey = 'bcbHelpDraft:' + winId;
 
     desc = richBox($('help-desc'), function () { updateButtons(); saveLater(); });
@@ -137,6 +139,8 @@
     $('help-discard-yes').addEventListener('click', trusted(function () {
       $('help-confirm').close();
       reset();
+      // Thrown away: back to the start view, ready for the next one.
+      if (onHome) onHome();
     }));
     $('help-discard-no').addEventListener('click', trusted(function () { $('help-confirm').close(); }));
     // A click on the grey around the dialog cancels, as Esc does.
@@ -149,9 +153,13 @@
     $('help-add-full').addEventListener('click', trusted(addScreen));
     $('help-send').addEventListener('click', trusted(emailReport));
     $('help-dl').addEventListener('click', trusted(downloadReport));
-    $('help-copy').addEventListener('click', trusted(copyReport));
     $('help-close').addEventListener('click', trusted(closeReport));
-    dropdown($('help-send-more'), $('help-send-menu'), function (v) { if (v === 'draft') emailDraft(); });
+    dropdown($('help-send-more'), $('help-send-menu'), function (v) {
+      if (v === 'email') emailReport();
+      else if (v === 'draft') emailDraft();
+      else if (v === 'download') downloadReport();
+      else if (v === 'copy') copyReport();
+    });
     $('help-prio').addEventListener('change', function (e) {
       if (!e.isTrusted) return;
       priorityWanted = $('help-prio').value;
@@ -160,11 +168,13 @@
     });
     document.addEventListener('click', function (e) { if (e.isTrusted) closeMenus(); });
     document.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape' || !e.isTrusted) return;
-      closeMenus();
-      // The area selection runs on the page, but the focus is usually still
-      // here: Esc in the panel ends it as Esc on the page does.
-      if (selectingTab != null) cancelSelection(selectingTab);
+      if (!e.isTrusted) return;
+      if (e.key === 'Escape') closeMenus();
+      // The area selection and the editor run on the page, but the focus may
+      // still be here: Esc and Enter in the panel do what they do on the page.
+      if (overlayTab == null || (e.key !== 'Escape' && e.key !== 'Enter')) return;
+      e.preventDefault();
+      overlayKey(overlayTab, e.key === 'Enter');
     });
 
     setType('Bug');
@@ -179,7 +189,7 @@
       if (area === 'local' && changes[BCBuddy.STORAGE_KEY]) applySettings(changes[BCBuddy.STORAGE_KEY].newValue);
     });
 
-    restored = chrome.storage.session.get(draftKey).then(function (obj) {
+    chrome.storage.session.get(draftKey).then(function (obj) {
       restore(obj && obj[draftKey]);
     }).catch(function () { /* nothing kept */ });
 
@@ -198,35 +208,10 @@
    * start view stands for. A report in progress keeps its text and
    * screenshots when it comes back as the other type.
    */
-  function shown(val, fromEntry) {
+  function shown(val) {
     if (TYPES.indexOf(val) !== -1 && val !== type) { setType(val); saveLater(); }
     updateButtons();
     $('help-desc').focus();
-    // Someone who clicks Report a problem is usually looking at the problem:
-    // that screen becomes the first step by itself, once the draft is back
-    // and the tab in front turns out to be Business Central.
-    if (fromEntry && type === 'Bug') {
-      autoShot = true;
-      clearTimeout(autoShotTimer);
-      autoShotTimer = setTimeout(function () { autoShot = false; }, AUTO_SHOT_WAIT_MS);
-      restored.then(maybeAutoShot);
-    }
-  }
-
-  var restored = Promise.resolve();
-  var autoShot = false;
-  var autoShotTimer = 0;
-  // Long enough for the tab to answer; a tab switched to later gets no
-  // screenshot it was not asked for.
-  var AUTO_SHOT_WAIT_MS = 3000;
-
-  /** The automatic first screenshot, only into an empty report on BC. */
-  function maybeAutoShot() {
-    if (!autoShot) return;
-    if (hasContent() || busy || shots.length) { autoShot = false; return; }
-    if (!here.webClient) return; // refreshHere() calls again once it knows
-    autoShot = false;
-    addScreen(true);
   }
 
   /** The language changed: every text this file puts on screen again. */
@@ -258,18 +243,15 @@
 
   function applySettings(raw) {
     // Stored settings are untrusted: only what normalize() lets through is
-    // used, and without it nothing is (no address, the built-in list). The
+    // used, and without it nothing is (no address, no priorities). The
     // fields are checked once more here, as plain short text.
     var s = BCBuddy.normalize(raw);
     cachedEmail = s.feedbackEmail || '';
-    var list = null;
-    if (Array.isArray(s.feedbackPriorities)) {
-      list = [];
-      s.feedbackPriorities.forEach(function (v) {
-        var name = oneLine(v, MAX_PRIORITY);
-        if (name && list.indexOf(name) === -1 && list.length < MAX_PRIORITIES) list.push(name);
-      });
-    }
+    var list = [];
+    (Array.isArray(s.feedbackPriorities) ? s.feedbackPriorities : []).forEach(function (v) {
+      var name = oneLine(v, MAX_PRIORITY);
+      if (name && list.indexOf(name) === -1 && list.length < MAX_PRIORITIES) list.push(name);
+    });
     config.priorities = list;
     config.defaultPriority = oneLine(s.feedbackDefaultPriority, MAX_PRIORITY);
     config.subjectBug = oneLine(s.feedbackSubjectBug, MAX_SUBJECT_TEMPLATE);
@@ -281,11 +263,8 @@
     updateButtons();
   }
 
-  /** [{ value, label }]: the built-in three in the user's language, or the team's own as typed. */
+  /** [{ value, label }]: the team's own priorities as typed; none, no field. */
   function priorityOptions() {
-    if (config.priorities === null) {
-      return BUILT_IN_PRIORITIES.map(function (p) { return { value: p[0], label: t(p[1]) }; });
-    }
     return config.priorities.map(function (v) { return { value: v, label: v }; });
   }
 
@@ -311,7 +290,7 @@
     $('help-prio-row').hidden = !opts.length;
     sel.textContent = '';
     // A dash for no choice, while the settings name no default; the label
-    // beside the field says what it is.
+    // inside the field says what it is.
     if (!def) sel.appendChild(option('', '—'));
     opts.forEach(function (o) { sel.appendChild(option(o.value, o.label)); });
     sel.value = priority;
@@ -320,7 +299,7 @@
   }
 
   /**
-   * IT's notice under the priority, only while the last (most urgent)
+   * IT's notice above the priority, only while the last (most urgent)
    * priority of the list is picked. Guidance only: it never goes into the
    * report. The text goes in with textContent; the link is checked once more
    * with the settings' own check right before it is set, and left off when it
@@ -356,23 +335,47 @@
 
   // ------------------------------------------------------------------ where the tab is
 
+  /**
+   * Asks the tab in front where it is. Until it answers, a page change in
+   * the same tab on the same site keeps what was known, so the hint under
+   * the buttons does not flash on every step through BC; another tab or
+   * site starts unknown, with the buttons off and no hint.
+   */
   function refreshHere() {
     chrome.tabs.query({ active: true, windowId: windowId }).then(function (tabs) {
       var tab = tabs[0];
       if (!tab) return;
-      var next = { tabId: tab.id, url: text(tab.url, 4096), title: text(tab.title), webClient: false };
+      var next = { tabId: tab.id, url: text(tab.url, 4096), title: text(tab.title), webClient: false, known: false };
+      if (here.tabId === tab.id && here.known && siteOf(here.url) === siteOf(next.url)) {
+        next.webClient = here.webClient;
+        next.known = true;
+        next.tenant = here.tenant;
+        next.environment = here.environment;
+        next.company = here.company;
+      }
       here = next;
       updateButtons();
       chrome.tabs.sendMessage(tab.id, { type: 'bcb:support-context' }, { frameId: 0 }).then(function (res) {
-        if (here !== next || !res) return;
+        if (here !== next) return;
+        next.known = true;
+        if (!res) { next.webClient = false; updateButtons(); return; }
         next.webClient = res.webClient === true;
         next.tenant = text(res.tenant);
         next.environment = text(res.environment);
         next.company = text(res.company);
         updateButtons();
-        if (next.webClient) maybeAutoShot(); else autoShot = false;
-      }, function () { autoShot = false; /* no BC Buddy in that tab */ });
+      }, function () {
+        // No BC Buddy in that tab.
+        if (here !== next) return;
+        next.known = true;
+        next.webClient = false;
+        updateButtons();
+      });
     }).catch(function () {});
+  }
+
+  function siteOf(url) {
+    try { return new URL(url).origin; } catch (e) { return ''; }
   }
 
   // ------------------------------------------------------------------ rich text
@@ -657,15 +660,17 @@
     });
   }
 
-  /** '', 'saved' or 'unsaved': the line next to the hint under the box. */
+  /**
+   * '', 'saved' or 'unsaved'. Only 'unsaved' shows a line under the box:
+   * a kept draft is what people expect, so it needs no word.
+   */
   var savedState = '';
 
   function showSaved(state) {
     savedState = state;
     var el = $('help-saved');
-    el.hidden = !state;
-    el.classList.toggle('unsaved', state === 'unsaved');
-    el.textContent = state === 'saved' ? '✓ ' + t('spDraftSaved') : state === 'unsaved' ? t('spDraftNotSaved') : '';
+    el.hidden = state !== 'unsaved';
+    el.textContent = state === 'unsaved' ? t('spDraftNotSaved') : '';
   }
 
   function clearDraft() {
@@ -710,9 +715,16 @@
   function setType(val) {
     if (TYPES.indexOf(val) === -1) return;
     type = val;
-    // The question follows the type: "what went wrong" makes no sense for a
-    // suggestion.
-    desc.setPlaceholder(t(val === 'Bug' ? 'spDescPlaceholder' : 'spDescPlaceholderImp'));
+    desc.setPlaceholder(descPlaceholder());
+  }
+
+  /**
+   * The guidance in the empty message box: the question, which follows the
+   * type ("what went wrong" makes no sense for a suggestion), and on its own
+   * line the ask for a screenshot of every step.
+   */
+  function descPlaceholder() {
+    return t(type === 'Bug' ? 'spDescPlaceholder' : 'spDescPlaceholderImp') + '\n' + t('spDescHint');
   }
 
   function typeLabel() { return t(type === 'Bug' ? 'spTypeBug' : 'spTypeIdea'); }
@@ -723,20 +735,26 @@
     var canShoot = here.webClient && !atLimit && !busy;
     // Without a helpdesk address there is nowhere to send to; the warning
     // above says so. Saving the report as a file stays possible.
+    // One main button: Email, or Download without an address to send to,
+    // and Done once the report went out. The caret holds the other ways.
+    var main = done ? 'help-close' : cachedEmail ? 'help-send' : 'help-dl';
+    ['help-send', 'help-dl', 'help-close'].forEach(function (id) { $(id).hidden = id !== main; });
     $('help-send').disabled = !ok || !cachedEmail;
-    $('help-send-more').disabled = !ok || !cachedEmail;
     $('help-dl').disabled = !ok;
-    $('help-copy').disabled = !ok;
+    $('help-send-more').disabled = !ok;
+    var menu = $('help-send-menu');
+    menu.querySelector('[data-value="email"]').hidden = !done || !cachedEmail;
+    menu.querySelector('[data-value="draft"]').hidden = !cachedEmail;
+    menu.querySelector('[data-value="download"]').hidden = main === 'help-dl';
     $('help-add-area').disabled = !canShoot;
     $('help-add-full').disabled = !canShoot;
     // Steering, not blocking: the screenshot buttons lead until there is
-    // one, then the Email button does; without an address to send to,
-    // Download takes its place.
-    var first = shots.length === 0;
+    // one, then the main button does.
+    var first = shots.length === 0 && !done;
     ['help-add-full', 'help-add-area'].forEach(function (id) { $(id).classList.toggle('primary', first); });
-    ['help-send', 'help-send-more'].forEach(function (id) { $(id).classList.toggle('primary', !first && !!cachedEmail); });
-    $('help-dl').classList.toggle('primary', !first && !cachedEmail);
-    $('help-notbc').hidden = here.webClient;
+    ['help-send', 'help-dl', 'help-close', 'help-send-more'].forEach(function (id) {
+      $(id).classList.toggle('primary', !first && (id === main || id === 'help-send-more'));
+    });
     $('help-max').hidden = !atLimit;
     $('help-max').textContent = atLimit ? t('spMaxShots', MAX_SHOTS) : '';
     $('help-discard').hidden = !ok || $('view-help').hidden;
@@ -768,6 +786,9 @@
       del.type = 'button'; del.className = 'thumb-del';
       del.title = t('spRemove'); del.setAttribute('aria-label', t('spRemove'));
       del.textContent = '\xd7';
+      // Tab goes from note to note; the buttons on the thumbnail take a click.
+      edit.tabIndex = -1;
+      del.tabIndex = -1;
       edit.addEventListener('click', trusted(function () { editShot(shot); }));
       del.addEventListener('click', trusted(function () {
         var at = shots.indexOf(shot);
@@ -784,7 +805,7 @@
       noteEl.setAttribute('aria-multiline', 'true');
       noteEl.spellcheck = true;
       var note = richBox(noteEl, function (m) { shot.note = m; saveLater(); });
-      note.setPlaceholder(shot.ask ? t(type === 'Bug' ? 'spDescPlaceholder' : 'spDescPlaceholderImp') : t('spShotNote'));
+      note.setPlaceholder(t('spShotNote'));
       noteEl.setAttribute('aria-label', t('spShotNoteLabel', i + 1));
       note.set(shot.note || []);
       row.appendChild(wrap); row.appendChild(noteEl);
@@ -948,19 +969,23 @@
     }).then(function (res) { return res && res[0] ? res[0].result : null; });
   }
 
-  /** Ends the area selection in that tab, as Esc on the page would. */
-  function cancelSelection(tabId) {
+  /**
+   * Ends the area selection or the editor in that tab, as Esc on the page
+   * would; save: saves the editor, as Enter would.
+   */
+  function overlayKey(tabId, save) {
     chrome.scripting.executeScript({
       target: { tabId: tabId },
-      func: function () {
+      func: function (save) {
         var o = window.BCBuddy && window.BCBuddy.SupportOverlay;
-        return !!(o && o.cancel && o.cancel());
-      }
+        if (!o) return false;
+        return !!(save ? o.confirm && o.confirm() : o.cancel && o.cancel());
+      },
+      args: [!!save]
     }).catch(function () { /* the tab went away */ });
   }
 
-  /** auto: the first screenshot BC Buddy took by itself (maybeAutoShot). */
-  function addScreen(auto) {
+  function addScreen() {
     if (shots.length >= MAX_SHOTS || !here.webClient) return;
     setStatus('help-status', '');
     var from = { title: here.title, url: here.url };
@@ -968,7 +993,7 @@
     captureTab().then(function (dataUrl) {
       return shrink(dataUrl).then(function (small) {
         setBusy(false);
-        addShot(small, from, null, null, auto === true);
+        addShot(small, from);
       });
     }).catch(function () {
       setBusy(false);
@@ -982,10 +1007,9 @@
     var tabId = here.tabId;
     var from = { title: here.title, url: here.url };
     setBusy(true);
-    selectingTab = tabId;
+    overlayTab = tabId;
     runOverlay(tabId, function () { return window.BCBuddy.SupportOverlay.selectArea(); }).then(function (rect) {
-      selectingTab = null;
-      if (!rect) return null;
+      if (!rect) { overlayTab = null; return null; }
       return captureTab().then(function (full) { return crop(full, rect); }).then(shrink);
     }).then(function (orig) {
       if (!orig) { setBusy(false); return; }
@@ -994,6 +1018,7 @@
       // whole-screen capture next door lands directly.
       return runOverlay(tabId, function (url, ann) { return window.BCBuddy.SupportOverlay.edit(url, ann); }, [orig, []])
         .then(function (res) {
+          overlayTab = null;
           if (!res || !validImage(res.image)) { setBusy(false); return; }
           var ann = cleanAnnotations(res.annotations);
           if (!ann.length) { setBusy(false); addShot(orig, from); return; }
@@ -1003,7 +1028,7 @@
           });
         });
     }).catch(function () {
-      selectingTab = null;
+      overlayTab = null;
       setBusy(false);
       setStatus('help-status', t('spCaptureFailed'), true);
     });
@@ -1018,8 +1043,10 @@
     if (!here.webClient || busy) return;
     setBusy(true);
     var orig = shot.orig || shot.dataUrl;
+    overlayTab = here.tabId;
     runOverlay(here.tabId, function (url, ann) { return window.BCBuddy.SupportOverlay.edit(url, ann); }, [orig, shot.ann || []])
       .then(function (res) {
+        overlayTab = null;
         if (!res || !validImage(res.image)) { setBusy(false); return; }
         var ann = cleanAnnotations(res.annotations);
         if (!ann.length) {
@@ -1038,6 +1065,7 @@
           renderThumbs();
         });
       }).catch(function () {
+        overlayTab = null;
         setBusy(false);
         setStatus('help-status', t('spCaptureFailed'), true);
       });
@@ -1047,13 +1075,10 @@
    * A new step: the screenshot, with what is in the box as its note. The
    * box empties for the next step.
    */
-  function addShot(dataUrl, from, orig, ann, auto) {
+  function addShot(dataUrl, from, orig, ann) {
     if (shots.length >= MAX_SHOTS) return;
     var shot = { dataUrl: dataUrl, title: from.title, url: from.url, note: trimModel(desc.get()) };
     if (orig && ann && ann.length) { shot.orig = orig; shot.ann = ann; }
-    // The automatic first screenshot asks what went wrong in its own note,
-    // so the description goes with that screen rather than after it.
-    if (auto) shot.ask = true;
     shots.push(shot);
     desc.clear();
     renderThumbs();
@@ -1132,8 +1157,13 @@
     return list;
   }
 
-  /** Once the report went out one way: Close throws it away. */
-  function markDone() { $('help-close').hidden = false; }
+  /** Once the report went out one way, the main button is Done: it throws it away. */
+  var done = false;
+
+  function markDone() {
+    done = true;
+    updateButtons();
+  }
 
   /**
    * Email: the report as an unsent email. The permission request has to come
@@ -1151,7 +1181,8 @@
       if (!granted || !chrome.downloads) throw new Error('no downloads permission');
       return saveAndOpen(eml);
     }).then(function (opened) {
-      setStatus('help-status', t(opened ? 'spEmlOpened' : 'spSavedEml'));
+      // Opened: the email app says the rest. Saved only: where to find it.
+      setStatus('help-status', opened ? '' : t('spSavedEml'));
       markDone();
     }, function () {
       downloadFile(eml, 'eml');
@@ -1276,33 +1307,10 @@
     return '';
   }
 
-  /**
-   * The subject: the team's own pattern from the settings, else ours, with
-   * {prio} {type} {company} {environment} {tenant} {title} filled in. An
-   * empty placeholder takes its separator with it, so no " - " or ": " is
-   * left hanging. Never a line break: the subject is one header line.
-   */
-  function fillSubject(template, values) {
-    var EMPTY = '\u0000';
-    var s = oneLine(template, MAX_SUBJECT_TEMPLATE).replace(PLACEHOLDERS, function (all, key) {
-      return oneLine(values[key], 100) || EMPTY;
-    });
-    var gap = /(\s*[-\u2013\u2014:|,\/]\s*)?\u0000(\s*[-\u2013\u2014:|,\/]\s*)?/;
-    for (var guard = 0; s.indexOf(EMPTY) !== -1 && guard < 20; guard++) {
-      s = s.replace(gap, function (all, left, right) {
-        // Between two separators the first stays; at either end it goes.
-        return left && right ? left : (left || right ? ' ' : '');
-      });
-    }
-    return s.replace(/\[\s*\]|\(\s*\)/g, '').replace(/\s+/g, ' ')
-      .replace(/^(\s*[-\u2013\u2014:|,\/]\s*)+/, '').replace(/(\s*[-\u2013\u2014:|,\/]\s*)+$/, '')
-      .trim().slice(0, SUBJECT_MAX);
-  }
-
   function subjectLine(ctx) {
     var bug = type === 'Bug';
     var template = (bug ? config.subjectBug : config.subjectIdea) || t(bug ? 'spSubjectDefaultBug' : 'spSubjectDefaultIdea');
-    return fillSubject(template, {
+    return BCBuddy.fillSubject(template, {
       prio: priorityLabel(),
       type: typeLabel(),
       company: ctx.company,
@@ -1342,7 +1350,7 @@
   function downloadReport() {
     if (!hasContent()) return;
     downloadFile(buildHtml(pageContext()), 'html');
-    setStatus('help-status', t('spSaved'));
+    setStatus('help-status', '');
     markDone();
   }
 
@@ -1426,7 +1434,7 @@
   function copyReport() {
     if (!hasContent()) return;
     copyToClipboard(buildHtml(pageContext())).then(function () {
-      setStatus('help-status', t('spCopied'));
+      setStatus('help-status', '');
       markDone();
     }, function () {
       setStatus('help-status', t('spCopyFailedPlain'), true);
@@ -1446,7 +1454,7 @@
     desc.clear();
     priorityWanted = null;
     renderPriorities();
-    $('help-close').hidden = true;
+    done = false;
     setStatus('help-status', '');
     renderThumbs(true);
     clearDraft();
@@ -1497,8 +1505,9 @@
   /**
    * The report as it lands in the email. Plain paragraphs and nothing else,
    * no tables: what the user pastes they may want to edit, and a table is
-   * awkward in a mail editor. At the top when and where, then each step: the
-   * page, its address, the note and the screenshot.
+   * awkward in a mail editor. At the top where, then each step: the page
+   * title linked to its address, the note and the screenshot. At the foot
+   * the system, the tenant and when.
    */
   function buildHtml(ctx, srcFor) {
     var p = 'margin:0 0 6px;font-size:13px;line-height:1.5';
@@ -1506,20 +1515,19 @@
     function line(label, value) {
       return value ? '<p style="' + p + '"><b>' + esc(label) + ':</b> ' + esc(value) + '</p>' : '';
     }
-    var head = '<p style="' + p + '">' + esc(reportDate()) + '</p>' +
-      line(t('labelTenant'), ctx && ctx.tenant) +
-      line(t('labelEnvironment'), ctx && ctx.environment) +
+    var head = line(t('labelEnvironment'), ctx && ctx.environment) +
       line(t('labelCompany'), ctx && ctx.company) +
       line(t('spPriority'), priorityLabel()) +
       line(t('spReportType'), typeLabel());
 
     var steps = reportSteps().map(function (step) {
       var out = '';
-      if (step.title) out += '<p style="' + p + '"><b>' + esc(step.title) + '</b></p>';
-      if (step.url) {
-        out += '<p style="' + p + '">' + (/^https?:\/\//i.test(step.url)
-          ? '<a href="' + esc(step.url) + '" style="color:#0f6cbd">' + esc(step.url) + '</a>'
-          : esc(step.url)) + '</p>';
+      // The title is the link to the page; without a title the address is.
+      var name = step.title || step.url;
+      if (name) {
+        out += '<p style="' + p + '"><b>' + (/^https?:\/\//i.test(step.url)
+          ? '<a href="' + esc(step.url) + '" style="color:#0f6cbd">' + esc(name) + '</a>'
+          : esc(name)) + '</b></p>';
       }
       var note = modelHtml(step.note);
       if (note) out += '<p style="' + p + '">' + note + '</p>';
@@ -1533,7 +1541,10 @@
       return out;
     }).filter(Boolean);
 
-    var system = '<p style="margin:0;font-size:12px;color:#667080">' + esc(t('spReportSystem')) + ': ' + esc(getSystemInfo()) + '</p>';
+    var foot = 'margin:0;font-size:12px;color:#667080';
+    var system = '<p style="' + foot + '">' + esc(getSystemInfo()) + '</p>' +
+      (ctx && ctx.tenant ? '<p style="' + foot + '">' + esc(t('labelTenant')) + ': ' + esc(ctx.tenant) + '</p>' : '') +
+      '<p style="' + foot + '">' + esc(reportDate()) + '</p>';
 
     return '<!DOCTYPE html><html><head><meta charset="utf-8"></head>' +
       '<body style="font-family:\'Segoe UI\',Arial,sans-serif;font-size:13px;color:#1b1e23;margin:24px;max-width:900px">' +
@@ -1545,6 +1556,6 @@
     shown: shown,
     relocalize: relocalize,
     // For the test harness: the subject builder on its own.
-    fillSubject: fillSubject
+    fillSubject: BCBuddy.fillSubject
   };
 }());

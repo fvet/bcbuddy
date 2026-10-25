@@ -19,10 +19,7 @@
   var MAX_EMAIL_LENGTH = 254;
 
   // Help & feedback: the priorities the report form offers, and its subjects.
-  // null as the list means the built-in one, whose values the side panel
-  // shows translated; [] means no priority field at all.
-  var BUILTIN_PRIORITIES = ['Normal', 'High', 'Critical'];
-  var DEFAULT_PRIORITY = 'Normal';
+  // An empty list means no priority field at all.
   var MAX_PRIORITIES = 6;
   var MAX_PRIORITY_LENGTH = 40;
   var MAX_SUBJECT_LENGTH = 200;
@@ -481,15 +478,13 @@
   }
 
   /**
-   * The priorities the report form offers. null (or anything that is not a
-   * list) is the built-in list; [] is no priority field. Otherwise 1 to
-   * MAX_PRIORITIES names, each plain text of at most MAX_PRIORITY_LENGTH
-   * characters, each once (ignoring case). A list in which nothing is valid
-   * falls back to the built-in one rather than hiding the field.
+   * The priorities the report form offers: up to MAX_PRIORITIES names, each
+   * plain text of at most MAX_PRIORITY_LENGTH characters, each once
+   * (ignoring case). Empty, or anything that is not a list, is [], and then
+   * there is no priority field.
    */
   function cleanPriorities(value) {
-    if (!Array.isArray(value)) return null;
-    if (!value.length) return [];
+    if (!Array.isArray(value)) return [];
     var out = [];
     for (var i = 0; i < value.length && out.length < MAX_PRIORITIES; i++) {
       var name = plainText(value[i], MAX_PRIORITY_LENGTH);
@@ -498,12 +493,12 @@
       if (out.some(function (other) { return other.toLowerCase() === lower; })) continue;
       out.push(name);
     }
-    return out.length ? out : null;
+    return out;
   }
 
-  /** The priority values in effect: the list itself, or the built-in one for null. */
+  /** The priority values in effect: the list itself, or none. */
   function priorityValues(list) {
-    return (list === null || list === undefined ? BUILTIN_PRIORITIES : list).slice();
+    return Array.isArray(list) ? list.slice() : [];
   }
 
   /**
@@ -529,6 +524,41 @@
    */
   function cleanSubject(value) {
     return plainText(value, MAX_SUBJECT_LENGTH) || '';
+  }
+
+  var SUBJECT_TOKENS = /\{(prio|type|company|environment|tenant|title)\}/g;
+  var MAX_FILLED_SUBJECT = 250;
+
+  /**
+   * A subject pattern with its placeholders filled in from `values`; one
+   * whose key `values` does not have stays as it is. An empty placeholder
+   * takes its separator with it, so no " - " or ": " is left hanging. Never
+   * a line break: the subject is one header line. The side panel fills in
+   * everything; the options page drops only {prio} when there is no
+   * priority field.
+   */
+  function fillSubject(template, values) {
+    values = values || {};
+    var EMPTY = '\u0000';
+    var flat = function (v, max) {
+      return typeof v === 'string'
+        ? v.replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max)
+        : '';
+    };
+    var s = flat(template, MAX_SUBJECT_LENGTH).replace(SUBJECT_TOKENS, function (all, key) {
+      if (!Object.prototype.hasOwnProperty.call(values, key)) return all;
+      return flat(values[key], 100) || EMPTY;
+    });
+    var gap = /(\s*[-–—:|,\/]\s*)?\u0000(\s*[-–—:|,\/]\s*)?/;
+    for (var guard = 0; s.indexOf(EMPTY) !== -1 && guard < 20; guard++) {
+      s = s.replace(gap, function (all, left, right) {
+        // Between two separators the first stays; at either end it goes.
+        return left && right ? left : (left || right ? ' ' : '');
+      });
+    }
+    return s.replace(/\[\s*\]|\(\s*\)/g, '').replace(/\s+/g, ' ')
+      .replace(/^(\s*[-–—:|,\/]\s*)+/, '').replace(/(\s*[-–—:|,\/]\s*)+$/, '')
+      .trim().slice(0, MAX_FILLED_SUBJECT);
   }
 
   /** The notice for the most urgent priority: one line of plain text, or ''. */
@@ -561,13 +591,11 @@
 
   /**
    * The Help & feedback fields of stored settings, each checked. A default
-   * priority that was never stored is Normal; one that is not in the list is
-   * none.
+   * priority that is not in the list is none.
    */
   function normalizeFeedback(s) {
     var priorities = cleanPriorities(s.feedbackPriorities);
-    var defaultPriority = s.feedbackDefaultPriority === undefined
-      ? DEFAULT_PRIORITY : s.feedbackDefaultPriority;
+    var defaultPriority = s.feedbackDefaultPriority;
     return {
       feedbackEnabled: bool(s.feedbackEnabled, false),
       feedbackEmail: feedbackEmail(s.feedbackEmail),
@@ -1316,8 +1344,10 @@
     if (email) values.feedbackEmail = email;
     // An empty list is a choice (no priority field); one with nothing valid
     // in it is not.
-    var priorities = cleanPriorities(policy.feedbackPriorities);
-    if (priorities) values.feedbackPriorities = priorities;
+    if (Array.isArray(policy.feedbackPriorities)) {
+      var priorities = cleanPriorities(policy.feedbackPriorities);
+      if (!policy.feedbackPriorities.length || priorities.length) values.feedbackPriorities = priorities;
+    }
     var priority = plainText(policy.feedbackDefaultPriority, MAX_PRIORITY_LENGTH);
     if (priority) values.feedbackDefaultPriority = priority;
     ['feedbackSubjectBug', 'feedbackSubjectIdea'].forEach(function (key) {
@@ -1422,7 +1452,6 @@
   BCBuddy.AREA_KEYS = AREA_KEYS;
   BCBuddy.FEEDBACK_KEYS = FEEDBACK_KEYS;
   BCBuddy.POLICY_KEYS = POLICY_KEYS;
-  BCBuddy.BUILTIN_PRIORITIES = BUILTIN_PRIORITIES;
   BCBuddy.MAX_PRIORITIES = MAX_PRIORITIES;
   BCBuddy.MAX_PRIORITY_LENGTH = MAX_PRIORITY_LENGTH;
   BCBuddy.MAX_SUBJECT_LENGTH = MAX_SUBJECT_LENGTH;
@@ -1492,6 +1521,7 @@
   BCBuddy.cleanPriorities = cleanPriorities;
   BCBuddy.cleanDefaultPriority = cleanDefaultPriority;
   BCBuddy.cleanSubject = cleanSubject;
+  BCBuddy.fillSubject = fillSubject;
   BCBuddy.cleanUrgentText = cleanUrgentText;
   BCBuddy.cleanUrgentLink = cleanUrgentLink;
   BCBuddy.priorityValues = priorityValues;

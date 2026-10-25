@@ -1567,8 +1567,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   var hdExport = BCBuddy.toExport({ feedbackEnabled: true, feedbackEmail: 'help@example.com' }, 'X');
   var hdImport = BCBuddy.parseImport(JSON.stringify(hdExport)).feedback;
   check('feedback: export/import round trip', hdImport,
-    { feedbackEnabled: true, feedbackEmail: 'help@example.com', feedbackPriorities: null,
-      feedbackDefaultPriority: 'Normal', feedbackSubjectBug: '', feedbackSubjectIdea: '',
+    { feedbackEnabled: true, feedbackEmail: 'help@example.com', feedbackPriorities: [],
+      feedbackDefaultPriority: '', feedbackSubjectBug: '', feedbackSubjectIdea: '',
       feedbackUrgentText: '', feedbackUrgentLink: '' });
   check('feedback: a colour in an older file is ignored',
     BCBuddy.parseImport('{"rules":[],"feedbackEnabled":true,"feedbackColor":"#107c10"}').feedback, { feedbackEnabled: true });
@@ -1578,29 +1578,29 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('feedback: a bad address in a file leaves the own one', hdTarget.feedbackEmail, 'own@example.com');
 
   // Help & feedback: priorities, default priority and subjects, each checked
-  check('feedback: the built-in priorities by default', hd.feedbackPriorities, null);
-  check('feedback: Normal is the default priority by default', hd.feedbackDefaultPriority, 'Normal');
+  check('feedback: no priorities by default', hd.feedbackPriorities, []);
+  check('feedback: no default priority by default', hd.feedbackDefaultPriority, '');
   check('feedback: built-in subjects by default', [hd.feedbackSubjectBug, hd.feedbackSubjectIdea], ['', '']);
-  check('feedback: the built-in values', BCBuddy.BUILTIN_PRIORITIES, ['Normal', 'High', 'Critical']);
-  check('priorities: null and missing are the built-in list',
+  check('priorities: null, missing and anything not a list are none',
     [BCBuddy.cleanPriorities(null), BCBuddy.cleanPriorities(undefined), BCBuddy.cleanPriorities('Normal')],
-    [null, null, null]);
+    [[], [], []]);
   check('priorities: an empty list is no priority field', BCBuddy.cleanPriorities([]), []);
   check('priorities: trimmed, each once, no empty or invalid names, at most six',
     BCBuddy.cleanPriorities([' A ', 'a', 'B', '', 7, 'x'.repeat(41), 'C\nD', 'C', 'D', 'E', 'F', 'G']),
     ['A', 'B', 'C', 'D', 'E', 'F']);
   check('priorities: forty characters fit', BCBuddy.cleanPriorities(['x'.repeat(40)]), ['x'.repeat(40)]);
-  check('priorities: a list with nothing valid is the built-in one', BCBuddy.cleanPriorities(['', 5, '‮']), null);
+  check('priorities: a list with nothing valid is none', BCBuddy.cleanPriorities(['', 5, '‮']), []);
   check('priorities: stored as checked',
     BCBuddy.normalize({ feedbackPriorities: ['Low', 'low', ' Urgent '] }).feedbackPriorities, ['Low', 'Urgent']);
   check('default priority: matched without case, spelled as in the list',
-    [BCBuddy.cleanDefaultPriority('high', null), BCBuddy.cleanDefaultPriority('p2', ['P1', 'P2'])], ['High', 'P2']);
+    [BCBuddy.cleanDefaultPriority('high', ['Low', 'High']), BCBuddy.cleanDefaultPriority('p2', ['P1', 'P2'])],
+    ['High', 'P2']);
   check('default priority: not in the list is none',
     [BCBuddy.cleanDefaultPriority('Urgent', null), BCBuddy.cleanDefaultPriority('Normal', []),
       BCBuddy.cleanDefaultPriority(3, null), BCBuddy.cleanDefaultPriority('', null)], ['', '', '', '']);
   check('default priority: a stored empty one stays none',
     BCBuddy.normalize({ webClientEnabled: true, feedbackDefaultPriority: '' }).feedbackDefaultPriority, '');
-  check('default priority: missing with a list without Normal is none',
+  check('default priority: missing is none',
     BCBuddy.normalize({ feedbackPriorities: ['P1', 'P2'] }).feedbackDefaultPriority, '');
   check('default priority: kept when it is in the list',
     BCBuddy.normalize({ feedbackPriorities: ['P1', 'P2'], feedbackDefaultPriority: 'P2' }).feedbackDefaultPriority, 'P2');
@@ -1608,6 +1608,12 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.cleanSubject(' [{prio}] {type} in {company} ({environment}, {tenant}): {title} '),
     '[{prio}] {type} in {company} ({environment}, {tenant}): {title}');
   check('subject: two hundred characters fit', BCBuddy.cleanSubject('x'.repeat(200)), 'x'.repeat(200));
+  check('subject: only the placeholders given are filled in',
+    BCBuddy.fillSubject('[BC] Problem - {prio} - {company}: {title}', { prio: '' }),
+    '[BC] Problem - {company}: {title}');
+  check('subject: an empty placeholder takes its separator with it',
+    BCBuddy.fillSubject('[BC] Problem - {prio} - {company}: {title}', { prio: 'High', company: '', title: 'Fails' }),
+    '[BC] Problem - High - Fails');
   check('subject: refused when too long, on two lines, with control or bidi characters, or no text',
     [BCBuddy.cleanSubject('x'.repeat(201)), BCBuddy.cleanSubject('a\nb'), BCBuddy.cleanSubject('a\rb'),
       BCBuddy.cleanSubject('a\u0007b'), BCBuddy.cleanSubject('a b'), BCBuddy.cleanSubject('a‮b'),
@@ -1629,7 +1635,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     'feedbackSubjectBug' in BCBuddy.toExport({ webClientEnabled: true, feedbackSubjectBug: 'X' }, 'X'), true);
   check('feedback: a file reads only what it names, checked',
     BCBuddy.parseImport({ rules: [], feedbackPriorities: null, feedbackDefaultPriority: 7,
-      feedbackSubjectIdea: 'a\nb' }).feedback, { feedbackPriorities: null, feedbackSubjectIdea: '' });
+      feedbackSubjectIdea: 'a\nb' }).feedback, { feedbackPriorities: [], feedbackSubjectIdea: '' });
   check('export: the area switches stay out',
     ['webClientEnabled', 'environmentsEnabled', 'enabled'].filter(function (key) {
       return key in BCBuddy.toExport(hdFull, 'X');

@@ -30,6 +30,22 @@
       };
 
       /**
+       * The same line for the Help & feedback subjects, with their own
+       * tokens; {prio} only while there is a priority field.
+       */
+      page.subjectTokenLine = function (withPriority) {
+        function token(code, description) {
+          return '<span class="tokens__item"><code>' + code + '</code> ' + description + '</span>';
+        }
+        return (withPriority ? token('{prio}', t('tokenPrio')) : '') +
+          token('{type}', t('tokenType')) +
+          token('{company}', t('tokenCompany')) +
+          token('{environment}', t('tokenEnvironment')) +
+          token('{tenant}', t('tokenTenant')) +
+          token('{title}', t('tokenMessageTitle'));
+      };
+
+      /**
        * Summarises what actually happened. A count of zero adds nothing and only
        * lengthens the sentence, so we omit it.
        */

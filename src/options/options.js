@@ -50,10 +50,6 @@
 
   page.state.testUrl = page.SAMPLE_URL;
 
-  // The built-in priorities are stored in English (BUILTIN_PRIORITIES) and
-  // shown in the page's language, with the side panel's own words.
-  var PRIORITY_LABELS = { Normal: 'spPrioNormal', High: 'spPrioHigh', Critical: 'spPrioCritical' };
-
   /* -------------------------------------------------------------- rendering */
 
   page.renderAll = function () {
@@ -128,43 +124,44 @@
     document.querySelectorAll('[data-lock-note]').forEach(function (note) {
       note.hidden = !has(note.dataset.lockNote);
     });
-    // No priority field: nothing to type in or pick from.
-    var list = page.state.settings.feedbackPriorities;
-    var noField = Array.isArray(list) && !list.length;
-    page.el.feedbackPriorities.disabled = noField;
-    if (noField) page.el.feedbackDefaultPriority.disabled = true;
   };
 
   page.renderFeedback = function () {
     var s = page.state.settings;
     var el = page.el;
-    var list = s.feedbackPriorities;
-    var noField = Array.isArray(list) && !list.length;
+    var values = BCBuddy.priorityValues(s.feedbackPriorities);
     page.fill(el.feedbackEmail, s.feedbackEmail);
 
-    // Empty is the standard list, which the placeholder shows in the page's
-    // language. With no priority field the typed list stays, for when the
-    // box is unticked again.
-    el.feedbackNoPriority.checked = noField;
-    el.feedbackPriorities.placeholder = BCBuddy.BUILTIN_PRIORITIES.map(page.priorityLabel).join('\n');
-    if (!noField) page.fill(el.feedbackPriorities, list ? list.join('\n') : '');
+    // Empty is no priority field: then the default, the urgent message and
+    // its link have nothing to be about, and are not shown.
+    page.fill(el.feedbackPriorities, values.join('\n'));
+    document.querySelectorAll('[data-needs-priorities]').forEach(function (row) {
+      row.hidden = !values.length;
+    });
 
     var select = el.feedbackDefaultPriority;
     select.textContent = '';
-    var values = noField ? [] : BCBuddy.priorityValues(list);
     [''].concat(values).forEach(function (value) {
       var option = document.createElement('option');
       option.value = value;
-      option.textContent = !value ? t('feedbackPriorityNone') : list ? value : page.priorityLabel(value);
+      option.textContent = value || t('feedbackPriorityNone');
       select.appendChild(option);
     });
     select.value = s.feedbackDefaultPriority;
 
-    el.feedbackSubjectBug.placeholder = t('spSubjectDefaultBug');
-    el.feedbackSubjectIdea.placeholder = t('spSubjectDefaultIdea');
-    page.SUBJECT_KEYS.forEach(function (key) { page.fill(el[key], s[key]); });
+    // A subject left at the standard one shows it, so nobody has to guess;
+    // without priorities, without {prio}.
+    page.SUBJECT_KEYS.forEach(function (key) { page.fill(el[key], s[key] || page.defaultSubject(key)); });
+    el.feedbackSubjectTokens.innerHTML = page.subjectTokenLine(values.length > 0);
     page.URGENT_FIELDS.forEach(function (spec) { page.fill(el[spec.setting], s[spec.setting]); });
     page.renderLocks();
+  };
+
+  /** The built-in subject for that field, as the side panel would use it. */
+  page.defaultSubject = function (key) {
+    var template = t(key === 'feedbackSubjectIdea' ? 'spSubjectDefaultIdea' : 'spSubjectDefaultBug');
+    var hasPriorities = BCBuddy.priorityValues(page.state.settings.feedbackPriorities).length > 0;
+    return hasPriorities ? template : BCBuddy.fillSubject(template, { prio: '' });
   };
 
   /** Not while someone is typing in it: a half-typed value is not saved yet. */
@@ -172,14 +169,9 @@
     if (document.activeElement !== field) field.value = value;
   };
 
-  /** A built-in priority (stored in English) in the page's language. */
-  page.priorityLabel = function (name) {
-    return PRIORITY_LABELS[name] ? t(PRIORITY_LABELS[name]) : name;
-  };
-
   /**
-   * The priorities as typed, one per line: null for none typed (the
-   * standard list), undefined when the list cannot be saved as it stands:
+   * The priorities as typed, one per line: [] for none typed (no priority
+   * field), undefined when the list cannot be saved as it stands:
    * too many lines, a line too long, the same name twice or a character a
    * subject line cannot hold. Nothing typed is dropped quietly.
    */
@@ -187,7 +179,7 @@
     var lines = page.el.feedbackPriorities.value.split(/\r?\n/)
       .map(function (line) { return line.trim(); })
       .filter(Boolean);
-    if (!lines.length) return null;
+    if (!lines.length) return [];
     if (lines.length > BCBuddy.MAX_PRIORITIES) return undefined;
     var clean = BCBuddy.cleanPriorities(lines);
     return clean && clean.length === lines.length ? clean : undefined;
@@ -540,8 +532,8 @@
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
       'dropdownWidth', 'dropdownHeight',
       'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled', 'feedbackEmail',
-      'feedbackPriorities', 'feedbackNoPriority', 'feedbackDefaultPriority',
-      'feedbackSubjectBug', 'feedbackSubjectIdea', 'feedbackUrgentText', 'feedbackUrgentLink'
+      'feedbackPriorities', 'feedbackDefaultPriority',
+      'feedbackSubjectBug', 'feedbackSubjectIdea', 'feedbackSubjectTokens', 'feedbackUrgentText', 'feedbackUrgentLink'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     bindLanguage();
@@ -694,18 +686,6 @@
       }
       page.setPriorities(list);
     });
-    el.feedbackNoPriority.addEventListener('change', function () {
-      if (page.isLocked('feedbackPriorities')) {
-        page.renderFeedback();
-        return;
-      }
-      el.feedbackPriorities.setCustomValidity('');
-      // Unticked: back to what the box holds, or the standard list when that
-      // cannot be saved.
-      var list = el.feedbackNoPriority.checked ? [] : page.readPriorities();
-      page.setPriorities(list === undefined ? null : list);
-    });
-
     el.feedbackDefaultPriority.addEventListener('change', function () {
       if (!page.isLocked('feedbackDefaultPriority')) {
         state.settings.feedbackDefaultPriority = BCBuddy.cleanDefaultPriority(
@@ -715,7 +695,8 @@
       page.renderFeedback();
     });
 
-    // One line each; empty is the built-in subject (see cleanSubject()).
+    // One line each; empty, or the built-in subject as shown, is stored as
+    // '' (see cleanSubject()), so it follows the language and the priorities.
     page.SUBJECT_KEYS.forEach(function (key) {
       var field = el[key];
       field.addEventListener('input', function () { field.setCustomValidity(''); });
@@ -725,7 +706,7 @@
           return;
         }
         page.trimField(field);
-        var typed = field.value;
+        var typed = field.value === page.defaultSubject(key) ? '' : field.value;
         var valid = BCBuddy.cleanSubject(typed);
         if (typed && !valid) {
           field.setCustomValidity(t('feedbackSubjectInvalid', [BCBuddy.MAX_SUBJECT_LENGTH]));
@@ -734,6 +715,7 @@
         }
         state.settings[key] = valid;
         page.save();
+        if (!valid) field.value = page.defaultSubject(key);
       });
     });
 

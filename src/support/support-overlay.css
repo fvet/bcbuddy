@@ -34,6 +34,9 @@
   user-select: none !important;
 }
 
+/* They take the focus for their keys (trapKeys), without a focus ring. */
+#bcb-sp-sel:focus, #bcb-sp-ed:focus { outline: none !important; }
+
 .bcb-sp-sel-m, #bcb-sp-sel-ch-h, #bcb-sp-sel-ch-v { pointer-events: none !important; }
 
 #bcb-sp-sel-hint {

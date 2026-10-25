@@ -185,10 +185,8 @@
     if (want === 'help' && type) helpType = type === 'Improvement' ? 'Improvement' : 'Bug';
     showTitle();
     if (want === 'help') {
-      BCBuddy.HelpPanel.start(windowId);
-      // Opened from an entry on the start view (a click): the report may take
-      // its first screenshot by itself.
-      BCBuddy.HelpPanel.shown(helpType, !!type);
+      BCBuddy.HelpPanel.start(windowId, function () { setView('home'); });
+      BCBuddy.HelpPanel.shown(helpType);
     }
     try { (port || panelPort).postMessage({ type: 'shown', view: want }); } catch (e) { /* reconnecting */ }
   }

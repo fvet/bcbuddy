@@ -366,6 +366,18 @@
     "message": "original tab title",
     "description": "Explains the {title} token, see tokenName. Lowercase: it is read after the token itself."
   },
+  "tokenPrio": {
+    "message": "priority",
+    "description": "Explains the {prio} token of the Help & feedback email subjects. Lowercase: it is read after the token itself."
+  },
+  "tokenType": {
+    "message": "problem or feedback",
+    "description": "Explains the {type} token of the Help & feedback email subjects. Lowercase: it is read after the token itself."
+  },
+  "tokenMessageTitle": {
+    "message": "first line of the message",
+    "description": "Explains the {title} token of the Help & feedback email subjects. Lowercase: it is read after the token itself."
+  },
   "tokensFooter": {
     "message": "A token that stays empty disappears together with the separator next to it.",
     "description": "Closing line under the list of tokens."
@@ -825,12 +837,8 @@
     "description": "Label of the box with the priorities a report can have."
   },
   "feedbackPrioritiesDesc": {
-    "message": "One per line, up to 6. Leave it empty for the standard list.",
+    "message": "One per line, up to 6. Leave it empty for no priority field.",
     "description": "Line under Priorities."
-  },
-  "feedbackNoPriority": {
-    "message": "No priority field",
-    "description": "Tick box under Priorities: the report form then has no priority at all."
   },
   "feedbackPrioritiesInvalid": {
     "message": "Up to $1 priorities, one per line, each at most $2 characters and each only once.",
@@ -892,18 +900,6 @@
     "message": "One line of at most $1 characters.",
     "description": "$1 is a number. Shown when a subject cannot be saved."
   },
-  "feedbackSubjectHelp": {
-    "message": "Leave a subject empty for the standard one. You can use {prio} {type} {company} {environment} {tenant} {title}.",
-    "description": "Under the subject fields. Keep the words in braces exactly as they are: they are replaced when the email is made."
-  },
-  "feedbackSubjectMore": {
-    "message": "What they stand for",
-    "description": "Opens a short explanation of the words in braces."
-  },
-  "feedbackSubjectDetail": {
-    "message": "{prio} is the priority, {type} says problem or feedback, {company}, {environment} and {tenant} come from the Business Central page, and {title} is the first line of the message.",
-    "description": "Keep the words in braces exactly as they are."
-  },
   "bpTitle": {
     "message": "BC Buddy",
     "description": "Title of the side panel's start view, and tooltip of the BC Buddy logo in the top bar of Business Central that opens it."
@@ -952,33 +948,17 @@
     "message": "What would you like to improve? What would you like to see differently?",
     "description": "Placeholder inside the empty message box of feedback or a suggestion, also its accessible name."
   },
-  "spDraftSaved": {
-    "message": "Draft saved",
-    "description": "Next to the hint under the message box: the report in progress is kept, also when the panel closes."
-  },
   "spDraftNotSaved": {
     "message": "Not saved: too large",
-    "description": "Next to the hint under the message box when the report is too large to keep; it stays only while the panel is open."
+    "description": "Under the message box when the report is too large to keep; it stays only while the panel is open."
   },
   "spDescHint": {
     "message": "Add a screenshot of every step.",
-    "description": "Hint under the message box, for problems and feedback alike."
+    "description": "Second line of the placeholder inside the empty message box, under the question, for problems and feedback alike."
   },
   "spPriority": {
     "message": "Priority",
     "description": "Accessible name of the priority dropdown, its empty choice, and the label of the priority in the report."
-  },
-  "spPrioNormal": {
-    "message": "Normal",
-    "description": "Priority level."
-  },
-  "spPrioHigh": {
-    "message": "High",
-    "description": "Priority level."
-  },
-  "spPrioCritical": {
-    "message": "Critical",
-    "description": "Priority level."
   },
   "spAddShot": {
     "message": "Region",
@@ -1013,8 +993,8 @@
     "description": "Tooltip of the Email button."
   },
   "spSendMore": {
-    "message": "More ways to email",
-    "description": "Tooltip of the small arrow next to the Email button, which opens Email (draft)."
+    "message": "More ways to send",
+    "description": "Tooltip and accessible name of the arrow next to the main button: a menu with Email (draft), Download and Copy."
   },
   "spSendDraft": {
     "message": "Email (draft)",
@@ -1132,10 +1112,6 @@
     "message": "OK",
     "description": "The only button of the Email (draft) dialog; closes it."
   },
-  "spCopied": {
-    "message": "Copied. Paste it with Ctrl+V.",
-    "description": "Status after Copy."
-  },
   "spCopyFailed": {
     "message": "Copying failed. The report was saved as a file instead: attach it to the email.",
     "description": "Status when Email (draft) cannot reach the clipboard; the report was downloaded instead."
@@ -1144,24 +1120,16 @@
     "message": "Copying failed. Use Download and attach the file instead.",
     "description": "Status when the Copy button cannot reach the clipboard."
   },
-  "spSaved": {
-    "message": "Saved to your Downloads folder.",
-    "description": "Status after saving the report as a file."
-  },
   "spSavedEml": {
     "message": "Open the downloaded file at the top of the browser to see your email.",
     "description": "Status after Email when the email could not be opened by itself: the .eml file was downloaded."
-  },
-  "spEmlOpened": {
-    "message": "Your email opens in your email app. Check it and click Send.",
-    "description": "Status after Email when the email was opened by itself."
   },
   "spDiscardConfirm": {
     "message": "Throw away this report?",
     "description": "Confirmation when closing the panel with unsent screenshots."
   },
   "spDiscardText": {
-    "message": "Your description and screenshots are removed from this computer.",
+    "message": "Your description and screenshots are not kept.",
     "description": "Line under the question in the throw-away confirmation of the Help & feedback side panel."
   },
   "spDiscardYes": {
@@ -1177,20 +1145,16 @@
     "description": "Tooltip of the bin button in the Help & feedback side panel header."
   },
   "spClose": {
-    "message": "Close",
-    "description": "Button shown once the report was emailed, downloaded or copied: throws the report away and closes the side panel."
+    "message": "Done",
+    "description": "Replaces the main button at the bottom once the report was emailed, downloaded or copied: throws the report away and closes the side panel. Keep it short."
   },
   "spCloseHint": {
     "message": "Throw the report away and close the panel",
-    "description": "Tooltip of the Close button."
+    "description": "Tooltip of the Done button."
   },
-  "spScreenshots": {
-    "message": "Screenshots",
-    "description": "Heading of the screenshots card in the Help & feedback side panel."
-  },
-  "spNotBC": {
-    "message": "Open a Business Central page to add screenshots.",
-    "description": "Shown in the screenshots card when the tab in front is not Business Central."
+  "spSteps": {
+    "message": "Steps",
+    "description": "Heading of the card that lists the screenshots, one per step, in the Help & feedback side panel."
   },
   "spMailBody": {
     "message": "Please paste the report here (Ctrl+V, or click Paste in the email toolbar).",
@@ -1203,10 +1167,6 @@
   "spSubjectDefaultIdea": {
     "message": "[BC] Feedback - {prio} - {company}: {title}",
     "description": "Subject of feedback or a suggestion unless the settings give another. Keep the {placeholders} as they are."
-  },
-  "spReportSystem": {
-    "message": "System",
-    "description": "Label in the report for the operating system and browser."
   },
   "spReportType": {
     "message": "Type",
