@@ -6,10 +6,10 @@ front matter. This hook sets `meta.icon` on both, so the nine icons are listed
 in one place and the menu template stays Material's own.
 
 The drawings are in overrides/.icons/bcb/, in the line style of the options
-page's menu (16 x 16, a 1.3 stroke, outline only). Web client and Environments
-are the options page's own Web client and Environments icons, Help & feedback
-its Help & feedback icon, and Troubleshooting its Help icon. Only the top level gets one; the pages under a
-section stay plain text.
+page's menu (16 x 16, a 1.3 stroke, outline only). Web client, Environments,
+Help & feedback and Sharing with your team are the options page's own icons
+for those sections. Only the top level gets one; the pages under a section
+stay plain text.
 """
 
 # Page in docs/ -> icon.
