@@ -15,10 +15,11 @@ Niet meer op elke pagina op dezelfde knoppen klikken.
 • Help, Copilot en Pagina-inspectie zo breed als je ze sleept
 • Weeknummers in de kalender van een datumveld
 • De regel waarop je staat valt op in dagboeken en orders
+• De sneltoetsen voor de pagina waar je bent, in een zijpaneel
 
 Jouw keuze wint: zet je een pagina terug naar smal, dan laat BC Buddy ze zo.
 
-Wil je meer? Zet gestreepte rijen aan, een zijpaneel met de sneltoetsen voor de pagina waar je bent, verberg het deelvenster Feitenblok of het meldingenbelletje, of zet de animaties uit. Elke verbetering heeft een eigen schakelaar.
+Wil je meer? Zet gestreepte rijen aan, verberg het deelvenster Feitenblok of het meldingenbelletje, zet de animaties uit, of meld een probleem met schermafbeeldingen aan je helpdesk zonder Business Central te verlaten. Elke verbetering heeft een eigen schakelaar.
 
 🎨 Nooit meer boeken in de verkeerde omgeving
 

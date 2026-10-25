@@ -35,17 +35,19 @@ picker where they were never set.
 This happens entirely inside your browser. Nothing that is read is stored,
 logged or sent anywhere.
 
-If your organisation manages your browser, BC Buddy also reads the one browser
-policy it knows: the address of a shared configuration file
-(`sharedConfigUrl`, in `chrome.storage.managed`). Your IT department sets it;
-BC Buddy only reads it.
+If your organisation manages your browser, BC Buddy also reads the browser
+policies it knows (in `chrome.storage.managed`): the address of a shared
+configuration file (`sharedConfigUrl`), the switch of each part
+(`webClientEnabled`, `environmentsEnabled`, `feedbackEnabled`) and the
+*Help & feedback* settings (the helpdesk's email address, the priorities and
+the email subjects). Your IT department sets them; BC Buddy only reads them.
 
 ## Report a problem
 
 When you open *Help & feedback* in the browser's side panel and add a
 screenshot, BC Buddy captures the visible part of the tab in front. The
-screenshots, your text and the details of the page (tenant, environment,
-company, page title and address, browser) stay in your browser while you
+screenshots, your text and the details of the page (date and time, tenant,
+environment, company, page title and address, browser) stay in your browser while you
 work on the report: in the browser's session storage, so the report survives
 closing the panel, and is gone when you close it with *Close*, throw it away
 or close the browser. *Email* saves the report as an email file (.eml) and
@@ -89,8 +91,8 @@ to it.
   Business Central on-premises server runs on your own host name, and your
   shared configuration file can be hosted anywhere. The extension only uses
   this access to draw its own markers on pages that match one of your rules,
-  and to apply its web client improvements on pages that are Business
-  Central.
+  to apply its web client improvements on pages that are Business
+  Central, and to take the screenshots you add in *Help & feedback*.
 
 ## Contact
 

@@ -21,34 +21,59 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Bar at the top.** A banner can now sit above Business Central's own top
   bar. It moves the page down, so it covers nothing.
 - **Sample rules from the start.** A new install comes with the four sample
-  rules, switched off, so nothing is coloured until you decide. **Load
-  samples** switches them on. When your team's shared file brings rules, they
-  take over from the samples you did not change.
+  rules, so you can start from them. Nothing is coloured until you switch on
+  **Use environment colours** under **Environments**. When your team's shared
+  file brings rules, they take over from the samples you did not change.
 - **The company, also when the address has none.** Right after you sign in,
   Business Central online often leaves the company out of the address. BC
   Buddy now reads it from the page, for `{company}` and for rules on
   **Company**.
-- **Help & feedback.** Send a support request to your helpdesk without
-  leaving Business Central: a panel opens next to the page, in the browser's
-  side panel. Describe what went wrong, add up to nine screenshots, point
-  things out on them with arrows, a pen or a box, blur what others must not
-  see, add a note to each, give a problem a priority, and click **Email**:
-  your email app opens with the report ready to paste. **Copy** puts it on
-  the clipboard; **Download** saves it as an email draft that opens in
-  Outlook with the screenshots inside, or as a web page. The report stays
-  while you move around Business Central or close the panel. Click the BC
-  Buddy logo in Business Central's top bar, or the BC Buddy icon in the
-  toolbar, and pick **Report a problem** or **Feedback or a suggestion**.
-  Off until you switch it on under **Help & feedback**; the address can come
-  with your team's shared file.
+- **Help & feedback.** Report a problem to your helpdesk, or send feedback or
+  a suggestion, without leaving Business Central. Click the BC Buddy icon in
+  the top bar, or in the browser's toolbar, and pick **Report a problem** or
+  **Feedback or a suggestion**: a panel opens next to the page. Write what you
+  did step by step, with a screenshot of each step (the whole screen or just
+  the part that matters), and make words bold, italic or underlined with
+  Ctrl+B, Ctrl+I or Ctrl+U. Point things out on a screenshot with an arrow, a
+  pen or a box, blur what others must not see, or start over with **Clear
+  all**. Give the report a priority, then click **Email**: a new email opens
+  in your email app with the screenshots inside, ready to send. The first
+  time, the browser asks whether BC Buddy may open the file it saves for
+  that. **Email (draft)** opens your email app and puts the report on the
+  clipboard for you to paste; **Download** saves it as a web page;
+  **Copy** puts it on the clipboard. The report says when it was made and
+  which tenant, environment and company you were in, with the page address
+  of every step. It stays while you move around Business Central or close
+  the panel; **Close** throws it away. Off until you switch on **Use Help &
+  feedback** under **Help & feedback**.
+- **Set up Help & feedback for your team.** Under **Help & feedback** you set
+  the helpdesk's email address, the priorities people can pick and the one a
+  report starts with, and the email subjects, with `{prio}`, `{type}`,
+  `{company}`, `{environment}`, `{tenant}` and `{title}` filled in. Put them
+  in your team's shared file and everyone gets them; they then show **Set by
+  your organisation.** and cannot be changed, also not by an import. IT can
+  set them, and each part's switch, by policy too.
+- **Switch parts on for your team.** Your team's shared file can now switch
+  the Web client improvements and environment colours on or off for
+  everyone, as a starting point each person can still change.
 
 ### Changed
 
-- **Keyboard shortcuts in a side panel.** The BC Buddy logo in the top bar
-  now opens the browser's side panel, next to Business Central instead of on
-  top of it, and **Keyboard shortcuts** there shows the shortcuts. It follows you from page to page, has a
-  gear for the BC Buddy settings, and closes by itself when you leave
-  Business Central.
+- **One switch per part.** **Web client**, **Environments** and **Help &
+  feedback** each have their own switch at the top of their page, instead of
+  one switch for all of BC Buddy. A rule no longer has a switch of its own: a
+  rule that is there colours. Keyboard shortcuts come with the Web client.
+  When you update, everything you used keeps working. If you were using
+  environment colours, the rules you had switched off are removed.
+- **Keyboard shortcuts in a side panel.** The BC Buddy icon (two people), just
+  before Business Central's settings gear in the top bar, now opens the
+  browser's side panel, next to Business Central instead of on top of it.
+  **Shortcuts for this page** there shows the shortcuts. The panel follows
+  you from page to page, has a gear for the BC Buddy settings and a moon
+  button for dark mode, switches language as soon as you pick another one,
+  and the shortcuts view closes by itself when you leave Business Central. The
+  **BC Buddy** entry in Business Central's settings pane is gone: the
+  panel's gear takes you to the settings.
 
 ### Fixed
 
