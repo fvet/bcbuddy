@@ -1,3 +1,46 @@
+// Copy values
+//
+// `lib/copyvalues.js`, started and stopped by `applyCopyValues()` in
+// `content.js` like the dropdown sizer: attached once when the switch turns on,
+// detached when it turns off, one comparison per `apply()` otherwise.
+//
+// It is the one place with a document-wide pointer listener that fires on
+// pointer movement, which the performance rules otherwise forbid; a hover icon
+// has to know what is under the pointer. (Resize panes has a document-wide
+// `pointerdown`, which fires per click only.) It is kept as small as it can be:
+//
+// - one passive `pointerover` listener per frame, only while the switch is on.
+//   It fires when the pointer crosses into another element, not per pixel. The
+//   handler does one `closest()` and resets one timer; no style or layout reads;
+// - after 300 ms of rest it checks the cell and reads its one
+//   `getBoundingClientRect()`, then moves the icon with a `transform`;
+// - the icon is one `button#bcb-copy` per frame, our own, in `body`. Nothing is
+//   written into BC's cells or onto its elements;
+// - `scroll`, `keydown`, `pointerdown` and `pointerout` listeners exist only while
+//   the icon shows, and hide it.
+//
+// Which cells qualify (live client, 2026-10-11): `.edit-container-read` with a
+// `.stringcontrol-read.value` inside, not `.empty`, `.ms-nav-hidden` or an
+// `.empty-anchor-link`, inside `table.ms-nav-grid-data-table` or
+// `.ms-nav-layout-factbox-content-area`, and not in a `.spa-lookup` dropdown.
+// That covers `td` grid cells and FactBox `div`s. Card fields use the same markup
+// in a FastTab (`.collapsibleTab`); there only a value that is a link
+// (`a.stringcontrol-read.value`, e.g. Balance (LCY)) qualifies, since plain text
+// can be selected with the mouse. Editable card fields also carry
+// `.edit-container-read` but hold an `input` or `select`, never a value element. Editable cells are `.edit-container` without
+// `-read`, with an `input`. A `.right` cell (amounts) gets the icon on the left,
+// just before the text; every other cell gets it at its right edge. The text is
+// measured with a `Range` over the value (one more rect read): in lists and
+// FactBoxes the value is an `inline-block` as wide as its text, but on a card it
+// is a `block` as wide as the field.
+//
+// What is copied is `value.textContent.trim()`: the full text even when CSS cuts
+// it off, without a layout read. Not `title`: on a link it is an action ("Record
+// 10000 openen"), on an amount it adds the currency. The clipboard is
+// `navigator.clipboard.writeText()` (allowed in BC's client frame, same origin);
+// on-prem over plain HTTP it falls back to a hidden `textarea` and
+// `execCommand('copy')`.
+
 /*
  * BC Buddy - copy values.
  *

@@ -1,3 +1,45 @@
+// URL parsing
+//
+// Both BC SaaS and on-premises URLs are recognised, following the shape from
+// [Microsoft's documentation](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-web-client-urls):
+// `https://<host>[/<aadtenantid>][/<environment>]/?[company=...]&[tenant=...]`.
+// Tenant and environment are both optional; the tenant is a GUID or a domain name.
+// On-prem the server instance sits where the environment would be
+// (`/BC240/?company=...`) and the tenant comes from the query. A tenant in the
+// path is only read on `businesscentral.dynamics.com`: on any other host a first
+// segment with a dot is far more often a file or a user name, so there only
+// `?tenant=` sets it.
+//
+// RegEx conditions
+//
+// A `regex` condition runs a pattern that came from the user or from a shared
+// file, so `safeRegexTest()` in `match.js` bounds it: the pattern is capped at 200
+// characters, the subject at 2048, and patterns are rejected when a group or class
+// is quantified while its body already holds a quantifier — `(a+)+` — or when a
+// quantified group contains alternation — `(a|a)+`. Anything rejected fails
+// closed: the condition simply does not match, exactly as a syntax error does.
+//
+// That filter misses ungrouped quantifiers, and the length caps alone do not
+// bound those: `.*.*.*.*.*.*Q` kept a tab busy for 45 s on a 100-character URL.
+// So every pattern also gets a backtracking budget (`REGEX_BUDGET`). Each
+// quantifier multiplies an estimate by the lengths it can take — 2 for `?`, the
+// range for `{n,m}`, the subject's length for `*`, `+` and `{n,}` — and an
+// unanchored pattern is multiplied by the subject's length once more, for every
+// start position. Over the budget, the pattern fails closed on that subject. A
+// leading or trailing `.*` is dropped first, since it changes nothing for
+// `test()`, so `.*CRONUS.*` costs no more than `CRONUS`. At the budget the worst
+// pattern measured takes about 60 ms in Chrome; real patterns run in well under
+// 1 ms. `regexProblem()` gives the reason (`invalid` or `heavy`), which the
+// options page shows on the condition.
+//
+// The estimate is an upper bound, so it refuses some patterns that would run
+// fast, such as `[^/]+/[^/]+/Sandbox` on a URL over 256 characters; anchoring
+// with `^` lifts that. Deciding whether an arbitrary pattern backtracks
+// catastrophically is not possible from a source scan, so it errs that way.
+//
+// The content script keeps the matched rule until the URL or the rules change,
+// so a pattern runs once per page, not on every pass of `apply()`.
+
 /*
  * BC Buddy - URL parsing, rule matching and template rendering.
  * Pure functions, no chrome.* API. Usable in the content script, options,

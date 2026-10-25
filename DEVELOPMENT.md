@@ -220,21 +220,7 @@ those need their background.
 
 ## 🖍️ Current line
 
-In an editable grid BC marks the row you are on only with an arrow and the ⋮
-cell at the far left. The content script sets `data-bcb-row` on `<html>` in
-every frame, once, and `content.css` does the rest:
-
-- The row is `tr.real-current` in `table.ms-nav-grid-edit` (document lines in
-  edit mode, journals) and in `form.ms-nav-cardform table.ms-nav-grid-view`
-  (list parts in view mode). A list page's grid sits in `ms-nav-listform` and
-  already fills the current row, so it is left alone.
-- The tint is a 6% `background-image` gradient over each cell, not a new
-  background colour, so BC's own cell colours stay underneath. Under Dark
-  Reader (`data-darkreader-scheme="dark"`) it is lighter and a little stronger.
-- It costs nothing at runtime: no listener, observer or poll, and it does not
-  wake the content script's watch loop. Moving the current row through a
-  103-column sales line took ~14 ms with and without the tint; that time is
-  BC restyling its own grid.
+How it works is in the comment at the top of [content.css](src/content/content.css).
 
 After a BC update, open a sales order in edit mode and click through its lines:
 the line you are on should carry the faint tint across its full width. If not,
@@ -243,34 +229,7 @@ check that the current row still has `real-current` and the grid
 
 ## 📌 BC's own page settings
 
-Maximize and Pin the action bar click BC's own controls, and change only BC's
-default: never a page someone already set. BC stores those choices per page in
-the client frame's `localStorage`, written only when someone (or BC Buddy's
-click) changes them, so no key means the page shows BC's default.
-`lib/bcstate.js` reads them:
-
-| Setting | Key ends in | Field |
-|---|---|---|
-| Wide layout | `:Layout:<id>` | `PageLayoutExpanded` |
-| Size of a task dialog | `:TaskDialog:Layout:<id>` | `PageLayoutExpanded` |
-| List, tiles | `:<list id>` (no prefix) | `Layout` |
-| Pinned action bar | `:TCB<id>` | `Pinned` |
-
-The key starts with `<BC user name>:<environment>:`, which the content script
-cannot rebuild (the URL often leaves the environment out), so a key matches on
-its end. Both ids start with the page number as eight hex digits
-(`0000001a-0000-0001-0c00-…` is page 26); the page number comes from
-`form.ms-nav-root-form[data-page-id]`. A choice in another environment of the
-same tenant therefore counts too, and BC Buddy errs on leaving the page alone.
-
-The page's own pin is the button with `i[data-icon-name="Pin"]` (floating) or
-`"Unpin"` (pinned) in `.ms-nav-layout-menubar`; a part such as order lines has
-its own in `.ms-nav-band-header`, which is left alone. BC's default differs per
-page, and a bar that shows pinned is checked again on later passes in case BC
-lets it float after all.
-
-Runtime cost: one query in the page on screen per pass, and one walk over the
-`localStorage` keys the first time a page is seen.
+How it works is in the comment at the top of [bcstate.js](src/lib/bcstate.js).
 
 After a BC update, open a card nobody pinned: it should open pinned, and a
 `…:TCB<id>` key with `{"Pinned":true}` should appear. Unpin it, reopen it, and
@@ -279,46 +238,7 @@ key.
 
 ## 📐 Dropdown size
 
-When a lookup opens, BC adds a `div.spa-view.spa-lookup` as a **direct child**
-of a `div.spa-container`, inside the client frame. Its stylesheet
-(`desktoppreview.css` on the BC CDN) caps that popup and three containers inside
-it at `max-width: 532px; max-height: 238px`. The sizer lifts those caps per
-dropdown; BC keeps positioning the popup itself — below or above the field,
-moved left when it runs out of room — and does so before the first paint.
-
-It runs while people type, so it is built to cost nothing:
-
-- **A narrow observer.** It watches the direct children of each
-  `.spa-container` and of `body` (to notice a new container), never a subtree.
-  Cell edits, validation and row redraws never reach it. When both sliders are
-  at BC standard, or the extension is off, nothing is attached at all.
-- **No layout reads per dropdown.** BC writes each column's width on the header
-  cell as `width: 15ex`. The sizer adds those up and converts once: on the first
-  dropdown in a frame it measures what an `ex` is and what the row selector and
-  the popup's edges add. After that, sizing a dropdown is string parsing —
-  measured at 0–1.5 ms per open on a live client, the first one 3–27 ms.
-- **Relative to BC.** BC's own caps are read from the first dropdown before the
-  sizer marks it, and each step is a factor of them (width ×1 to ×2, height ×1
-  to ×1.5). If BC changes its standard size, the steps follow.
-- **Set once per open.** The width goes on the popup as a CSS variable when it
-  appears and is not touched again, so it does not change while you scroll.
-  `content.css` applies the variables only to popups carrying
-  `data-bcb-dropdown`. Not inline on the form: BC reuses that element between
-  opens, and an inline style would follow it.
-
-Things that were tried and dropped: a pure-CSS fit (letting the grid tables size
-to their content) made the popup change width while scrolling; measuring each
-dropdown's natural width costs 2–10 ms per open, every time.
-
-Only a list to pick from is sized: a popup that holds a grid (`isList()`). A
-field you cannot edit — a page in view mode, a read-only field — opens a record
-card in the same `.spa-lookup` popup instead. BC adds `.spa-preview-lookup` to
-that card only *after* inserting it, so on arrival it is recognised by its
-`.ms-nav-previewlookupform` and by having no grid; `content.css` also drops the
-caps from anything that later carries `.spa-preview-lookup`.
-
-Out of scope on purpose: option fields (a `select`) and fields with a **…**
-button, which open a full page rather than a dropdown.
+How it works is in the comment at the top of [dropdowns.js](src/lib/dropdowns.js).
 
 ### After a BC update
 
@@ -342,34 +262,7 @@ var l = document.querySelector('.spa-view.spa-lookup');
 
 ## 📅 Week numbers in the date picker
 
-BC's date picker is Fluent UI v9's `Calendar`, and BC does wire up Fluent's
-`showWeekNumbers`: **Shift+Home** in an open picker toggles it (live client,
-2026-10-11). BC stores the choice per user and environment, not per page, as
-`<user>:<environment>:DatePicker` = `{"showWeekNumbers":true|false}`, and reads
-it each time a picker opens; without the key the numbers are off.
-
-`lib/weeknumbers.js` writes `{"showWeekNumbers":true}` under that key for every
-user and environment that has none yet, and never touches a stored value, so
-Shift+Home stays the user's switch. It is started and stopped by
-`applyWeekNumbers()` in `content.js`.
-
-The prefix comes from `BCState.prefixes()`: BC writes
-`<user>:<environment>:NavBar` (the navigation bar's measured width) each time
-it starts, so every such key names a user and environment that ran BC here.
-An environment that starts for the first time while the tab is open is caught
-by the `storage` event: BC writes from the client frame, and the content
-script in the top frame hears it.
-
-The numbers are BC's: `firstWeekOfYear` and `firstDayOfWeek` come from the
-user's Region (`calendarWeekRule` in BC's formatting info). A Dutch region
-gives ISO 8601 weeks, as `Date2DWY`; a US region need not. BC draws them as
-`th.fui-CalendarDayGrid__weekNumberCell`, the first cell of each row, and
-widens the picker from 220 to 250px. Its label for that cell reads
-"Weeknummer undefined", a gap in BC's own strings.
-
-Runtime: one walk over the `localStorage` keys when the switch turns on or a
-page loads, and a suffix check on each `storage` event, which BC raises a few
-times per session. Nothing runs in the picker itself.
+How it works is in the comment at the top of [weeknumbers.js](src/lib/weeknumbers.js).
 
 After a BC update, remove the `…:DatePicker` key, reload, and open a date
 picker: the week numbers should be there, and Shift+Home should still turn
@@ -377,46 +270,7 @@ them off and write `{"showWeekNumbers":false}`.
 
 ## 📋 Copy values
 
-`lib/copyvalues.js`, started and stopped by `applyCopyValues()` in
-`content.js` like the dropdown sizer: attached once when the switch turns on,
-detached when it turns off, one comparison per `apply()` otherwise.
-
-It is the one place with a document-wide pointer listener that fires on
-pointer movement, which the performance rules otherwise forbid; a hover icon
-has to know what is under the pointer. (Resize panes has a document-wide
-`pointerdown`, which fires per click only.) It is kept as small as it can be:
-
-- one passive `pointerover` listener per frame, only while the switch is on.
-  It fires when the pointer crosses into another element, not per pixel. The
-  handler does one `closest()` and resets one timer; no style or layout reads;
-- after 300 ms of rest it checks the cell and reads its one
-  `getBoundingClientRect()`, then moves the icon with a `transform`;
-- the icon is one `button#bcb-copy` per frame, our own, in `body`. Nothing is
-  written into BC's cells or onto its elements;
-- `scroll`, `keydown`, `pointerdown` and `pointerout` listeners exist only while
-  the icon shows, and hide it.
-
-Which cells qualify (live client, 2026-10-11): `.edit-container-read` with a
-`.stringcontrol-read.value` inside, not `.empty`, `.ms-nav-hidden` or an
-`.empty-anchor-link`, inside `table.ms-nav-grid-data-table` or
-`.ms-nav-layout-factbox-content-area`, and not in a `.spa-lookup` dropdown.
-That covers `td` grid cells and FactBox `div`s. Card fields use the same markup
-in a FastTab (`.collapsibleTab`); there only a value that is a link
-(`a.stringcontrol-read.value`, e.g. Balance (LCY)) qualifies, since plain text
-can be selected with the mouse. Editable card fields also carry
-`.edit-container-read` but hold an `input` or `select`, never a value element. Editable cells are `.edit-container` without
-`-read`, with an `input`. A `.right` cell (amounts) gets the icon on the left,
-just before the text; every other cell gets it at its right edge. The text is
-measured with a `Range` over the value (one more rect read): in lists and
-FactBoxes the value is an `inline-block` as wide as its text, but on a card it
-is a `block` as wide as the field.
-
-What is copied is `value.textContent.trim()`: the full text even when CSS cuts
-it off, without a layout read. Not `title`: on a link it is an action ("Record
-10000 openen"), on an amount it adds the currency. The clipboard is
-`navigator.clipboard.writeText()` (allowed in BC's client frame, same origin);
-on-prem over plain HTTP it falls back to a hidden `textarea` and
-`execCommand('copy')`.
+How it works is in the comment at the top of [copyvalues.js](src/lib/copyvalues.js).
 
 To look at the markup again on a live page:
 
@@ -427,36 +281,7 @@ var f = [...document.querySelectorAll('iframe')].map(x => x.contentDocument).fin
 
 ## ↔️ Resize panes
 
-`lib/panes.js`, started and stopped by `applyPanes()` in `content.js` in every
-frame, one comparison per `apply()`. Where the panes are (BC 25 on-prem and
-BC 28 online, 2026-10-20):
-
-- **Page Inspection** and the **Personalization** field list: in the top
-  window, `.designer > .pane-content > .designer-design-pane`. The element
-  stays in the page; BC adds `.expanded` while it is open and gives it a width
-  by CSS (`.designer-design-pane:not(.folded).expanded`, 300 px; 350 px under
-  `.inspector`). The `.designer` carries `.inspector` or `.personalization`.
-- **Help** and **Copilot**: a `div` that BC adds directly under `<body>` of
-  the client frame and removes on close. Its classes are hashed per build
-  (`pane--UVX_…`; BC 28 adds `.spa-pane`, BC 25 has nothing stable); its width comes from its own inline
-  `--panel-width: 340px`, which a rule uses as `flex-basis` and `max-width`.
-  So we find it by `body > div[style*="--panel-width"]`.
-
-The handle is a `::before` in `content.css` on the pane's left edge, under
-`html[data-bcb-panes]`; nothing is added to BC's DOM and nothing is observed.
-It copies BC 28's own FactBox handle (`button.resize-bar`): a 12 px grab zone
-and a 2 px bar in the theme accent, `--bc-sldaccn` (defined in the client
-frame only, so the top window falls back to `#00838f`). BC lights its bar on
-hover; a pseudo-element cannot be hovered apart from its pane, so ours shows
-during a drag only. A press on it has the pane as its target, so one capturing
-`pointerdown` listener per frame does one `matches()` and, only on a pane,
-one `getBoundingClientRect()`. A drag takes pointer capture on the pane (so
-it keeps working over the client frame) and adds `pointermove`, `pointerup`
-and `lostpointercapture` to the pane for its duration; each move writes one
-custom property on `<html>` per animation frame. A saved width is
-`--bcb-pane-<kind>` plus `data-bcb-pane-<kind>` on `<html>`, and CSS clamps it
-to `240px … 100vw − 240px`. Two presses within 400 ms without a move drop the
-saved width. The handler ignores events that are not `isTrusted`.
+How it works is in the comment at the top of [panes.js](src/lib/panes.js).
 
 To look again after a BC update: open each pane and check that
 `document.querySelector('.designer-design-pane.expanded')` (top window) and
@@ -465,45 +290,11 @@ To look again after a BC update: open each pane and check that
 
 ## 🔗 URL parsing
 
-Both BC SaaS and on-premises URLs are recognised, following the shape from
-[Microsoft's documentation](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-web-client-urls):
-`https://<host>[/<aadtenantid>][/<environment>]/?[company=...]&[tenant=...]`.
-Tenant and environment are both optional; the tenant is a GUID or a domain name.
-On-prem the server instance sits where the environment would be
-(`/BC240/?company=...`) and the tenant comes from the query. A tenant in the
-path is only read on `businesscentral.dynamics.com`: on any other host a first
-segment with a dot is far more often a file or a user name, so there only
-`?tenant=` sets it.
+How it works is in the comment at the top of [match.js](src/lib/match.js).
 
 ## 🛡️ RegEx conditions
 
-A `regex` condition runs a pattern that came from the user or from a shared
-file, so `safeRegexTest()` in `match.js` bounds it: the pattern is capped at 200
-characters, the subject at 2048, and patterns are rejected when a group or class
-is quantified while its body already holds a quantifier — `(a+)+` — or when a
-quantified group contains alternation — `(a|a)+`. Anything rejected fails
-closed: the condition simply does not match, exactly as a syntax error does.
-
-That filter misses ungrouped quantifiers, and the length caps alone do not
-bound those: `.*.*.*.*.*.*Q` kept a tab busy for 45 s on a 100-character URL.
-So every pattern also gets a backtracking budget (`REGEX_BUDGET`). Each
-quantifier multiplies an estimate by the lengths it can take — 2 for `?`, the
-range for `{n,m}`, the subject's length for `*`, `+` and `{n,}` — and an
-unanchored pattern is multiplied by the subject's length once more, for every
-start position. Over the budget, the pattern fails closed on that subject. A
-leading or trailing `.*` is dropped first, since it changes nothing for
-`test()`, so `.*CRONUS.*` costs no more than `CRONUS`. At the budget the worst
-pattern measured takes about 60 ms in Chrome; real patterns run in well under
-1 ms. `regexProblem()` gives the reason (`invalid` or `heavy`), which the
-options page shows on the condition.
-
-The estimate is an upper bound, so it refuses some patterns that would run
-fast, such as `[^/]+/[^/]+/Sandbox` on a URL over 256 characters; anchoring
-with `^` lifts that. Deciding whether an arbitrary pattern backtracks
-catastrophically is not possible from a source scan, so it errs that way.
-
-The content script keeps the matched rule until the URL or the rules change,
-so a pattern runs once per page, not on every pass of `apply()`.
+How it works is in the comment at the top of [match.js](src/lib/match.js).
 
 ## 📄 Import format
 
@@ -939,210 +730,18 @@ Advanced Security, and do not come from this file.
 
 ## 🐢 Turn off animations
 
-BC does not honour `prefers-reduced-motion`. The content script sets
-`data-bcb-calm` on `<html>` in every frame, once, and two pieces do the rest:
+How it works is in the comment at the top of [calm.js](src/content/calm.js).
 
-- `content.css` shortens CSS transitions and animations to `0.01ms` (not
-  `none`, so `transitionend` and `animationend` still fire) and zeroes their
-  delays. It targets stable classes only: `.animate`, the `ms-nav-layout-*`
-  regions that Maximize and the FactBox pane move, FastTab captions and
-  fields. The busy indicator and spinners are left out.
-- FastTabs slide with `element.animate()` (500 ms on `margin-top`), and BC
-  waits for it to finish before it marks the FastTab open or closed.
-  `calm.js` runs in the page's own world (`"world": "MAIN"`, Chrome 111+) and
-  wraps `Element.prototype.animate` to use a duration of 0 while the
-  attribute is set; animations with infinite iterations keep their timing.
-  It patches nothing until the attribute first appears, so other sites only
-  carry one attribute-filtered observer on `<html>`.
-
-Runtime cost: one attribute per frame, class-keyed CSS, and one
-`hasAttribute` per `animate()` call (on a card, only FastTab toggles call it).
 After a BC update, open a card, toggle a FastTab, Maximize and the FactBox
 pane (I), and log `transitionrun` and `getAnimations()` for anything slow.
 
 ## ⌨️ Keyboard shortcuts
 
-`shortcuts.js` adds the BC Buddy icon (two people) to BC's top bar, which
-opens the browser's side panel (`src/sidepanel/`) on its start view; from
-there *Shortcuts for this page* shows the shortcuts for where the cursor is.
-It has no switch of its own: the icon is there while the Web client area or
-Help & feedback is on. BC Buddy no longer adds an entry to BC's own settings
-pane; the panel's gear opens the options page. Where the browser cannot open
-a side panel, the button opens the floating panel in the page instead.
-
-- **Side panel.** The button sends `bcb:toggle-side-panel`; the service
-  worker calls `chrome.sidePanel.open({ windowId })` at once, while the click
-  still counts as a user gesture, or tells the panel to close when one is
-  open in that window (the panel registers over a `bcb-sidepanel` port). The
-  panel follows the active tab: it opens a `bcb-shortcuts` port to the tab's
-  top frame, and `content.js` answers through `listen()` in `shortcuts.js`
-  with the sections. A
-  content script only accepts that port from our own extension pages. While
-  a panel listens: the page observer below, and one `focusin` listener on
-  BC's document that restarts a 300 ms timer; nothing is sent when the
-  sections did not change. The panel caps what arrives and puts it on the
-  page as text only. It closes itself when the tab it showed BC in moves to
-  another origin, and takes the tab's zoom (`tabs.getZoom`, `onZoomChange`;
-  no permission needed).
-
-- **Three views.** The panel opens on a start view (`home`) with an entry
-  per thing it does, each shown only while its switch is on: *Report a
-  problem* and *Feedback or a suggestion* open Help & feedback
-  (`sidepanel/help.js`) as type Bug or Improvement (both with a priority), and
-  *Shortcuts for this page* opens `shortcuts`. A back arrow in the header returns
-  to the start view. The service worker keeps the view each window's panel
-  shows: the icon in the top bar sends `bcb:toggle-side-panel`, which opens
-  `home` or closes an open panel whatever it shows; the browser shortcut
-  toggles `shortcuts`; the toolbar icon opens the panel through
-  `sidePanel.setPanelBehavior({ openPanelOnActionClick })`, set while Help &
-  feedback is on, because `sidePanel.open()` would come too late after
-  reading the settings. A panel that opens asks for its view when it
-  connects; without one it shows `home`. The icon is in the top bar while
-  the Web client area or Help & feedback is on. The panel follows the settings
-  page's look and its light or dark theme (`options/theme.js`). Only the
-  shortcuts view
-  closes the panel when the tab leaves BC. Help & feedback asks the tab's
-  top frame `bcb:support-context` (BC or not, tenant, environment,
-  company), keeps the report in `chrome.storage.session` per window, takes
-  screenshots with `tabs.captureVisibleTab` and injects
-  `src/support/support-overlay.js` for the area selection and the drawing
-  editor, whose result comes back through `scripting.executeScript`. The
-  overlay draws everything inside a closed shadow root it attaches from the
-  isolated world: the page shares the DOM, and a canvas in its own tree would
-  let its scripts read a screenshot (possibly of another tab) with
-  `toDataURL()`. A page stylesheet does not reach into that root, so the
-  panel reads `support-overlay.css` and hands it over as text
-  (`SupportOverlay.useStyle()`) instead of `scripting.insertCSS`. Esc in
-  the panel during an area selection calls `SupportOverlay.cancel()`; the
-  editor gets the original capture and the earlier drawings, so Clear all
-  goes back to the capture. The message box and the notes are
-  contenteditable with bold, italic and underline only: their content is
-  kept as a model of text runs with flags, rebuilt with `textContent`, and
-  written to the report's HTML escaped, with `b`, `i`, `u` and `br` as the
-  only tags; paste and drop insert plain text.
-
-- **Where.** BC online shows the client in `iframe.designer-client-frame`,
-  same origin, under the Microsoft 365 top bar. Icon and panel live in the top
-  window; the panel reads the client's document directly. The icon goes just
-  before the Settings gear (`#O365_MainLink_Settings_container`), so the bar reads
-  notifications, BC Buddy, gear, Help; when the gear is not a sibling of Help it
-  goes before `#O365_MainLink_Help_container`. It copies the classes of Help and
-  of the Help button, element by element. The shell decides from the window
-  width which buttons fit and when the rest go under **…**, without counting
-  ours, so in a narrower window the buttons ran over the user's name.
-  `fitIcon()` keeps the icon to spare room: a ResizeObserver on the row around
-  `#headerButtonRegion` and on `#O365_HeaderRightRegion` shows the icon,
-  measures, and hides it again when the buttons end past where the name
-  starts, all in one task so nothing paints in between. It does not work out
-  the free room beforehand: a narrow window drops the title but keeps its
-  box, so the free space is not in one place. Measure against the name's left
-  edge, never the row's own: the row itself spills past its container.
-- **What it lists.** *On this page* comes from the page itself: BC ends an
-  action's tooltip with its shortcut, `"... (F9)"`, and `tooltipKey()` takes
-  that, so it is right for the BC version, the language and any extension.
-  Only from the page on screen (`topView()`): BC keeps the pages you came
-  from rendered below it, in sibling `.spa-view` elements. Skipped: a
-  field's own buttons inside `.edit-container` (Copilot's Alt+I), greyed-out
-  actions (`aria-disabled="true"`), and a part's own action bar (inside
-  `.formhost-control`) unless the cursor is in that part. A closed submenu
-  is not in the DOM, so it is not listed. The rest comes from `SETS`: short,
-  hand-picked lists from Microsoft's *Keyboard Shortcuts* article, only
-  shortcuts BC has had for years, worded with Microsoft's own terms in each
-  language. Keep them short; the panel links to the article for the rest.
-  The test runner checks them against the article (see [Tests](#-tests)); a
-  key the article spells differently (`Down` is *Down arrow* there) goes in
-  `SPELLING` in `tools/check-shortcut-docs.mjs`.
-- **Where the cursor is.** `context()` looks at the client's
-  `activeElement`: an editable grid, a view grid, a card, a date field (an
-  input with BC's `.icon-Date` button beside it). Without a cursor in a grid,
-  the page decides: a card form is a card, a list or worksheet form goes by
-  its own grid (a read-only worksheet such as Find entries is a list), and a
-  Role Center gets no area. Alt+N needs a New action, found by its icon
-  (`data-icon-name="Add"` in a card header, `icon-Plus` in a list's action
-  bar); Alt+F2 needs a form without `form-no-factboxes`. The cursor is read
-  when the panel opens and when the page changes, not as it moves.
-- **The panel.** It stays open until ×, Escape (with the focus in it) or the
-  icon closes it; a click in BC does not. The header is a drag handle
-  (pointer capture, so the drag keeps going over BC's frame); the spot is
-  kept for the tab's lifetime, clamped to the window. While it is open, an
-  observer on the direct children of each `.spa-container` notices BC
-  adding or removing a page, and the panel refills once the new top view
-  has a root form (up to 10 tries, 300 ms apart). A lookup is a view too
-  but never the top view, so it changes nothing. The icon button cancels
-  its own `mousedown`, because BC drops the field focus as soon as its
-  frame loses focus; the panel then takes the focus and gives it back on
-  close, unless the page changed meanwhile.
-- **Cost.** One observer on the top window's `body` (subtree) while the
-  icon is there: BC's grids live in the iframe's document, so the top window
-  changes rarely, and each change costs one `getElementById`. Everything
-  else exists only while the panel is open: the page scan, the drag
-  listeners on its own header, and the `childList` observer on each
-  `.spa-container`, never a subtree. No key listener in the page.
-- **Browser shortcut.** The manifest declares a `show-shortcuts` command
-  without a default key, so it never takes one from BC. Someone who sets a
-  key gets `chrome.commands.onCommand` in the service worker, which sends
-  `bcb:toggle-shortcuts` to the tab's top frame. On-prem, without the
-  Microsoft 365 top bar, that key is the only way in.
+How it works is in the comment at the top of [shortcuts.js](src/lib/shortcuts.js).
 
 ## 🆘 Help & feedback
 
-The report view of the side panel (`src/sidepanel/help.js`; the start view and
-the shortcuts view are `sidepanel.js`). Its settings are in *Settings model*,
-its permissions in [Permissions](#-permissions), and what the user sees in
-`docs/help-feedback.md`. The area switch is `feedbackEnabled`: off by
-default, and IT can set it by policy.
-
-- **A report** is up to 9 steps (`MAX_SHOTS`), each a note and optionally a
-  screenshot. Text left in the box at the end is a last step without one.
-  A screenshot is `tabs.captureVisibleTab` of the tab in front, scaled to at
-  most 1920 px on the long side and stored as JPEG (`MAX_SHOT_SIDE`), so nine
-  of them stay below what a mail server takes. Only on a tab that is
-  Business Central: the top frame answers `bcb:support-context`.
-- **Area selection and drawing editor** (arrow, pen, box, blur) are
-  `src/support/support-overlay.js`, injected with `chrome.scripting` into the
-  top frame only while one runs, inside a closed shadow root. What comes back
-  is checked again: a PNG or JPEG data URL of bounded size, at most 300
-  drawings and 20,000 points, coordinates within bounds.
-- **Draft.** The report in progress lives in `chrome.storage.session` under a
-  key per window, saved 400 ms after the last change and removed by *Close*.
-  Content scripts cannot read session storage.
-- **Output.** *Email* builds an unsent `.eml` (`buildEml()`: `X-Unsent: 1`,
-  `multipart/related` with the screenshots inline) and opens it through
-  `downloads.download()` and `downloads.open()`. The optional permissions are
-  requested first thing in the click handler; a refusal or failure falls back
-  to a plain download plus a line saying where the file is. *Email (draft)*
-  puts the HTML on the clipboard and opens a `mailto:` link. *Copy* only
-  copies; *Download* saves the report as `.html`. The extension sends
-  nothing itself.
-- **Text.** The message box and notes are runs with bold, italic and
-  underline flags, put on the page with `textContent` and written to the
-  report as escaped text inside our own `b`, `i`, `u` and `br`. Settings
-  text (priorities, subjects) passes `oneLine()` again in the panel.
-- **From an error dialog** (`lib/errorreport.js`). BC's error dialog
-  (`.spa-dialog` with `.error-dialog-caption` and a `.fui-MenuButton`) gets a
-  *Report a problem* button first in the *Share details* row. A trusted click
-  runs, within the few seconds Chrome allows a script to copy after a real
-  click: `bcb:error-shot` (the service worker takes `captureVisibleTab`), then
-  a scripted click on *Share details* and on its first entry that is not Teams
-  or Copilot, with a `copy` listener that reads what BC puts on the clipboard
-  (`window` capture, then a `once` capture listener on `document`, which runs
-  after BC's own). `bcb:error-report` carries message and details; the
-  worker accepts it only after a shot from the same tab (30 s), stores it in
-  session storage under `bcbErrorReport:<window>`. The panel opens already on
-  `bcb:error-shot`, as soon as the screenshot and the settings are in:
-  `sidePanel.open()` only works for a moment after the click, so it cannot wait
-  for the details. The panel turns the report into a step (`takeErrorReport()`
-  in `help.js`, appended to a report in progress, skipped when a step has the
-  same message): the
-  screenshot, the message as its note, the details folded under it and
-  written in the report as escaped `pre`. Without a screenshot the text goes
-  in the message box. While it runs, `html[data-bcb-capturing]` hides BC's
-  menu so it does not flash or end up in the shot. Gated on Help & feedback
-  and `state.webClient`; no new permission. If BC changes the dialog, the
-  link is simply not added.
-- **Priorities.** `feedbackPriorities` is the only list (none built in). The
-  last value is the urgent one: while it is picked, `feedbackUrgentText` shows
-  above the field, with `feedbackUrgentLink` as `https:` or `tel:` only.
+How it works is in the comment at the top of [help.js](src/sidepanel/help.js).
 
 ## 🔑 Permissions
 
