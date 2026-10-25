@@ -33,6 +33,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Screenshot editor: picking a colour leaves Blur.** Choosing a colour while
   the blur tool is active now switches back to the arrow, so the cross no
   longer stays on blur.
+- **Report a problem: Done goes back to Email / Download after a change.**
+  Once a report went out, changing it (a step added, removed or edited, the
+  note, the type or the priority) brings the Email or Download button back, so
+  you do not close a changed report without sending it again.
 
 <!-- --8<-- [start:released] -->
 

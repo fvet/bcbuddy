@@ -703,6 +703,7 @@
   }
 
   function saveLater() {
+    reopen();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveDraft, SAVE_DELAY_MS);
   }
@@ -898,6 +899,7 @@
       box.appendChild(row);
     });
 
+    if (!noSave) reopen();
     updateButtons();
     if (!noSave) saveDraft();
   }
@@ -1271,6 +1273,18 @@
 
   function markDone() {
     done = true;
+    updateButtons();
+  }
+
+  /**
+   * Any change after the report went out (a step added, removed or edited,
+   * the text, the type, the priority) puts Email / Download back as the main
+   * button, so the changed report is not closed without being sent again.
+   */
+  function reopen() {
+    if (!done) return;
+    done = false;
+    setStatus('help-status', '');
     updateButtons();
   }
 
