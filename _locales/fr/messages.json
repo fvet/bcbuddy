@@ -277,7 +277,7 @@
   "spPrioNormal": { "message": "Normale" },
   "spPrioHigh": { "message": "Haute" },
   "spPrioCritical": { "message": "Critique" },
-  "spAddShot": { "message": "Ajouter une capture d'écran" },
+  "spAddShot": { "message": "Zone" },
   "spAddShotHint": { "message": "Faites glisser sur la partie de la page qui compte" },
   "spShotScreen": { "message": "Tout l'écran" },
   "spFullPage": { "message": "Capturer tout l'écran" },

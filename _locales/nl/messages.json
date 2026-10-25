@@ -277,7 +277,7 @@
   "spPrioNormal": { "message": "Normaal" },
   "spPrioHigh": { "message": "Hoog" },
   "spPrioCritical": { "message": "Kritiek" },
-  "spAddShot": { "message": "Schermafbeelding toevoegen" },
+  "spAddShot": { "message": "Regio" },
   "spAddShotHint": { "message": "Sleep over het deel van de pagina dat telt" },
   "spShotScreen": { "message": "Hele scherm" },
   "spFullPage": { "message": "Het hele scherm vastleggen" },

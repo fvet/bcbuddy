@@ -39,8 +39,8 @@ If there is a **Priority** list, pick how urgent it is.
 
 Go to the screen that shows the step, then:
 
-- **Add a screenshot** and drag over the part of the page that matters, or
-- **Whole screen** for everything you see.
+- **Whole screen** for everything you see, or
+- **Region** and drag over the part of the page that matters.
 
 Your text goes with that screenshot, and the box is empty again for the next
 step. Repeat for every step: write, then take a screenshot. You can still

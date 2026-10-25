@@ -941,7 +941,7 @@
     "description": "Priority level."
   },
   "spAddShot": {
-    "message": "Add a screenshot",
+    "message": "Region",
     "description": "Button right under the message box that starts an area screenshot. It shares one line with Whole screen, so keep it short."
   },
   "spAddShotHint": {
