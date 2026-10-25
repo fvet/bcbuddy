@@ -47,6 +47,13 @@ company or per customer.
 Setting up your first two colours takes a minute:
 [Getting started](getting-started.md#environments).
 
+## Report a problem in a few clicks
+
+Something does not work? Write what you did, take a screenshot of each step,
+and BC Buddy creates the email to your helpdesk, with the company and the
+environment already in it. Your helpdesk sees what you saw.
+[How it works](help-feedback.md).
+
 ## Good to know
 
 - **Works for your whole team.** One person sets up the colours and everyone

@@ -1,7 +1,9 @@
 # Styles
 
 A **style** decides what a marking looks like: the coloured bar at the top, a
-frame, a banner. The colour itself comes from the rule.
+frame, a banner. The colour itself comes from the rule. Nothing shows in
+Business Central until the switch in front of **Rules** under **Environments**
+is on.
 
 Several rules can share one style, so you set it up once. You start with two:
 

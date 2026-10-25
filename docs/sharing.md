@@ -8,12 +8,12 @@ next day.
 
 Someone in your team gives you a web address that ends in `.json`. Then:
 
-1. Open the BC Buddy settings page and go to **Settings**.
+1. Open the BC Buddy settings page and go to **Sharing**.
 2. Paste the address under **Shared configuration**.
 3. Click **Synchronise**.
 
-That is all. The team's rules appear at the bottom of your list, and BC Buddy
-checks for changes every day. The [sample rules](matching.md#samples) you did
+That is all. The team's rules appear at the bottom of your list, environment
+colours are switched on, and BC Buddy checks for changes every day. The [sample rules](matching.md#samples) you did
 not change make way for them.
 
 You cannot change a shared rule. To adjust one, click its copy button: you get
@@ -30,9 +30,9 @@ no **X**.
 
 ## Publishing a file for your team
 
-1. Set up your rules and styles and click **Export to file** under **Settings**. That
-   saves `bc-buddy.json`, with your rules, your styles and your **Web client**
-   settings.
+1. Set up your rules and styles and click **Export to file** under **Sharing**.
+   That saves `bc-buddy.json`, with your rules, your styles, your **Web
+   client** settings and, if you set it up, **Help & feedback**.
 2. Put that file somewhere everyone can open it with an address starting with
    `https://`, such as a GitHub repository. An ordinary GitHub page link works;
    BC Buddy turns it into the right download link by itself.
@@ -64,19 +64,65 @@ an order:
   back to what the file says. Settings the file leaves out go back to how BC
   Buddy starts out.
 
-The **Active** switch, which turns BC Buddy on or off, is never shared.
+### Which parts are on
+
+A file with rules switches environment colours on for the team. The switches
+in front of **Web client** and **Rules** are starting points too, just like
+the Web client settings: a colleague can still turn them off.
+
+To choose for the team, add `webClientEnabled` or `environmentsEnabled` to
+the file yourself; **Export to file** leaves them out.
+
+??? info "Example"
+
+    ```json
+    {
+      "app": "bc-buddy",
+      "version": 3,
+      "webClientEnabled": true,
+      "environmentsEnabled": false,
+      "rules": []
+    }
+    ```
+
+    `environmentsEnabled: false` keeps colours off, even with rules in the
+    file. Leave a key out and everyone keeps their own choice, except that a
+    file with rules switches environment colours on.
+
+### Help & feedback in the file { #help-feedback-in-the-file }
+
+The [Help & feedback](help-feedback.md) settings in the file are not a
+starting point: while someone uses the team file, they are locked, with *Set
+by your organisation* next to each one. That way every report goes to the
+right helpdesk address. Settings the file leaves out stay free to change.
+
+??? info "The keys"
+
+    `feedbackEnabled`, `feedbackEmail`, `feedbackPriorities`,
+    `feedbackDefaultPriority`, `feedbackSubjectBug` and
+    `feedbackSubjectIdea`. What each one holds is on the
+    [Help & feedback](help-feedback.md#the-same-settings-for-the-whole-team)
+    page.
+
+When the team stops using the file, the fields unlock and keep their values.
 
 ## Importing a file once
 
 To load a file once, without daily updates, use **Import / export** →
-**Import from file** under **Settings**:
+**Import from file** under **Sharing**:
 
 - rules you already have are overwritten,
 - new rules are added,
 - rules that are not in the file stay as they are,
-- the **Web client** settings in the file replace yours.
+- the **Web client** and **Help & feedback** settings in the file replace
+  yours.
+
+An import never changes a setting marked *Set by your organisation*. The page
+says so when the file held one.
 
 ## For IT departments
 
 You can install BC Buddy on every computer, with your team's file already set,
-through Intune or Group Policy. See [Install with Intune](intune.md).
+through Intune or Group Policy. A policy can also set which parts are on and
+every Help & feedback setting. What a policy sets is locked and wins over the
+team file. See [Install with Intune](intune.md).

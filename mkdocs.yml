@@ -102,6 +102,7 @@ nav:
   - Environments:
       - Rules: matching.md
       - Styles: styles.md
+  - Help & feedback: help-feedback.md
   - Sharing with your team:
       - Team file: sharing.md
       - Install with Intune: intune.md

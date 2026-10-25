@@ -177,12 +177,12 @@ gets a light tint, so you do not lose your place on a wide line.
 </details>
 
 <details class="faq" id="keyboard-shortcuts" markdown>
-<summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">The BC Buddy logo in the top bar shows the shortcuts for where you are in a side panel</span></summary>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">The BC Buddy icon in the top bar shows the shortcuts for where you are in a side panel</span></summary>
 
-<p class="bcb-starts">Off until you switch it on</p>
+<p class="bcb-starts bcb-starts--on">Always there, no switch</p>
 
-BC Buddy adds its logo to the top bar of Business Central, next to the
-question mark. Click it to open a side panel next to Business Central, then
+BC Buddy adds its icon to the top bar of Business Central: two people, just
+before the gear. Click it to open a side panel next to Business Central, then
 click **Keyboard shortcuts** to see the shortcuts that work where you are:
 
 - **On this page**: the page's own actions that have a shortcut, such as
@@ -192,10 +192,14 @@ click **Keyboard shortcuts** to see the shortcuts that work where you are:
   date field, depending on where your cursor is.
 - A few that work anywhere, such as Alt+Q to find a page.
 
+When [Help & feedback](help-feedback.md) is on, the same panel also has
+**Report a problem** and **Feedback or a suggestion**.
+
 The panel stays open while you work, and changes along when you open another
 page or move to the lines, a list or a date field, and zooms along with
 the page. The arrow at the top goes back to the start of the panel, and
-the gear opens the BC Buddy settings. Click **×** or the logo to close it. When you leave Business Central in
+the gear opens the BC Buddy settings; the moon or sun switches the panel to
+dark or light. Click **×** or the icon again to close it. When you leave Business Central in
 that tab, the panel closes by itself. A link at the bottom opens Microsoft's
 full list of shortcuts.
 
@@ -293,8 +297,10 @@ busy.
 
 ## Switching them on and off
 
-A change takes effect in Business Central straight away. The **Extension
-active** switch at the top of the settings page pauses all of BC Buddy at once.
+A change takes effect in Business Central straight away. The switch in front
+of the **Web client** heading turns all of them off at once, keyboard
+shortcuts included; the dot next to **Web client** in the menu then turns
+grey. Environment colours and Help & feedback have a switch of their own.
 
 Changed too much? **Reset to defaults**, above the list, puts every switch and
 slider back to how BC Buddy starts out. **Undo**, right next to the message,

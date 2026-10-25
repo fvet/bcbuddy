@@ -13,10 +13,12 @@ The BC Buddy settings page opens by itself. You can leave it open for step 3.
 !!! tip "Finding BC Buddy later"
 
     Click the puzzle piece in the browser toolbar and pin BC Buddy. From then
-    on, one click on its icon opens the settings page.
+    on, one click on its icon opens the settings page, or the BC Buddy panel
+    once [Help & feedback](help-feedback.md) is on.
 
-    Business Central has a way in too: click the gear icon at the top right
-    and choose **Settings** under **BC Buddy**.
+    In Business Central, the BC Buddy icon in the top bar (two people, just
+    before the gear) opens the BC Buddy panel. Its gear opens the settings page
+    too.
 
 ## 2. Open Business Central { #web-client }
 
@@ -44,12 +46,13 @@ With ten tabs open, a test order ends up in the live company before you know
 it. BC Buddy gives each environment its own colour, so you always know where
 you are.
 
-On the settings page, go to **Environments**. Four sample rules are already
-there, switched off: **Master Data** in yellow, **Production** in green,
-**UAT** in red for anything called test, QA or sandbox, and **Development** in
-blue. Click **Load samples** to switch them all on, or switch on only the ones
-you want. Change or delete them like any other rule.
-[More about the samples](matching.md#samples).
+On the settings page, go to **Environments** and turn on the switch in front of
+**Rules**. Colours start off, so nothing changes until you do.
+
+Four sample rules are already there: **Master Data** in yellow,
+**Production** in green, **UAT** in red for anything called test, QA or
+sandbox, and **Development** in blue. Change or delete them like any other
+rule. [More about the samples](matching.md#samples).
 
 Rather make your own? Then:
 
@@ -83,3 +86,5 @@ you get everyone's colours in one go. See
 - [Web client](web-client.md): what each improvement does, and how to set it.
 - [Rules](matching.md): a colour per customer or per company.
 - [Styles](styles.md): a banner, your own text, a marked browser tab.
+- [Help & feedback](help-feedback.md): report a problem to your helpdesk, with
+  screenshots.

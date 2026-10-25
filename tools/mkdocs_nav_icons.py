@@ -2,13 +2,13 @@
 
 Material shows a page's `icon` (from its front matter) in front of its title in
 the menu, but a section such as Environments is not a page and has no
-front matter. This hook sets `meta.icon` on both, so the eight icons are listed
+front matter. This hook sets `meta.icon` on both, so the nine icons are listed
 in one place and the menu template stays Material's own.
 
 The drawings are in overrides/.icons/bcb/, in the line style of the options
 page's menu (16 x 16, a 1.3 stroke, outline only). Web client and Environments
-are the options page's own Web client and Environments icons, and
-Troubleshooting its Help icon. Only the top level gets one; the pages under a
+are the options page's own Web client and Environments icons, Help & feedback
+its Help & feedback icon, and Troubleshooting its Help icon. Only the top level gets one; the pages under a
 section stay plain text.
 """
 
@@ -17,6 +17,7 @@ PAGE_ICONS = {
     'index.md': 'bcb/home',
     'getting-started.md': 'bcb/getting-started',
     'web-client.md': 'bcb/web-client',
+    'help-feedback.md': 'bcb/help-feedback',
     'troubleshooting.md': 'bcb/troubleshooting',
     'whats-new.md': 'bcb/whats-new',
     'privacy.md': 'bcb/privacy',
