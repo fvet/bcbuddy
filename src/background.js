@@ -258,6 +258,21 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     toggleSidePanel(tab, 'home', 'any').then(function (ok) { sendResponse({ ok: ok }); });
     return true; // async response
   }
+  // Report a problem in BC's error dialog (lib/errorreport.js): first the
+  // screenshot, then the copied error details, which open the report. The
+  // second only counts after the first, so one click is what opens it.
+  if (message.type === 'bcb:error-shot') {
+    var shotTab = sender && sender.tab;
+    if (!shotTab || shotTab.windowId === undefined || sender.id !== chrome.runtime.id) return;
+    errorShot(shotTab).then(function (ok) { sendResponse({ ok: ok }); });
+    return true; // async response
+  }
+  if (message.type === 'bcb:error-report') {
+    var reportTab = sender && sender.tab;
+    if (!reportTab || reportTab.windowId === undefined || sender.id !== chrome.runtime.id) return;
+    errorReport(reportTab, message).then(function (ok) { sendResponse({ ok: ok }); });
+    return true; // async response
+  }
   if (message.type === 'bcb:open-options') {
     // The side panel's Help & feedback view asks for its own settings
     // panel; anything else gets Web client.
@@ -274,6 +289,69 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     return true; // async response
   }
 });
+
+// A screenshot taken for an error report, by tab id, until its details arrive.
+var errorShots = {};
+var ERROR_SHOT_TTL_MS = 30000;
+var MAX_ERROR_MESSAGE = 1000;
+var MAX_ERROR_DETAILS = 12000;
+var ERROR_REPORT_PREFIX = 'bcbErrorReport:';
+var IMAGE_RE = /^data:image\/png;base64,[A-Za-z0-9+/]+=*$/;
+
+/**
+ * Takes the screenshot of the tab in front for an error report, when Help &
+ * feedback is on. Resolves whether it did; without one the report still
+ * opens, with the text alone.
+ */
+function errorShot(tab) {
+  // Both start before anything is awaited: the capture first, so it shows
+  // the page as it was clicked, then the panel. sidePanel.open() only works
+  // while the click's gesture is still with this very call, as for the top
+  // bar icon above: after an await it is refused. The settings are checked
+  // once the capture is in, and decide whether it is kept.
+  var capture = chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' }).catch(function () { return ''; });
+  toggleSidePanel(tab, 'help', false);
+  var settings = BCBuddy.loadSettings().catch(function () { return null; });
+  return Promise.all([settings, capture]).then(function (r) {
+    if (!r[0] || !BCBuddy.feedbackOn(r[0])) return false;
+    var dataUrl = typeof r[1] === 'string' && IMAGE_RE.test(r[1]) ? r[1] : '';
+    errorShots[tab.id] = { dataUrl: dataUrl, at: Date.now() };
+    return !!dataUrl;
+  }).catch(function () { return false; });
+}
+
+function errorText(value, max) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, max);
+}
+
+/**
+ * The error's message and details from the dialog: kept for the panel of
+ * this window, which turns them into a step of its report. Needs the screenshot step before it, so a page cannot
+ * ask for this on its own.
+ */
+function errorReport(tab, message) {
+  var entry = errorShots[tab.id];
+  delete errorShots[tab.id];
+  if (!entry || Date.now() - entry.at > ERROR_SHOT_TTL_MS) return Promise.resolve(false);
+  var payload = {
+    message: errorText(message.message, MAX_ERROR_MESSAGE),
+    details: errorText(message.details, MAX_ERROR_DETAILS),
+    dataUrl: entry.dataUrl,
+    title: errorText(tab.title, 300),
+    url: errorText(tab.url, 4096),
+    at: Date.now()
+  };
+  var request = {};
+  request[ERROR_REPORT_PREFIX + tab.windowId] = payload;
+  // The panel was opened with the screenshot (errorShot()); it takes the
+  // report from storage as it arrives, or when it starts. One already open
+  // is brought to the report view.
+  return chrome.storage.session.set(request).then(function () {
+    if (sidePanels[tab.windowId]) return toggleSidePanel(tab, 'help', false);
+    return true;
+  }).catch(function () { return false; });
+}
 
 /**
  * Open in a new tab (beta, undocumented; see lib/newtab.js): a content script

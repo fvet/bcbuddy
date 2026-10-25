@@ -28,6 +28,26 @@ in your screenshots. Closed it by accident? Open it again: your report is
 still there. The bin at the top throws the report away and takes you back to
 the start.
 
+## From an error message
+
+When Business Central shows an error, **Report a problem** sits on the right of
+**Share details** in the message. Click it and the report opens with:
+
+- a screenshot of the error as a step,
+- the error message as that step's text, and
+- the details Business Central gives under **Share details** > **Copy error
+  details**: the session IDs, the time and, for errors in the application's
+  code, the call stack. They are folded under the step; open them to read.
+
+You no longer have to copy and paste them yourself. Your helpdesk gets what it
+needs to find the error. Add what you were doing, then send the report as
+usual. When you were already writing a report, the error is added as its next
+step; an error that is already in the report is not added twice.
+
+!!! note
+    This replaces what is on your clipboard, as **Copy error details** does.
+    The error stays open until you close it.
+
 ## Three steps
 
 ### 1. Write what happened
@@ -48,6 +68,11 @@ Go to the screen that shows the step, then:
 
 - **Whole screen** for everything you see, or
 - **Region** and drag over the part of the page that matters.
+
+Something that disappears when you move the mouse, such as an error message
+that only shows while you hover its icon? Take the screenshot yourself with
+**Print Screen** or **Win+Shift+S** while it is showing, click in the box and
+paste with **Ctrl+V**. The picture becomes the next step.
 
 Your text goes with that screenshot, and the box is empty again for the next
 step. Repeat for every step: write, then take a screenshot. You can still
@@ -91,21 +116,6 @@ a screenshot.
 Once the report is out, **Email** turns into **Done**. Click it when the
 email is sent: that throws the report away and closes the panel. Need another
 way after all? The arrow still has them all.
-
-## What the helpdesk receives
-
-One email with:
-
-- where you were: the environment and the company,
-- the priority, if you picked one, and the kind of report,
-- each step: the page title, which links to the page, your text and the
-  screenshot,
-- at the bottom: your system (Windows, Chrome or Edge), the tenant, and the
-  date and time.
-
-The subject says what kind of report it is, and starts with the first line of
-what you wrote, for example *[BC] Problem - High - CRONUS BE: Posting a sales
-order fails*.
 
 ## Tips
 
@@ -174,7 +184,7 @@ Then fill in:
 - **Default priority**: the priority a new report starts with.
 - **Message for urgent problems**: a short line shown above the priority when
   someone picks the last priority in the list, for example *Urgent? Call the
-  helpdesk on 03 123 45 67.* It is only
+  helpdesk on +00 000 00 00 00.* It is only
   a hint on screen: it does not go into the report. Leave it empty for no
   message. One line, at most 200 characters.
 - **Link (optional)**: makes that message a link people can click: an address
@@ -186,21 +196,30 @@ Then fill in:
 
 ### Email subjects
 
-A subject can hold these placeholders, listed under the subject fields. BC
-Buddy fills them in when the email is created:
+A subject can hold placeholders such as `{prio}`, `{company}` and `{title}`.
+The subject fields list them all, and BC Buddy fills them in when the email is
+created. A subject is one line of at most 200 characters.
 
-| Placeholder | Becomes |
-|---|---|
-| `{prio}` | the priority, only when there are priorities |
-| `{company}` | the company of the Business Central page |
-| `{environment}` | the environment |
-| `{type}` | the kind of report: Problem or Feedback |
-| `{tenant}` | the Business Central tenant |
-| `{title}` | the first line of the message |
+### Several languages
 
-The standard subjects are `[BC] Problem - {prio} - {company}: {title}` and
-`[BC] Feedback - {prio} - {company}: {title}`, without `{prio}` when there
-are no priorities. A subject is one line of at most 200 characters.
+When your people use Business Central in different languages, write the
+texts once per language. **Priorities**, **Message for urgent problems** and
+the two **Email subject** fields show the text for the language chosen at the
+top of the settings page; choose another language there and the same fields
+show, and save, the text for that one. A note under a field says when it has
+no text in the language shown yet: people in that language then see the text
+of another language, English first.
+
+People get the text in the language Business Central is in. When that is a
+language BC Buddy does not have, they get the language BC Buddy is in. BC
+Buddy has English, Dutch and French. The email carries what the user saw, so
+a Dutch user's report says *Hoog* and a French user's says *Haute*.
+
+Priorities line up by position: line two in every language is the same
+priority, so the message for urgent problems always belongs to the last one.
+Removing a line removes that priority in every language. The default priority
+can be written in any language, and the link, the email address and the
+switches are the same for everyone.
 
 ### The same settings for the whole team
 
@@ -214,35 +233,3 @@ Set it up once and give everyone the same settings:
 - **With Intune or Group Policy.** Every setting above can also be set by
   policy, and then nobody can change it. See
   [Install with Intune](intune.md#2-set-the-shared-file-and-settings).
-
-??? info "The settings in the JSON file"
-
-    | Key | Value |
-    |---|---|
-    | `feedbackEnabled` | `true` or `false` |
-    | `feedbackEmail` | one address, such as `"helpdesk@example.com"` |
-    | `feedbackPriorities` | a list of 1 to 10 names of at most 40 characters; `[]` or left out for no priority field |
-    | `feedbackDefaultPriority` | one of the priorities |
-    | `feedbackSubjectBug` | the subject for a problem |
-    | `feedbackSubjectIdea` | the subject for feedback |
-    | `feedbackUrgentText` | the message for urgent problems, one line of at most 200 characters; `""` for none |
-    | `feedbackUrgentLink` | `""`, an `https://` address of at most 500 characters, or `tel:` with digits, spaces and `+ ( ) - .` (at most 30 characters) |
-
-    ```json
-    {
-      "app": "bc-buddy",
-      "version": 3,
-      "rules": [],
-      "feedbackEnabled": true,
-      "feedbackEmail": "helpdesk@example.com",
-      "feedbackPriorities": ["Low", "Normal", "Urgent"],
-      "feedbackDefaultPriority": "Normal",
-      "feedbackSubjectBug": "[BC] Problem - {prio} - {company}: {title}",
-      "feedbackSubjectIdea": "[BC] Feedback - {prio} - {company}: {title}",
-      "feedbackUrgentText": "Urgent? Call the helpdesk on 03 123 45 67.",
-      "feedbackUrgentLink": "tel:+00 000 00 00 00"
-    }
-    ```
-
-    A value that is not valid, such as two addresses or a seventh priority,
-    is ignored.

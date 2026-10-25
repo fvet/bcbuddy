@@ -79,7 +79,7 @@
 
   // The keys IT can set by policy (managed_schema.json). Every one of them is
   // locked while the policy sets a valid value.
-  var POLICY_KEYS = ['sharedConfigUrl'].concat(AREA_KEYS, FEEDBACK_KEYS);
+  var POLICY_KEYS = ['sharedConfigUrl', 'feedbackTranslations'].concat(AREA_KEYS, FEEDBACK_KEYS);
 
   /**
    * The shared configuration is 'active' once you have synced once; from then
@@ -477,53 +477,154 @@
     return s;
   }
 
-  /**
-   * The priorities the report form offers: up to MAX_PRIORITIES names, each
-   * plain text of at most MAX_PRIORITY_LENGTH characters, each once
-   * (ignoring case). Empty, or anything that is not a list, is [], and then
-   * there is no priority field.
-   */
-  function cleanPriorities(value) {
-    if (!Array.isArray(value)) return [];
-    var out = [];
-    for (var i = 0; i < value.length && out.length < MAX_PRIORITIES; i++) {
-      var name = plainText(value[i], MAX_PRIORITY_LENGTH);
-      if (!name) continue;
-      var lower = name.toLowerCase();
-      if (out.some(function (other) { return other.toLowerCase() === lower; })) continue;
-      out.push(name);
-    }
-    return out;
-  }
+  // ---------------------------------------------------------- text per language
 
-  /** The priority values in effect: the list itself, or none. */
-  function priorityValues(list) {
-    return Array.isArray(list) ? list.slice() : [];
+  /** The languages BC Buddy has translations for (i18n.js loads first). */
+  function languages() {
+    return BCBuddy.LANGUAGES && BCBuddy.LANGUAGES.length ? BCBuddy.LANGUAGES : ['en', 'nl', 'fr'];
   }
 
   /**
-   * The priority the form starts on: one of the values of `list` (as spelled
-   * there), or '' for none. Anything else, or anything when there is no
-   * priority field, is ''.
+   * A text that may differ per language: one string for everyone, or an
+   * object from language code (see languages()) to string. Returns the string
+   * or the object with only valid texts (plainText of at most `max`), '' when
+   * nothing is valid. Keys are looked up, never listed, so unknown ones are
+   * ignored. A map that holds the same text in every language is that string.
    */
-  function cleanDefaultPriority(value, list) {
-    var name = plainText(value, MAX_PRIORITY_LENGTH);
-    if (!name) return '';
-    var lower = name.toLowerCase();
-    var values = priorityValues(list);
-    for (var i = 0; i < values.length; i++) {
-      if (values[i].toLowerCase() === lower) return values[i];
+  function cleanLocalized(value, max) {
+    if (typeof value === 'string') return plainText(value, max) || '';
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
+    var out = {}, count = 0, first = '', same = true;
+    languages().forEach(function (lang) {
+      var text = has(value, lang) ? plainText(value[lang], max) : null;
+      if (!text) { same = false; return; }
+      out[lang] = text;
+      count++;
+      if (!first) first = text;
+      else if (text !== first) same = false;
+    });
+    if (!count) return '';
+    return same && count === languages().length ? first : out;
+  }
+
+  /**
+   * One of our languages from a language tag such as 'nl-BE' or 'fr_BE', or ''.
+   * The tag may come from a web page: only a code in languages() comes out.
+   */
+  function textLanguage(tag) {
+    if (typeof tag !== 'string') return '';
+    var base = tag.slice(0, 35).toLowerCase().split(/[-_]/)[0];
+    return languages().indexOf(base) !== -1 ? base : '';
+  }
+
+  /**
+   * The text for the first language of `prefer` that has one, else English,
+   * else any language that has one. A plain string is for every language.
+   * '' when there is none.
+   */
+  function localizedText(value, prefer) {
+    if (typeof value === 'string') return value;
+    if (!value || typeof value !== 'object') return '';
+    var order = (Array.isArray(prefer) ? prefer : []).filter(function (lang) {
+      return languages().indexOf(lang) !== -1;
+    }).concat('en', languages());
+    for (var i = 0; i < order.length; i++) {
+      if (has(value, order[i]) && typeof value[order[i]] === 'string' && value[order[i]]) return value[order[i]];
     }
     return '';
   }
 
   /**
+   * `current` with the text of one language replaced; '' removes that
+   * language, which then shows the English text. A plain string first becomes
+   * the same text in every language. Returns the cleaned value.
+   */
+  function setLocalizedText(current, lang, text, max) {
+    var base = cleanLocalized(current, max);
+    lang = textLanguage(lang);
+    if (!lang) return base;
+    var map = {};
+    languages().forEach(function (other) {
+      var existing = typeof base === 'string' ? base : (base && has(base, other) ? base[other] : '');
+      if (existing) map[other] = existing;
+    });
+    var clean = cleanLocalized(text, max);
+    if (typeof clean === 'string' && clean) map[lang] = clean;
+    else delete map[lang];
+    return cleanLocalized(map, max);
+  }
+
+  /** Every text of one localized value, in any language. */
+  function allTexts(value) {
+    if (typeof value === 'string') return value ? [value] : [];
+    var out = [];
+    if (value && typeof value === 'object') {
+      languages().forEach(function (lang) {
+        if (has(value, lang) && typeof value[lang] === 'string' && value[lang]) out.push(value[lang]);
+      });
+    }
+    return out;
+  }
+
+  /**
+   * The priorities the report form offers: up to MAX_PRIORITIES items, each a
+   * localized text (a string, or per language) of at most MAX_PRIORITY_LENGTH
+   * characters, no two the same in any language (ignoring case). Empty, or
+   * anything that is not a list, is [], and then there is no priority field.
+   */
+  function cleanPriorities(value) {
+    if (!Array.isArray(value)) return [];
+    var out = [];
+    for (var i = 0; i < value.length && out.length < MAX_PRIORITIES; i++) {
+      var item = cleanLocalized(value[i], MAX_PRIORITY_LENGTH);
+      if (!item) continue;
+      var twin = out.some(function (other) {
+        return languages().some(function (lang) {
+          return localizedText(other, [lang]).toLowerCase() === localizedText(item, [lang]).toLowerCase();
+        });
+      });
+      if (!twin) out.push(item);
+    }
+    return out;
+  }
+
+  /** The priorities as text in the language of `prefer` (see localizedText()). */
+  function priorityValues(list, prefer) {
+    return Array.isArray(list) ? list.map(function (item) { return localizedText(item, prefer); }) : [];
+  }
+
+  /** Where a priority sits in the list: { index, text } as spelled there, or null. */
+  function findPriority(value, list) {
+    var name = plainText(value, MAX_PRIORITY_LENGTH);
+    if (!name || !Array.isArray(list)) return null;
+    var lower = name.toLowerCase();
+    for (var i = 0; i < list.length; i++) {
+      var texts = allTexts(list[i]);
+      for (var j = 0; j < texts.length; j++) {
+        if (texts[j].toLowerCase() === lower) return { index: i, text: texts[j] };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The priority the form starts on: the text of one of the priorities (in any
+   * language, as spelled there), or '' for none. Anything else, or anything
+   * when there is no priority field, is ''.
+   */
+  function cleanDefaultPriority(value, list) {
+    var found = findPriority(value, list);
+    return found ? found.text : '';
+  }
+
+  /**
    * A subject line for the report email, with the side panel's placeholders
    * ({prio} {type} {company} {environment} {tenant} {title}) left as they
-   * are. '' means the built-in subject, and so does anything invalid.
+   * are, per language like any text (see cleanLocalized()). '' means the
+   * built-in subject, and so does anything invalid.
    */
   function cleanSubject(value) {
-    return plainText(value, MAX_SUBJECT_LENGTH) || '';
+    return cleanLocalized(value, MAX_SUBJECT_LENGTH);
   }
 
   var SUBJECT_TOKENS = /\{(prio|type|company|environment|tenant|title)\}/g;
@@ -561,9 +662,9 @@
       .trim().slice(0, MAX_FILLED_SUBJECT);
   }
 
-  /** The notice for the most urgent priority: one line of plain text, or ''. */
+  /** The notice for the most urgent priority: one line of plain text per language, or ''. */
   function cleanUrgentText(value) {
-    return plainText(value, MAX_URGENT_TEXT_LENGTH) || '';
+    return cleanLocalized(value, MAX_URGENT_TEXT_LENGTH);
   }
 
   /**
@@ -620,6 +721,11 @@
    * choice alone. Null when the file says nothing about Help & feedback. The
    * default priority is checked against the list once it is applied.
    */
+  /** A string, or an object that may hold a text per language. */
+  function isText(value) {
+    return typeof value === 'string' || (!!value && typeof value === 'object' && !Array.isArray(value));
+  }
+
   function readFeedback(data) {
     if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
     var picked = null;
@@ -635,9 +741,9 @@
     var priority = plainText(data.feedbackDefaultPriority, MAX_PRIORITY_LENGTH);
     if (priority !== null) take('feedbackDefaultPriority', priority);
     ['feedbackSubjectBug', 'feedbackSubjectIdea'].forEach(function (key) {
-      if (typeof data[key] === 'string') take(key, cleanSubject(data[key]));
+      if (isText(data[key])) take(key, cleanSubject(data[key]));
     });
-    if (typeof data.feedbackUrgentText === 'string') {
+    if (isText(data.feedbackUrgentText)) {
       take('feedbackUrgentText', cleanUrgentText(data.feedbackUrgentText));
     }
     if (typeof data.feedbackUrgentLink === 'string') {
@@ -1326,6 +1432,54 @@
   }
 
   /**
+   * The block of one language in the policy's feedbackTranslations, or null.
+   * A policy key holds one type (managed_schema.json), so the plain keys are
+   * the text for every language and this object adds a block per language on
+   * top: { nl: { priorities: [...], subjectBug, subjectIdea, urgentText },
+   * fr: {...} }.
+   */
+  function translationBlock(policy, lang) {
+    var all = policy && policy.feedbackTranslations;
+    if (!all || typeof all !== 'object' || Array.isArray(all) || !has(all, lang)) return null;
+    var block = all[lang];
+    return block && typeof block === 'object' && !Array.isArray(block) ? block : null;
+  }
+
+  /** A policy text: the plain key for every language, a block's text over it. */
+  function policyText(policy, key, field, max) {
+    var base = plainText(policy[key], max) || '';
+    var map = {}, any = false;
+    languages().forEach(function (lang) {
+      var block = translationBlock(policy, lang);
+      var text = block && has(block, field) ? plainText(block[field], max) : null;
+      if (text) { map[lang] = text; any = true; }
+      else if (base) map[lang] = base;
+    });
+    return any ? map : base;
+  }
+
+  /**
+   * The policy's priority list with the translations merged in, item by item.
+   * A language's list counts only when it has as many entries as the plain
+   * list; otherwise that language shows the plain one.
+   */
+  function policyPriorities(policy) {
+    var base = policy.feedbackPriorities;
+    return base.map(function (name, i) {
+      var map = {}, any = false;
+      var fallback = plainText(name, MAX_PRIORITY_LENGTH);
+      languages().forEach(function (lang) {
+        var block = translationBlock(policy, lang);
+        var list = block && has(block, 'priorities') ? block.priorities : null;
+        var text = Array.isArray(list) && list.length === base.length ? plainText(list[i], MAX_PRIORITY_LENGTH) : null;
+        if (text) { map[lang] = text; any = true; }
+        else if (fallback) map[lang] = fallback;
+      });
+      return any ? map : name;
+    });
+  }
+
+  /**
    * The values the policy sets, each checked like any other value. A value
    * that does not pass is left out rather than locking a field on something
    * unusable, and so is an empty text. Returns { key: value } for the keys of
@@ -1345,17 +1499,17 @@
     // An empty list is a choice (no priority field); one with nothing valid
     // in it is not.
     if (Array.isArray(policy.feedbackPriorities)) {
-      var priorities = cleanPriorities(policy.feedbackPriorities);
+      var priorities = cleanPriorities(policyPriorities(policy));
       if (!policy.feedbackPriorities.length || priorities.length) values.feedbackPriorities = priorities;
     }
     var priority = plainText(policy.feedbackDefaultPriority, MAX_PRIORITY_LENGTH);
     if (priority) values.feedbackDefaultPriority = priority;
-    ['feedbackSubjectBug', 'feedbackSubjectIdea'].forEach(function (key) {
-      var subject = cleanSubject(policy[key]);
-      if (subject) values[key] = subject;
+    [['feedbackSubjectBug', 'subjectBug', MAX_SUBJECT_LENGTH],
+     ['feedbackSubjectIdea', 'subjectIdea', MAX_SUBJECT_LENGTH],
+     ['feedbackUrgentText', 'urgentText', MAX_URGENT_TEXT_LENGTH]].forEach(function (f) {
+      var text = cleanLocalized(policyText(policy, f[0], f[1], f[2]), f[2]);
+      if (text) values[f[0]] = text;
     });
-    var urgentText = cleanUrgentText(policy.feedbackUrgentText);
-    if (urgentText) values.feedbackUrgentText = urgentText;
     var urgentLink = cleanUrgentLink(policy.feedbackUrgentLink);
     if (urgentLink) values.feedbackUrgentLink = urgentLink;
     return values;
@@ -1525,6 +1679,11 @@
   BCBuddy.cleanUrgentText = cleanUrgentText;
   BCBuddy.cleanUrgentLink = cleanUrgentLink;
   BCBuddy.priorityValues = priorityValues;
+  BCBuddy.findPriority = findPriority;
+  BCBuddy.cleanLocalized = cleanLocalized;
+  BCBuddy.localizedText = localizedText;
+  BCBuddy.setLocalizedText = setLocalizedText;
+  BCBuddy.textLanguage = textLanguage;
   BCBuddy.webClientDefaults = webClientDefaults;
   BCBuddy.webClientOf = webClientOf;
   BCBuddy.hash = hash;

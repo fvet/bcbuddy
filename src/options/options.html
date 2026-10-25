@@ -280,6 +280,10 @@
       <!-- Filled by renderEmptyState(): the words name actions and are links. -->
       <p class="empty" id="emptyRules" hidden></p>
       <p class="sync-status" id="samplesStatus"></p>
+      <div class="section-foot">
+        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/matching/"
+           target="_blank" rel="noopener noreferrer" data-i18n="rulesMore">More about rules</a></p>
+      </div>
     </section>
 
     <section>
@@ -299,8 +303,8 @@
       </div>
       <p class="empty" id="emptyStyles" data-i18n="emptyStyles" hidden>No styles yet. Add one to reuse the same appearance across several rules.</p>
       <div class="section-foot">
-        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/getting-started/#environments"
-           target="_blank" rel="noopener noreferrer" data-i18n="environmentsMore">More about rules and styles</a></p>
+        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/styles/"
+           target="_blank" rel="noopener noreferrer" data-i18n="stylesMore">More about styles</a></p>
         <p class="sync-status" id="stylesStatus"></p>
       </div>
     </section>
@@ -341,6 +345,7 @@
         </div>
       </div>
       <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central.</p>
+      <p class="muted small" id="feedbackLanguageHint"></p>
       <!-- Every field is checked by the helpers in settings.js before it is
            saved; a field IT or the shared file sets is read-only (renderLocks()). -->
       <div class="card card--list">
@@ -357,6 +362,7 @@
             <label class="setting__name" for="feedbackPriorities" data-i18n="feedbackPrioritiesLabel">Priorities</label>
             <span class="setting__desc" data-i18n="feedbackPrioritiesDesc">One per line.</span>
             <span class="muted small lock-note" data-lock-note="feedbackPriorities" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+            <span class="muted small" data-fallback-note="feedbackPriorities" hidden></span>
           </span>
           <!-- While empty, a link inside the box fills in an example list. -->
           <div class="textarea-wrap">
@@ -379,9 +385,10 @@
             <span class="setting__name" data-i18n="feedbackUrgentTextLabel">Message for urgent problems</span>
             <span class="setting__desc" data-i18n="feedbackUrgentTextDesc">Shown when someone picks the last priority in the list. It does not go into the report.</span>
             <span class="muted small lock-note" data-lock-note="feedbackUrgentText" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+            <span class="muted small" data-fallback-note="feedbackUrgentText" hidden></span>
           </span>
           <input type="text" id="feedbackUrgentText" data-lock="feedbackUrgentText" maxlength="200"
-                 data-i18n-placeholder="feedbackUrgentTextPlaceholder" placeholder="Urgent? Call the helpdesk on 03 123 45 67.">
+                 data-i18n-placeholder="feedbackUrgentTextPlaceholder" placeholder="Urgent? Call the helpdesk on +00 000 00 00 00.">
         </label>
         <label class="setting" data-needs-priorities>
           <span class="setting__text">
@@ -396,6 +403,7 @@
           <span class="setting__text">
             <span class="setting__name" data-i18n="feedbackSubjectBugLabel">Email subject for a problem</span>
             <span class="muted small lock-note" data-lock-note="feedbackSubjectBug" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+            <span class="muted small" data-fallback-note="feedbackSubjectBug" hidden></span>
           </span>
           <input type="text" id="feedbackSubjectBug" data-lock="feedbackSubjectBug" spellcheck="false" maxlength="200">
         </label>
@@ -403,6 +411,7 @@
           <span class="setting__text">
             <span class="setting__name" data-i18n="feedbackSubjectIdeaLabel">Email subject for feedback</span>
             <span class="muted small lock-note" data-lock-note="feedbackSubjectIdea" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+            <span class="muted small" data-fallback-note="feedbackSubjectIdea" hidden></span>
           </span>
           <input type="text" id="feedbackSubjectIdea" data-lock="feedbackSubjectIdea" spellcheck="false" maxlength="200">
         </label>
@@ -411,6 +420,10 @@
         <div class="setting setting--note">
           <p class="tokens" id="feedbackSubjectTokens"></p>
         </div>
+      </div>
+      <div class="section-foot">
+        <p class="muted small"><a href="https://fvet.github.io/bcbuddy/help-feedback/"
+           target="_blank" rel="noopener noreferrer" data-i18n="feedbackMore">More about these settings</a></p>
       </div>
     </section>
     </div>

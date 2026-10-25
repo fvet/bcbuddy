@@ -26,6 +26,7 @@ src/
   lib/factbox.js       hide the FactBox pane on BC's own toggle
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
+  lib/errorreport.js   Report a problem link in BC's error dialogs
   lib/shortcuts.js     the BC Buddy icon in the top bar, the floating
                        shortcuts panel and the feed for the side panel
   sidepanel/           the browser side panel: start view and keyboard
@@ -604,6 +605,21 @@ and the BC hosts plus the shared file's host in `runtime_allowed_hosts`
 Content scripts then no longer run anywhere else. Nothing in the code depends on
 it; the extension simply never sees the other sites.
 
+### Download warning for the report `.eml`
+
+Edge and Chrome keep `.eml` on their list of file types that can be harmful,
+so the `.eml` that *Email* saves (a blob URL of our own, no reputation) gets
+*This file may be harmful. Keep it?* in the downloads panel. Nothing in the
+extension API switches that off. IT can exempt the type with the browser
+policy `ExemptFileTypeDownloadWarnings` (Edge and Chrome, Settings catalog
+under Downloads), limited to downloads from our own origin:
+`[{"file_extension": "eml", "domains": ["chrome-extension://<id>"]}]`
+(`examples/intune/exempt-file-types.json`, documented in `docs/intune.md`).
+It is a browser policy, not one of ours: the extension does not read it and
+nothing in the code depends on it. If the warning stays, check
+`edge://policy` first; whether the browser matches the `chrome-extension://`
+origin of a blob download is not verified, and `["*"]` is the wider fallback.
+
 ### Where the web client tweaks run
 
 `state.webClient`, worked out by `webClientHere()` once per `apply()`, decides
@@ -1102,6 +1118,28 @@ default, and IT can set it by policy.
   underline flags, put on the page with `textContent` and written to the
   report as escaped text inside our own `b`, `i`, `u` and `br`. Settings
   text (priorities, subjects) passes `oneLine()` again in the panel.
+- **From an error dialog** (`lib/errorreport.js`). BC's error dialog
+  (`.spa-dialog` with `.error-dialog-caption` and a `.fui-MenuButton`) gets a
+  *Report a problem* button first in the *Share details* row. A trusted click
+  runs, within the few seconds Chrome allows a script to copy after a real
+  click: `bcb:error-shot` (the service worker takes `captureVisibleTab`), then
+  a scripted click on *Share details* and on its first entry that is not Teams
+  or Copilot, with a `copy` listener that reads what BC puts on the clipboard
+  (`window` capture, then a `once` capture listener on `document`, which runs
+  after BC's own). `bcb:error-report` carries message and details; the
+  worker accepts it only after a shot from the same tab (30 s), stores it in
+  session storage under `bcbErrorReport:<window>`. The panel opens already on
+  `bcb:error-shot`, as soon as the screenshot and the settings are in:
+  `sidePanel.open()` only works for a moment after the click, so it cannot wait
+  for the details. The panel turns the report into a step (`takeErrorReport()`
+  in `help.js`, appended to a report in progress, skipped when a step has the
+  same message): the
+  screenshot, the message as its note, the details folded under it and
+  written in the report as escaped `pre`. Without a screenshot the text goes
+  in the message box. While it runs, `html[data-bcb-capturing]` hides BC's
+  menu so it does not flash or end up in the shot. Gated on Help & feedback
+  and `state.webClient`; no new permission. If BC changes the dialog, the
+  link is simply not added.
 - **Priorities.** `feedbackPriorities` is the only list (none built in). The
   last value is the urgent one: while it is picked, `feedbackUrgentText` shows
   above the field, with `feedbackUrgentLink` as `https:` or `tel:` only.

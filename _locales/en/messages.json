@@ -595,9 +595,17 @@
   "resetWebClientNone": { "message": "These settings are already at their defaults." },
   "resetWebClientUndone": { "message": "Your settings are back as they were." },
   "undo": { "message": "Undo" },
-  "environmentsMore": {
-    "message": "More about rules and styles",
-    "description": "Link under the Environments panel to the documentation page that explains rules and styles."
+  "rulesMore": {
+    "message": "More about rules",
+    "description": "Link under the Rules list to the documentation page that explains rules."
+  },
+  "stylesMore": {
+    "message": "More about styles",
+    "description": "Link under the Styles list to the documentation page that explains styles."
+  },
+  "feedbackMore": {
+    "message": "More about these settings",
+    "description": "Link under the Help & feedback settings to the documentation page that explains them."
   },
   "dropdownStandard": {
     "message": "BC standard",
@@ -860,6 +868,14 @@
     "message": "None",
     "description": "Choice in Default priority: a new report starts without a priority."
   },
+  "feedbackLanguageHint": {
+    "message": "These texts are for $1, the language chosen at the top of this page. Choose another language there to write the others.",
+    "description": "Under the Help & feedback intro. $1 is the name of the language chosen at the top of the options page: the texts below are shown and saved in it."
+  },
+  "feedbackNotTranslated": {
+    "message": "No text in $1 yet: people in that language see the text of another language.",
+    "description": "Under a text that has no version in the language of the page yet. $1 is that language."
+  },
   "feedbackUrgentTextLabel": {
     "message": "Message for urgent problems",
     "description": "Label of the field with a short message from IT, shown in the report form when someone picks the most urgent priority."
@@ -869,7 +885,7 @@
     "description": "Line under Message for urgent problems."
   },
   "feedbackUrgentTextPlaceholder": {
-    "message": "Urgent? Call the helpdesk on 03 123 45 67.",
+    "message": "Urgent? Call the helpdesk on +00 000 00 00 00.",
     "description": "Example text in the empty Message for urgent problems field. The phone number is made up."
   },
   "feedbackUrgentTextInvalid": {
@@ -935,6 +951,10 @@
   "bpNothingOn": {
     "message": "Nothing to show here yet. Switch on Web client or Help & feedback in the settings.",
     "description": "Shown on the side panel's start view when both are switched off."
+  },
+  "bpDocs": {
+    "message": "Documentation",
+    "description": "Link in the lower-right corner of the side panel's start view, to the BC Buddy documentation site."
   },
   "spDescPlaceholder": {
     "message": "What went wrong?\nWhat were you doing…",
@@ -1039,6 +1059,10 @@
   "spShotNoteLabel": {
     "message": "Note for screenshot $1",
     "description": "Accessible name of the note field. $1 is the screenshot number."
+  },
+  "spErrorDetails": {
+    "message": "Error details",
+    "description": "Label above the error details Business Central copied, in the panel and in the report. They come from the error dialog."
   },
   "spCaptureFailed": {
     "message": "Could not take the screenshot. Please try again.",

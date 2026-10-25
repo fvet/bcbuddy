@@ -102,28 +102,36 @@ details* the user made (session ids), and the *Latest Error* page read in the
 same tab (call stack). Startup errors ("Something went wrong") print time,
 tenant, environment and operation id on the page itself.
 
-## Copy values in lookup dropdowns
+### Decided 2026-10-25: a link in the error dialog
 
-The copy icon shows on read-only values in lists, FactBoxes and Page
-Inspection, but not in a lookup dropdown (the list that opens under a field
-such as **Nr.** on a line). That is on purpose: `LOOKUP_SEL` (`.spa-lookup`)
-in `copyvalues.js` skips it. Users do ask for it, for example to copy an item
-number while choosing one.
+Passive capture is out: most users do not know *Copy error details* exists.
+Live findings that make the link possible (BC28, Release on a sales order
+with no lines):
 
-Why it was left out: a dropdown is a list to pick from. A click on a row picks
-that record and closes the dropdown, and the icon swallows the press so BC
-never sees it. A click that lands on the icon copies instead of picking, which
-breaks a fast "open, click the item" habit and looks like a BC Buddy bug.
+- The copied text also carries the AL call stack for AL errors, so the
+  *Latest Error* page is only a fallback for when the dialog is already gone.
+- The scripted-click limit is about user activation, not about scripts:
+  within ~5 s of a real click in the page, a scripted open of *Share details*
+  and click on *Copy error details* copies, and the capture listener reads
+  the text (`isTrusted: true`). Without a recent real click nothing is copied.
+  A click in the side panel does not count, because the activation must be in
+  the BC page. So the click has to be on a link in the dialog itself.
+- The dialog is `.spa-dialog` inside `.spa-container` (`P.error-dialog-caption`
+  holds the message); *Share details* is a Fluent `MenuButton` in it; the menu
+  items render in a portal outside the dialog, only while the menu is open.
 
-Options to weigh:
+Decisions:
 
-- **Everywhere in the dropdown.** Drop the `LOOKUP_SEL` check. The dropdown
-  cells are ordinary `.edit-container-read` cells, so nothing else is needed.
-- **Only on the first column** (the number, a link). That is the value people
-  copy; Description and the other columns stay free for picking.
-- **A longer rest** in dropdowns only, so the icon never shows while someone
-  is just moving to the row they want.
-
-To settle first: try each on a live dropdown (item lookup on a sales line)
-with fast picking, and check that the icon follows the dropdown when it
-scrolls its own rows and that it disappears when the dropdown closes.
+- **Link:** "Report a problem" with the BC Buddy icon, right-aligned on the
+  *Share details* row (mockup 1 of 3), on every dialog that has *Share
+  details*. Tooltip errors wait for the next batch.
+- **One real click does it all:** capture the visible tab, open the menu from
+  script, click *Copy error details*, read the text, then open the report.
+  Hide the menu portal with an attribute on `<html>` while it runs, so it does
+  not flash. The clipboard is overwritten; accepted.
+- **Report flow:** the screenshot and the copied text are already in the report as a step,
+  instead of the empty "What went wrong?" start. A report in progress gets it
+  as its next step, unless a step with the same message is there.
+- **Cost and safety:** one `childList` watch on the existing `.spa-container`,
+  one trusted-click handler, nothing per row or keystroke. The copied text is
+  untrusted: `str()` with a length cap, never HTML. Gated on `state.webClient`.

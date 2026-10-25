@@ -1953,6 +1953,43 @@ function assertFeedback() {
     return type(urgentLink, '');
   }).then(function () {
     check('urgent: emptied, there is no link', STORE.settings.feedbackUrgentLink, '');
+    return type(list, 'Low\nNormal\nHigh');
+  }).then(function () {
+    check('languages: the first list ever typed is plain text for every language',
+      STORE.settings.feedbackPriorities, ['Low', 'Normal', 'High']);
+    // Someone (the shared file, another tab) saved texts in more than one language.
+    STORE.settings = Object.assign({}, STORE.settings, {
+      feedbackPriorities: [{ en: 'Low', nl: 'Laag' }, { en: 'Normal', nl: 'Normaal' }, { en: 'High', nl: 'Hoog' }],
+      feedbackDefaultPriority: 'Hoog', feedbackUrgentText: { nl: 'Bel ons' }, feedbackSubjectBug: ''
+    });
+    LISTENERS.forEach(function (fn) { fn({ settings: { newValue: STORE.settings } }, 'local'); });
+    return wait(400);
+  }).then(function () {
+    var note = function (key) { return document.querySelector('[data-fallback-note="' + key + '"]'); };
+    check('languages: the box shows this page\'s language, the default follows its item',
+      [list.value, pick.value, urgentText.value], ['Low\nNormal\nHigh', 'High', 'Bel ons']);
+    check('languages: a text with none in this language says another one shows',
+      [note('feedbackUrgentText').hidden, note('feedbackPriorities').hidden, note('feedbackSubjectBug').hidden],
+      [false, true, true]);
+    return type(list, 'Low\nMedium\nHigh');
+  }).then(function () {
+    check('languages: typing over a line renames that item and keeps its other languages',
+      [STORE.settings.feedbackPriorities, STORE.settings.feedbackDefaultPriority],
+      [[{ en: 'Low', nl: 'Laag' }, { en: 'Medium', nl: 'Normaal' }, { en: 'High', nl: 'Hoog' }], 'High']);
+    return type(list, 'Low\nHigh');
+  }).then(function () {
+    check('languages: removing a line removes its item in every language',
+      STORE.settings.feedbackPriorities, [{ en: 'Low', nl: 'Laag' }, { en: 'High', nl: 'Hoog' }]);
+    return type(list, 'Low\nUrgent\nHigh');
+  }).then(function () {
+    check('languages: a new line is a new item with this language only',
+      STORE.settings.feedbackPriorities, [{ en: 'Low', nl: 'Laag' }, { en: 'Urgent' }, { en: 'High', nl: 'Hoog' }]);
+    return type(urgentText, 'Call us');
+  }).then(function () {
+    check('languages: a text keeps the other languages when this one is added',
+      STORE.settings.feedbackUrgentText, { en: 'Call us', nl: 'Bel ons' });
+    check('languages: and the note goes away',
+      document.querySelector('[data-fallback-note="feedbackUrgentText"]').hidden, true);
   });
 }
 

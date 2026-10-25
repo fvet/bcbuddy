@@ -107,6 +107,7 @@ window.chrome = {
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
 <script src="../src/lib/shortcuts.js"></script>
+<script src="../src/lib/errorreport.js"></script>
 
 <script>
 /* ---- seed settings for the content script ------------------------------- */
@@ -1167,6 +1168,24 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('normalization: corner position preserved', BCBuddy.normalizeStyle({ banner: { position: 'bottom-left' } }).banner.position, 'bottom-left');
   check('normalization: empty rule gets a condition', BCBuddy.normalizeRule({}).conditions.length, 1);
 
+  // error dialog link: what is read from the page is capped and cleaned
+  var ER = BCBuddy.ErrorReport;
+  check('error report: control characters go, line breaks stay', ER.clean('a\u0000b\r\nc\u0007', 50), 'ab\r\nc');
+  check('error report: text is capped', ER.clean(new Array(30000).join('x'), ER.MAX_DETAILS).length, ER.MAX_DETAILS);
+  check('error report: not text is nothing', [ER.clean(null, 10), ER.clean({}, 10)], ['', '']);
+  (function () {
+    function menuItem(text) { var el = document.createElement('div'); el.textContent = text; return el; }
+    var items = [menuItem('Share details via Teams'), menuItem('Copy error details'), menuItem('Ask Copilot')];
+    check('error report: Teams and Copilot are never clicked', ER.pickCopyItem(items).textContent, 'Copy error details');
+    check('error report: no copy entry, nothing to click',
+      ER.pickCopyItem([menuItem('Share details via Teams'), menuItem('Ask Copilot')]), null);
+    var dlg = document.createElement('div');
+    dlg.className = 'spa-view spa-dialog';
+    check('error report: a dialog without a message is not an error dialog', ER.isErrorDialog(dlg), false);
+    dlg.innerHTML = '<p class="error-dialog-caption">x</p><div class="error-dialog-troubleshoot-container"><button class="fui-MenuButton"></button></div>';
+    check('error report: message and Share details make an error dialog', ER.isErrorDialog(dlg), true);
+  })();
+
   // dropdown size: a slider step per direction, step 1 = BC standard
   var D = BCBuddy.Dropdowns;
   check('dropdown: width and height default to step 5', def.dropdown, { width: 5, height: 5 });
@@ -1691,6 +1710,71 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
       { feedbackUrgentLink: 'policy' }), urgentTarget.feedbackUrgentText, urgentTarget.feedbackUrgentLink],
     [['feedbackUrgentLink'], 'Theirs', 'tel:1']);
 
+  // texts per language
+  var nlfr = { nl: 'Dringend', fr: 'Urgent' };
+  check('localized: a string, or a text per language of ours',
+    [BCBuddy.cleanLocalized(' Call us ', 50), BCBuddy.cleanLocalized({ en: 'Call', nl: 'Bel', de: 'Ruf', fr: '' }, 50),
+      BCBuddy.cleanLocalized({ en: 'Same', nl: 'Same', fr: 'Same' }, 50)],
+    ['Call us', { en: 'Call', nl: 'Bel' }, 'Same']);
+  check('localized: invalid texts and shapes are nothing',
+    [BCBuddy.cleanLocalized({ en: 'a\nb', nl: 5 }, 50), BCBuddy.cleanLocalized({ en: 'x'.repeat(51) }, 50),
+      BCBuddy.cleanLocalized(['a'], 50), BCBuddy.cleanLocalized(null, 50), BCBuddy.cleanLocalized(7, 50),
+      BCBuddy.cleanLocalized(JSON.parse('{"__proto__":"x","constructor":"y","en":"ok"}'), 50)],
+    ['', '', '', '', '', { en: 'ok' }]);
+  check('localized: a language tag from a page gives one of ours or nothing',
+    ['nl-BE', 'FR_be', 'en', 'de-DE', '', 'constructor', '__proto__', 7, 'nl' + 'x'.repeat(40)].map(BCBuddy.textLanguage),
+    ['nl', 'fr', 'en', '', '', '', '', '', '']);
+  check('localized: the preferred language, then English, then any',
+    [BCBuddy.localizedText(nlfr, ['fr']), BCBuddy.localizedText({ en: 'E', nl: 'N' }, ['fr', 'nl']),
+      BCBuddy.localizedText({ en: 'E', nl: 'N' }, ['fr']), BCBuddy.localizedText({ nl: 'N' }, ['fr']),
+      BCBuddy.localizedText('Plain', ['nl']), BCBuddy.localizedText(null, ['nl']),
+      BCBuddy.localizedText(JSON.parse('{"__proto__":"x"}'), ['__proto__'])],
+    ['Urgent', 'N', 'E', 'N', 'Plain', '', '']);
+  check('localized: setting one language keeps the others, a plain text first goes to all',
+    [BCBuddy.setLocalizedText('Call', 'nl', 'Bel', 50), BCBuddy.setLocalizedText({ en: 'Call', nl: 'Bel' }, 'fr', 'Appelez', 50),
+      BCBuddy.setLocalizedText({ en: 'Call', nl: 'Bel' }, 'nl', '', 50), BCBuddy.setLocalizedText({ nl: 'Bel' }, 'nl', '', 50),
+      BCBuddy.setLocalizedText('Call', 'de', 'Ruf', 50)],
+    [{ en: 'Call', nl: 'Bel', fr: 'Call' }, { en: 'Call', nl: 'Bel', fr: 'Appelez' }, { en: 'Call' }, '', 'Call']);
+  check('texts per language: subject and urgent message go through normalize',
+    [BCBuddy.normalize({ feedbackSubjectBug: { nl: '[BC] Probleem', fr: 'a\nb', de: 'x' }, feedbackUrgentText: { en: 'Call', nl: 'Bel' } }).feedbackSubjectBug,
+      BCBuddy.normalize({ feedbackUrgentText: { en: 'Call', nl: 'Bel' } }).feedbackUrgentText],
+    [{ nl: '[BC] Probleem' }, { en: 'Call', nl: 'Bel' }]);
+  var items = BCBuddy.cleanPriorities([{ en: 'Low', nl: 'Laag' }, 'Normal', { en: 'High', nl: 'Hoog' }, { en: 'Low' }, { nl: 'laag' }]);
+  check('priorities per language: items kept, one that repeats another in any language dropped',
+    items, [{ en: 'Low', nl: 'Laag' }, 'Normal', { en: 'High', nl: 'Hoog' }]);
+  check('priorities per language: the list in a language',
+    [BCBuddy.priorityValues(items, ['nl']), BCBuddy.priorityValues(items, ['fr']), BCBuddy.priorityValues('x')],
+    [['Laag', 'Normal', 'Hoog'], ['Low', 'Normal', 'High'], []]);
+  check('priorities per language: the default names its item in any language',
+    [BCBuddy.cleanDefaultPriority('hoog', items), BCBuddy.cleanDefaultPriority('High', items),
+      BCBuddy.cleanDefaultPriority('Zeer hoog', items), BCBuddy.findPriority('Normal', items).index],
+    ['Hoog', 'High', '', 1]);
+  check('priorities per language: stored through normalize with their default',
+    [BCBuddy.normalize({ feedbackPriorities: items, feedbackDefaultPriority: 'laag' }).feedbackPriorities,
+      BCBuddy.normalize({ feedbackPriorities: items, feedbackDefaultPriority: 'laag' }).feedbackDefaultPriority],
+    [items, 'Laag']);
+  check('shared file: texts and priorities per language come through',
+    BCBuddy.parseImport({ rules: [], feedbackPriorities: items, feedbackUrgentText: { nl: 'Bel 123', xx: 'no' },
+      feedbackSubjectIdea: { en: 'Idea', nl: 'Idee' } }).feedback,
+    { feedbackPriorities: items, feedbackSubjectIdea: { en: 'Idea', nl: 'Idee' }, feedbackUrgentText: { nl: 'Bel 123' } });
+  check('policy: the plain keys are for every language, the translations go on top',
+    BCBuddy.policyValues({ feedbackPriorities: ['Low', 'Normal', 'Urgent'],
+      feedbackUrgentText: 'Call us', feedbackSubjectBug: '[BC] {title}',
+      feedbackTranslations: { nl: { priorities: ['Laag', 'Normaal', 'Dringend'], urgentText: 'Bel ons' },
+        fr: { priorities: ['Faible', 'Normal'], subjectBug: '[BC] Problème {title}' }, de: { urgentText: 'Ruf an' } } }),
+    { feedbackPriorities: [{ en: 'Low', nl: 'Laag', fr: 'Low' }, { en: 'Normal', nl: 'Normaal', fr: 'Normal' },
+      { en: 'Urgent', nl: 'Dringend', fr: 'Urgent' }],
+      feedbackSubjectBug: { en: '[BC] {title}', nl: '[BC] {title}', fr: '[BC] Problème {title}' },
+      feedbackUrgentText: { en: 'Call us', nl: 'Bel ons', fr: 'Call us' } });
+  check('policy: a translation without a plain text sets only its language, junk is ignored',
+    [BCBuddy.policyValues({ feedbackTranslations: { nl: { urgentText: 'Bel ons' } } }),
+      BCBuddy.policyValues({ feedbackTranslations: 'x' }), BCBuddy.policyValues({ feedbackTranslations: { nl: ['x'], fr: { urgentText: 'a\nb' } } }),
+      BCBuddy.policyValues({ feedbackUrgentText: 'Call', feedbackTranslations: { nl: { urgentText: 7 } } })],
+    [{ feedbackUrgentText: { nl: 'Bel ons' } }, {}, {}, { feedbackUrgentText: 'Call' }]);
+  check('policy: a translated policy text is locked like any other',
+    Object.keys(BCBuddy.lockedKeys(BCBuddy.normalize(null), { feedbackUrgentText: 'Call', feedbackTranslations: { nl: { urgentText: 'Bel' } } })),
+    ['feedbackUrgentText']);
+
   // area switches
   check('areas: helpers follow their own switch only',
     [BCBuddy.webClientOn(BCBuddy.normalize({ webClientEnabled: false, environmentsEnabled: true })),
@@ -1803,7 +1887,7 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('policy: an empty list hides the priority field',
     BCBuddy.policyValues({ feedbackPriorities: [] }), { feedbackPriorities: [] });
   check('policy: every key is in the managed schema list',
-    BCBuddy.POLICY_KEYS, ['sharedConfigUrl', 'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled',
+    BCBuddy.POLICY_KEYS, ['sharedConfigUrl', 'feedbackTranslations', 'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled',
       'feedbackEmail', 'feedbackPriorities', 'feedbackDefaultPriority', 'feedbackSubjectBug', 'feedbackSubjectIdea',
       'feedbackUrgentText', 'feedbackUrgentLink']);
   check('policy: the urgent notice and link checked, an invalid link not set',

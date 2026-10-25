@@ -104,6 +104,20 @@ right helpdesk address. Settings the file leaves out stay free to change.
     [Help & feedback](help-feedback.md#the-same-settings-for-the-whole-team)
     page.
 
+    The subjects and the message for urgent problems are one text for
+    everyone, or a text per language (`en`, `nl`, `fr`); a priority is the same.
+    Priorities line up by position, and a language that has no text for one
+    shows the English text:
+
+    ```json
+    "feedbackPriorities": [
+      { "en": "Low", "nl": "Laag", "fr": "Faible" },
+      { "en": "Normal", "nl": "Normaal", "fr": "Normal" },
+      { "en": "Urgent", "nl": "Dringend", "fr": "Urgent" }
+    ],
+    "feedbackUrgentText": { "en": "Urgent? Call us.", "nl": "Dringend? Bel ons." }
+    ```
+
 When the team stops using the file, the fields unlock and keep their values.
 
 ## Importing a file once

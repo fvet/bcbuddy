@@ -55,7 +55,7 @@ html, body { margin: 0; }
 body {
   background: var(--ground);
   color: var(--text);
-  font: 13px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font: 14px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
 }
 
 .head {
@@ -94,7 +94,21 @@ main { display: flex; flex-direction: column; gap: 12px; padding: 0 12px; }
 }
 .view > .card { margin: 12px 12px 0; }
 .view { padding-bottom: 16px; }
-.card h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
+
+/* Version and docs site in the lower-right corner of the start view. Fixed,
+   so the entries keep all their room. */
+.panel-foot {
+  position: fixed;
+  right: 16px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.panel-foot .link { font-size: 12px; }
+.card h2 { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
 .note { margin: -4px 0 10px; font-size: 12px; color: var(--muted); }
 
 dl {
@@ -157,7 +171,7 @@ kbd {
 #help-steps-card > .thumbs { flex: 1; min-height: 0; overflow-y: auto; }
 #view-help > .card { margin: 0 12px 16px; }
 
-.card-title { display: block; margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+.card-title { display: block; margin: 0 0 8px; font-size: 14px; font-weight: 600; }
 .stack > .card-title, .stack > .note, .stack > .steps { margin: 0; }
 
 .row { display: flex; gap: 8px; align-items: stretch; }
@@ -198,7 +212,7 @@ kbd {
 .prio { display: flex; align-items: center; gap: 4px; padding-left: 9px; cursor: pointer; }
 .prio[hidden] { display: none; }
 .prio:focus-within { outline: 2px solid var(--accent-color); outline-offset: -1px; border-color: transparent; }
-.prio-label { flex: none; font-size: 13px; font-weight: 600; color: var(--muted); }
+.prio-label { flex: none; font-size: 14px; font-weight: 600; color: var(--muted); }
 .prio .select { border: 0; background: transparent; color: var(--text); font: inherit; }
 .prio .select:focus { outline: none; }
 .select-wrap { position: relative; flex: 1; min-width: 0; }
@@ -269,7 +283,7 @@ kbd {
    with it into the report. The remove and edit badges hang 7px outside each
    thumbnail; the padding leaves room for them. */
 .thumbs { display: flex; flex-direction: column; }
-.shot { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; }
+.shot { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 14px; padding: 10px 0; }
 .shot + .shot { border-top: 1px solid var(--card-line); }
 /* Drag a thumbnail to change the order: the step being moved fades, a line
    in the accent colour shows where it will land. */
@@ -278,14 +292,30 @@ kbd {
 .shot.drop-before { box-shadow: inset 0 2px 0 var(--accent-color); }
 .shot.drop-after { box-shadow: inset 0 -2px 0 var(--accent-color); }
 .thumb { position: relative; flex: none; width: 104px; }
+.shot-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .shot-note {
-  flex: 1;
+  flex: none;
   min-width: 0;
   min-height: 64px;
   max-height: 240px;
   padding: 5px 8px;
   font-size: 12.5px;
   line-height: 1.4;
+}
+.shot-error { flex: 0 0 100%; min-width: 0; font-size: 12px; color: var(--muted); }
+.shot-error summary { cursor: pointer; }
+.shot-error pre {
+  margin: 6px 0 0;
+  max-height: 360px;
+  overflow: auto;
+  padding: 6px 8px;
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius-small);
+  background: var(--ground);
+  color: var(--text);
+  font: 11.5px/1.45 Consolas, "Courier New", monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .thumb-img {
   display: block;
@@ -430,5 +460,5 @@ kbd {
 }
 .entry-text { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
 .entry-title { font-size: 14px; font-weight: 600; }
-.entry-note { font-size: 12px; color: var(--muted); }
+.entry-note { font-size: 13px; color: var(--muted); }
 .entry-go { flex: none; color: var(--muted); }

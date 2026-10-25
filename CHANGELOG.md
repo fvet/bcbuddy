@@ -11,6 +11,45 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Help & feedback in everyone's language.** If your people use Business
+  Central in different languages, the priorities, the email subjects and the
+  message for urgent problems can now be written once per language. On the
+  settings page the fields show the text for the language chosen at the top;
+  pick another one to write the next. People get the text in the language
+  Business Central is in, and the report they send says the same. The team
+  file and Intune can carry the texts per language too.
+
+- **Version and documentation link in the side panel.** The start view shows
+  the installed BC Buddy version and a link to the documentation, in its
+  lower-right corner.
+
+- **Paste a screenshot into a report.** Take a screenshot with Print Screen or
+  Win+Shift+S, click in the note box of **Report a problem** and paste: the
+  picture becomes the next step, with your note as its caption. This lets you
+  capture things that vanish when you move the mouse, such as an error
+  message that only shows while you hover its icon.
+
+- **Report a problem from an error message.** Business Central's error
+  messages now have a **Report a problem** link next to **Share details**.
+  One click opens the report with a screenshot of the error as a step, the
+  message as its note, and the error details that **Copy error details** would
+  give (session IDs, time and the AL call stack), so you no longer copy and
+  paste them yourself. A report you were already writing keeps its steps and
+  gets the error as its next one. It needs **Help & feedback** to be on, and it
+  replaces what is on your clipboard.
+
+### Fixed
+
+- **Screenshot editor: picking a colour leaves Blur.** Choosing a colour while
+  the blur tool is active now switches back to the arrow, so the cross no
+  longer stays on blur.
+- **Report a problem: Done goes back to Email / Download after a change.**
+  Once a report went out, changing it (a step added, removed or edited, the
+  note, the type or the priority) brings the Email or Download button back, so
+  you do not close a changed report without sending it again.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.1.0 — 2026-10-25

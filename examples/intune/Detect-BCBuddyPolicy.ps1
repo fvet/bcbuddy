@@ -20,6 +20,7 @@ $FeedbackSubjectBug      = $null
 $FeedbackSubjectIdea     = $null
 $FeedbackUrgentText      = $null
 $FeedbackUrgentLink      = $null
+$FeedbackTranslations    = $null   # as in Set-BCBuddyPolicy.ps1
 
 $keys = @(
   "HKLM:\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\$Id\policy",
@@ -55,6 +56,32 @@ foreach ($key in $keys) {
         exit 1
       }
       $i++
+    }
+  }
+  if ($null -ne $FeedbackTranslations) {
+    foreach ($lang in $FeedbackTranslations.Keys) {
+      $block = Join-Path $key "feedbackTranslations\$lang"
+      foreach ($field in $FeedbackTranslations[$lang].Keys) {
+        $want = $FeedbackTranslations[$lang][$field]
+        if ($field -eq 'priorities') {
+          $list = Get-ItemProperty -Path (Join-Path $block 'priorities') -ErrorAction SilentlyContinue
+          $i = 1
+          foreach ($priority in @($want) + @($null)) {
+            $value = if ($list) { $list.([string]$i) } else { $null }
+            if ("$value" -ne "$priority") {
+              Write-Output "Not set: $block priorities"
+              exit 1
+            }
+            $i++
+          }
+        } else {
+          $value = (Get-ItemProperty -Path $block -Name $field -ErrorAction SilentlyContinue).$field
+          if ($null -eq $value -or "$value" -ne "$want") {
+            Write-Output "Not set: $block $field"
+            exit 1
+          }
+        }
+      }
     }
   }
 }

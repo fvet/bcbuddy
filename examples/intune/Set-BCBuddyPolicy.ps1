@@ -1,4 +1,4 @@
-<#
+﻿<#
   Sets the shared BC Buddy file, and optionally the other BC Buddy settings
   IT can lock, for every user of this computer, in Microsoft Edge and Google
   Chrome, through browser policy. BC Buddy then loads the file by itself, and
@@ -29,8 +29,36 @@ $FeedbackPriorities      = $null   # e.g. @('Low', 'Normal', 'Urgent'); @() hide
 $FeedbackDefaultPriority = $null   # one of the priorities, e.g. 'Normal'
 $FeedbackSubjectBug      = $null   # e.g. '[{prio}] Problem in {company} ({environment})'
 $FeedbackSubjectIdea     = $null
-$FeedbackUrgentText      = $null   # shown with the last priority, e.g. 'Urgent? Call the helpdesk on 03 123 45 67.'
-$FeedbackUrgentLink      = $null   # 'https://...' or 'tel:+3231234567'
+$FeedbackUrgentText      = $null   # shown with the last priority, e.g. 'Urgent? Call the helpdesk on +00 000 00 00 00.'
+$FeedbackUrgentLink      = $null   # 'https://...' or 'tel:+00 000 00 00 00'
+# The same texts per language (en, nl, fr), shown to people whose Business
+# Central is in that language, else the language BC Buddy is in. Each language
+# may have priorities (as many as above, in the same order), subjectBug,
+# subjectIdea and urgentText; what it leaves out uses the value above, which is
+# also what other languages get. $null to leave unset. Full example, to copy
+# into the assignment below (with the plain values above in English):
+#
+#   $FeedbackPriorities  = @('Low', 'Normal', 'High', 'Critical')
+#   $FeedbackSubjectBug  = '[BC] Problem - {prio} - {company}: {title}'
+#   $FeedbackSubjectIdea = '[BC] Feedback - {prio} - {company}: {title}'
+#   $FeedbackUrgentText  = 'Urgent? Call the helpdesk on +00 000 00 00 00.'
+#   $FeedbackTranslations = @{
+#     nl = @{
+#       priorities  = @('Laag', 'Normaal', 'Hoog', 'Kritiek')
+#       subjectBug  = '[BC] Probleem - {prio} - {company}: {title}'
+#       subjectIdea = '[BC] Feedback - {prio} - {company}: {title}'
+#       urgentText  = 'Dringend? Bel de helpdesk op +00 000 00 00 00.'
+#     }
+#     fr = @{
+#       priorities  = @('Faible', 'Normale', 'Haute', 'Critique')
+#       subjectBug  = '[BC] Problème - {prio} - {company} : {title}'
+#       subjectIdea = '[BC] Retour - {prio} - {company} : {title}'
+#       urgentText  = 'Urgent ? Appelez le support au +00 000 00 00 00.'
+#     }
+#   }
+#
+# Save this file as UTF-8 with BOM when it holds accented characters.
+$FeedbackTranslations    = $null
 
 $keys = @(
   "HKLM:\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\$Id\policy",
@@ -76,6 +104,30 @@ foreach ($key in $keys) {
     foreach ($priority in $FeedbackPriorities) {
       Set-ItemProperty -Path $list -Name ([string]$i) -Value $priority -Type String
       $i++
+    }
+  }
+  # Per language: a subkey with the texts, and a numbered list for priorities.
+  if ($null -ne $FeedbackTranslations) {
+    $root = Join-Path $key 'feedbackTranslations'
+    if (Test-Path $root) { Remove-Item -Path $root -Recurse -Force }
+    New-Item -Path $root -Force | Out-Null
+    foreach ($lang in $FeedbackTranslations.Keys) {
+      $block = Join-Path $root $lang
+      New-Item -Path $block -Force | Out-Null
+      foreach ($field in $FeedbackTranslations[$lang].Keys) {
+        $value = $FeedbackTranslations[$lang][$field]
+        if ($field -eq 'priorities') {
+          $list = Join-Path $block 'priorities'
+          New-Item -Path $list -Force | Out-Null
+          $i = 1
+          foreach ($priority in $value) {
+            Set-ItemProperty -Path $list -Name ([string]$i) -Value $priority -Type String
+            $i++
+          }
+        } else {
+          Set-ItemProperty -Path $block -Name $field -Value $value -Type String
+        }
+      }
     }
   }
 }

@@ -356,13 +356,16 @@
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="4" height="4" rx="0.5"/><rect x="10" y="4" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="16" y="4" width="4" height="4" rx="0.5"/><rect x="4" y="10" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="10" y="10" width="4" height="4" rx="0.5"/><rect x="16" y="10" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="4" y="16" width="4" height="4" rx="0.5"/><rect x="10" y="16" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="16" y="16" width="4" height="4" rx="0.5"/></svg>');
 
       var TOOLS = [['arrow', btnArrow], ['draw', btnDraw], ['box', btnBox], ['blur', btnBlur]];
+      function selectTool(name) {
+        tool = name;
+        TOOLS.forEach(function (other) {
+          other[1].classList.toggle('bcb-sp-eb-on', other[0] === tool);
+        });
+      }
       TOOLS.forEach(function (entry) {
         entry[1].addEventListener('click', function (e) {
           if (!e.isTrusted) return;
-          tool = entry[0];
-          TOOLS.forEach(function (other) {
-            other[1].classList.toggle('bcb-sp-eb-on', other[0] === tool);
-          });
+          selectTool(entry[0]);
         });
       });
 
@@ -386,6 +389,8 @@
             if (!e.isTrusted) return;
             color = c;
             btnColor.style.setProperty('background', c, '');
+            // Blur has no colour; picking one means a coloured tool is next.
+            if (tool === 'blur') selectTool('arrow');
             closeColorPicker();
           });
           colPop.appendChild(b);
