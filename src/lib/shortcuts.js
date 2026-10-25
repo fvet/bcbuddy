@@ -43,6 +43,8 @@
   var PANEL_ID = 'bcb-keys';
   var HELP_ID = 'O365_MainLink_Help_container';
   var GEAR_ID = 'O365_MainLink_Settings_container';
+  // The name and avatar, to the right of the buttons.
+  var RIGHT_ID = 'O365_HeaderRightRegion';
   var CLIENT_FRAME = 'iframe.designer-client-frame';
   var CONTAINER_SEL = '.spa-container';
   var VIEW_SEL = '.spa-container > .spa-view:not(.spa-lookup)';
@@ -414,20 +416,32 @@
   }
 
   /**
-   * Whether our icon has room in the shell's top bar: shown, the buttons end
-   * inside their row; hidden, the stretching gap before the buttons is at
-   * least width wide. Reads layout only. True when the bar is not shaped as
-   * we know, so the icon stays where it was.
+   * Whether the buttons in the shell's top bar end before the name and avatar
+   * (#O365_HeaderRightRegion). The row they sit in can itself spill past that,
+   * so its own edge says nothing. Reads layout only. True when the bar is not
+   * shaped as we know, so the icon stays.
    */
-  function iconFits(icon, width) {
+  function iconFits(icon) {
     var buttons = icon.parentNode;
     var row = buttons && buttons.parentNode;
-    var gap = buttons && buttons.previousElementSibling;
-    if (!row || !gap) return true;
-    if (icon.style.display !== 'none') {
-      return buttons.getBoundingClientRect().right <= row.getBoundingClientRect().right + 0.5;
-    }
-    return gap.getBoundingClientRect().width >= width - 0.5;
+    if (!row) return true;
+    var right = icon.ownerDocument.getElementById(RIGHT_ID);
+    var limit = right ? right.getBoundingClientRect().left : row.getBoundingClientRect().right;
+    return buttons.getBoundingClientRect().right <= limit + 0.5;
+  }
+
+  /**
+   * Shows the icon when the bar has room for it, hides it when not. The shell
+   * decides from the window width which buttons fit, without counting ours,
+   * and the room is not always in the same box (a narrow window drops the
+   * title but keeps its space), so it is not worked out: the icon is shown,
+   * measured and, where the buttons now pass the name, hidden again. All in
+   * one task, so nothing is painted in between.
+   */
+  function fitIcon(icon) {
+    if (!icon.isConnected) return;
+    icon.style.display = '';
+    if (!iconFits(icon)) icon.style.display = 'none';
   }
 
   /**
@@ -504,7 +518,6 @@
     var spot = null;
     // Keeps the icon out of the way when the bar is full; see watchFit().
     var fit = null;
-    var iconWidth = 48;
 
     if (options.icon) {
       observer = new win.MutationObserver(insertIcon);
@@ -530,11 +543,7 @@
       watchFit(icon);
     }
 
-    // The shell decides from the window width which of its buttons fit and
-    // when the rest go under "...", without counting ours. So our icon only
-    // takes room the bar has spare: the stretching gap (#centerRegion) between
-    // the title and the buttons. Where that gap is too small the icon steps
-    // aside, else the buttons would run over the user's name.
+    // See fitIcon(): re-checked when the bar changes size, never otherwise.
     function watchFit(icon) {
       if (fit) fit.disconnect();
       fit = null;
@@ -545,15 +554,9 @@
       fit = new win.ResizeObserver(function () { fitIcon(icon); });
       for (var i = 0; i < row.children.length; i++) fit.observe(row.children[i]);
       fit.observe(row);
+      var right = doc.getElementById(RIGHT_ID);
+      if (right) fit.observe(right);
       fitIcon(icon);
-    }
-
-    function fitIcon(icon) {
-      if (!icon.isConnected) return;
-      var shown = icon.style.display !== 'none';
-      if (shown) iconWidth = icon.getBoundingClientRect().width || iconWidth;
-      var fits = iconFits(icon, iconWidth);
-      if (fits !== shown) icon.style.display = fits ? '' : 'none';
     }
 
     function setExpanded(value) {
@@ -727,6 +730,7 @@
     tooltipKey: tooltipKey,
     keyParts: keyParts,
     iconFits: iconFits,
+    fitIcon: fitIcon,
     pageActions: pageActions,
     context: context,
     sections: sections,

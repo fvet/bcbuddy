@@ -1008,10 +1008,13 @@ a side panel, the button opens the floating panel in the page instead.
   of the Help button, element by element. The shell decides from the window
   width which buttons fit and when the rest go under **…**, without counting
   ours, so in a narrower window the buttons ran over the user's name.
-  `watchFit()` keeps the icon to spare room: a ResizeObserver on the row
-  around `#headerButtonRegion` hides it when the buttons pass the row's right
-  edge and shows it again once the stretching gap before them
-  (`#centerRegion`) is as wide as the icon.
+  `fitIcon()` keeps the icon to spare room: a ResizeObserver on the row around
+  `#headerButtonRegion` and on `#O365_HeaderRightRegion` shows the icon,
+  measures, and hides it again when the buttons end past where the name
+  starts, all in one task so nothing paints in between. It does not work out
+  the free room beforehand: a narrow window drops the title but keeps its
+  box, so the free space is not in one place. Measure against the name's left
+  edge, never the row's own: the row itself spills past its container.
 - **What it lists.** *On this page* comes from the page itself: BC ends an
   action's tooltip with its shortcut, `"... (F9)"`, and `tooltipKey()` takes
   that, so it is right for the BC version, the language and any extension.

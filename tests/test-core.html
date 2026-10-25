@@ -2624,37 +2624,41 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     // The ResizeObserver that calls this needs rendered frames, which the
     // headless runner never draws, so the decision is checked by itself.
     var S = BCBuddy.Shortcuts;
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;width:400px';
-    row.innerHTML =
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;width:500px';
+    // Like BC: the centre is a fixed share of the bar, its content may spill
+    // past it, and the name and avatar start where it ends.
+    wrap.innerHTML =
       '<style>.fit-hc{display:flex;flex:none;width:48px}</style>' +
+      '<div id="fit-centre" style="width:400px;flex:none"><div class="fit-row" style="display:flex;width:max-content;min-width:100%">' +
       '<div class="fit-brand" style="flex:none;width:200px"></div>' +
       '<div class="fit-gap" style="flex:1 0 auto"></div>' +
       '<div id="headerButtonRegion" style="display:flex;flex:0 1 auto">' +
       '<div id="O365_MainLink_Settings_container" class="fit-hc"><div>' +
       '<button id="O365_MainLink_Settings"><div></div></button></div></div>' +
       '<div id="O365_MainLink_Help_container" class="fit-hc"><div>' +
-      '<button id="O365_MainLink_Help"><div></div></button></div></div></div>';
-    document.body.appendChild(row);
-    var brand = row.querySelector('.fit-brand');
+      '<button id="O365_MainLink_Help"><div></div></button></div></div></div></div></div>' +
+      '<div id="O365_HeaderRightRegion" style="flex:none;width:100px"></div>';
+    document.body.appendChild(wrap);
+    var brand = wrap.querySelector('.fit-brand');
     // Three buttons of 48 leave 256 for title and gap: a 280 px title
-    // overflows with the icon, and leaves a gap of only 24 without it.
+    // spills 24 px past the centre with the icon, and fits without it.
     brand.style.width = '280px';
     var handle = S.attach(document, { t: function (k) { return '[' + k + ']'; }, icon: true });
     var icon = document.getElementById(S.ICON_ID);
-    function shown() { return icon.getBoundingClientRect().width > 0; }
-    var buttons = document.getElementById('headerButtonRegion');
-    check('shortcuts icon: stays out of a full bar, the buttons stay in the row',
-      [shown(), buttons.getBoundingClientRect().right <= row.getBoundingClientRect().right], [false, true]);
-    check('shortcuts icon: no room in a 24 px gap', S.iconFits(icon, 48), false);
+    function nowShown() { return icon.style.display !== 'none'; }
+    S.fitIcon(icon);
+    check('shortcuts icon: steps aside when the buttons would pass the name',
+      [nowShown(), S.iconFits(icon)], [false, true]);
     brand.style.width = '200px';
-    check('shortcuts icon: room again in a 104 px gap', S.iconFits(icon, 48), true);
-    icon.style.display = '';
-    check('shortcuts icon: shown, it fits while the buttons end inside the row', S.iconFits(icon, 48), true);
+    S.fitIcon(icon);
+    check('shortcuts icon: back once the bar has room', nowShown(), true);
     brand.style.width = '280px';
-    check('shortcuts icon: shown, no room once the buttons run past the row', S.iconFits(icon, 48), false);
+    S.fitIcon(icon);
+    check('shortcuts icon: steps aside again, and the buttons end before the name',
+      [nowShown(), S.iconFits(icon)], [false, true]);
     handle.detach();
-    row.remove();
+    wrap.remove();
   }
 
   function copyDom() {
