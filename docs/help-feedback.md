@@ -130,7 +130,7 @@ order fails*.
     Central on your own server has a different top bar without the icon; use
     the BC Buddy icon in the browser toolbar instead.
 
-??? faq "No support address set up yet"
+??? faq "Why Download replaces Email"
 
     The panel does not know where to send the report yet. Ask your helpdesk or
     IT department, or fill in the address yourself under **Help & feedback** in
@@ -170,7 +170,7 @@ Then fill in:
   message. One line, at most 200 characters.
 - **Link (optional)**: makes that message a link people can click: an address
   that starts with `https://`, such as a Teams link, or `tel:` followed by a
-  phone number, such as `tel:+3231234567`. Other links are refused.
+  phone number, such as `tel:+00 000 00 00 00`. Other links are refused.
 - **Email subject for a problem** and **Email subject for feedback**: each
   shows the standard subject until you change it. Empty it to go back to
   the standard one.
@@ -229,7 +229,7 @@ Set it up once and give everyone the same settings:
       "feedbackSubjectBug": "[BC] Problem - {prio} - {company}: {title}",
       "feedbackSubjectIdea": "[BC] Idea - {company}: {title}",
       "feedbackUrgentText": "Urgent? Call the helpdesk on 03 123 45 67.",
-      "feedbackUrgentLink": "tel:+3231234567"
+      "feedbackUrgentLink": "tel:+00 000 00 00 00"
     }
     ```
 

@@ -885,7 +885,7 @@
     "description": "Line under Link (optional). Keep https:// and tel: as they are."
   },
   "feedbackUrgentLinkPlaceholder": {
-    "message": "https://teams.microsoft.com/... or tel:+3231234567",
+    "message": "https://teams.microsoft.com/... or tel:+00 000 00 00 00",
     "description": "Example in the empty Link field. Keep the address and tel: as they are; only translate the word between them."
   },
   "feedbackUrgentLinkInvalid": {
@@ -935,14 +935,6 @@
   "bpNothingOn": {
     "message": "Nothing to show here yet. Switch on Web client or Help & feedback in the settings.",
     "description": "Shown on the side panel's start view when both are switched off."
-  },
-  "spNoAddress": {
-    "message": "No support address set up yet. Ask your administrator, or add it in settings.",
-    "description": "Warning in the support panel when no helpdesk email is configured."
-  },
-  "spOpenSettings": {
-    "message": "Open settings",
-    "description": "Link in that warning."
   },
   "spDescPlaceholder": {
     "message": "What went wrong?\nWhat were you doing…",
@@ -1025,7 +1017,7 @@
     "description": "Button that saves the report as a web page (.html)."
   },
   "spSaveReportHint": {
-    "message": "Save the report as a web page (.html), to attach to an email",
+    "message": "Save the report (.html), to attach to an email",
     "description": "Tooltip of the Download button."
   },
   "spEdit": {

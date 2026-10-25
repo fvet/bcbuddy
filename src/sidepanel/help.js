@@ -131,10 +131,6 @@
 
     desc = richBox($('help-desc'), function () { updateButtons(); saveLater(); });
 
-    $('help-noaddr-link').addEventListener('click', function (e) {
-      e.preventDefault();
-      if (e.isTrusted) openSettings();
-    });
     $('help-discard').addEventListener('click', trusted(showConfirm));
     $('help-discard-yes').addEventListener('click', trusted(function () {
       $('help-confirm').close();
@@ -228,11 +224,6 @@
     return function (e) { if (e && e.isTrusted) fn(e); };
   }
 
-  function openSettings() {
-    // Keeps the panel (and the report) open; settings open in their own tab.
-    chrome.runtime.sendMessage({ type: 'bcb:open-options', panel: 'feedback' }).catch(function () {});
-  }
-
   // ------------------------------------------------------------------ settings
 
   function oneLine(value, max) {
@@ -258,7 +249,6 @@
     config.subjectIdea = oneLine(s.feedbackSubjectIdea, MAX_SUBJECT_TEMPLATE);
     config.urgentText = BCBuddy.cleanUrgentText(s.feedbackUrgentText);
     config.urgentLink = BCBuddy.cleanUrgentLink(s.feedbackUrgentLink);
-    $('help-noaddr').hidden = !!cachedEmail;
     renderPriorities();
     updateButtons();
   }
@@ -728,7 +718,7 @@
    */
   function descPlaceholder() {
     if (shots.length) return t('spDescNext', t(cachedEmail ? 'spSend' : 'spSaveReport'));
-    return t(type === 'Bug' ? 'spDescPlaceholder' : 'spDescPlaceholderImp') + '\n' + t('spDescHint');
+    return t(type === 'Bug' ? 'spDescPlaceholder' : 'spDescPlaceholderImp') + '\n\n' + t('spDescHint');
   }
 
   function typeLabel() { return t(type === 'Bug' ? 'spTypeBug' : 'spTypeIdea'); }

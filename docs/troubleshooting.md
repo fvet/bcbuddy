@@ -149,7 +149,7 @@ Click a question to see the answer.
     the web, pictures often do not paste: use **Download** and attach the file.
     See [Help & feedback](help-feedback.md#when-something-does-not-work).
 
-??? faq "No support address set up yet"
+??? faq "Why Download replaces Email"
 
     The report has nowhere to go yet. Ask your helpdesk or IT department, or
     fill in the address under **Help & feedback** on the settings page.
