@@ -19,7 +19,7 @@ Niet meer op elke pagina op dezelfde knoppen klikken.
 
 Jouw keuze wint: zet je een pagina terug naar smal, dan laat BC Buddy ze zo.
 
-Wil je meer? Zet gestreepte rijen aan, verberg het deelvenster Feitenblok of het meldingenbelletje, zet de animaties uit, of meld een probleem met schermafbeeldingen aan je helpdesk zonder Business Central te verlaten. Elke verbetering heeft een eigen schakelaar.
+Wil je meer? Zet gestreepte rijen aan, verberg het deelvenster Feitenblok of het meldingenbelletje, zet de animaties uit, of meld een probleem per e-mail aan je helpdesk, met bewerkte schermafbeeldingen, zonder Business Central te verlaten. Elke verbetering heeft een eigen schakelaar.
 
 🎨 Nooit meer boeken in de verkeerde omgeving
 
@@ -34,14 +34,14 @@ Kies een kleur per omgeving, per bedrijf of per klant. Kant-en-klare voorbeelden
 
 👥 Een keer instellen voor het hele team
 
-Een persoon kiest de kleuren, de rest krijgt ze automatisch, ook als er later iets verandert.
+Een persoon kiest de kleuren (en waar probleemmeldingen naartoe gaan), de rest krijgt ze automatisch, ook als er later iets verandert.
 
 🔒 Jouw gegevens blijven van jou
 
-Geen account. Geen server. Geen tracking. BC Buddy verandert hoe Business Central eruitziet, nooit je gegevens.
+Geen account. Geen server. Geen tracking. BC Buddy verandert hoe Business Central eruitziet, nooit je gegevens. Een probleemmelding gaat naar je eigen e-mailapp, nooit naar ons.
 
 ✓ Business Central online en op je eigen server
-✓ Chrome en Edge
+✓ Chrome en Edge 116 of nieuwer
 ✓ Nederlands, Engels en Frans
 ✓ Gratis en open source
 

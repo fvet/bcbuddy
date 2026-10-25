@@ -11,6 +11,8 @@ what you saw, and does not have to ask which company or page you were on.
     it on for you. To do it yourself, see
     [Switching it on](#switching-it-on) below.
 
+![The Report a problem panel with a priority, two steps with their text and screenshots, and the Email button](assets/screenshots/crop-with-help-feedback.png){ loading=lazy width="260" }
+
 ## Opening it
 
 In Business Central, click the **BC Buddy** icon in the top bar: the two
@@ -23,8 +25,8 @@ The BC Buddy icon in the browser toolbar opens the same panel.
 
 The panel stays open while you move around Business Central, and it is never
 in your screenshots. Closed it by accident? Open it again: your report is
-still there. The bin at
-the top throws the report away and takes you back to the start.
+still there. The bin at the top throws the report away and takes you back to
+the start.
 
 ## Three steps
 
@@ -33,6 +35,8 @@ the top throws the report away and takes you back to the start.
 Type in the box what you were doing and what went wrong. Keep it to this one
 step, for example *I open the sales order and click Post*. **Ctrl+B**,
 **Ctrl+I** and **Ctrl+U** make text bold, italic or underlined.
+
+A report can have up to 9 screenshots. For an idea, text alone is fine.
 
 If there is a **Priority** list, pick how urgent it is. When you pick the most
 urgent one, your IT team may show a short message above it, such as a phone
@@ -55,9 +59,10 @@ view. **Tab** jumps from one step's text to the next.
 To point something out, click **Draw on this screenshot**:
 
 - **Arrow** and **Box** to show where to look,
-- **Pen** to draw freely,
+- **Pen** to draw freely, with a colour of your choice,
 - **Blur** to hide a name, an amount or anything else that is private,
-- **Clear all** to start the drawing over.
+- **Undo** (**Ctrl+Z**) takes back the last stroke, **Clear all** starts
+  the drawing over.
 
 Click **Save** (or press **Enter**) when you are done, or the **×** (or **Esc**)
 to leave the screenshot out.
@@ -80,16 +85,19 @@ Other ways are under the arrow next to **Email**:
   email or a ticket.
 - **Copy**: puts the report on the clipboard, to paste anywhere.
 
+Text left in the box when you click **Email** counts as the last step, without
+a screenshot.
+
 Once the report is out, **Email** turns into **Done**. Click it when the
-email is sent: that throws the report away, so the panel is empty for the next
-one. Need another way after all? The arrow still has them all.
+email is sent: that throws the report away and closes the panel. Need another
+way after all? The arrow still has them all.
 
 ## What the helpdesk receives
 
 One email with:
 
 - where you were: the environment and the company,
-- the priority, if you picked one,
+- the priority, if you picked one, and the kind of report,
 - each step: the page title, which links to the page, your text and the
   screenshot,
 - at the bottom: your system (Windows, Chrome or Edge), the tenant, and the
@@ -126,9 +134,10 @@ order fails*.
 ??? faq "No BC Buddy icon in the top bar"
 
     Reload the Business Central tab (press F5). Still not there? Help &
-    feedback may be off: see [Switching it on](#switching-it-on). Business
-    Central on your own server has a different top bar without the icon; use
-    the BC Buddy icon in the browser toolbar instead.
+    feedback may be off: see [Switching it on](#switching-it-on). The icon
+    also shows while **Web client** is on. Business Central on your own server
+    has a different top bar without the icon; use the BC Buddy icon in the
+    browser toolbar instead.
 
 ??? faq "Why Download replaces Email"
 
@@ -185,6 +194,8 @@ Buddy fills them in when the email is created:
 | `{prio}` | the priority, only when there are priorities |
 | `{company}` | the company of the Business Central page |
 | `{environment}` | the environment |
+| `{type}` | the kind of report: Problem or Feedback |
+| `{tenant}` | the Business Central tenant |
 | `{title}` | the first line of the message |
 
 The standard subjects are `[BC] Problem - {prio} - {company}: {title}` and
@@ -227,7 +238,7 @@ Set it up once and give everyone the same settings:
       "feedbackPriorities": ["Low", "Normal", "Urgent"],
       "feedbackDefaultPriority": "Normal",
       "feedbackSubjectBug": "[BC] Problem - {prio} - {company}: {title}",
-      "feedbackSubjectIdea": "[BC] Idea - {company}: {title}",
+      "feedbackSubjectIdea": "[BC] Feedback - {prio} - {company}: {title}",
       "feedbackUrgentText": "Urgent? Call the helpdesk on 03 123 45 67.",
       "feedbackUrgentLink": "tel:+00 000 00 00 00"
     }

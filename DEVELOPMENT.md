@@ -836,6 +836,12 @@ page cannot list a directory: that way a folder with a name the Web Store would
 reject still reaches the checks instead of being skipped. Opened by hand the
 page probes for the locales it knows about instead, which finds every valid one.
 
+The settings checks in `test-core.html` cover Help & feedback too: its fields
+through `normalize()`, export and import, locks and policy values. The side
+panel and the overlay need a live browser and are not in the test pages: after
+a change there, load the extension, open Business Central and walk through a
+report with screenshots, a drawing and each of the four buttons.
+
 The runner looks for a browser in this order: `CHROME_PATH` if set, then the
 usual Windows install paths for Chrome and Edge, then `chrome`,
 `google-chrome`, `chromium` and `msedge` on `PATH`. Set `CHROME_PATH` when your
@@ -1061,6 +1067,44 @@ a side panel, the button opens the floating panel in the page instead.
   key gets `chrome.commands.onCommand` in the service worker, which sends
   `bcb:toggle-shortcuts` to the tab's top frame. On-prem, without the
   Microsoft 365 top bar, that key is the only way in.
+
+## 🆘 Help & feedback
+
+The report view of the side panel (`src/sidepanel/help.js`; the start view and
+the shortcuts view are `sidepanel.js`). Its settings are in *Settings model*,
+its permissions in [Permissions](#-permissions), and what the user sees in
+`docs/help-feedback.md`. The area switch is `feedbackEnabled`: off by
+default, and IT can set it by policy.
+
+- **A report** is up to 9 steps (`MAX_SHOTS`), each a note and optionally a
+  screenshot. Text left in the box at the end is a last step without one.
+  A screenshot is `tabs.captureVisibleTab` of the tab in front, scaled to at
+  most 1920 px on the long side and stored as JPEG (`MAX_SHOT_SIDE`), so nine
+  of them stay below what a mail server takes. Only on a tab that is
+  Business Central: the top frame answers `bcb:support-context`.
+- **Area selection and drawing editor** (arrow, pen, box, blur) are
+  `src/support/support-overlay.js`, injected with `chrome.scripting` into the
+  top frame only while one runs, inside a closed shadow root. What comes back
+  is checked again: a PNG or JPEG data URL of bounded size, at most 300
+  drawings and 20,000 points, coordinates within bounds.
+- **Draft.** The report in progress lives in `chrome.storage.session` under a
+  key per window, saved 400 ms after the last change and removed by *Close*.
+  Content scripts cannot read session storage.
+- **Output.** *Email* builds an unsent `.eml` (`buildEml()`: `X-Unsent: 1`,
+  `multipart/related` with the screenshots inline) and opens it through
+  `downloads.download()` and `downloads.open()`. The optional permissions are
+  requested first thing in the click handler; a refusal or failure falls back
+  to a plain download plus a line saying where the file is. *Email (draft)*
+  puts the HTML on the clipboard and opens a `mailto:` link. *Copy* only
+  copies; *Download* saves the report as `.html`. The extension sends
+  nothing itself.
+- **Text.** The message box and notes are runs with bold, italic and
+  underline flags, put on the page with `textContent` and written to the
+  report as escaped text inside our own `b`, `i`, `u` and `br`. Settings
+  text (priorities, subjects) passes `oneLine()` again in the panel.
+- **Priorities.** `feedbackPriorities` is the only list (none built in). The
+  last value is the urgent one: while it is picked, `feedbackUrgentText` shows
+  above the field, with `feedbackUrgentLink` as `https:` or `tel:` only.
 
 ## 🔑 Permissions
 

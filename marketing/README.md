@@ -75,17 +75,20 @@ Check the result before using it: the top bar should show only
 | `with-week-numbers` | Same | on |
 | `without-current-line` | Sales order 101001 Adatum (several lines), click the **Description** of line 3; type nothing, leave with Escape | off |
 | `with-current-line` | Same | on |
-| `with-keyboard-shortcuts` | Sales order 101001, click the **Description** of line 3, then the BC Buddy logo in the top bar and **Keyboard shortcuts**; take the whole window with the side panel open. Close the side panel with **×** afterwards. No "without" shot: the slide shows only the panel | on, **Keyboard shortcuts** switched on |
+| `with-keyboard-shortcuts` | Sales order 101001, click the **Description** of line 3, then the BC Buddy icon (two people, before the gear) in the top bar and **Keyboard shortcuts**; take the whole window with the side panel open. Close the side panel with **×** afterwards. No "without" shot: the slide shows only the panel | on (keyboard shortcuts have no switch of their own) |
 | `without-striped-rows` | Sales Orders list (page 9305); Customers has too few rows | off |
 | `with-striped-rows` | Same | on, **Striped rows** switched on |
 | `crop-without-hide-factbox` | Customer card 20000, FactBox pane open (BC's own **i** button, top right) | on |
 | `crop-with-hide-factbox` | Same card, pane closed with the **i** button: the same click BC Buddy makes on a page nobody set. Open it again afterwards | on |
 | `without-env-colours` | Customers opened as `…/{tenant}/Production?company=CRONUS%20BE&page=22` | off |
 | `with-env-colours` | Same address, rule **PRODUCTION**: **Environment** equals `Production`, green, *Default* style with a corner banner | on |
+| `with-help-feedback` | Sales order 101004, BC Buddy icon in the top bar > **Report a problem**. Priorities set (say *Normal*, *High*, *Critical*) and a demo helpdesk address such as `helpdesk@example.com`. Two steps, each a short line and a screenshot (one **Region** of the lines, one **Whole screen**), with an arrow drawn on one. Take the whole window with the side panel open; never click **Email**, throw the report away with the bin afterwards. No "without" shot: the slide shows only the panel | on, **Help & feedback** switched on |
 
 Order of work, to switch BC Buddy as few times as possible: first every
 "with" shot plus copy values and maximize (BC Buddy on), then the maintainer
-switches **Extension active** off for the remaining "without" shots.
+switches **Web client** off (and **Environments** off for the environment
+colours) for the remaining "without" shots. There is no longer one switch for
+all of BC Buddy: each part has its own, at the top of its page.
 
 Move the mouse to the far bottom-right corner before every shot except
 copy values: the pointer is captured in the screenshot.
@@ -102,7 +105,8 @@ Keyboard shortcuts needs the browser's side panel, which the Chrome tool
 cannot capture: the maintainer takes the window (page plus side panel,
 without tab strip and address bar, 1508×800), the logo, name and picture
 are painted over in the bar's colour, and the crop is 880, 0, 1508, 800
-(the top bar icon and the side panel). Hide the FactBox pane was taken in an
+(the top bar icon and the side panel). Help & feedback is taken the same way
+and cropped the same: `crop-with-help-feedback.png`. Hide the FactBox pane was taken in an
 894×848 window, cropped to the page under the top bar: 60, 60, 834, 660 (this
 also leaves out an environment-colour frame or banner). Zoom at full scale: `scale` below 1 also
 shrinks the PNG it saves.
@@ -146,11 +150,12 @@ BC Buddy's own tint is a soft 6 % teal, too faint to see on a projector.
 
 ### The deck
 
-Fourteen slides: cover, architecture (UI / AL / SQL and how each one is
+Fifteen slides: cover, architecture (UI / AL / SQL and how each one is
 customised), why it's safe, then the web client improvements in the order of
 `docs/web-client.md` (copy values, maximize pages, pin the action bar,
 dropdown size, week numbers, highlight the current line, keyboard shortcuts,
-striped rows, hide the FactBox pane), environment colours, getting started.
+striped rows, hide the FactBox pane), environment colours, Help & feedback
+(`help`), getting started.
 
 **To present:** open `deck/present.html` in Chrome or Edge (double-click it
 in Explorer) and press **F** for full screen. Next slide: →, ↓, Page Down,
@@ -200,3 +205,4 @@ by asset URL. For a new screenshot, upload it (`asset: true`) and replace the
 | factbox | `/_blob/a6b12f951802a3baa0926db313607a65` | `crop-with-hide-factbox.png` |
 | envcolours | `/_blob/f45f098d2f97fa1261c3c5c82610bc54` | `without-env-colours.jpg` |
 | envcolours | `/_blob/34b09d6a87dde8d87ecdfd226505e1fc` | `with-env-colours.jpg` |
+| help | not uploaded yet: the slide points at the file directly (`../screenshots/crop-with-help-feedback.png`); upload it, then swap in the `/_blob/` id and add it to `$assets` | `crop-with-help-feedback.png` (the panel alone, 375 × 868) |

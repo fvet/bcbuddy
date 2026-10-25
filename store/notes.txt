@@ -1,0 +1,47 @@
+Notities voor het indienen in de Chrome Web Store (intern, niet publiek).
+
+LIMIETEN
+- Samenvatting (extDescription in _locales): 132 tekens per taal. Nu: en 124, nl 130, fr 129.
+- Beschrijving (description-*.txt): 16.000 tekens. Nu ongeveer 2.400 tot 2.900.
+- Schermafbeeldingen: maximaal 5, 1280x800 (of 640x400), PNG of JPEG zonder alfakanaal.
+
+SCHERMAFBEELDINGEN (volgorde in de winkel)
+1. screenshot-4-sales-orders-1280x800.png
+2. screenshot-5-sales-order-1280x800.png
+3. screenshot-6-environments-1280x800.png
+4. screenshot-7-styles-1280x800.png
+5. screenshot-8-help-feedback-1280x800.png
+
+Nummer 8 is genomen (sales invoice 102311, Production, logo/naam/foto overschilderd).
+Het deck gebruikt het paneel apart: marketing/screenshots/crop-with-help-feedback.png.
+
+JUSTIFICATIE PER MACHTIGING (Engelse tekst voor het formulier "Privacy practices";
+bron: PRIVACY.md en DEVELOPMENT.md, sectie Permissions)
+- storage: keeps the user's settings and rules on their own computer.
+- alarms: checks the optional shared configuration file once a day.
+- scripting: shows the area selection and the drawing editor of Help & feedback
+  on the Business Central page, only while the user uses them, after they start it
+  from the side panel.
+- sidePanel: shows the keyboard shortcuts for the current page and the Help &
+  feedback report in the browser's side panel. Needs Chrome 116 or newer.
+- downloads and downloads.open (optional, asked on the first click on Email):
+  save the report as an email file and open it in the user's email app. Only that
+  one file is touched; other downloads are never read or changed.
+- host permission <all_urls>: rules may match any URL, because Business Central
+  on-premises runs on the customer's own host name, and the shared configuration
+  file can be hosted anywhere. Used to mark pages that match a rule, to apply the
+  web client improvements on Business Central pages, and to take the screenshots
+  the user adds in Help & feedback.
+- Remote code: none. All code is in the package.
+- Single purpose: make Microsoft Dynamics 365 Business Central easier to work in
+  (web client improvements, environment colours, in-page problem reports).
+- Data use: nothing is collected or sent. A problem report only goes to the user's
+  own email app or clipboard. Privacy policy: https://fvet.github.io/bcbuddy/privacy/
+
+LET OP BIJ DE VOLGENDE INDIENING
+- minimum_chrome_version is nu 116; de beschrijving zegt dat ("Chrome and Edge 116 or newer").
+- Nieuwe machtigingen (scripting, sidePanel) tonen bij een update mogelijk een
+  extra waarschuwing of houden de automatische update tegen; downloads staat bewust
+  optioneel. Controleer in het dashboard of er een nieuwe waarschuwing staat.
+- Help & feedback staat standaard uit: daarom staat het in de "Want more?"-regel
+  en niet bij de dingen die meteen werken.

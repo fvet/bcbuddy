@@ -19,7 +19,7 @@ Fini de cliquer sur les mêmes boutons à chaque page.
 
 Vos choix priment : remettez une page en mode étroit, et BC Buddy la laisse ainsi.
 
-Envie de plus ? Activez les lignes alternées, masquez le volet Récapitulatif ou la cloche des notifications, désactivez les animations, ou signalez un problème à votre support avec des captures d'écran, sans quitter Business Central. Chaque amélioration a son propre interrupteur.
+Envie de plus ? Activez les lignes alternées, masquez le volet Récapitulatif ou la cloche des notifications, désactivez les animations, ou signalez un problème à votre support par e-mail, avec des captures d'écran annotées, sans quitter Business Central. Chaque amélioration a son propre interrupteur.
 
 🎨 Ne validez plus jamais dans le mauvais environnement
 
@@ -34,14 +34,14 @@ Choisissez une couleur par environnement, par société ou par client. Des exemp
 
 👥 Une seule configuration pour toute l'équipe
 
-Une personne choisit les couleurs, tous les autres les reçoivent automatiquement, modifications ultérieures comprises.
+Une personne choisit les couleurs (et où vont les signalements), tous les autres les reçoivent automatiquement, modifications ultérieures comprises.
 
 🔒 Vos données restent les vôtres
 
-Pas de compte. Pas de serveur. Pas de suivi. BC Buddy change l'apparence de Business Central, jamais vos données.
+Pas de compte. Pas de serveur. Pas de suivi. BC Buddy change l'apparence de Business Central, jamais vos données. Un signalement part vers votre propre messagerie, jamais vers nous.
 
 ✓ Business Central online et sur votre propre serveur
-✓ Chrome et Edge
+✓ Chrome et Edge 116 ou plus récent
 ✓ Français, anglais et néerlandais
 ✓ Gratuit et open source
 

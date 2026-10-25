@@ -179,7 +179,7 @@ gets a light tint, so you do not lose your place on a wide line.
 <details class="faq" id="keyboard-shortcuts" markdown>
 <summary markdown="span"><span class="bcb-setting-icon">:settings-shortcuts:</span>Keyboard shortcuts<span class="bcb-summary-text">The BC Buddy icon in the top bar shows the shortcuts for where you are in a side panel</span></summary>
 
-<p class="bcb-starts bcb-starts--on">Always there, no switch</p>
+<p class="bcb-starts bcb-starts--on">No switch of its own: there while Web client or Help &amp; feedback is on</p>
 
 BC Buddy adds its icon to the top bar of Business Central: two people, just
 before the gear. Click it to open a side panel next to Business Central, then
@@ -204,7 +204,7 @@ that tab, the panel closes by itself. A link at the bottom opens Microsoft's
 full list of shortcuts.
 
 <figure markdown>
-![The keyboard shortcuts side panel next to Business Central, listing the shortcuts on this page, in these lines and anywhere](assets/screenshots/crop-with-keyboard-shortcuts.png){ loading=lazy }
+![The keyboard shortcuts side panel, listing the shortcuts on this page, on this card and anywhere](assets/screenshots/crop-with-keyboard-shortcuts.png){ loading=lazy width="260" }
 </figure>
 
 Actions in a menu you have not opened yet are not listed: Business Central only
