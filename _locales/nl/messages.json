@@ -280,6 +280,7 @@
   "bpIdeaNote": { "message": "Een idee, of een vraag naar iets nieuws" },
   "bpShortcutsNote": { "message": "Sneltoetsen voor deze pagina" },
   "bpNothingOn": { "message": "Hier is nog niets te zien. Zet Webclient of Help en feedback aan in de instellingen." },
+  "bpDocs": { "message": "Documentatie" },
   "spDescPlaceholder": { "message": "Wat ging er mis?\nWat was je aan het doen…" },
   "spDescPlaceholderImp": { "message": "Wat wil je verbeteren?\nWat zou je graag anders zien?" },
   "spDraftNotSaved": { "message": "Niet bewaard: te groot" },

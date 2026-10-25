@@ -280,6 +280,7 @@
   "bpIdeaNote": { "message": "Une idée, ou une demande de nouveauté" },
   "bpShortcutsNote": { "message": "Raccourcis pour cette page" },
   "bpNothingOn": { "message": "Rien à afficher pour l'instant. Activez Client Web ou Aide et commentaires dans les paramètres." },
+  "bpDocs": { "message": "Documentation" },
   "spDescPlaceholder": { "message": "Qu'est-ce qui n'a pas fonctionné ?\nQue faisiez-vous…" },
   "spDescPlaceholderImp": { "message": "Que souhaitez-vous améliorer ?\nQue voudriez-vous voir autrement ?" },
   "spDraftNotSaved": { "message": "Non enregistré : trop volumineux" },

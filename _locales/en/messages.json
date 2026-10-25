@@ -952,6 +952,10 @@
     "message": "Nothing to show here yet. Switch on Web client or Help & feedback in the settings.",
     "description": "Shown on the side panel's start view when both are switched off."
   },
+  "bpDocs": {
+    "message": "Documentation",
+    "description": "Link in the lower-right corner of the side panel's start view, to the BC Buddy documentation site."
+  },
   "spDescPlaceholder": {
     "message": "What went wrong?\nWhat were you doing…",
     "description": "Placeholder inside the empty message box of a problem report, also its accessible name. There is no label above the box."

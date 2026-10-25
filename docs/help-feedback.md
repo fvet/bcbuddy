@@ -200,6 +200,27 @@ A subject can hold placeholders such as `{prio}`, `{company}` and `{title}`.
 The subject fields list them all, and BC Buddy fills them in when the email is
 created. A subject is one line of at most 200 characters.
 
+### Several languages
+
+When your people use Business Central in different languages, write the
+texts once per language. **Priorities**, **Message for urgent problems** and
+the two **Email subject** fields show the text for the language chosen at the
+top of the settings page; choose another language there and the same fields
+show, and save, the text for that one. A note under a field says when it has
+no text in the language shown yet: people in that language then see the text
+of another language, English first.
+
+People get the text in the language Business Central is in. When that is a
+language BC Buddy does not have, they get the language BC Buddy is in. BC
+Buddy has English, Dutch and French. The email carries what the user saw, so
+a Dutch user's report says *Hoog* and a French user's says *Haute*.
+
+Priorities line up by position: line two in every language is the same
+priority, so the message for urgent problems always belongs to the last one.
+Removing a line removes that priority in every language. The default priority
+can be written in any language, and the link, the email address and the
+switches are the same for everyone.
+
 ### The same settings for the whole team
 
 Set it up once and give everyone the same settings:

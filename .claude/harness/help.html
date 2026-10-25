@@ -93,7 +93,7 @@
     tabs: {
       query: function () { return Promise.resolve([{ id: 7, windowId: 1, url: 'https://businesscentral.dynamics.com/contoso.com/Production/?company=CRONUS&page=42', title: 'Sales Order 1001' }]); },
       get: function () { return chrome.tabs.query({}).then(function (t) { return t[0]; }); },
-      sendMessage: function (id, m) { __log.push(['tab', m]); return Promise.resolve(m.type === 'bcb:support-context' ? { webClient: true, tenant: 'contoso.com', environment: 'Production', company: 'CRONUS' } : null); },
+      sendMessage: function (id, m) { __log.push(['tab', m]); return Promise.resolve(m.type === 'bcb:support-context' ? { webClient: true, tenant: 'contoso.com', environment: 'Production', company: 'CRONUS', lang: window.__bcLang === undefined ? 'nl-BE' : window.__bcLang } : null); },
       connect: function () { return { onMessage: evt(), onDisconnect: evt(), postMessage: function () {}, disconnect: function () {} }; },
       getZoom: function () { return Promise.resolve(1); },
       onZoomChange: evt(), onActivated: evt(), onUpdated: evt(),

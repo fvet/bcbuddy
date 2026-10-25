@@ -13,6 +13,18 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Added
 
+- **Help & feedback in everyone's language.** If your people use Business
+  Central in different languages, the priorities, the email subjects and the
+  message for urgent problems can now be written once per language. On the
+  settings page the fields show the text for the language chosen at the top;
+  pick another one to write the next. People get the text in the language
+  Business Central is in, and the report they send says the same. The team
+  file and Intune can carry the texts per language too.
+
+- **Version and documentation link in the side panel.** The start view shows
+  the installed BC Buddy version and a link to the documentation, in its
+  lower-right corner.
+
 - **Paste a screenshot into a report.** Take a screenshot with Print Screen or
   Win+Shift+S, click in the note box of **Report a problem** and paste: the
   picture becomes the next step, with your note as its caption. This lets you

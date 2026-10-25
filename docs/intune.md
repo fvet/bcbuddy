@@ -59,9 +59,26 @@ give it a value to set it and lock it.
 | `feedbackSubjectIdea` | String | The subject for feedback, with the same placeholders |
 | `feedbackUrgentText` | String | The message shown when someone picks the last priority, one line of at most 200 characters |
 | `feedbackUrgentLink` | String | A link on that message: an `https://` address, or `tel:` with a phone number |
+| `feedbackTranslations` | Subkeys `en`, `nl`, `fr` | The priorities, subjects and message in more than one language; see [below](#texts-in-more-than-one-language) |
 
 A value BC Buddy cannot accept, such as an address that is not one email
 address, is ignored, and that setting stays free.
+
+#### Texts in more than one language
+
+The plain values above are the text for every language. To give people their
+own language, add the subkey `feedbackTranslations` with a subkey per language
+(`en`, `nl` or `fr`). Each holds any of `priorities`, `subjectBug`,
+`subjectIdea` and `urgentText`. A language, or a field, you leave out uses the
+plain value. `priorities` is a subkey with numbered values like
+`feedbackPriorities`, in the same order and with the same number of entries;
+a list of another length is ignored for that language. The plain
+`feedbackDefaultPriority` can be in any of the languages.
+
+People get the language Business Central is in, and otherwise the one BC
+Buddy is in. The script
+[`Set-BCBuddyPolicy.ps1`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/Set-BCBuddyPolicy.ps1)
+and the `.reg` file show how to write it.
 
 What a policy sets wins: over the [team file](sharing.md), over what people
 choose on the settings page and over an import from file. Without a policy,

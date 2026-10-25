@@ -31,6 +31,12 @@ $FeedbackSubjectBug      = $null   # e.g. '[{prio}] Problem in {company} ({envir
 $FeedbackSubjectIdea     = $null
 $FeedbackUrgentText      = $null   # shown with the last priority, e.g. 'Urgent? Call the helpdesk on 03 123 45 67.'
 $FeedbackUrgentLink      = $null   # 'https://...' or 'tel:+3231234567'
+# The same texts per language (en, nl, fr), shown to people whose Business
+# Central is in that language. Each language may have priorities (as many as
+# above, in the same order), subjectBug, subjectIdea and urgentText; what it
+# leaves out uses the value above. $null to leave unset. For example:
+#   @{ nl = @{ priorities = @('Laag', 'Normaal', 'Dringend'); urgentText = 'Dringend? Bel de helpdesk op 03 123 45 67.' } }
+$FeedbackTranslations    = $null
 
 $keys = @(
   "HKLM:\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\$Id\policy",
@@ -76,6 +82,30 @@ foreach ($key in $keys) {
     foreach ($priority in $FeedbackPriorities) {
       Set-ItemProperty -Path $list -Name ([string]$i) -Value $priority -Type String
       $i++
+    }
+  }
+  # Per language: a subkey with the texts, and a numbered list for priorities.
+  if ($null -ne $FeedbackTranslations) {
+    $root = Join-Path $key 'feedbackTranslations'
+    if (Test-Path $root) { Remove-Item -Path $root -Recurse -Force }
+    New-Item -Path $root -Force | Out-Null
+    foreach ($lang in $FeedbackTranslations.Keys) {
+      $block = Join-Path $root $lang
+      New-Item -Path $block -Force | Out-Null
+      foreach ($field in $FeedbackTranslations[$lang].Keys) {
+        $value = $FeedbackTranslations[$lang][$field]
+        if ($field -eq 'priorities') {
+          $list = Join-Path $block 'priorities'
+          New-Item -Path $list -Force | Out-Null
+          $i = 1
+          foreach ($priority in $value) {
+            Set-ItemProperty -Path $list -Name ([string]$i) -Value $priority -Type String
+            $i++
+          }
+        } else {
+          Set-ItemProperty -Path $block -Name $field -Value $value -Type String
+        }
+      }
     }
   }
 }
