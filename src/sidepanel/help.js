@@ -652,10 +652,12 @@
     $('help-add-area').disabled = !canShoot;
     $('help-add-full').disabled = !canShoot;
     // Steering, not blocking: the screenshot buttons lead until there is
-    // one, then the Email button does.
+    // one, then the Email button does; without an address to send to,
+    // Download takes its place.
     var first = shots.length === 0;
     ['help-add-full', 'help-add-area'].forEach(function (id) { $(id).classList.toggle('primary', first); });
-    ['help-send', 'help-send-more'].forEach(function (id) { $(id).classList.toggle('primary', !first); });
+    ['help-send', 'help-send-more'].forEach(function (id) { $(id).classList.toggle('primary', !first && !!cachedEmail); });
+    $('help-dl').classList.toggle('primary', !first && !cachedEmail);
     $('help-notbc').hidden = here.webClient;
     $('help-max').hidden = !atLimit;
     $('help-max').textContent = atLimit ? t('spMaxShots', MAX_SHOTS) : '';

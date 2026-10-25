@@ -123,7 +123,8 @@ order fails*.
 
     The panel does not know where to send the report yet. Ask your helpdesk or
     IT department, or fill in the address yourself under **Help & feedback** in
-    the settings.
+    the settings. Until then **Email** stays greyed out and **Download** is the
+    highlighted button: save the report and attach it to an email yourself.
 
 ??? faq "I cannot take a screenshot"
 

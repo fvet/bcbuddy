@@ -121,10 +121,10 @@
   },
   "unknownDate": { "message": "unknown" },
   "importExportHeading": { "message": "Import / export" },
-  "importExportIntro": { "message": "Move your own rules, styles and Web client settings in one file." },
+  "importExportIntro": { "message": "Move your own rules, styles, Web client and Help & feedback settings in one file." },
   "importButton": { "message": "Import from file..." },
   "importNote": {
-    "message": "Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client settings in the file replace yours. The shared configuration is not touched.",
+    "message": "Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client and Help & feedback settings in the file replace yours, except the ones set by your organisation. The shared configuration is not touched.",
     "description": "Note under the Import and Export buttons in the Settings panel."
   },
   "importFailed": {
@@ -797,7 +797,7 @@
     "description": "Navigation item leading to the Help & feedback settings."
   },
   "supportIntro": {
-    "message": "Lets users report a problem to your helpdesk straight from Business Central: the BC Buddy logo in the top bar or the toolbar icon opens the BC Buddy panel, which collects a description and screenshots and hands them to the email app.",
+    "message": "Lets users report a problem to your helpdesk straight from Business Central: the BC Buddy icon in the top bar (two people) or the toolbar icon opens the BC Buddy panel, which collects a description and screenshots and hands them to the email app.",
     "description": "Intro text of the Support section on the Settings panel."
   },
   "feedbackEmailLabel": {
@@ -901,7 +901,7 @@
     "description": "Line under Keyboard shortcuts on the side panel's start view."
   },
   "bpNothingOn": {
-    "message": "Nothing to show here yet. Switch on Keyboard shortcuts or Help & feedback in the settings.",
+    "message": "Nothing to show here yet. Switch on Web client or Help & feedback in the settings.",
     "description": "Shown on the side panel's start view when both are switched off."
   },
   "spNoAddress": {
