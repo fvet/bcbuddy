@@ -263,7 +263,7 @@
   "feedbackNotTranslated": { "message": "Pas encore de texte en $1 : les utilisateurs de cette langue voient le texte d'une autre langue." },
   "feedbackUrgentTextLabel": { "message": "Message pour les problèmes urgents" },
   "feedbackUrgentTextDesc": { "message": "Affiché quand quelqu'un choisit la dernière priorité de la liste." },
-  "feedbackUrgentTextPlaceholder": { "message": "Urgent ? Appelez le support au 03 123 45 67." },
+  "feedbackUrgentTextPlaceholder": { "message": "Urgent ? Appelez le support au +00 000 00 00 00." },
   "feedbackUrgentTextInvalid": { "message": "Une ligne de $1 caractères au plus." },
   "feedbackUrgentLinkLabel": { "message": "Lien (facultatif)" },
   "feedbackUrgentLinkDesc": { "message": "Une adresse https://, comme un lien Teams, ou tel: avec un numéro de téléphone." },

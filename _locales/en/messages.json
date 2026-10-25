@@ -885,7 +885,7 @@
     "description": "Line under Message for urgent problems."
   },
   "feedbackUrgentTextPlaceholder": {
-    "message": "Urgent? Call the helpdesk on 03 123 45 67.",
+    "message": "Urgent? Call the helpdesk on +00 000 00 00 00.",
     "description": "Example text in the empty Message for urgent problems field. The phone number is made up."
   },
   "feedbackUrgentTextInvalid": {

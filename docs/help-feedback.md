@@ -184,7 +184,7 @@ Then fill in:
 - **Default priority**: the priority a new report starts with.
 - **Message for urgent problems**: a short line shown above the priority when
   someone picks the last priority in the list, for example *Urgent? Call the
-  helpdesk on 03 123 45 67.* It is only
+  helpdesk on +00 000 00 00 00.* It is only
   a hint on screen: it does not go into the report. Leave it empty for no
   message. One line, at most 200 characters.
 - **Link (optional)**: makes that message a link people can click: an address

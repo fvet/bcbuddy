@@ -22,8 +22,8 @@ Windows Registry Editor Version 5.00
 ;"feedbackDefaultPriority"="Normal"
 ;"feedbackSubjectBug"="[{prio}] Problem in {company} ({environment})"
 ;"feedbackSubjectIdea"="Idea for {company}"
-;"feedbackUrgentText"="Urgent? Call the helpdesk on 03 123 45 67."
-;"feedbackUrgentLink"="tel:+3231234567"
+;"feedbackUrgentText"="Urgent? Call the helpdesk on +00 000 00 00 00."
+;"feedbackUrgentLink"="tel:+00 000 00 00 00"
 
 ; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackPriorities]
 ;"1"="Low"
@@ -31,7 +31,7 @@ Windows Registry Editor Version 5.00
 ;"3"="Urgent"
 
 ; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackTranslations\nl]
-;"urgentText"="Dringend? Bel de helpdesk op 03 123 45 67."
+;"urgentText"="Dringend? Bel de helpdesk op +00 000 00 00 00."
 ; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackTranslations\nl\priorities]
 ;"1"="Laag"
 ;"2"="Normaal"
@@ -46,8 +46,8 @@ Windows Registry Editor Version 5.00
 ;"feedbackDefaultPriority"="Normal"
 ;"feedbackSubjectBug"="[{prio}] Problem in {company} ({environment})"
 ;"feedbackSubjectIdea"="Idea for {company}"
-;"feedbackUrgentText"="Urgent? Call the helpdesk on 03 123 45 67."
-;"feedbackUrgentLink"="tel:+3231234567"
+;"feedbackUrgentText"="Urgent? Call the helpdesk on +00 000 00 00 00."
+;"feedbackUrgentLink"="tel:+00 000 00 00 00"
 
 ; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackPriorities]
 ;"1"="Low"
@@ -55,7 +55,7 @@ Windows Registry Editor Version 5.00
 ;"3"="Urgent"
 
 ; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackTranslations\nl]
-;"urgentText"="Dringend? Bel de helpdesk op 03 123 45 67."
+;"urgentText"="Dringend? Bel de helpdesk op +00 000 00 00 00."
 ; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackTranslations\nl\priorities]
 ;"1"="Laag"
 ;"2"="Normaal"

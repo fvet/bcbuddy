@@ -263,7 +263,7 @@
   "feedbackNotTranslated": { "message": "Nog geen tekst in $1: wie die taal gebruikt, ziet de tekst van een andere taal." },
   "feedbackUrgentTextLabel": { "message": "Bericht bij dringende problemen" },
   "feedbackUrgentTextDesc": { "message": "Verschijnt als iemand de laatste prioriteit in de lijst kiest." },
-  "feedbackUrgentTextPlaceholder": { "message": "Dringend? Bel de helpdesk op 03 123 45 67." },
+  "feedbackUrgentTextPlaceholder": { "message": "Dringend? Bel de helpdesk op +00 000 00 00 00." },
   "feedbackUrgentTextInvalid": { "message": "Eén regel van hoogstens $1 tekens." },
   "feedbackUrgentLinkLabel": { "message": "Link (optioneel)" },
   "feedbackUrgentLinkDesc": { "message": "Een https://-adres, zoals een Teams-link, of tel: met een telefoonnummer." },

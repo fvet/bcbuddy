@@ -29,13 +29,13 @@ $FeedbackPriorities      = $null   # e.g. @('Low', 'Normal', 'Urgent'); @() hide
 $FeedbackDefaultPriority = $null   # one of the priorities, e.g. 'Normal'
 $FeedbackSubjectBug      = $null   # e.g. '[{prio}] Problem in {company} ({environment})'
 $FeedbackSubjectIdea     = $null
-$FeedbackUrgentText      = $null   # shown with the last priority, e.g. 'Urgent? Call the helpdesk on 03 123 45 67.'
-$FeedbackUrgentLink      = $null   # 'https://...' or 'tel:+3231234567'
+$FeedbackUrgentText      = $null   # shown with the last priority, e.g. 'Urgent? Call the helpdesk on +00 000 00 00 00.'
+$FeedbackUrgentLink      = $null   # 'https://...' or 'tel:+00 000 00 00 00'
 # The same texts per language (en, nl, fr), shown to people whose Business
 # Central is in that language. Each language may have priorities (as many as
 # above, in the same order), subjectBug, subjectIdea and urgentText; what it
 # leaves out uses the value above. $null to leave unset. For example:
-#   @{ nl = @{ priorities = @('Laag', 'Normaal', 'Dringend'); urgentText = 'Dringend? Bel de helpdesk op 03 123 45 67.' } }
+#   @{ nl = @{ priorities = @('Laag', 'Normaal', 'Dringend'); urgentText = 'Dringend? Bel de helpdesk op +00 000 00 00 00.' } }
 $FeedbackTranslations    = $null
 
 $keys = @(
