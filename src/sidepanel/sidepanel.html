@@ -82,7 +82,10 @@
 
       <!-- Built from the settings (help.js): the built-in list, the team's
            own, or not there at all. -->
-      <select id="help-prio" class="field select" data-i18n-label="spPriority" hidden></select>
+      <label class="prio" id="help-prio-row" hidden>
+        <span class="prio-label" data-i18n="spPriority">Priority</span>
+        <span class="select-wrap"><select id="help-prio" class="field select"></select></span>
+      </label>
 
       <!-- One entry per step: the screenshot and the text that was in the
            box when it was taken, still editable. -->

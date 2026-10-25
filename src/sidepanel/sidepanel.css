@@ -181,7 +181,19 @@ kbd {
 }
 .rich:empty::before { content: attr(data-placeholder); color: var(--faint); pointer-events: none; }
 .desc { min-height: calc(10 * 1.45em + 14px); max-height: 60vh; }
-.select { display: block; width: 100%; height: 32px; padding: 0 8px; }
+.select { display: block; width: 100%; height: 32px; padding: 0 32px 0 8px; appearance: none; cursor: pointer; }
+/* The label on the same row says what the field is; the chevron is drawn
+   here, larger than the browser's own and in the theme's colour. */
+.prio { display: flex; align-items: center; gap: 10px; }
+.prio[hidden] { display: none; }
+.prio-label { flex: none; font-size: 13px; font-weight: 600; color: var(--text); }
+.select-wrap { position: relative; flex: 1; min-width: 0; }
+.select-wrap::after {
+  content: ''; position: absolute; right: 12px; top: 50%;
+  width: 7px; height: 7px; margin-top: -6px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg); pointer-events: none;
+}
 .select:focus { outline: 2px solid var(--accent-color); outline-offset: -1px; }
 .select.unset { color: var(--faint); }
 .select option { color: var(--text); }

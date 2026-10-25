@@ -278,10 +278,11 @@
     if (priorityWanted !== null && (priorityWanted === '' || values.indexOf(priorityWanted) !== -1)) priority = priorityWanted;
     else priority = def;
     if (!opts.length) priority = '';
-    sel.hidden = !opts.length;
+    $('help-prio-row').hidden = !opts.length;
     sel.textContent = '';
-    // "Priority", for no choice, while the settings name no default.
-    if (!def) sel.appendChild(option('', t('spPriority')));
+    // A dash for no choice, while the settings name no default; the label
+    // beside the field says what it is.
+    if (!def) sel.appendChild(option('', '—'));
     opts.forEach(function (o) { sel.appendChild(option(o.value, o.label)); });
     sel.value = priority;
     sel.classList.toggle('unset', !priority);
