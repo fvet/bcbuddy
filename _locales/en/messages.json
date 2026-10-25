@@ -952,6 +952,14 @@
     "message": "What would you like to improve? What would you like to see differently?",
     "description": "Placeholder inside the empty message box of feedback or a suggestion, also its accessible name."
   },
+  "spDraftSaved": {
+    "message": "Draft saved",
+    "description": "Next to the hint under the message box: the report in progress is kept, also when the panel closes."
+  },
+  "spDraftNotSaved": {
+    "message": "Not saved: too large",
+    "description": "Next to the hint under the message box when the report is too large to keep; it stays only while the panel is open."
+  },
   "spDescHint": {
     "message": "Add a screenshot of every step.",
     "description": "Hint under the message box, for problems and feedback alike."

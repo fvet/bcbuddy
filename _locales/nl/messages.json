@@ -280,6 +280,8 @@
   "spOpenSettings": { "message": "Instellingen openen" },
   "spDescPlaceholder": { "message": "Wat ging er mis? Wat was je aan het doen…" },
   "spDescPlaceholderImp": { "message": "Wat wil je verbeteren? Wat zou je graag anders zien?" },
+  "spDraftSaved": { "message": "Concept bewaard" },
+  "spDraftNotSaved": { "message": "Niet bewaard: te groot" },
   "spDescHint": { "message": "Voeg van elke stap een schermafbeelding toe." },
   "spPriority": { "message": "Prioriteit" },
   "spPrioNormal": { "message": "Normaal" },

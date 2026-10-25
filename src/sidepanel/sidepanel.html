@@ -101,7 +101,12 @@
         <!-- A text box with bold, italic and underline (Ctrl+B, I, U). The
              guidance is the placeholder, drawn by CSS from data-placeholder. -->
         <div id="help-desc" class="field desc rich" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true"></div>
-        <p class="note" id="help-desc-hint" data-i18n="spDescHint">Add a screenshot of every step.</p>
+        <div class="hint-row">
+          <p class="note" id="help-desc-hint" data-i18n="spDescHint">Add a screenshot of every step.</p>
+          <!-- Says the report in progress is kept (chrome.storage.session),
+               so closing the panel feels safe. -->
+          <p class="note saved" id="help-saved" role="status" hidden></p>
+        </div>
         <div class="row shots">
           <button type="button" class="btn grow tall" id="help-add-full" data-i18n-title="spFullPage">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>

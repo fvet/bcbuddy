@@ -179,7 +179,7 @@
       if (area === 'local' && changes[BCBuddy.STORAGE_KEY]) applySettings(changes[BCBuddy.STORAGE_KEY].newValue);
     });
 
-    chrome.storage.session.get(draftKey).then(function (obj) {
+    restored = chrome.storage.session.get(draftKey).then(function (obj) {
       restore(obj && obj[draftKey]);
     }).catch(function () { /* nothing kept */ });
 
@@ -198,10 +198,35 @@
    * start view stands for. A report in progress keeps its text and
    * screenshots when it comes back as the other type.
    */
-  function shown(val) {
+  function shown(val, fromEntry) {
     if (TYPES.indexOf(val) !== -1 && val !== type) { setType(val); saveLater(); }
     updateButtons();
     $('help-desc').focus();
+    // Someone who clicks Report a problem is usually looking at the problem:
+    // that screen becomes the first step by itself, once the draft is back
+    // and the tab in front turns out to be Business Central.
+    if (fromEntry && type === 'Bug') {
+      autoShot = true;
+      clearTimeout(autoShotTimer);
+      autoShotTimer = setTimeout(function () { autoShot = false; }, AUTO_SHOT_WAIT_MS);
+      restored.then(maybeAutoShot);
+    }
+  }
+
+  var restored = Promise.resolve();
+  var autoShot = false;
+  var autoShotTimer = 0;
+  // Long enough for the tab to answer; a tab switched to later gets no
+  // screenshot it was not asked for.
+  var AUTO_SHOT_WAIT_MS = 3000;
+
+  /** The automatic first screenshot, only into an empty report on BC. */
+  function maybeAutoShot() {
+    if (!autoShot) return;
+    if (hasContent() || busy || shots.length) { autoShot = false; return; }
+    if (!here.webClient) return; // refreshHere() calls again once it knows
+    autoShot = false;
+    addScreen(true);
   }
 
   /** The language changed: every text this file puts on screen again. */
@@ -210,6 +235,7 @@
     setType(type);
     renderPriorities();
     renderThumbs(true);
+    showSaved(savedState);
   }
 
   /** A handler that only runs for a real click, never for a scripted one. */
@@ -344,7 +370,8 @@
         next.environment = text(res.environment);
         next.company = text(res.company);
         updateButtons();
-      }, function () { /* no BC Buddy in that tab */ });
+        if (next.webClient) maybeAutoShot(); else autoShot = false;
+      }, function () { autoShot = false; /* no BC Buddy in that tab */ });
     }).catch(function () {});
   }
 
@@ -622,11 +649,28 @@
       shots: shots, desc: desc.get(),
       type: type, priority: priority
     };
-    chrome.storage.session.set(draft).catch(function () { /* over the quota: kept in the panel only */ });
+    chrome.storage.session.set(draft).then(function () {
+      showSaved(hasContent() ? 'saved' : '');
+    }, function () {
+      // Over the quota: kept in the panel only, and the user is told.
+      showSaved(hasContent() ? 'unsaved' : '');
+    });
+  }
+
+  /** '', 'saved' or 'unsaved': the line next to the hint under the box. */
+  var savedState = '';
+
+  function showSaved(state) {
+    savedState = state;
+    var el = $('help-saved');
+    el.hidden = !state;
+    el.classList.toggle('unsaved', state === 'unsaved');
+    el.textContent = state === 'saved' ? '✓ ' + t('spDraftSaved') : state === 'unsaved' ? t('spDraftNotSaved') : '';
   }
 
   function clearDraft() {
     clearTimeout(saveTimer);
+    showSaved('');
     chrome.storage.session.remove(draftKey).catch(function () {});
   }
 
@@ -740,7 +784,7 @@
       noteEl.setAttribute('aria-multiline', 'true');
       noteEl.spellcheck = true;
       var note = richBox(noteEl, function (m) { shot.note = m; saveLater(); });
-      note.setPlaceholder(t('spShotNote'));
+      note.setPlaceholder(shot.ask ? t(type === 'Bug' ? 'spDescPlaceholder' : 'spDescPlaceholderImp') : t('spShotNote'));
       noteEl.setAttribute('aria-label', t('spShotNoteLabel', i + 1));
       note.set(shot.note || []);
       row.appendChild(wrap); row.appendChild(noteEl);
@@ -915,7 +959,8 @@
     }).catch(function () { /* the tab went away */ });
   }
 
-  function addScreen() {
+  /** auto: the first screenshot BC Buddy took by itself (maybeAutoShot). */
+  function addScreen(auto) {
     if (shots.length >= MAX_SHOTS || !here.webClient) return;
     setStatus('help-status', '');
     var from = { title: here.title, url: here.url };
@@ -923,7 +968,7 @@
     captureTab().then(function (dataUrl) {
       return shrink(dataUrl).then(function (small) {
         setBusy(false);
-        addShot(small, from);
+        addShot(small, from, null, null, auto === true);
       });
     }).catch(function () {
       setBusy(false);
@@ -1002,17 +1047,22 @@
    * A new step: the screenshot, with what is in the box as its note. The
    * box empties for the next step.
    */
-  function addShot(dataUrl, from, orig, ann) {
+  function addShot(dataUrl, from, orig, ann, auto) {
     if (shots.length >= MAX_SHOTS) return;
     var shot = { dataUrl: dataUrl, title: from.title, url: from.url, note: trimModel(desc.get()) };
     if (orig && ann && ann.length) { shot.orig = orig; shot.ann = ann; }
+    // The automatic first screenshot asks what went wrong in its own note,
+    // so the description goes with that screen rather than after it.
+    if (auto) shot.ask = true;
     shots.push(shot);
     desc.clear();
     renderThumbs();
     // The list scrolls on its own: show the step just added.
     var list = $('help-thumbs');
     list.scrollTop = list.scrollHeight;
-    $('help-desc').focus();
+    var notes = list.querySelectorAll('.shot-note');
+    if (auto && notes.length) notes[notes.length - 1].focus();
+    else $('help-desc').focus();
   }
 
   /** Cuts the selected area out of a capture; the rect is in the page's CSS pixels. */

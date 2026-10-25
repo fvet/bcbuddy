@@ -212,6 +212,11 @@ kbd {
 .select.unset { color: var(--faint); }
 .select option { color: var(--text); }
 .card .note { margin: 6px 0 0; }
+.hint-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.hint-row > .note { min-width: 0; }
+.note.saved { flex: none; white-space: nowrap; }
+.note.saved[hidden] { display: none; }
+.note.saved.unsaved { color: var(--warn-text); }
 
 .warn {
   margin: 0;

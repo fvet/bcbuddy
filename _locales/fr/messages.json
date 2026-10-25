@@ -280,6 +280,8 @@
   "spOpenSettings": { "message": "Ouvrir les paramètres" },
   "spDescPlaceholder": { "message": "Qu'est-ce qui n'a pas fonctionné ? Que faisiez-vous…" },
   "spDescPlaceholderImp": { "message": "Que souhaitez-vous améliorer ? Que voudriez-vous voir autrement ?" },
+  "spDraftSaved": { "message": "Brouillon enregistré" },
+  "spDraftNotSaved": { "message": "Non enregistré : trop volumineux" },
   "spDescHint": { "message": "Ajoutez une capture d'écran de chaque étape." },
   "spPriority": { "message": "Priorité" },
   "spPrioNormal": { "message": "Normale" },

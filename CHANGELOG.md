@@ -31,7 +31,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Help & feedback.** Report a problem to your helpdesk, or send feedback or
   a suggestion, without leaving Business Central. Click the BC Buddy icon in
   the top bar, or in the browser's toolbar, and pick **Report a problem** or
-  **Feedback or a suggestion**: a panel opens next to the page. Write what you
+  **Feedback or a suggestion**: a panel opens next to the page. A problem
+  report starts with a screenshot of the screen you are on. Write what you
   did step by step, with a screenshot of each step (the whole screen or just
   the part that matters), and make words bold, italic or underlined with
   Ctrl+B, Ctrl+I or Ctrl+U. Drag a screenshot up or down to change the order
@@ -45,7 +46,7 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   **Copy** puts it on the clipboard. The report says when it was made and
   which tenant, environment and company you were in, with the page address
   of every step. It stays while you move around Business Central or close
-  the panel; **Close** throws it away. Off until you switch on **Use Help &
+  the panel (**Draft saved** says so); **Close** throws it away. Off until you switch on **Use Help &
   feedback** under **Help & feedback**.
 - **Set up Help & feedback for your team.** Under **Help & feedback** you set
   the helpdesk's email address, the priorities people can pick and the one a

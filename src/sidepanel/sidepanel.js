@@ -186,7 +186,9 @@
     showTitle();
     if (want === 'help') {
       BCBuddy.HelpPanel.start(windowId);
-      BCBuddy.HelpPanel.shown(helpType);
+      // Opened from an entry on the start view (a click): the report may take
+      // its first screenshot by itself.
+      BCBuddy.HelpPanel.shown(helpType, !!type);
     }
     try { (port || panelPort).postMessage({ type: 'shown', view: want }); } catch (e) { /* reconnecting */ }
   }

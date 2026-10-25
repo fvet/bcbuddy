@@ -23,7 +23,12 @@ The BC Buddy icon in the browser toolbar opens the same panel.
 
 The panel stays open while you move around Business Central, and it is never
 in your screenshots. Closed it by accident? Open it again: your report is
-still there.
+still there. **Draft saved** under the box tells you it is kept.
+
+When you click **Report a problem**, BC Buddy takes a screenshot of the
+screen you are on straight away, as the first step: that is usually the
+screen with the problem. Type what went wrong in the box next to it. Not the
+right screen? Remove it with the **×** on the screenshot.
 
 ## Three steps
 
