@@ -865,7 +865,7 @@
     "description": "Label of the field with a short message from IT, shown in the report form when someone picks the most urgent priority."
   },
   "feedbackUrgentTextDesc": {
-    "message": "Shown when someone picks the last priority in the list. It does not go into the report.",
+    "message": "Shown when someone picks the last priority in the list.",
     "description": "Line under Message for urgent problems."
   },
   "feedbackUrgentTextPlaceholder": {
@@ -955,6 +955,10 @@
   "spDraftNotSaved": {
     "message": "Not saved: too large",
     "description": "Under the message box when the report is too large to keep; it stays only while the panel is open."
+  },
+  "spDescNext": {
+    "message": "Describe the next step and add a screenshot of it.\n\nClick $1 to finish.",
+    "description": "Placeholder inside the empty message box once there is a screenshot. $1 is the button that sends the report: Email, or Download when no helpdesk address is set. Keep the empty line."
   },
   "spDescHint": {
     "message": "Add a screenshot of every step.",

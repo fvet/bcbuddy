@@ -28,7 +28,10 @@
  * Cost: one observer on the top window's body (subtree) while the icon is
  * wanted. BC's grids live in the iframe's document, so the top window only
  * changes when the shell opens a pane or redraws its bar; each change costs
- * one getElementById. Everything else runs when the panel opens, and again
+ * one getElementById. A ResizeObserver on the top bar's row (three or four
+ * boxes) hides the icon where the bar has no room for it; it fires only when
+ * the window or the shell's buttons change size. Everything else runs when
+ * the panel opens, and again
  * when BC swaps the page under an open panel: while it is open, an observer
  * on the direct children of each .spa-container (no subtree) notices that.
  */
@@ -411,6 +414,23 @@
   }
 
   /**
+   * Whether our icon has room in the shell's top bar: shown, the buttons end
+   * inside their row; hidden, the stretching gap before the buttons is at
+   * least width wide. Reads layout only. True when the bar is not shaped as
+   * we know, so the icon stays where it was.
+   */
+  function iconFits(icon, width) {
+    var buttons = icon.parentNode;
+    var row = buttons && buttons.parentNode;
+    var gap = buttons && buttons.previousElementSibling;
+    if (!row || !gap) return true;
+    if (icon.style.display !== 'none') {
+      return buttons.getBoundingClientRect().right <= row.getBoundingClientRect().right + 0.5;
+    }
+    return gap.getBoundingClientRect().width >= width - 0.5;
+  }
+
+  /**
    * Puts the panel at left, top, kept inside the window with at least
    * MIN_SHOWN px of it in view. Returns where it went, as { left, top }.
    */
@@ -482,6 +502,9 @@
     var detached = false;
     var observer = null;
     var spot = null;
+    // Keeps the icon out of the way when the bar is full; see watchFit().
+    var fit = null;
+    var iconWidth = 48;
 
     if (options.icon) {
       observer = new win.MutationObserver(insertIcon);
@@ -504,6 +527,33 @@
       // Just before the Settings gear when it sits next to Help, else before Help.
       var gear = doc.getElementById(GEAR_ID);
       help.parentNode.insertBefore(icon, gear && gear.parentNode === help.parentNode ? gear : help);
+      watchFit(icon);
+    }
+
+    // The shell decides from the window width which of its buttons fit and
+    // when the rest go under "...", without counting ours. So our icon only
+    // takes room the bar has spare: the stretching gap (#centerRegion) between
+    // the title and the buttons. Where that gap is too small the icon steps
+    // aside, else the buttons would run over the user's name.
+    function watchFit(icon) {
+      if (fit) fit.disconnect();
+      fit = null;
+      var row = icon.parentNode.parentNode;
+      if (!row || !win.ResizeObserver) return;
+      // Resizes only: the window, the shell showing or hiding a button, the
+      // title changing. Three or four boxes, never the grid.
+      fit = new win.ResizeObserver(function () { fitIcon(icon); });
+      for (var i = 0; i < row.children.length; i++) fit.observe(row.children[i]);
+      fit.observe(row);
+      fitIcon(icon);
+    }
+
+    function fitIcon(icon) {
+      if (!icon.isConnected) return;
+      var shown = icon.style.display !== 'none';
+      if (shown) iconWidth = icon.getBoundingClientRect().width || iconWidth;
+      var fits = iconFits(icon, iconWidth);
+      if (fits !== shown) icon.style.display = fits ? '' : 'none';
     }
 
     function setExpanded(value) {
@@ -656,6 +706,7 @@
       detached = true;
       hide(false);
       if (observer) observer.disconnect();
+      if (fit) fit.disconnect();
       var icon = doc.getElementById(ICON_ID);
       if (icon) icon.remove();
     }
@@ -675,6 +726,7 @@
     DOCS: DOCS,
     tooltipKey: tooltipKey,
     keyParts: keyParts,
+    iconFits: iconFits,
     pageActions: pageActions,
     context: context,
     sections: sections,

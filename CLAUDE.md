@@ -14,96 +14,23 @@ Exceptions that stay Dutch or French on purpose:
 
 ## Documentation
 
-`README.md` and `docs/` describe the same features for different readers, so a
-behaviour change usually touches both. Check the counterpart in the same commit:
+Read the **Documentation rules** section of [DEVELOPMENT.md](DEVELOPMENT.md)
+before you add or change a feature, switch, setting, label or screenshot, or
+edit `README.md`, `docs/`, `store/`, `CHANGELOG.md`, `extDescription` or
+`marketing/`. It holds the README-to-site map, the writing style, the store
+listing rules, the `CHANGELOG.md` rules and the new-feature checklist. Skip it
+for pure code, test or workflow work.
 
-| README section | Site page |
-|---|---|
-| Getting started | `docs/getting-started.md` |
-| Web client | `docs/web-client.md` |
-| Environment colours | `docs/matching.md`, `docs/styles.md` |
-| Sharing settings with your team | `docs/sharing.md`, `docs/intune.md` |
-| Troubleshooting | `docs/troubleshooting.md` |
-| Installing | `docs/index.md` |
+Two rules stay here because they apply to every change:
 
-The README is the short version, not a recap of the site: each section a few
-lines, at most one screenshot, and a link to its site page. Details, edge cases,
-IT setup and the full troubleshooting list live in `docs/` only. The *Web
-client* table is the exception: every switch keeps its row there.
-
-Write both for back-office users and data clerks with little IT or BC
-background. Plain words, short steps, the UI's own labels in bold; technical
-detail (URL fields, RegEx, on-premises, JSON) goes at the bottom of a page or in
-a collapsed block. Getting started stays three short steps. Web client
-improvements come before environment colours, everywhere: README, `docs/`,
-`store/` and UI strings. Installing goes through the Chrome Web Store only;
-loading from source belongs under *For developers* in the README, nowhere on
-the site.
-
-The store listing (`store/description-*.txt`, and `extDescription` in
-`_locales/*/messages.json` for the 132-character summary) is a pitch, not a
-manual. Open with a one-line hook, put each part under a short heading that
-names what people gain, keep every bullet to one line, and close with a short
-checklist of facts (where it runs, languages, free). Switches that start off go
-in one "want more?" line, not among the things that work straight away. Leave
-out setup for IT or admins (Intune, policies, a managed shared file): that
-belongs in `docs/`. Keep English, Dutch and French saying the same thing.
-
-New functionality gets a line under `## Unreleased` in `CHANGELOG.md`, in the
-same commit that adds it: a new feature or switch, or a fix people notice. Small
-changes to how existing settings and screens look or behave stay out: a
-different default, a reworded label, a slider in place of a field, a control
-moved or dropped. So do build, CI, dependency and refactoring work. That file is
-for users, so it is written in their words and about what they see. The
-release workflow dates the `Unreleased` section, uses it as
-the GitHub release body and opens an empty one for next time — so an entry that
-was never written is a release note nobody gets.
-
-A new feature or switch is not done until every place that lists features has
-it. Go through this list before calling it finished, and say which items you
-skipped and why:
-
-- `README.md`: a row in the feature table and its own section.
-- `docs/`: the same on the counterpart page from the table above.
-- `CHANGELOG.md`: a line under `## Unreleased`.
-- `store/` and `extDescription`: only when it works straight away; a switch
-  that starts off goes in the "want more?" line.
-- The marketing deck (`marketing/deck/`): a slide in the order of
-  `docs/web-client.md`, made with the recipe in `marketing/README.md`. The
-  screenshots need the maintainer at Chrome, so ask for them instead of
-  leaving the slide out. Skip it only when there is nothing to see in a
-  screenshot, as with *Hide the notifications icon* and *Turn off animations*.
-- The same screenshots on the feature's section in `docs/web-client.md`:
-  "With BC Buddy" and "Without BC Buddy" tabs pointing at
-  `assets/screenshots/`, which the MkDocs hook serves from
-  `marketing/screenshots/`. Never copy them into `docs/`.
-- A Web client switch gets an icon in `icons/settings/`, shown on its options
-  row, its card in `docs/web-client.md` and its row in the README table. Draw,
-  colour and wire it up as *Setting icons* in `DEVELOPMENT.md` says: three
-  drafts in that style for the maintainer to pick from, not an icon taken
-  as-is from a library, and never a second copy of the drawing.
-
-Beta features stay out of every document. Ctrl+click / middle-click to open a
-link in a new tab (`src/lib/newtab.js`) is beta and undocumented on purpose:
-never mention it in `README.md`, `docs/`, `CHANGELOG.md`, `DEVELOPMENT.md`,
-`store/`, `marketing/`, release notes or UI strings, and give it no switch in the options,
-until the maintainer says it leaves beta. Its notes live in the code comments
-at the top of `newtab.js`.
-
-`DEVELOPMENT.md` is contributor-facing and overlaps neither; it drifts against
-code rather than against prose, so re-read it when `.github/workflows/`,
-`mkdocs.yml`, `manifest.json`, or the release or permission story changes.
-
-Prefer single sourcing over a second copy wherever it is cheap. `docs/privacy.md`
-and `docs/whats-new.md` are `pymdownx.snippets` includes of `PRIVACY.md` and
-`CHANGELOG.md`, and `tools/mkdocs_assets.py` adds the `store/` screenshots, the
-deck's screenshots in `marketing/screenshots/` and `examples/bc-buddy.json` to
-the MkDocs build instead of duplicating them.
-
-`docs/whats-new.md` includes only the `released` section of `CHANGELOG.md`, the
-part below the `<!-- --8<-- [start:released] -->` marker. Leave that marker
-directly under `## Unreleased`: the release workflow matches on it, and it is
-what keeps unreleased notes off the site.
+- Every new feature, switch or noticeable fix gets a line under `## Unreleased`
+  in `CHANGELOG.md`, in the same commit.
+- Beta features stay out of every document. Ctrl+click / middle-click to open a
+  link in a new tab (`src/lib/newtab.js`) is beta and undocumented on purpose:
+  never mention it in `README.md`, `docs/`, `CHANGELOG.md`, `DEVELOPMENT.md`,
+  `store/`, `marketing/`, release notes or UI strings, and give it no switch in
+  the options, until the maintainer says it leaves beta. Its notes live in the
+  code comments at the top of `newtab.js`.
 
 ## Performance
 

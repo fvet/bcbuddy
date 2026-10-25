@@ -719,11 +719,15 @@
   }
 
   /**
-   * The guidance in the empty message box: the question, which follows the
-   * type ("what went wrong" makes no sense for a suggestion), and on its own
-   * line the ask for a screenshot of every step.
+   * The guidance in the empty message box, leading from the first step to
+   * sending. Before the first screenshot: the question, which follows the
+   * type ("what went wrong" makes no sense for a suggestion), and the ask
+   * for a screenshot of every step. After it: describe the next step, and
+   * how to finish, naming the button that sends (Download without an
+   * address).
    */
   function descPlaceholder() {
+    if (shots.length) return t('spDescNext', t(cachedEmail ? 'spSend' : 'spSaveReport'));
     return t(type === 'Bug' ? 'spDescPlaceholder' : 'spDescPlaceholderImp') + '\n' + t('spDescHint');
   }
 
@@ -755,6 +759,8 @@
     ['help-send', 'help-dl', 'help-close', 'help-send-more'].forEach(function (id) {
       $(id).classList.toggle('primary', !first && (id === main || id === 'help-send-more'));
     });
+    // The guidance in the box follows the steps (descPlaceholder()).
+    desc.setPlaceholder(descPlaceholder());
     $('help-max').hidden = !atLimit;
     $('help-max').textContent = atLimit ? t('spMaxShots', MAX_SHOTS) : '';
     $('help-discard').hidden = !ok || $('view-help').hidden;

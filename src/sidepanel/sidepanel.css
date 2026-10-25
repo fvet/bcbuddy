@@ -188,7 +188,9 @@ kbd {
   cursor: text;
 }
 .rich:empty::before { content: attr(data-placeholder); color: var(--faint); pointer-events: none; }
-.desc { min-height: calc(10 * 1.45em + 14px); max-height: 60vh; }
+/* Ten lines to start with; it grows with the text up to fifteen lines or
+   half the panel, whichever is less, and scrolls after that. */
+.desc { min-height: min(calc(10 * 1.45em + 14px), 50vh); max-height: min(calc(15 * 1.45em + 14px), 50vh); }
 .select { display: block; width: 100%; height: 32px; padding: 0 32px 0 8px; appearance: none; cursor: pointer; }
 /* The priority: one box with the label inside, before the choice, so it
    reads as "Priority  Critical". The chevron is drawn here, larger than the

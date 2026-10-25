@@ -90,6 +90,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Striped rows** now cover the whole row in lists shown inside a page, such
   as the one on **Performance Profiler**. Before, only the narrow column with
   the **⋮** button got the grey.
+- **No more overlap in the top bar.** In a narrower window the BC Buddy icon
+  pushed Business Central's buttons over your name. Where the bar has no room
+  for it, the icon now steps aside until the window is wide enough again.
 
 <!-- --8<-- [start:released] -->
 
