@@ -26,7 +26,8 @@
   var xhr = new XMLHttpRequest();
   xhr.open('GET', '../../_locales/' + (new URLSearchParams(location.search).get('lang') || 'en') + '/messages.json', false); xhr.send();
   var msgs = JSON.parse(xhr.responseText);
-  var local = { settings: { enabled: true, webClientEnabled: true, feedbackEnabled: true, feedbackEmail: 'help@example.com' } };
+  var local = { settings: { enabled: true, webClientEnabled: true, feedbackEnabled: true, feedbackEmail: 'help@example.com',
+    feedbackUrgentText: 'Urgent? Call the helpdesk on 03 123 45 67.', feedbackUrgentLink: 'tel:+3231234567' } };
   var session = {};
   window.__log = [];
   window.__files = [];

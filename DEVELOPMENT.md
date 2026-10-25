@@ -135,6 +135,16 @@ The **Help & feedback** settings, listed in `FEEDBACK_KEYS` and normalised by
   problem and for feedback, one line of at most 200 characters with the
   placeholders `{prio}` `{type}` `{company}` `{environment}` `{tenant}`
   `{title}`, or `''` for the built-in one.
+- `feedbackUrgentText` — the notice the side panel shows under the priority
+  while the last value of the effective priority list is picked: one line of
+  at most 200 characters, or `''` for none. Shown with `textContent`, never
+  put in the report.
+- `feedbackUrgentLink` — `''` or the link on that notice, through
+  `cleanUrgentLink()`: an `https:` URL of at most 500 characters (parsed with
+  `URL()`, stored as its `href`, no whitespace, user name or password) or
+  `tel:` followed by at most 30 of `+`, digits, spaces, `(`, `)`, `-`, `.`.
+  Anything else is `''`. The side panel checks it again before it sets the
+  `href`.
 
 Every text field goes through `plainText()`: a line break, control character
 or bidi override makes it invalid rather than repaired.

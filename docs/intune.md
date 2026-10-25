@@ -57,6 +57,8 @@ give it a value to set it and lock it.
 | `feedbackDefaultPriority` | String | The priority a report starts on; must be one of the priorities |
 | `feedbackSubjectBug` | String | The subject for a problem, with `{prio}` `{type}` `{company}` `{environment}` `{tenant}` `{title}` |
 | `feedbackSubjectIdea` | String | The subject for feedback, with the same placeholders |
+| `feedbackUrgentText` | String | The message shown when someone picks the last priority, one line of at most 200 characters |
+| `feedbackUrgentLink` | String | A link on that message: an `https://` address, or `tel:` with a phone number |
 
 A value BC Buddy cannot accept, such as an address that is not one email
 address, is ignored, and that setting stays free.

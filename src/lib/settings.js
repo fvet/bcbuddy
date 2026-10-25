@@ -26,6 +26,11 @@
   var MAX_PRIORITIES = 6;
   var MAX_PRIORITY_LENGTH = 40;
   var MAX_SUBJECT_LENGTH = 200;
+  // The notice shown when someone picks the most urgent priority, and the
+  // link it may carry: an https: address or a tel: number.
+  var MAX_URGENT_TEXT_LENGTH = 200;
+  var MAX_URGENT_LINK_LENGTH = 500;
+  var MAX_TEL_LENGTH = 30;
   // Line breaks, control characters and the bidi overrides that make text
   // read differently from what it holds. Text with any of them is refused.
   var UNSAFE_TEXT = /[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/;
@@ -34,7 +39,8 @@
   // FEEDBACK_KEYS, because it travels and locks with the rest of that area.
   var AREA_KEYS = ['webClientEnabled', 'environmentsEnabled'];
   var FEEDBACK_KEYS = ['feedbackEnabled', 'feedbackEmail', 'feedbackPriorities',
-    'feedbackDefaultPriority', 'feedbackSubjectBug', 'feedbackSubjectIdea'];
+    'feedbackDefaultPriority', 'feedbackSubjectBug', 'feedbackSubjectIdea',
+    'feedbackUrgentText', 'feedbackUrgentLink'];
 
   var BRAND_NAME = 'Dynamics 365 Business Central';
   var DEFAULT_RIBBON_TEXT = BRAND_NAME + ' - {company} ({environment})';
@@ -525,6 +531,34 @@
     return plainText(value, MAX_SUBJECT_LENGTH) || '';
   }
 
+  /** The notice for the most urgent priority: one line of plain text, or ''. */
+  function cleanUrgentText(value) {
+    return plainText(value, MAX_URGENT_TEXT_LENGTH) || '';
+  }
+
+  /**
+   * The link on that notice, or '' for none. Only two kinds pass: an https:
+   * address without spaces or a user name or password in it, and a tel:
+   * number of digits, spaces, +, (, ), - and dots. Anything else (http:,
+   * javascript:, data:, mailto:, ...) is '', so the notice has no link.
+   */
+  function cleanUrgentLink(value) {
+    if (typeof value !== 'string') return '';
+    var s = value.trim();
+    if (!s || UNSAFE_TEXT.test(s)) return '';
+    if (/^tel:/i.test(s)) {
+      var number = s.slice(4);
+      if (!number || number.length > MAX_TEL_LENGTH) return '';
+      if (!/^[+0-9 ().\-]+$/.test(number) || !/[0-9]/.test(number)) return '';
+      return 'tel:' + number;
+    }
+    if (s.length > MAX_URGENT_LINK_LENGTH || /\s/.test(s) || !/^https:\/\//i.test(s)) return '';
+    var url;
+    try { url = new URL(s); } catch (e) { return ''; }
+    if (url.protocol !== 'https:' || !url.hostname || url.username || url.password) return '';
+    return url.href.length > MAX_URGENT_LINK_LENGTH ? '' : url.href;
+  }
+
   /**
    * The Help & feedback fields of stored settings, each checked. A default
    * priority that was never stored is Normal; one that is not in the list is
@@ -540,7 +574,9 @@
       feedbackPriorities: priorities,
       feedbackDefaultPriority: cleanDefaultPriority(defaultPriority, priorities),
       feedbackSubjectBug: cleanSubject(s.feedbackSubjectBug),
-      feedbackSubjectIdea: cleanSubject(s.feedbackSubjectIdea)
+      feedbackSubjectIdea: cleanSubject(s.feedbackSubjectIdea),
+      feedbackUrgentText: cleanUrgentText(s.feedbackUrgentText),
+      feedbackUrgentLink: cleanUrgentLink(s.feedbackUrgentLink)
     };
   }
 
@@ -573,6 +609,12 @@
     ['feedbackSubjectBug', 'feedbackSubjectIdea'].forEach(function (key) {
       if (typeof data[key] === 'string') take(key, cleanSubject(data[key]));
     });
+    if (typeof data.feedbackUrgentText === 'string') {
+      take('feedbackUrgentText', cleanUrgentText(data.feedbackUrgentText));
+    }
+    if (typeof data.feedbackUrgentLink === 'string') {
+      take('feedbackUrgentLink', cleanUrgentLink(data.feedbackUrgentLink));
+    }
     return picked;
   }
 
@@ -1282,6 +1324,10 @@
       var subject = cleanSubject(policy[key]);
       if (subject) values[key] = subject;
     });
+    var urgentText = cleanUrgentText(policy.feedbackUrgentText);
+    if (urgentText) values.feedbackUrgentText = urgentText;
+    var urgentLink = cleanUrgentLink(policy.feedbackUrgentLink);
+    if (urgentLink) values.feedbackUrgentLink = urgentLink;
     return values;
   }
 
@@ -1380,6 +1426,8 @@
   BCBuddy.MAX_PRIORITIES = MAX_PRIORITIES;
   BCBuddy.MAX_PRIORITY_LENGTH = MAX_PRIORITY_LENGTH;
   BCBuddy.MAX_SUBJECT_LENGTH = MAX_SUBJECT_LENGTH;
+  BCBuddy.MAX_URGENT_TEXT_LENGTH = MAX_URGENT_TEXT_LENGTH;
+  BCBuddy.MAX_URGENT_LINK_LENGTH = MAX_URGENT_LINK_LENGTH;
   BCBuddy.isCorner = isCorner;
   BCBuddy.SYNC_INTERVAL_MINUTES = SYNC_INTERVAL_MINUTES;
   BCBuddy.syncIntervalMinutes = syncIntervalMinutes;
@@ -1444,6 +1492,8 @@
   BCBuddy.cleanPriorities = cleanPriorities;
   BCBuddy.cleanDefaultPriority = cleanDefaultPriority;
   BCBuddy.cleanSubject = cleanSubject;
+  BCBuddy.cleanUrgentText = cleanUrgentText;
+  BCBuddy.cleanUrgentLink = cleanUrgentLink;
   BCBuddy.priorityValues = priorityValues;
   BCBuddy.webClientDefaults = webClientDefaults;
   BCBuddy.webClientOf = webClientOf;

@@ -29,6 +29,8 @@ $FeedbackPriorities      = $null   # e.g. @('Low', 'Normal', 'Urgent'); @() hide
 $FeedbackDefaultPriority = $null   # one of the priorities, e.g. 'Normal'
 $FeedbackSubjectBug      = $null   # e.g. '[{prio}] {type} in {company} ({environment})'
 $FeedbackSubjectIdea     = $null
+$FeedbackUrgentText      = $null   # shown with the last priority, e.g. 'Urgent? Call the helpdesk on 03 123 45 67.'
+$FeedbackUrgentLink      = $null   # 'https://...' or 'tel:+3231234567'
 
 $keys = @(
   "HKLM:\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\$Id\policy",
@@ -45,6 +47,8 @@ $texts = @{
   feedbackDefaultPriority = $FeedbackDefaultPriority
   feedbackSubjectBug      = $FeedbackSubjectBug
   feedbackSubjectIdea     = $FeedbackSubjectIdea
+  feedbackUrgentText      = $FeedbackUrgentText
+  feedbackUrgentLink      = $FeedbackUrgentLink
 }
 
 foreach ($key in $keys) {

@@ -1836,6 +1836,8 @@ function assertFeedback() {
   var pick = document.getElementById('feedbackDefaultPriority');
   var bug = document.getElementById('feedbackSubjectBug');
   var idea = document.getElementById('feedbackSubjectIdea');
+  var urgentText = document.getElementById('feedbackUrgentText');
+  var urgentLink = document.getElementById('feedbackUrgentLink');
   function options() {
     return Array.prototype.map.call(pick.options, function (o) { return [o.value, o.textContent]; });
   }
@@ -1908,6 +1910,38 @@ function assertFeedback() {
     return type(document.getElementById('feedbackEmail'), 'helpdesk@example.com');
   }).then(function () {
     check('feedback: the email is saved', STORE.settings.feedbackEmail, 'helpdesk@example.com');
+    check('urgent: both fields start empty, with an example as placeholder',
+      [urgentText.value, urgentLink.value, urgentText.placeholder, urgentLink.placeholder],
+      ['', '', chrome.i18n.getMessage('feedbackUrgentTextPlaceholder'),
+        chrome.i18n.getMessage('feedbackUrgentLinkPlaceholder')]);
+    truthy('urgent: the help says when it shows',
+      chrome.i18n.getMessage('feedbackUrgentTextDesc').indexOf('last priority') !== -1);
+    return type(urgentText, '  Urgent? Call 03 123 45 67. ');
+  }).then(function () {
+    check('urgent: the message is saved, trimmed', STORE.settings.feedbackUrgentText, 'Urgent? Call 03 123 45 67.');
+    return type(urgentText, 'a' + new Array(202).join('x'));
+  }).then(function () {
+    check('urgent: a message over 200 characters is not saved',
+      STORE.settings.feedbackUrgentText, 'Urgent? Call 03 123 45 67.');
+    truthy('urgent: and the field says why', urgentText.validationMessage.length > 0);
+    return type(urgentLink, 'javascript:alert(1)');
+  }).then(function () {
+    check('urgent: a javascript: link is not saved', STORE.settings.feedbackUrgentLink, '');
+    check('urgent: and the field says why', urgentLink.validationMessage,
+      chrome.i18n.getMessage('feedbackUrgentLinkInvalid'));
+    return type(urgentLink, 'http://example.com/');
+  }).then(function () {
+    check('urgent: an http: link is not saved', STORE.settings.feedbackUrgentLink, '');
+    return type(urgentLink, 'tel:+32 3 123 45 67');
+  }).then(function () {
+    check('urgent: a tel: link is saved', STORE.settings.feedbackUrgentLink, 'tel:+32 3 123 45 67');
+    return type(urgentLink, ' https://Example.com ');
+  }).then(function () {
+    check('urgent: an https: link is saved as it is stored',
+      [STORE.settings.feedbackUrgentLink, urgentLink.value], ['https://example.com/', 'https://example.com/']);
+    return type(urgentLink, '');
+  }).then(function () {
+    check('urgent: emptied, there is no link', STORE.settings.feedbackUrgentLink, '');
   });
 }
 
@@ -1927,9 +1961,19 @@ function assertLocks() {
     [email.readOnly, envs.disabled, noteFor('feedbackEmail').hidden, noteFor('environmentsEnabled').hidden],
     [false, false, true, true]);
 
-  return setPolicy({ feedbackEmail: 'it@example.com', environmentsEnabled: true }).then(function () {
+  var urgentLink = document.getElementById('feedbackUrgentLink');
+  var urgentText = document.getElementById('feedbackUrgentText');
+  return setPolicy({ feedbackEmail: 'it@example.com', environmentsEnabled: true,
+    feedbackUrgentLink: 'tel:+3231234567' }).then(function () {
     check('locks: what the policy sets is read-only',
       [email.readOnly, envs.disabled, web.disabled, bug.readOnly], [true, true, false, false]);
+    check('locks: the urgent link too, with its note; the message stays free',
+      [urgentLink.readOnly, noteFor('feedbackUrgentLink').hidden, urgentText.readOnly], [true, false, false]);
+    urgentLink.value = 'https://example.com/mine';
+    urgentLink.dispatchEvent(new Event('change'));
+    return wait(400);
+  }).then(function () {
+    check('locks: a change to the locked link is not saved', STORE.settings.feedbackUrgentLink, '');
     check('locks: with the same note as the shared file address',
       [noteFor('feedbackEmail').hidden, noteFor('feedbackEmail').textContent,
         noteFor('environmentsEnabled').hidden],

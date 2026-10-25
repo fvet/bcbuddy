@@ -848,6 +848,38 @@
     "message": "None",
     "description": "Choice in Default priority: a new report starts without a priority."
   },
+  "feedbackUrgentTextLabel": {
+    "message": "Message for urgent problems",
+    "description": "Label of the field with a short message from IT, shown in the report form when someone picks the most urgent priority."
+  },
+  "feedbackUrgentTextDesc": {
+    "message": "Shown when someone picks the last priority in the list. It does not go into the report.",
+    "description": "Line under Message for urgent problems."
+  },
+  "feedbackUrgentTextPlaceholder": {
+    "message": "Urgent? Call the helpdesk on 03 123 45 67.",
+    "description": "Example text in the empty Message for urgent problems field. The phone number is made up."
+  },
+  "feedbackUrgentTextInvalid": {
+    "message": "One line of at most $1 characters.",
+    "description": "$1 is a number. Shown when the message for urgent problems cannot be saved."
+  },
+  "feedbackUrgentLinkLabel": {
+    "message": "Link (optional)",
+    "description": "Label of the field with a link on the message for urgent problems."
+  },
+  "feedbackUrgentLinkDesc": {
+    "message": "An https:// address, such as a Teams link, or tel: with a phone number.",
+    "description": "Line under Link (optional). Keep https:// and tel: as they are."
+  },
+  "feedbackUrgentLinkPlaceholder": {
+    "message": "https://teams.microsoft.com/... or tel:+3231234567",
+    "description": "Example in the empty Link field. Keep the address and tel: as they are; only translate the word between them."
+  },
+  "feedbackUrgentLinkInvalid": {
+    "message": "Use an address that starts with https://, or tel: followed by a phone number.",
+    "description": "Shown when the link for urgent problems cannot be saved. Keep https:// and tel: as they are."
+  },
   "feedbackSubjectBugLabel": {
     "message": "Email subject for a problem",
     "description": "Label of the field with the subject line of a problem report."

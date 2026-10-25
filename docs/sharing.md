@@ -99,8 +99,8 @@ right helpdesk address. Settings the file leaves out stay free to change.
 ??? info "The keys"
 
     `feedbackEnabled`, `feedbackEmail`, `feedbackPriorities`,
-    `feedbackDefaultPriority`, `feedbackSubjectBug` and
-    `feedbackSubjectIdea`. What each one holds is on the
+    `feedbackDefaultPriority`, `feedbackSubjectBug`, `feedbackSubjectIdea`,
+    `feedbackUrgentText` and `feedbackUrgentLink`. What each one holds is on the
     [Help & feedback](help-feedback.md#the-same-settings-for-the-whole-team)
     page.
 

@@ -86,6 +86,9 @@
         <span class="prio-label" data-i18n="spPriority">Priority</span>
         <span class="select-wrap"><select id="help-prio" class="field select"></select></span>
       </label>
+      <!-- IT's own line for the most urgent priority (the last in the list),
+           filled with textContent by help.js; guidance only, not in the report. -->
+      <p class="warn" id="help-urgent" role="note" hidden></p>
 
       <!-- One entry per step: the screenshot and the text that was in the
            box when it was taken, still editable. -->

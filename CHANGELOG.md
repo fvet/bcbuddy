@@ -50,7 +50,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Set up Help & feedback for your team.** Under **Help & feedback** you set
   the helpdesk's email address, the priorities people can pick and the one a
   report starts with, and the email subjects, with `{prio}`, `{type}`,
-  `{company}`, `{environment}`, `{tenant}` and `{title}` filled in. Put them
+  `{company}`, `{environment}`, `{tenant}` and `{title}` filled in. You can
+  also add a short message, with a Teams link or phone number if you like,
+  that people see when they pick the most urgent priority. Put them
   in your team's shared file and everyone gets them; they then show **Set by
   your organisation.** and cannot be changed, also not by an import. IT can
   set them, and each part's switch, by policy too.

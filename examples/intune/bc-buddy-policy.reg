@@ -19,6 +19,8 @@ Windows Registry Editor Version 5.00
 ;"feedbackDefaultPriority"="Normal"
 ;"feedbackSubjectBug"="[{prio}] {type} in {company} ({environment})"
 ;"feedbackSubjectIdea"="{type} for {company}"
+;"feedbackUrgentText"="Urgent? Call the helpdesk on 03 123 45 67."
+;"feedbackUrgentLink"="tel:+3231234567"
 
 ; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackPriorities]
 ;"1"="Low"
@@ -34,6 +36,8 @@ Windows Registry Editor Version 5.00
 ;"feedbackDefaultPriority"="Normal"
 ;"feedbackSubjectBug"="[{prio}] {type} in {company} ({environment})"
 ;"feedbackSubjectIdea"="{type} for {company}"
+;"feedbackUrgentText"="Urgent? Call the helpdesk on 03 123 45 67."
+;"feedbackUrgentLink"="tel:+3231234567"
 
 ; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackPriorities]
 ;"1"="Low"

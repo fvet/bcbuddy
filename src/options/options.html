@@ -390,6 +390,24 @@
         </label>
         <label class="setting">
           <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackUrgentTextLabel">Message for urgent problems</span>
+            <span class="setting__desc" data-i18n="feedbackUrgentTextDesc">Shown when someone picks the last priority in the list. It does not go into the report.</span>
+            <span class="muted small lock-note" data-lock-note="feedbackUrgentText" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="text" id="feedbackUrgentText" data-lock="feedbackUrgentText" maxlength="200"
+                 data-i18n-placeholder="feedbackUrgentTextPlaceholder" placeholder="Urgent? Call the helpdesk on 03 123 45 67.">
+        </label>
+        <label class="setting">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackUrgentLinkLabel">Link (optional)</span>
+            <span class="setting__desc" data-i18n="feedbackUrgentLinkDesc">An https:// address, such as a Teams link, or tel: with a phone number.</span>
+            <span class="muted small lock-note" data-lock-note="feedbackUrgentLink" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="text" id="feedbackUrgentLink" data-lock="feedbackUrgentLink" spellcheck="false" maxlength="500"
+                 data-i18n-placeholder="feedbackUrgentLinkPlaceholder" placeholder="https://teams.microsoft.com/... or tel:+3231234567">
+        </label>
+        <label class="setting">
+          <span class="setting__text">
             <span class="setting__name" data-i18n="feedbackSubjectBugLabel">Email subject for a problem</span>
             <span class="muted small lock-note" data-lock-note="feedbackSubjectBug" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
           </span>

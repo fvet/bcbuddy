@@ -97,7 +97,9 @@
   var priorityWanted = null;
   var priority = '';
   // From the settings: null is the built-in list, [] hides the field.
-  var config = { priorities: null, defaultPriority: '', subjectBug: '', subjectIdea: '' };
+  // urgentText and urgentLink: IT's notice for the last priority in the list.
+  var config = { priorities: null, defaultPriority: '', subjectBug: '', subjectIdea: '',
+    urgentText: '', urgentLink: '' };
   // The area selection that runs: the tab it runs in, else null.
   var selectingTab = null;
   var desc = null;
@@ -246,6 +248,8 @@
     config.defaultPriority = oneLine(s.feedbackDefaultPriority, MAX_PRIORITY);
     config.subjectBug = oneLine(s.feedbackSubjectBug, MAX_SUBJECT_TEMPLATE);
     config.subjectIdea = oneLine(s.feedbackSubjectIdea, MAX_SUBJECT_TEMPLATE);
+    config.urgentText = BCBuddy.cleanUrgentText(s.feedbackUrgentText);
+    config.urgentLink = BCBuddy.cleanUrgentLink(s.feedbackUrgentLink);
     $('help-noaddr').hidden = !!cachedEmail;
     renderPriorities();
     updateButtons();
@@ -286,6 +290,35 @@
     opts.forEach(function (o) { sel.appendChild(option(o.value, o.label)); });
     sel.value = priority;
     sel.classList.toggle('unset', !priority);
+    renderUrgent(values);
+  }
+
+  /**
+   * IT's notice under the priority, only while the last (most urgent)
+   * priority of the list is picked. Guidance only: it never goes into the
+   * report. The text goes in with textContent; the link is checked once more
+   * with the settings' own check right before it is set, and left off when it
+   * does not pass.
+   */
+  function renderUrgent(values) {
+    var box = $('help-urgent');
+    var on = !!config.urgentText && values.length > 0 && priority === values[values.length - 1];
+    box.hidden = !on;
+    box.textContent = '';
+    if (!on) return;
+    var link = BCBuddy.cleanUrgentLink(config.urgentLink);
+    if (!link) {
+      box.textContent = config.urgentText;
+      return;
+    }
+    var a = document.createElement('a');
+    a.textContent = config.urgentText;
+    a.setAttribute('href', link);
+    if (link.indexOf('https:') === 0) {
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noopener noreferrer');
+    }
+    box.appendChild(a);
   }
 
   function option(value, label) {

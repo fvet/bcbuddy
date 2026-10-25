@@ -1568,7 +1568,8 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   var hdImport = BCBuddy.parseImport(JSON.stringify(hdExport)).feedback;
   check('feedback: export/import round trip', hdImport,
     { feedbackEnabled: true, feedbackEmail: 'help@example.com', feedbackPriorities: null,
-      feedbackDefaultPriority: 'Normal', feedbackSubjectBug: '', feedbackSubjectIdea: '' });
+      feedbackDefaultPriority: 'Normal', feedbackSubjectBug: '', feedbackSubjectIdea: '',
+      feedbackUrgentText: '', feedbackUrgentLink: '' });
   check('feedback: a colour in an older file is ignored',
     BCBuddy.parseImport('{"rules":[],"feedbackEnabled":true,"feedbackColor":"#107c10"}').feedback, { feedbackEnabled: true });
   check('feedback: a file without it says nothing', BCBuddy.parseImport(JSON.stringify(BCBuddy.toExport({}, 'X'))).feedback, null);
@@ -1617,11 +1618,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     ['Bug {title}', '']);
   var hdFull = BCBuddy.normalize({ webClientEnabled: true, feedbackEnabled: true, feedbackEmail: 'help@example.com',
     feedbackPriorities: ['Low', 'Urgent'], feedbackDefaultPriority: 'Urgent',
-    feedbackSubjectBug: '[{prio}] {title}', feedbackSubjectIdea: 'Idea: {title}' });
+    feedbackSubjectBug: '[{prio}] {title}', feedbackSubjectIdea: 'Idea: {title}',
+    feedbackUrgentText: 'Urgent? Call 03 123 45 67.', feedbackUrgentLink: 'tel:+32 3 123 45 67' });
   check('feedback: every field travels in an export and back',
     BCBuddy.parseImport(JSON.stringify(BCBuddy.toExport(hdFull, 'X'))).feedback,
     { feedbackEnabled: true, feedbackEmail: 'help@example.com', feedbackPriorities: ['Low', 'Urgent'],
-      feedbackDefaultPriority: 'Urgent', feedbackSubjectBug: '[{prio}] {title}', feedbackSubjectIdea: 'Idea: {title}' });
+      feedbackDefaultPriority: 'Urgent', feedbackSubjectBug: '[{prio}] {title}', feedbackSubjectIdea: 'Idea: {title}',
+      feedbackUrgentText: 'Urgent? Call 03 123 45 67.', feedbackUrgentLink: 'tel:+32 3 123 45 67' });
   check('feedback: changing only a subject counts as set up',
     'feedbackSubjectBug' in BCBuddy.toExport({ webClientEnabled: true, feedbackSubjectBug: 'X' }, 'X'), true);
   check('feedback: a file reads only what it names, checked',
@@ -1631,6 +1634,56 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     ['webClientEnabled', 'environmentsEnabled', 'enabled'].filter(function (key) {
       return key in BCBuddy.toExport(hdFull, 'X');
     }), []);
+
+  // Help & feedback: the notice for the most urgent priority and its link
+  check('urgent: no notice and no link by default', [hd.feedbackUrgentText, hd.feedbackUrgentLink], ['', '']);
+  check('urgent text: trimmed, two hundred characters fit',
+    [BCBuddy.cleanUrgentText(' Urgent? Call us. '), BCBuddy.cleanUrgentText('x'.repeat(200))],
+    ['Urgent? Call us.', 'x'.repeat(200)]);
+  check('urgent text: refused when too long, on two lines, with control or bidi characters, or no text',
+    [BCBuddy.cleanUrgentText('x'.repeat(201)), BCBuddy.cleanUrgentText('a\nb'), BCBuddy.cleanUrgentText('a\u2028b'),
+      BCBuddy.cleanUrgentText('a\u0000b'), BCBuddy.cleanUrgentText('a\u202eb'), BCBuddy.cleanUrgentText('a\u2066b'),
+      BCBuddy.cleanUrgentText(42), BCBuddy.cleanUrgentText(null), BCBuddy.cleanUrgentText({})],
+    ['', '', '', '', '', '', '', '', '']);
+  check('urgent link: https addresses kept, in their parsed form',
+    [BCBuddy.cleanUrgentLink(' https://teams.microsoft.com/l/chat/0/0?users=help@example.com '),
+      BCBuddy.cleanUrgentLink('HTTPS://Example.com/help'), BCBuddy.cleanUrgentLink('https://example.com')],
+    ['https://teams.microsoft.com/l/chat/0/0?users=help@example.com', 'https://example.com/help',
+      'https://example.com/']);
+  check('urgent link: tel numbers kept',
+    [BCBuddy.cleanUrgentLink('tel:+3231234567'), BCBuddy.cleanUrgentLink('TEL:03 123 45 67'),
+      BCBuddy.cleanUrgentLink('tel:+32 (0)3-123.45.67'), BCBuddy.cleanUrgentLink('tel:' + '1'.repeat(30))],
+    ['tel:+3231234567', 'tel:03 123 45 67', 'tel:+32 (0)3-123.45.67', 'tel:' + '1'.repeat(30)]);
+  check('urgent link: anything else is no link',
+    ['javascript:alert(1)', 'JavaScript:alert(1)', ' javascript:alert(1)', 'data:text/html,<b>x</b>',
+      'http://example.com/', 'mailto:help@example.com', '//example.com/', 'example.com', 'https:example.com',
+      'https://', 'https://user:pass@example.com/', 'https://user@example.com/', 'https://exa mple.com/',
+      'https://example.com/\nx', 'https://example.com/\tx', 'https://example.com/\u202ex',
+      'https://example.com/' + 'x'.repeat(481), 'vbscript:x', 'file:///c:/x', 'chrome://settings',
+      'tel:', 'tel:abc', 'tel:+32 3 ABC', 'tel:123;ext=4', 'tel:123\n4', 'tel:123%0A', 'tel:+-()',
+      'tel:' + '1'.repeat(31), 'tel:javascript:alert(1)', 42, null, undefined, {}, ['https://example.com/']]
+      .map(function (bad) { return BCBuddy.cleanUrgentLink(bad); }),
+    new Array(34).fill(''));
+  check('urgent link: five hundred characters fit',
+    BCBuddy.cleanUrgentLink('https://example.com/' + 'x'.repeat(480)).length, 500);
+  check('urgent: stored as checked',
+    [BCBuddy.normalize({ feedbackUrgentText: 'a\nb', feedbackUrgentLink: 'javascript:alert(1)' }).feedbackUrgentText,
+      BCBuddy.normalize({ feedbackUrgentText: 'Call us', feedbackUrgentLink: 'javascript:alert(1)' }).feedbackUrgentLink,
+      BCBuddy.normalize({ feedbackUrgentText: 'Call us', feedbackUrgentLink: 'tel:123' }).feedbackUrgentText,
+      BCBuddy.normalize({ feedbackUrgentText: 'Call us', feedbackUrgentLink: 'tel:123' }).feedbackUrgentLink],
+    ['', '', 'Call us', 'tel:123']);
+  check('urgent: setting only the notice counts as set up',
+    'feedbackUrgentText' in BCBuddy.toExport({ webClientEnabled: true, feedbackUrgentText: 'Call us' }, 'X'), true);
+  check('urgent: a file reads only what it names, checked',
+    BCBuddy.parseImport({ rules: [], feedbackUrgentText: 'Call us', feedbackUrgentLink: 'javascript:alert(1)' }).feedback,
+    { feedbackUrgentText: 'Call us', feedbackUrgentLink: '' });
+  check('urgent: a non-text value in a file is ignored',
+    BCBuddy.parseImport({ rules: [], feedbackUrgentText: 5, feedbackUrgentLink: ['tel:1'] }).feedback, null);
+  var urgentTarget = BCBuddy.normalize({ feedbackUrgentText: 'Mine', feedbackUrgentLink: 'tel:1' });
+  check('urgent: an import skips locked fields',
+    [BCBuddy.applyFeedback(urgentTarget, { feedbackUrgentText: 'Theirs', feedbackUrgentLink: 'tel:2' },
+      { feedbackUrgentLink: 'policy' }), urgentTarget.feedbackUrgentText, urgentTarget.feedbackUrgentLink],
+    [['feedbackUrgentLink'], 'Theirs', 'tel:1']);
 
   // area switches
   check('areas: helpers follow their own switch only',
@@ -1745,7 +1798,24 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.policyValues({ feedbackPriorities: [] }), { feedbackPriorities: [] });
   check('policy: every key is in the managed schema list',
     BCBuddy.POLICY_KEYS, ['sharedConfigUrl', 'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled',
-      'feedbackEmail', 'feedbackPriorities', 'feedbackDefaultPriority', 'feedbackSubjectBug', 'feedbackSubjectIdea']);
+      'feedbackEmail', 'feedbackPriorities', 'feedbackDefaultPriority', 'feedbackSubjectBug', 'feedbackSubjectIdea',
+      'feedbackUrgentText', 'feedbackUrgentLink']);
+  check('policy: the urgent notice and link checked, an invalid link not set',
+    [BCBuddy.policyValues({ feedbackUrgentText: ' Call us ', feedbackUrgentLink: 'https://example.com/help' }),
+      BCBuddy.policyValues({ feedbackUrgentText: 'a\nb', feedbackUrgentLink: 'javascript:alert(1)' })],
+    [{ feedbackUrgentText: 'Call us', feedbackUrgentLink: 'https://example.com/help' }, {}]);
+  var urgentTeam = BCBuddy.normalize({ webClientEnabled: true, feedbackUrgentText: 'Mine',
+    hosted: { url: 'https://example.com/bc-buddy.json', active: true,
+      feedback: { feedbackUrgentText: 'Team: call 123', feedbackUrgentLink: 'javascript:alert(1)' } } });
+  check('urgent: the shared file locks what it names, checked on the way in',
+    [BCBuddy.lockedKeys(urgentTeam, {}), urgentTeam.hosted.feedback.feedbackUrgentLink],
+    [{ feedbackUrgentText: 'shared', feedbackUrgentLink: 'shared' }, '']);
+  check('urgent: the shared file over a local value, the policy over both',
+    [BCBuddy.enforceLocks(urgentTeam, { feedbackUrgentLink: 'tel:+3231234567' }), urgentTeam.feedbackUrgentText,
+      urgentTeam.feedbackUrgentLink, BCBuddy.lockedKeys(urgentTeam, { feedbackUrgentLink: 'tel:+3231234567' })],
+    [true, 'Team: call 123', 'tel:+3231234567', { feedbackUrgentLink: 'policy', feedbackUrgentText: 'shared' }]);
+  check('urgent: applying again changes nothing',
+    BCBuddy.enforceLocks(BCBuddy.normalize(urgentTeam), { feedbackUrgentLink: 'tel:+3231234567' }), false);
   var team = BCBuddy.normalize({ webClientEnabled: true,
     hosted: { url: 'https://example.com/bc-buddy.json', active: true,
       feedback: { feedbackEnabled: true, feedbackEmail: 'team@example.com', feedbackSubjectBug: 'Team {title}' } } });

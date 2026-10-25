@@ -46,6 +46,16 @@
       "title": "Help & feedback subject for an idea",
       "description": "Subject line of an idea, at most 200 characters on one line. Placeholders: {prio} {type} {company} {environment} {tenant} {title}.",
       "type": "string"
+    },
+    "feedbackUrgentText": {
+      "title": "Help & feedback message for urgent problems",
+      "description": "Shown under the priority when someone picks the last priority in the list, at most 200 characters on one line. It does not go into the report.",
+      "type": "string"
+    },
+    "feedbackUrgentLink": {
+      "title": "Help & feedback link for urgent problems",
+      "description": "Optional link on that message: an https:// address (at most 500 characters) or tel: with a phone number (digits, spaces, + ( ) - . only).",
+      "type": "string"
     }
   }
 }

@@ -39,6 +39,10 @@
     // The three areas, each with its switch in front of its panel heading.
     AREAS: ['webClientEnabled', 'environmentsEnabled', 'feedbackEnabled'],
     SUBJECT_KEYS: ['feedbackSubjectBug', 'feedbackSubjectIdea'],
+    URGENT_FIELDS: [
+      { setting: 'feedbackUrgentText', clean: 'cleanUrgentText', invalid: 'feedbackUrgentTextInvalid' },
+      { setting: 'feedbackUrgentLink', clean: 'cleanUrgentLink', invalid: 'feedbackUrgentLinkInvalid' }
+    ],
     UI_KEY: 'ui',
     SAMPLE_URL: 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
       'Sandbox?company=CRONUS%20BE&page=1'
@@ -159,6 +163,7 @@
     el.feedbackSubjectBug.placeholder = t('spSubjectDefaultBug');
     el.feedbackSubjectIdea.placeholder = t('spSubjectDefaultIdea');
     page.SUBJECT_KEYS.forEach(function (key) { page.fill(el[key], s[key]); });
+    page.URGENT_FIELDS.forEach(function (spec) { page.fill(el[spec.setting], s[spec.setting]); });
     page.renderLocks();
   };
 
@@ -536,7 +541,7 @@
       'dropdownWidth', 'dropdownHeight',
       'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled', 'feedbackEmail',
       'feedbackPriorities', 'feedbackNoPriority', 'feedbackDefaultPriority',
-      'feedbackSubjectBug', 'feedbackSubjectIdea'
+      'feedbackSubjectBug', 'feedbackSubjectIdea', 'feedbackUrgentText', 'feedbackUrgentLink'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     bindLanguage();
@@ -728,6 +733,30 @@
           return;
         }
         state.settings[key] = valid;
+        page.save();
+      });
+    });
+
+    // The notice for the most urgent priority and its link: refused rather
+    // than repaired, like the subjects. A link is shown as it is stored.
+    page.URGENT_FIELDS.forEach(function (spec) {
+      var field = el[spec.setting];
+      field.addEventListener('input', function () { field.setCustomValidity(''); });
+      field.addEventListener('change', function () {
+        if (page.isLocked(spec.setting)) {
+          page.renderFeedback();
+          return;
+        }
+        page.trimField(field);
+        var typed = field.value;
+        var valid = BCBuddy[spec.clean](typed);
+        if (typed && !valid) {
+          field.setCustomValidity(t(spec.invalid, [BCBuddy.MAX_URGENT_TEXT_LENGTH]));
+          field.reportValidity();
+          return;
+        }
+        field.value = valid;
+        state.settings[spec.setting] = valid;
         page.save();
       });
     });

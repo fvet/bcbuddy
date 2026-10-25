@@ -33,7 +33,9 @@ Type in the box what you were doing and what went wrong. Keep it to this one
 step, for example *I open the sales order and click Post*. **Ctrl+B**,
 **Ctrl+I** and **Ctrl+U** make text bold, italic or underlined.
 
-If there is a **Priority** list, pick how urgent it is.
+If there is a **Priority** list, pick how urgent it is. When you pick the most
+urgent one, your IT team may show a short message under it, such as a phone
+number to call.
 
 ### 2. Take a screenshot
 
@@ -154,6 +156,14 @@ Then fill in:
   list: *Normal*, *High*, *Critical*, shown in each user's own language. Tick
   **No priority field** to leave priority out of the report.
 - **Default priority**: the priority a new report starts with.
+- **Message for urgent problems**: a short line shown under the priority when
+  someone picks the last priority in the list (*Critical* in the standard
+  list), for example *Urgent? Call the helpdesk on 03 123 45 67.* It is only
+  a hint on screen: it does not go into the report. Leave it empty for no
+  message. One line, at most 200 characters.
+- **Link (optional)**: makes that message a link people can click: an address
+  that starts with `https://`, such as a Teams link, or `tel:` followed by a
+  phone number, such as `tel:+3231234567`. Other links are refused.
 - **Email subject for a problem** and **Email subject for feedback**: leave
   them empty for the standard subject.
 
@@ -198,6 +208,8 @@ Set it up once and give everyone the same settings:
     | `feedbackDefaultPriority` | one of the priorities |
     | `feedbackSubjectBug` | the subject for a problem |
     | `feedbackSubjectIdea` | the subject for feedback |
+    | `feedbackUrgentText` | the message for urgent problems, one line of at most 200 characters; `""` for none |
+    | `feedbackUrgentLink` | `""`, an `https://` address of at most 500 characters, or `tel:` with digits, spaces and `+ ( ) - .` (at most 30 characters) |
 
     ```json
     {
@@ -209,7 +221,9 @@ Set it up once and give everyone the same settings:
       "feedbackPriorities": ["Low", "Normal", "Urgent"],
       "feedbackDefaultPriority": "Normal",
       "feedbackSubjectBug": "[BC] {type} - {prio} - {company}: {title}",
-      "feedbackSubjectIdea": "[BC] {type} - {company}: {title}"
+      "feedbackSubjectIdea": "[BC] {type} - {company}: {title}",
+      "feedbackUrgentText": "Urgent? Call the helpdesk on 03 123 45 67.",
+      "feedbackUrgentLink": "tel:+3231234567"
     }
     ```
 

@@ -18,6 +18,8 @@ $FeedbackPriorities      = $null
 $FeedbackDefaultPriority = $null
 $FeedbackSubjectBug      = $null
 $FeedbackSubjectIdea     = $null
+$FeedbackUrgentText      = $null
+$FeedbackUrgentLink      = $null
 
 $keys = @(
   "HKLM:\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\$Id\policy",
@@ -32,6 +34,8 @@ if ($null -ne $FeedbackEmail)           { $expected.feedbackEmail           = $F
 if ($null -ne $FeedbackDefaultPriority) { $expected.feedbackDefaultPriority = $FeedbackDefaultPriority }
 if ($null -ne $FeedbackSubjectBug)      { $expected.feedbackSubjectBug      = $FeedbackSubjectBug }
 if ($null -ne $FeedbackSubjectIdea)     { $expected.feedbackSubjectIdea     = $FeedbackSubjectIdea }
+if ($null -ne $FeedbackUrgentText)      { $expected.feedbackUrgentText      = $FeedbackUrgentText }
+if ($null -ne $FeedbackUrgentLink)      { $expected.feedbackUrgentLink      = $FeedbackUrgentLink }
 
 foreach ($key in $keys) {
   foreach ($name in $expected.Keys) {
