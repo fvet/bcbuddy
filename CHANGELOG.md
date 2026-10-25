@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.1.0 — 2026-10-25
+
 ### Added
 
 - **`{tenant}`** can go in the ribbon, banner and tab title texts, to show
@@ -93,8 +97,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **No more overlap in the top bar.** In a narrower window the BC Buddy icon
   pushed Business Central's buttons over your name. Where the bar has no room
   for it, the icon now steps aside until the window is wide enough again.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.0.17 — 2026-10-21
 
