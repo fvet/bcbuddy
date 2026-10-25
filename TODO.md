@@ -28,6 +28,16 @@ line moves to `CHANGELOG.md`.
   page, the panel offers one button that attaches both (as text, size-capped)
   to the report. Needs a live look at that page's DOM first (it is localized,
   so find it by structure, not by caption).
+- **Known problems first.** IT puts a short notice in the shared file
+  ("Posting in Production is slow, we are on it"); the panel shows it at the
+  top before anyone starts typing, so the helpdesk does not get the same
+  ticket fifty times. Plain text through `normalize()`, locked like the other
+  Help & feedback fields, with an optional end date so it does not linger.
+- **Add the BC error by itself.** When BC shows an error dialog, the panel
+  offers "Add the error message" and attaches BC's full error details as
+  text, without copy and paste. Capturing BC's *Copy error details* is known
+  to work (see the error details notes); BC keeps nothing once the dialog
+  closes, so it has to be caught while it is open.
 - **Live checks of round 2.** In real Chrome: the optional downloads
   permission prompt and whether `downloads.open()` still opens the `.eml`
   after the download (else the hint shows); Outlook opening the `.eml`; Esc
