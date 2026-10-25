@@ -253,7 +253,10 @@
               webClient: !!state.webClient,
               tenant: ctx.tenant || '',
               environment: ctx.environment || '',
-              company: ctx.company || ''
+              company: ctx.company || '',
+              // The language Business Central is in; the panel reduces it to
+              // one of ours and uses it for the texts people set per language.
+              lang: state.webClient ? String(document.documentElement.lang || '').slice(0, 35) : ''
             });
           }
         });

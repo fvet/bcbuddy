@@ -28,34 +28,121 @@
     },
     "feedbackPriorities": {
       "title": "Help & feedback priorities",
-      "description": "The priorities the report form offers: 1 to 10 names of at most 40 characters. An empty list hides the priority field, as it is without priorities.",
+      "description": "The priorities the report form offers: 1 to 10 names of at most 40 characters, the same for every language unless feedbackTranslations translates them. An empty list hides the priority field, as it is without priorities.",
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "feedbackDefaultPriority": {
       "title": "Help & feedback default priority",
-      "description": "The priority the form starts on. Must be one of the priorities; anything else means no default.",
+      "description": "The priority the form starts on. Must be one of the priorities, in any language; anything else means no default.",
       "type": "string"
     },
     "feedbackSubjectBug": {
       "title": "Help & feedback subject for a problem",
-      "description": "Subject line of a problem report, at most 200 characters on one line. Placeholders: {prio} {company} {environment} {title}.",
+      "description": "Subject line of a problem report, at most 200 characters on one line. Placeholders: {prio} {company} {environment} {title}. The same for every language unless feedbackTranslations translates it.",
       "type": "string"
     },
     "feedbackSubjectIdea": {
       "title": "Help & feedback subject for an idea",
-      "description": "Subject line of an idea, at most 200 characters on one line. Placeholders: {prio} {company} {environment} {title}.",
+      "description": "Subject line of an idea, at most 200 characters on one line. Placeholders: {prio} {company} {environment} {title}. The same for every language unless feedbackTranslations translates it.",
       "type": "string"
     },
     "feedbackUrgentText": {
       "title": "Help & feedback message for urgent problems",
-      "description": "Shown under the priority when someone picks the last priority in the list, at most 200 characters on one line. It does not go into the report.",
+      "description": "Shown under the priority when someone picks the last priority in the list, at most 200 characters on one line. It does not go into the report. The same for every language unless feedbackTranslations translates it.",
       "type": "string"
     },
     "feedbackUrgentLink": {
       "title": "Help & feedback link for urgent problems",
       "description": "Optional link on that message: an https:// address (at most 500 characters) or tel: with a phone number (digits, spaces, + ( ) - . only).",
       "type": "string"
+    },
+    "feedbackTranslations": {
+      "title": "Help & feedback translations",
+      "description": "Texts per language, shown to users whose Business Central runs in that language (or, failing that, whose BC Buddy does). Languages without a block, and fields left out of a block, use the plain feedbackPriorities, feedbackSubjectBug, feedbackSubjectIdea and feedbackUrgentText.",
+      "type": "object",
+      "properties": {
+        "en": {
+          "title": "English",
+          "type": "object",
+          "properties": {
+            "priorities": {
+              "title": "Priorities in English",
+              "description": "The same priorities as feedbackPriorities, in the same order and the same number. A list of another length is ignored for this language.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "subjectBug": {
+              "title": "Subject for a problem in English",
+              "type": "string"
+            },
+            "subjectIdea": {
+              "title": "Subject for an idea in English",
+              "type": "string"
+            },
+            "urgentText": {
+              "title": "Message for urgent problems in English",
+              "type": "string"
+            }
+          }
+        },
+        "nl": {
+          "title": "Dutch",
+          "type": "object",
+          "properties": {
+            "priorities": {
+              "title": "Priorities in Dutch",
+              "description": "The same priorities as feedbackPriorities, in the same order and the same number. A list of another length is ignored for this language.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "subjectBug": {
+              "title": "Subject for a problem in Dutch",
+              "type": "string"
+            },
+            "subjectIdea": {
+              "title": "Subject for an idea in Dutch",
+              "type": "string"
+            },
+            "urgentText": {
+              "title": "Message for urgent problems in Dutch",
+              "type": "string"
+            }
+          }
+        },
+        "fr": {
+          "title": "French",
+          "type": "object",
+          "properties": {
+            "priorities": {
+              "title": "Priorities in French",
+              "description": "The same priorities as feedbackPriorities, in the same order and the same number. A list of another length is ignored for this language.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "subjectBug": {
+              "title": "Subject for a problem in French",
+              "type": "string"
+            },
+            "subjectIdea": {
+              "title": "Subject for an idea in French",
+              "type": "string"
+            },
+            "urgentText": {
+              "title": "Message for urgent problems in French",
+              "type": "string"
+            }
+          }
+        }
+      }
     }
   }
 }

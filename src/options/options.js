@@ -40,7 +40,7 @@
     AREAS: ['webClientEnabled', 'environmentsEnabled', 'feedbackEnabled'],
     SUBJECT_KEYS: ['feedbackSubjectBug', 'feedbackSubjectIdea'],
     URGENT_FIELDS: [
-      { setting: 'feedbackUrgentText', clean: 'cleanUrgentText', invalid: 'feedbackUrgentTextInvalid' },
+      { setting: 'feedbackUrgentText', clean: 'cleanUrgentText', invalid: 'feedbackUrgentTextInvalid', localized: true },
       { setting: 'feedbackUrgentLink', clean: 'cleanUrgentLink', invalid: 'feedbackUrgentLinkInvalid' }
     ],
     UI_KEY: 'ui',
@@ -125,11 +125,22 @@
     });
   };
 
+  /** The language on this page: the texts below are shown and saved in it. */
+  page.lang = function () { return BCBuddy.currentLanguage(); };
+
+  /** The name of a language as the picker spells it. */
+  page.languageName = function (code) {
+    var option = document.querySelector('#language option[value="' + code + '"]');
+    return option ? option.textContent : code;
+  };
+
   page.renderFeedback = function () {
     var s = page.state.settings;
     var el = page.el;
-    var values = BCBuddy.priorityValues(s.feedbackPriorities);
+    var lang = page.lang();
+    var values = BCBuddy.priorityValues(s.feedbackPriorities, [lang]);
     page.fill(el.feedbackEmail, s.feedbackEmail);
+    el.feedbackLanguageHint.textContent = t('feedbackLanguageHint', [page.languageName(lang)]);
 
     // Empty is no priority field: then the default, the urgent message and
     // its link have nothing to be about, and are not shown.
@@ -147,20 +158,49 @@
       option.textContent = value || t('feedbackPriorityNone');
       select.appendChild(option);
     });
-    select.value = s.feedbackDefaultPriority;
+    var found = BCBuddy.findPriority(s.feedbackDefaultPriority, s.feedbackPriorities);
+    select.value = found ? values[found.index] : '';
 
     // A subject left at the standard one shows it, so nobody has to guess;
     // without priorities, without {prio}.
-    page.SUBJECT_KEYS.forEach(function (key) { page.fill(el[key], s[key] || page.defaultSubject(key)); });
+    page.SUBJECT_KEYS.forEach(function (key) {
+      page.fill(el[key], BCBuddy.localizedText(s[key], [lang]) || page.defaultSubject(key));
+    });
     el.feedbackSubjectTokens.innerHTML = page.subjectTokenLine(values.length > 0);
-    page.URGENT_FIELDS.forEach(function (spec) { page.fill(el[spec.setting], s[spec.setting]); });
+    page.URGENT_FIELDS.forEach(function (spec) {
+      page.fill(el[spec.setting], spec.localized ? BCBuddy.localizedText(s[spec.setting], [lang]) : s[spec.setting]);
+    });
+    page.renderFallbackNotes();
     page.renderLocks();
+  };
+
+  /**
+   * Under a text that has no version in this page's language yet: people in
+   * that language see another one (English first), so say so.
+   */
+  page.renderFallbackNotes = function () {
+    var s = page.state.settings;
+    var lang = page.lang();
+    var lacks = function (value) {
+      return !!value && typeof value === 'object' && !Object.prototype.hasOwnProperty.call(value, lang);
+    };
+    var missing = {
+      feedbackPriorities: Array.isArray(s.feedbackPriorities) && s.feedbackPriorities.some(lacks),
+      feedbackUrgentText: lacks(s.feedbackUrgentText),
+      feedbackSubjectBug: lacks(s.feedbackSubjectBug),
+      feedbackSubjectIdea: lacks(s.feedbackSubjectIdea)
+    };
+    document.querySelectorAll('[data-fallback-note]').forEach(function (note) {
+      var on = !!missing[note.dataset.fallbackNote];
+      note.hidden = !on;
+      note.textContent = on ? t('feedbackNotTranslated', [page.languageName(lang)]) : '';
+    });
   };
 
   /** The built-in subject for that field, as the side panel would use it. */
   page.defaultSubject = function (key) {
     var template = t(key === 'feedbackSubjectIdea' ? 'spSubjectDefaultIdea' : 'spSubjectDefaultBug');
-    var hasPriorities = BCBuddy.priorityValues(page.state.settings.feedbackPriorities).length > 0;
+    var hasPriorities = BCBuddy.priorityValues(page.state.settings.feedbackPriorities, [page.lang()]).length > 0;
     return hasPriorities ? template : BCBuddy.fillSubject(template, { prio: '' });
   };
 
@@ -182,16 +222,98 @@
     if (!lines.length) return [];
     if (lines.length > BCBuddy.MAX_PRIORITIES) return undefined;
     var clean = BCBuddy.cleanPriorities(lines);
-    return clean && clean.length === lines.length ? clean : undefined;
+    return clean && clean.length === lines.length ? lines : undefined;
   };
 
-  /** Stores a priority list; a default that is no longer in it becomes none. */
-  page.setPriorities = function (list) {
+  /**
+   * For each typed line, the item of `shown` (what the box showed before) it
+   * stands for, or -1 for a new one. With the same number of lines it is
+   * position by position, so typing a translation over a list keeps every
+   * item and its other languages. Otherwise the lines that stayed the same
+   * are matched, and one line that changed against one that went is a
+   * rename; any other change makes new items, never a guess.
+   */
+  page.matchLines = function (shown, lines) {
+    var n = shown.length, m = lines.length, map = [], i, j;
+    if (n === m) {
+      for (j = 0; j < m; j++) map.push(j);
+      return map;
+    }
+    var d = [];
+    for (i = 0; i <= n; i++) d.push(new Array(m + 1).fill(0));
+    for (i = n - 1; i >= 0; i--) {
+      for (j = m - 1; j >= 0; j--) {
+        d[i][j] = shown[i] === lines[j] ? d[i + 1][j + 1] + 1 : Math.max(d[i + 1][j], d[i][j + 1]);
+      }
+    }
+    map = new Array(m).fill(-1);
+    for (i = 0, j = 0; i < n && j < m;) {
+      if (shown[i] === lines[j]) { map[j++] = i++; }
+      else if (d[i + 1][j] >= d[i][j + 1]) i++;
+      else j++;
+    }
+    var gone = shown.map(function (x, k) { return k; }).filter(function (k) { return map.indexOf(k) === -1; });
+    var fresh = map.map(function (x, k) { return k; }).filter(function (k) { return map[k] === -1; });
+    if (gone.length === 1 && fresh.length === 1) map[fresh[0]] = gone[0];
+    return map;
+  };
+
+  /**
+   * Stores the typed lines as the priorities of this page's language. The
+   * items keep their other languages (see matchLines()); the first list ever
+   * typed is plain text for every language. The default priority follows its
+   * item, and is none when that item is gone.
+   */
+  page.setPriorities = function (lines) {
     var s = page.state.settings;
-    s.feedbackPriorities = list;
-    s.feedbackDefaultPriority = BCBuddy.cleanDefaultPriority(s.feedbackDefaultPriority, list);
+    var lang = page.lang();
+    var max = BCBuddy.MAX_PRIORITY_LENGTH;
+    var old = BCBuddy.cleanPriorities(s.feedbackPriorities);
+    var shown = BCBuddy.priorityValues(old, [lang]);
+    var map = old.length ? page.matchLines(shown, lines) : lines.map(function () { return -1; });
+    var items = lines.map(function (line, j) {
+      var from = map[j];
+      if (from < 0) return old.length ? BCBuddy.setLocalizedText('', lang, line, max) : line;
+      return line === shown[from] ? old[from] : BCBuddy.setLocalizedText(old[from], lang, line, max);
+    });
+    var found = BCBuddy.findPriority(s.feedbackDefaultPriority, old);
+    var follow = found ? items[map.indexOf(found.index)] : undefined;
+    s.feedbackPriorities = BCBuddy.cleanPriorities(items);
+    s.feedbackDefaultPriority = BCBuddy.cleanDefaultPriority(
+      follow === undefined ? s.feedbackDefaultPriority : BCBuddy.localizedText(follow, [lang]), s.feedbackPriorities);
     page.renderFeedback();
     page.save();
+  };
+
+  /**
+   * Stores a text for this page's language, keeping the others. Before
+   * anything was typed it is one plain text for every language.
+   */
+  page.setText = function (key, text, max) {
+    var s = page.state.settings;
+    s[key] = s[key] ? BCBuddy.setLocalizedText(s[key], page.lang(), text, max) : BCBuddy.cleanLocalized(text, max);
+  };
+
+  /**
+   * The example priorities in every language BC Buddy has, so the list is
+   * right for each of them at once; the page's own language when the others
+   * cannot be read.
+   */
+  page.sampleItems = function () {
+    var own = t('feedbackPrioritiesSample').split('\n');
+    return Promise.all(BCBuddy.LANGUAGES.map(function (lang) {
+      return BCBuddy.readMessages(lang);
+    })).then(function (all) {
+      var lists = all.map(function (messages) {
+        return messages && messages.feedbackPrioritiesSample ? messages.feedbackPrioritiesSample.split('\n') : null;
+      });
+      if (lists.some(function (list) { return !list || list.length !== own.length; })) return own;
+      return own.map(function (x, i) {
+        var item = {};
+        BCBuddy.LANGUAGES.forEach(function (lang, k) { item[lang] = lists[k][i]; });
+        return item;
+      });
+    }).catch(function () { return own; });
   };
 
   page.renderWebClient = function () {
@@ -533,7 +655,8 @@
       'dropdownWidth', 'dropdownHeight',
       'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled', 'feedbackEmail',
       'feedbackPriorities', 'feedbackPrioritiesSample', 'feedbackDefaultPriority',
-      'feedbackSubjectBug', 'feedbackSubjectIdea', 'feedbackSubjectTokens', 'feedbackUrgentText', 'feedbackUrgentLink'
+      'feedbackSubjectBug', 'feedbackSubjectIdea', 'feedbackSubjectTokens', 'feedbackUrgentText', 'feedbackUrgentLink',
+      'feedbackLanguageHint'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     // The BC top bar's two people on Help & feedback, from the one drawing.
@@ -689,11 +812,15 @@
     // Load examples: a starting list in the page's language, saved at once.
     el.feedbackPrioritiesSample.addEventListener('click', function (event) {
       if (!event.isTrusted || page.isLocked('feedbackPriorities')) return;
-      el.feedbackPriorities.value = t('feedbackPrioritiesSample');
       el.feedbackPriorities.setCustomValidity('');
-      var list = page.readPriorities();
-      if (list) page.setPriorities(list);
-      el.feedbackPriorities.focus();
+      page.sampleItems().then(function (items) {
+        var settings = state.settings;
+        settings.feedbackPriorities = BCBuddy.cleanPriorities(items);
+        settings.feedbackDefaultPriority = '';
+        page.renderFeedback();
+        page.save();
+        el.feedbackPriorities.focus();
+      });
     });
     el.feedbackPriorities.addEventListener('change', function () {
       if (page.isLocked('feedbackPriorities')) {
@@ -711,6 +838,7 @@
     });
     el.feedbackDefaultPriority.addEventListener('change', function () {
       if (!page.isLocked('feedbackDefaultPriority')) {
+        // The value is the text the box shows; it names the item in any language.
         state.settings.feedbackDefaultPriority = BCBuddy.cleanDefaultPriority(
           el.feedbackDefaultPriority.value, state.settings.feedbackPriorities);
         page.save();
@@ -736,9 +864,10 @@
           field.reportValidity();
           return;
         }
-        state.settings[key] = valid;
+        page.setText(key, valid, BCBuddy.MAX_SUBJECT_LENGTH);
         page.save();
-        if (!valid) field.value = page.defaultSubject(key);
+        page.renderFallbackNotes();
+        if (!valid) field.value = BCBuddy.localizedText(state.settings[key], [page.lang()]) || page.defaultSubject(key);
       });
     });
 
@@ -760,8 +889,14 @@
           field.reportValidity();
           return;
         }
-        field.value = valid;
-        state.settings[spec.setting] = valid;
+        if (spec.localized) {
+          page.setText(spec.setting, valid, BCBuddy.MAX_URGENT_TEXT_LENGTH);
+          field.value = BCBuddy.localizedText(state.settings[spec.setting], [page.lang()]);
+          page.renderFallbackNotes();
+        } else {
+          field.value = valid;
+          state.settings[spec.setting] = valid;
+        }
         page.save();
       });
     });

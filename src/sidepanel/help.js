@@ -74,7 +74,7 @@
   // The {title} in the subject: the start of the first step's text.
   var TITLE_MAX = 60;
   var MAX_PRIORITY = 60;
-  var MAX_PRIORITIES = 20;
+  var MAX_URGENT_TEXT = 200;
   var MAX_SUBJECT_TEMPLATE = 200;
   // The Email button opens the downloaded .eml at once, with these two
   // optional permissions, asked for on the first click.
@@ -98,6 +98,8 @@
   var priority = '';
   // From the settings: null is the built-in list, [] hides the field.
   // urgentText and urgentLink: IT's notice for the last priority in the list.
+  // Priorities, the subjects and urgentText are localized texts (a string, or
+  // a text per language): textLangs() says which one is shown.
   var config = { priorities: [], defaultPriority: '', subjectBug: '', subjectIdea: '',
     urgentText: '', urgentLink: '' };
   // The area selection or drawing editor that runs: its tab, else null.
@@ -248,24 +250,41 @@
     // fields are checked once more here, as plain short text.
     var s = BCBuddy.normalize(raw);
     cachedEmail = s.feedbackEmail || '';
-    var list = [];
-    (Array.isArray(s.feedbackPriorities) ? s.feedbackPriorities : []).forEach(function (v) {
-      var name = oneLine(v, MAX_PRIORITY);
-      if (name && list.indexOf(name) === -1 && list.length < MAX_PRIORITIES) list.push(name);
-    });
-    config.priorities = list;
+    config.priorities = BCBuddy.cleanPriorities(s.feedbackPriorities);
     config.defaultPriority = oneLine(s.feedbackDefaultPriority, MAX_PRIORITY);
-    config.subjectBug = oneLine(s.feedbackSubjectBug, MAX_SUBJECT_TEMPLATE);
-    config.subjectIdea = oneLine(s.feedbackSubjectIdea, MAX_SUBJECT_TEMPLATE);
+    config.subjectBug = BCBuddy.cleanSubject(s.feedbackSubjectBug);
+    config.subjectIdea = BCBuddy.cleanSubject(s.feedbackSubjectIdea);
     config.urgentText = BCBuddy.cleanUrgentText(s.feedbackUrgentText);
     config.urgentLink = BCBuddy.cleanUrgentLink(s.feedbackUrgentLink);
     renderPriorities();
     updateButtons();
   }
 
-  /** [{ value, label }]: the team's own priorities as typed; none, no field. */
+  /**
+   * The languages the team's texts are taken in, best first: the one
+   * Business Central is in (the page's own, so untrusted: textLanguage() lets
+   * only our own codes through), then the one BC Buddy is in. A text without
+   * either falls back to English (see localizedText()).
+   */
+  function textLangs() {
+    var bc = here.webClient ? BCBuddy.textLanguage(here.lang) : '';
+    return bc ? [bc, BCBuddy.currentLanguage()] : [BCBuddy.currentLanguage()];
+  }
+
+  /** A localized setting as one line in the language of the report. */
+  function pick(value, max) {
+    return oneLine(BCBuddy.localizedText(value, textLangs()), max);
+  }
+
+  /**
+   * [{ value, label }]: the team's own priorities, the value being the
+   * position in the list (the same in every language), the label the text in
+   * the language of the report; none, no field.
+   */
   function priorityOptions() {
-    return config.priorities.map(function (v) { return { value: v, label: v }; });
+    return config.priorities.map(function (item, i) {
+      return { value: String(i), label: pick(item, MAX_PRIORITY) };
+    });
   }
 
   function priorityLabel() {
@@ -283,7 +302,8 @@
     var sel = $('help-prio');
     var opts = priorityOptions();
     var values = opts.map(function (o) { return o.value; });
-    var def = values.indexOf(config.defaultPriority) !== -1 ? config.defaultPriority : '';
+    var found = BCBuddy.findPriority(config.defaultPriority, config.priorities);
+    var def = found ? String(found.index) : '';
     if (priorityWanted !== null && (priorityWanted === '' || values.indexOf(priorityWanted) !== -1)) priority = priorityWanted;
     else priority = def;
     if (!opts.length) priority = '';
@@ -307,17 +327,18 @@
    */
   function renderUrgent(values) {
     var box = $('help-urgent');
-    var on = !!config.urgentText && values.length > 0 && priority === values[values.length - 1];
+    var urgentText = BCBuddy.cleanUrgentText(pick(config.urgentText, MAX_URGENT_TEXT));
+    var on = !!urgentText && values.length > 0 && priority === values[values.length - 1];
     box.hidden = !on;
     box.textContent = '';
     if (!on) return;
     var link = BCBuddy.cleanUrgentLink(config.urgentLink);
     if (!link) {
-      box.textContent = config.urgentText;
+      box.textContent = urgentText;
       return;
     }
     var a = document.createElement('a');
-    a.textContent = config.urgentText;
+    a.textContent = urgentText;
     a.setAttribute('href', link);
     if (link.indexOf('https:') === 0) {
       a.setAttribute('target', '_blank');
@@ -345,13 +366,14 @@
     chrome.tabs.query({ active: true, windowId: windowId }).then(function (tabs) {
       var tab = tabs[0];
       if (!tab) return;
-      var next = { tabId: tab.id, url: text(tab.url, 4096), title: text(tab.title), webClient: false, known: false };
+      var next = { tabId: tab.id, url: text(tab.url, 4096), title: text(tab.title), webClient: false, known: false, lang: '' };
       if (here.tabId === tab.id && here.known && siteOf(here.url) === siteOf(next.url)) {
         next.webClient = here.webClient;
         next.known = true;
         next.tenant = here.tenant;
         next.environment = here.environment;
         next.company = here.company;
+        next.lang = here.lang;
       }
       here = next;
       updateButtons();
@@ -363,6 +385,9 @@
         next.tenant = text(res.tenant);
         next.environment = text(res.environment);
         next.company = text(res.company);
+        next.lang = text(res.lang, 35);
+        // The texts follow the language Business Central is in.
+        renderPriorities();
         updateButtons();
       }, function () {
         // No BC Buddy in that tab.
@@ -1432,7 +1457,8 @@
 
   function subjectLine(ctx) {
     var bug = type === 'Bug';
-    var template = (bug ? config.subjectBug : config.subjectIdea) || t(bug ? 'spSubjectDefaultBug' : 'spSubjectDefaultIdea');
+    var template = pick(bug ? config.subjectBug : config.subjectIdea, MAX_SUBJECT_TEMPLATE) ||
+      t(bug ? 'spSubjectDefaultBug' : 'spSubjectDefaultIdea');
     return BCBuddy.fillSubject(template, {
       prio: priorityLabel(),
       type: typeLabel(),

@@ -595,9 +595,17 @@
   "resetWebClientNone": { "message": "These settings are already at their defaults." },
   "resetWebClientUndone": { "message": "Your settings are back as they were." },
   "undo": { "message": "Undo" },
-  "environmentsMore": {
-    "message": "More about rules and styles",
-    "description": "Link under the Environments panel to the documentation page that explains rules and styles."
+  "rulesMore": {
+    "message": "More about rules",
+    "description": "Link under the Rules list to the documentation page that explains rules."
+  },
+  "stylesMore": {
+    "message": "More about styles",
+    "description": "Link under the Styles list to the documentation page that explains styles."
+  },
+  "feedbackMore": {
+    "message": "More about these settings",
+    "description": "Link under the Help & feedback settings to the documentation page that explains them."
   },
   "dropdownStandard": {
     "message": "BC standard",
@@ -859,6 +867,14 @@
   "feedbackPriorityNone": {
     "message": "None",
     "description": "Choice in Default priority: a new report starts without a priority."
+  },
+  "feedbackLanguageHint": {
+    "message": "These texts are for $1, the language chosen at the top of this page. Choose another language there to write the others.",
+    "description": "Under the Help & feedback intro. $1 is the name of the language chosen at the top of the options page: the texts below are shown and saved in it."
+  },
+  "feedbackNotTranslated": {
+    "message": "No text in $1 yet: people in that language see the text of another language.",
+    "description": "Under a text that has no version in the language of the page yet. $1 is that language."
   },
   "feedbackUrgentTextLabel": {
     "message": "Message for urgent problems",
