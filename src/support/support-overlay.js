@@ -7,9 +7,16 @@
  *
  *   BCBuddy.SupportOverlay.selectArea()  drag a rectangle over the page;
  *     resolves { x, y, w, h, vw, vh } in CSS pixels, or null on Esc.
- *   BCBuddy.SupportOverlay.edit(dataUrl) the drawing editor over the page;
- *     resolves the new image, the same one when nothing was drawn, or null
- *     on cancel.
+ *   BCBuddy.SupportOverlay.cancel()  ends a running area selection as Esc
+ *     does. The side panel calls it when Esc is pressed there: while the
+ *     selection runs the panel usually still has the focus, so the page
+ *     never sees that key.
+ *   BCBuddy.SupportOverlay.edit(dataUrl, annotations) the drawing editor
+ *     over the page. dataUrl is the screenshot as it was captured and
+ *     annotations what was drawn on it before, so earlier drawings can be
+ *     undone and Clear all goes back to the capture. Resolves
+ *     { image, annotations }: the image with the drawings, the capture
+ *     itself when there are none. Null on cancel.
  *
  * The panel calls them through chrome.scripting, which hands back what they
  * resolve. It runs in the content scripts' isolated world, so the page cannot
@@ -42,6 +49,13 @@
 
   // Only one step at a time: a second request while one is open gets null.
   var busy = false;
+  // Ends the area selection that runs, if any.
+  var cancelSelect = null;
+
+  function cancel() {
+    if (cancelSelect) cancelSelect();
+    return true;
+  }
 
   // ------------------------------------------------------------------ tooltips
 
@@ -147,6 +161,7 @@
       }
 
       function finish(result) {
+        cancelSelect = null;
         document.removeEventListener('keydown', onKey, true);
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onUp);
@@ -189,11 +204,12 @@
       }
 
       function onKey(e) {
-        if (e.key !== 'Escape') return;
+        if (e.key !== 'Escape' || !e.isTrusted) return;
         e.preventDefault(); e.stopPropagation();
         finish(null);
       }
 
+      cancelSelect = function () { finish(null); };
       sel.addEventListener('mousedown', onDown);
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
@@ -204,12 +220,14 @@
 
   // ------------------------------------------------------------------ annotation editor
 
-  function edit(dataUrl) {
+  function edit(dataUrl, before) {
     if (busy) return Promise.resolve(null);
     busy = true;
     tipsOn();
     return new Promise(function (resolve) {
-      var annotations = [];
+      // What was drawn last time comes back as separate drawings on the
+      // capture, so it can be undone or cleared like new ones.
+      var annotations = Array.isArray(before) ? before.slice() : [];
       var tool    = 'arrow';
       var color   = '#c4314b';
       var drawing = false;
@@ -261,7 +279,8 @@
 
       var TOOLS = [['arrow', btnArrow], ['draw', btnDraw], ['box', btnBox], ['blur', btnBlur]];
       TOOLS.forEach(function (entry) {
-        entry[1].addEventListener('click', function () {
+        entry[1].addEventListener('click', function (e) {
+          if (!e.isTrusted) return;
           tool = entry[0];
           TOOLS.forEach(function (other) {
             other[1].classList.toggle('bcb-sp-eb-on', other[0] === tool);
@@ -286,6 +305,7 @@
           b.style.setProperty('background', c, '');
           b.addEventListener('click', function (e) {
             e.stopPropagation();
+            if (!e.isTrusted) return;
             color = c;
             btnColor.style.setProperty('background', c, '');
             closeColorPicker();
@@ -308,16 +328,19 @@
         colPop = null;
       }
 
-      btnColor.addEventListener('click', function (e) { e.stopPropagation(); openColorPicker(); });
+      btnColor.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (e.isTrusted) openColorPicker();
+      });
 
       var btnUndo = toolBtn('bcb-sp-eb-tool', t('spUndo'),
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>');
-      btnUndo.addEventListener('click', undo);
+      btnUndo.addEventListener('click', function (e) { if (e.isTrusted) undo(); });
 
       var btnClear = toolBtn('bcb-sp-eb-tool', t('spClear'),
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L11 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>');
-      btnClear.addEventListener('click', function () {
-        if (!annotations.length) return;
+      btnClear.addEventListener('click', function (e) {
+        if (!e.isTrusted || !annotations.length) return;
         // Undo right after Clear brings everything back.
         cleared = annotations;
         annotations = [];
@@ -431,15 +454,21 @@
         resolve(result);
       }
 
-      btnOk.addEventListener('click', function () {
-        close(annotations.length ? canvas.toDataURL('image/png') : dataUrl);
-      });
+      function save() {
+        // Nothing drawn (or all of it cleared): the capture as it was.
+        close({
+          image: annotations.length ? canvas.toDataURL('image/png') : dataUrl,
+          annotations: annotations
+        });
+      }
 
-      btnNo.addEventListener('click', function () { close(null); });
+      btnOk.addEventListener('click', function (e) { if (e.isTrusted) save(); });
+      btnNo.addEventListener('click', function (e) { if (e.isTrusted) close(null); });
 
       function onEdKey(e) {
-        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); btnNo.click(); }
-        else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); btnOk.click(); }
+        if (!e.isTrusted) return;
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(null); }
+        else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); save(); }
         else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.stopPropagation(); undo(); }
       }
       // Capture phase: the host page (BC) must not see these keys while editing.
@@ -518,5 +547,5 @@
     ctx.stroke(); ctx.restore();
   }
 
-  BCBuddy.SupportOverlay = { selectArea: selectArea, edit: edit };
+  BCBuddy.SupportOverlay = { selectArea: selectArea, edit: edit, cancel: cancel };
 }());

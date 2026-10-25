@@ -44,13 +44,14 @@ BC Buddy only reads it.
 
 When you open *Help & feedback* in the browser's side panel and add a
 screenshot, BC Buddy captures the visible part of the tab in front. The
-screenshots, your description and the details of the page (environment,
-company, browser, screen size) stay in your browser while you work on the
-report: in the browser's session storage, so the report survives closing the
-panel, and is gone when you send it, throw it away or close the browser.
-*Email* opens your own email app and puts the report on your clipboard;
-*Copy* only puts it on your clipboard; *Download* saves it as a file, an
-email draft or a web page. BC Buddy itself sends the report nowhere.
+screenshots, your text and the details of the page (tenant, environment,
+company, page title and address, browser) stay in your browser while you
+work on the report: in the browser's session storage, so the report survives
+closing the panel, and is gone when you close it with *Close*, throw it away
+or close the browser. *Email* saves the report as an email file (.eml) and
+opens it in your own email app; *Email (draft)* opens your email app and puts
+the report on your clipboard; *Copy* only puts it on your clipboard;
+*Download* saves it as a web page. BC Buddy itself sends the report nowhere.
 
 ## Network requests
 
@@ -75,6 +76,11 @@ to it.
   while it could not be loaded.
 - `scripting` - show the area selection and the drawing editor of *Help &
   feedback* on the Business Central page, only while you use them.
+- `downloads` and `downloads.open` (optional, asked for the first time you
+  click *Email* in *Help & feedback*) - save the report as an email file and
+  open it in your email app in one click. BC Buddy only uses them for the
+  file it just made: it does not read or change your other downloads. If you
+  say no, the file is downloaded the normal way and you open it yourself.
 - `sidePanel` - show the keyboard shortcuts for the Business Central page
   you are on, and *Help & feedback*, in the browser's side panel. The panel
   only shows what the extension reads from that page and what you add;
