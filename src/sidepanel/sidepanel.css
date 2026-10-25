@@ -55,7 +55,7 @@ html, body { margin: 0; }
 body {
   background: var(--ground);
   color: var(--text);
-  font: 13px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font: 14px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
 }
 
 .head {
@@ -94,7 +94,7 @@ main { display: flex; flex-direction: column; gap: 12px; padding: 0 12px; }
 }
 .view > .card { margin: 12px 12px 0; }
 .view { padding-bottom: 16px; }
-.card h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
+.card h2 { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
 .note { margin: -4px 0 10px; font-size: 12px; color: var(--muted); }
 
 dl {
@@ -157,7 +157,7 @@ kbd {
 #help-steps-card > .thumbs { flex: 1; min-height: 0; overflow-y: auto; }
 #view-help > .card { margin: 0 12px 16px; }
 
-.card-title { display: block; margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+.card-title { display: block; margin: 0 0 8px; font-size: 14px; font-weight: 600; }
 .stack > .card-title, .stack > .note, .stack > .steps { margin: 0; }
 
 .row { display: flex; gap: 8px; align-items: stretch; }
@@ -198,7 +198,7 @@ kbd {
 .prio { display: flex; align-items: center; gap: 4px; padding-left: 9px; cursor: pointer; }
 .prio[hidden] { display: none; }
 .prio:focus-within { outline: 2px solid var(--accent-color); outline-offset: -1px; border-color: transparent; }
-.prio-label { flex: none; font-size: 13px; font-weight: 600; color: var(--muted); }
+.prio-label { flex: none; font-size: 14px; font-weight: 600; color: var(--muted); }
 .prio .select { border: 0; background: transparent; color: var(--text); font: inherit; }
 .prio .select:focus { outline: none; }
 .select-wrap { position: relative; flex: 1; min-width: 0; }
