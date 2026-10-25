@@ -14,11 +14,29 @@ line moves to `CHANGELOG.md`.
   receives the report (JSON with the description, context and PNGs) and
   creates the email or ticket itself. Then *Send to support* really sends,
   and the done view can confirm delivery instead of explaining a paste.
-- **Guidance.** There is no README section, no `docs/support.md`, no first-run
-  tip and no store screenshot for the panel. An admin has nothing to send
-  their users. Add: a docs page with a screenshot (mirrored in README per
-  `CLAUDE.md`), a one-time three-step tip inside the panel, and a store
-  screenshot.
-- **Store and deck.** Once it leaves the branch: the "want more?" line in
-  `store/` and `extDescription` (it starts off), a slide in
-  `marketing/deck/` and screenshots for `docs/`.
+- **First-run tip.** A one-time three-step tip inside the panel (write the
+  message, take a screenshot, Email), for people who open it for the first
+  time.
+- **Deck and screenshots.** A slide in `marketing/deck/` (recipe in
+  `marketing/README.md`), the "With / Without BC Buddy" screenshots for
+  `docs/`, a store screenshot of the panel, and new options-page screenshots
+  (area switches, Help & feedback fields, Sharing). Needs the maintainer at
+  Chrome.
+- **BC's own Help & support details in the report.** BC's *Help & support*
+  page has *View the last known error* and a block under *Copy the text below
+  and add it to your support request*. Idea: when the tab in front shows that
+  page, the panel offers one button that attaches both (as text, size-capped)
+  to the report. Needs a live look at that page's DOM first (it is localized,
+  so find it by structure, not by caption).
+- **Live checks of round 2.** In real Chrome: the optional downloads
+  permission prompt and whether `downloads.open()` still opens the `.eml`
+  after the download (else the hint shows); Outlook opening the `.eml`; Esc
+  cancelling an area selection while the panel has focus; the top bar icon
+  position (before the gear online, before Help on-prem).
+
+## Top bar
+
+- **When to show the BC Buddy icon.** Today it is there while the Web client
+  area or Help & feedback is on. To decide: whether it should depend on
+  something else (a switch of its own, only when Help & feedback is set up,
+  ...).
