@@ -6,6 +6,7 @@
   "default_locale": "en",
   "minimum_chrome_version": "116",
   "permissions": ["storage", "alarms", "scripting", "sidePanel"],
+  "optional_permissions": ["downloads", "downloads.open"],
   "storage": {
     "managed_schema": "managed_schema.json"
   },

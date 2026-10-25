@@ -48,12 +48,35 @@
 
   var VIEW_TIMEOUT_MS = 800;
 
+  // Which entry Help & feedback was opened from: 'Bug' or 'Improvement'.
+  var helpType = 'Bug';
+
   Promise.all([BCBuddy.loadLanguage(), BCBuddy.loadSettings().catch(function () { return null; })]).then(function (r) {
     var settings = r[1];
-    helpOn = !!(settings && settings.enabled && settings.feedbackEnabled);
+    helpOn = !!(settings && (BCBuddy.feedbackOn ? BCBuddy.feedbackOn(settings) : settings.feedbackEnabled));
     shortcutsOn = !!(settings && BCBuddy.shortcutsOn(settings));
     start();
   });
+
+  /**
+   * The language picked on the options page applies here at once: the
+   * fixed texts, the title and everything Help & feedback drew. The report
+   * in progress stays as it is.
+   */
+  function relocalize() {
+    BCBuddy.loadLanguage().then(function () {
+      BCBuddy.applyI18n();
+      showTitle();
+      if (BCBuddy.HelpPanel.relocalize) BCBuddy.HelpPanel.relocalize();
+    });
+  }
+
+  function showTitle() {
+    var title = BCBuddy.t(view === 'help' ? (helpType === 'Improvement' ? 'bpIdea' : 'bpBug')
+      : view === 'shortcuts' ? 'scIconLabel' : 'bpTitle');
+    document.getElementById('title').textContent = title;
+    document.title = title;
+  }
 
   function start() {
     BCBuddy.applyI18n();
@@ -84,6 +107,10 @@
     document.getElementById('go-idea').hidden = !helpOn;
     document.getElementById('go-shortcuts').hidden = !shortcutsOn;
     document.getElementById('home-empty').hidden = helpOn || shortcutsOn;
+
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY]) relocalize();
+    });
 
     chrome.windows.getCurrent().then(function (win) {
       windowId = win.id;
@@ -154,12 +181,12 @@
     document.getElementById('view-shortcuts').hidden = want !== 'shortcuts';
     document.getElementById('back').hidden = want === 'home';
     document.getElementById('help-discard').hidden = true;
-    var title = BCBuddy.t(want === 'help' ? 'navFeedback' : want === 'shortcuts' ? 'scIconLabel' : 'bpTitle');
-    document.getElementById('title').textContent = title;
-    document.title = title;
+    // Help & feedback is titled after the entry it was opened from.
+    if (want === 'help' && type) helpType = type === 'Improvement' ? 'Improvement' : 'Bug';
+    showTitle();
     if (want === 'help') {
       BCBuddy.HelpPanel.start(windowId);
-      BCBuddy.HelpPanel.shown(type === 'Improvement' ? 'Improvement' : 'Bug');
+      BCBuddy.HelpPanel.shown(helpType);
     }
     try { (port || panelPort).postMessage({ type: 'shown', view: want }); } catch (e) { /* reconnecting */ }
   }

@@ -859,7 +859,7 @@ the button opens the floating panel in the page instead.
 - **Three views.** The panel opens on a start view (`home`) with an entry
   per thing it does, each shown only while its switch is on: *Report a
   problem* and *Feedback or a suggestion* open Help & feedback
-  (`sidepanel/help.js`) as type Bug (with a priority) or Improvement, and
+  (`sidepanel/help.js`) as type Bug or Improvement (both with a priority), and
   *Keyboard shortcuts* opens `shortcuts`. A back arrow in the header returns
   to the start view. The service worker keeps the view each window's panel
   shows: the logo in the top bar sends `bcb:toggle-side-panel`, which opens
@@ -873,11 +873,18 @@ the button opens the floating panel in the page instead.
   page's look and its light or dark theme (`options/theme.js`). Only the
   shortcuts view
   closes the panel when the tab leaves BC. Help & feedback asks the tab's
-  top frame `bcb:support-context` (BC or not, environment, company), keeps
-  the report in `chrome.storage.session` per window, takes screenshots with
-  `tabs.captureVisibleTab` and injects `src/support/support-overlay.*` for
-  the area selection and the drawing editor, whose result comes back
-  through `scripting.executeScript`.
+  top frame `bcb:support-context` (BC or not, tenant, environment,
+  company), keeps the report in `chrome.storage.session` per window, takes
+  screenshots with `tabs.captureVisibleTab` and injects
+  `src/support/support-overlay.*` for the area selection and the drawing
+  editor, whose result comes back through `scripting.executeScript`. Esc in
+  the panel during an area selection calls `SupportOverlay.cancel()`; the
+  editor gets the original capture and the earlier drawings, so Clear all
+  goes back to the capture. The message box and the notes are
+  contenteditable with bold, italic and underline only: their content is
+  kept as a model of text runs with flags, rebuilt with `textContent`, and
+  written to the report's HTML escaped, with `b`, `i`, `u` and `br` as the
+  only tags; paste and drop insert plain text.
 
 - **Where.** BC online shows the client in `iframe.designer-client-frame`,
   same origin, under the Microsoft 365 top bar. Icon and panel live in the top
@@ -941,6 +948,17 @@ the button opens the floating panel in the page instead.
   editor (`src/support/`) into a Business Central tab when someone starts
   one from the side panel. Only with Help & feedback switched on; the
   screenshots use `tabs.captureVisibleTab`, which the host permission covers.
+- `downloads`, `downloads.open` — **optional** (`optional_permissions`),
+  requested by `chrome.permissions.request()` on the first click on *Email*
+  in Help & feedback, first thing in the click handler so the user gesture
+  still counts. With them the panel saves the report's `.eml` through
+  `downloads.download()` (a blob URL of our own) and `downloads.open()`s it
+  when it is complete, so Outlook shows the new email at once. Only that one
+  download id is ever touched. Refused, or any call failing (`open()` needs a
+  user gesture and may be too late), the panel falls back to a plain
+  `<a download>` and says where to find the file. Optional, so installing or
+  updating BC Buddy shows no new warning and the automatic update is not
+  held up.
 - `sidePanel` — the browser's side panel (`src/sidepanel/`): the keyboard
   shortcuts and Help & feedback. `sidePanel.open()` needs Chrome 116, hence
   `minimum_chrome_version`.

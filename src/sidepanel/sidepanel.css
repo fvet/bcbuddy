@@ -48,9 +48,11 @@
   color-scheme: dark;
 }
 
+/* No min-height and no outer margins: a 100vh body plus the header's margin
+   is taller than the panel and shows a scrollbar for nothing. */
+html { background: var(--ground); }
 html, body { margin: 0; }
 body {
-  min-height: 100vh;
   background: var(--ground);
   color: var(--text);
   font: 13px/1.45 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
@@ -59,10 +61,16 @@ body {
 .head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 14px 8px 14px 16px;
+  gap: 4px;
+  padding: 14px 8px 14px 16px;
 }
-.head h1 { flex: 1; margin: 0; font-size: 17px; font-weight: 600; }
+.head h1 { flex: 1; min-width: 0; margin: 0 4px 0 0; font-size: 17px; font-weight: 600; }
+
+/* The dark mode button: the options page's moon and sun. */
+.theme-toggle__icon { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.theme-toggle__sun,
+:root[data-theme="dark"] .theme-toggle__moon { display: none; }
+:root[data-theme="dark"] .theme-toggle__sun { display: block; }
 
 .icon-button {
   display: inline-flex;
@@ -90,7 +98,8 @@ main { display: flex; flex-direction: column; gap: 12px; padding: 0 12px; }
   background: var(--card);
   box-shadow: var(--shadow);
 }
-.view > .card { margin: 12px 12px 16px; }
+.view > .card { margin: 12px 12px 0; }
+.view { padding-bottom: 16px; }
 .card h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
 .note { margin: -4px 0 10px; font-size: 12px; color: var(--muted); }
 
@@ -157,8 +166,25 @@ kbd {
   font: inherit;
 }
 .field:focus { outline: 2px solid var(--accent-color); outline-offset: -1px; border-color: transparent; }
-.desc { display: block; width: 100%; min-height: 96px; padding: 6px 8px; resize: vertical; line-height: 1.45; }
-.desc::placeholder { color: var(--faint); }
+/* The text boxes with bold, italic and underline (help.js): the message box,
+   at least ten lines high, and the note under each screenshot. The
+   guidance sits inside as a placeholder while the box is empty. */
+.rich {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  overflow-y: auto;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+.rich:empty::before { content: attr(data-placeholder); color: var(--faint); pointer-events: none; }
+.desc { min-height: calc(10 * 1.45em + 14px); max-height: 60vh; }
+.select { display: block; width: 100%; height: 32px; padding: 0 8px; }
+.select:focus { outline: 2px solid var(--accent-color); outline-offset: -1px; }
+.select.unset { color: var(--faint); }
+.select option { color: var(--text); }
 .card .note { margin: 6px 0 0; }
 
 .warn {
@@ -194,6 +220,20 @@ kbd {
 .btn.square { flex: none; width: 32px; padding: 0; }
 .btn.primary { border-color: var(--accent-color); background: var(--accent-color); color: var(--on-accent-color); font-weight: 600; }
 .btn.primary:hover:not(:disabled) { background: var(--accent-color); filter: brightness(1.08); }
+/* The screenshot and report buttons: one height, two lines when a
+   translation does not fit on one. */
+.btn.tall { height: auto; min-height: 36px; padding: 4px 10px; white-space: normal; line-height: 1.2; text-align: center; }
+.btn.tall > svg { flex: none; }
+.card .row.shots { margin-top: 10px; }
+.row.shots > .btn { flex: 1 1 0; }
+.actions { display: flex; flex-direction: column; gap: 8px; }
+.actions .row > .btn.grow { flex: 1 1 0; }
+/* Email and its caret read as one button. */
+.split { position: relative; gap: 0; }
+.split > .btn.grow { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split > .caret { flex: none; width: 36px; padding: 0; margin-left: -1px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.split > .btn.primary + .caret.primary { border-left-color: var(--on-accent-color); }
+.split .dd-menu.up { right: 0; left: auto; }
 
 /* One screenshot per line: the thumbnail, and next to it a note that goes
    with it into the report. The remove and edit badges hang 7px outside each
@@ -205,13 +245,12 @@ kbd {
 .shot-note {
   flex: 1;
   min-width: 0;
-  height: 64px;
+  min-height: 64px;
+  max-height: 240px;
   padding: 5px 8px;
-  resize: vertical;
   font-size: 12.5px;
   line-height: 1.4;
 }
-.shot-note::placeholder { color: var(--faint); }
 .thumb-img {
   display: block;
   width: 100%;
@@ -258,30 +297,8 @@ kbd {
 .steps { padding-left: 20px; }
 .steps li { margin-bottom: 4px; }
 
-/* Type and priority, the first thing in the report. */
-.card .row.meta { margin: 0 0 12px; }
-.dd { position: relative; flex: 1; min-width: 0; }
-.dd-btn {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  height: 32px;
-  padding: 0 8px 0 10px;
-  border: 1px solid var(--field-line);
-  border-radius: var(--radius-small);
-  background: var(--card);
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.dd-btn:hover { background: var(--hover); }
-.dd-btn:focus-visible { outline: 2px solid var(--accent-color); outline-offset: -1px; }
-.dd-dot { flex: none; }
-.dd-lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dd-caret { flex: none; opacity: .6; }
+/* The Email caret's menu. */
+.dd { position: relative; }
 .dd-menu {
   position: absolute;
   z-index: 10;
@@ -310,16 +327,10 @@ kbd {
 }
 .dd-opt:hover, .dd-opt:focus-visible { background: var(--hover); outline: none; }
 .dd-opt[aria-checked="true"] { font-weight: 600; }
-/* The Download button's menu: opens upwards, the panel ends just below. */
-.dd.dl { flex: none; }
-.dd.dl.grow { flex: 1; }
-.dd.dl.grow > .btn { width: 100%; }
+/* Opens upwards, the panel ends just below. */
 .dd-menu.up { top: auto; bottom: calc(100% + 2px); left: auto; width: max-content; max-width: 280px; }
 .dd-opt-text { display: flex; flex-direction: column; gap: 1px; white-space: normal; }
 .dd-opt-note { font-size: 11.5px; color: var(--muted); }
-.prio-unset { color: var(--faint); }
-.prio-High { color: #ca5010; }
-.prio-Critical { color: #c4314b; font-weight: 700; }
 
 /* The throw-away question: a modal over the panel in the same style, a
    round question mark, the question, and the buttons at the bottom right.
@@ -342,6 +353,10 @@ kbd {
 .dialog .note { margin: 0; font-size: 12px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .dialog .btn { min-width: 88px; }
+#help-draft h2 { margin: 0 0 10px; }
+#help-draft .steps { margin: 0 0 12px; }
+#help-draft .note { margin: 0 0 8px; }
+#help-draft .dialog-actions { margin-top: 16px; }
 .btn.danger { color: var(--error); }
 .btn.danger:hover:not(:disabled) { border-color: var(--error); }
 
@@ -380,4 +395,3 @@ kbd {
 .entry-title { font-size: 14px; font-weight: 600; }
 .entry-note { font-size: 12px; color: var(--muted); }
 .entry-go { flex: none; color: var(--muted); }
-.card .row.meta .dd { flex: 0 1 50%; }

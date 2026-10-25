@@ -3,34 +3,58 @@
 <head>
 <meta charset="utf-8">
 <title>Help panel harness</title>
+<script src="../../src/options/theme.js"></script>
 <link rel="stylesheet" href="../../src/sidepanel/sidepanel.css">
 <link rel="stylesheet" href="../../src/support/support-overlay.css">
 <style>
   /* The side panel is ~360px wide; the rest stands in for the BC tab. */
   html, body { height: 100%; }
   body { display: flex; margin: 0; min-height: 0; }
-  #page { flex: 1; background: linear-gradient(135deg, #e8f1fb, #fdf3e7); padding: 24px; font: 14px Segoe UI; }
+  #page { flex: 1; background: linear-gradient(135deg, #e8f1fb, #fdf3e7); padding: 24px; font: 14px Segoe UI; color: #1b1e23; }
   #panel { width: 360px; border-left: 1px solid #ccc; overflow: auto; background: var(--ground); }
 </style>
 <script>
 // Stub of the chrome.* APIs the side panel uses. The "tab" is this page:
 // captures draw #page, executeScript runs the function right here, where
 // support-overlay.js is loaded too.
+//
+// Helpers for driving it from the console:
+//   __setSettings({...})  merge into the stored settings, fires onChanged
+//   __setLang('nl')       the language picker on the options page
+//   __grant = true        chrome.permissions.request() says yes
+//   __log, __files        what the panel did, what it downloaded
 (function () {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', '../../_locales/' + (new URLSearchParams(location.search).get('lang') || 'en') + '/messages.json', false); xhr.send();
   var msgs = JSON.parse(xhr.responseText);
-  var local = { settings: { enabled: true, feedbackEnabled: true, feedbackEmail: 'help@example.com' } };
+  var local = { settings: { enabled: true, webClientEnabled: true, feedbackEnabled: true, feedbackEmail: 'help@example.com' } };
   var session = {};
   window.__log = [];
-  function area(store) {
+  window.__files = [];
+  window.__grant = false;
+  function evt() { var l = []; return { addListener: function (f) { l.push(f); }, removeListener: function (f) { l = l.filter(function (x) { return x !== f; }); }, fire: function () { var a = arguments; l.slice().forEach(function (f) { f.apply(null, a); }); } }; }
+  var onChanged = evt();
+  function area(store, name) {
     return {
-      get: function (k) { var o = {}; if (typeof k === 'string') { if (k in store) o[k] = store[k]; } else Object.assign(o, store); return Promise.resolve(o); },
-      set: function (o) { Object.assign(store, JSON.parse(JSON.stringify(o))); return Promise.resolve(); },
-      remove: function (k) { delete store[k]; return Promise.resolve(); }
+      get: function (k) { var o = {}; if (typeof k === 'string') { if (k in store) o[k] = JSON.parse(JSON.stringify(store[k])); } else Object.assign(o, JSON.parse(JSON.stringify(store))); return Promise.resolve(o); },
+      set: function (o) {
+        var changes = {};
+        Object.keys(o).forEach(function (k) { changes[k] = { oldValue: store[k], newValue: JSON.parse(JSON.stringify(o[k])) }; });
+        Object.assign(store, JSON.parse(JSON.stringify(o)));
+        setTimeout(function () { onChanged.fire(changes, name); }, 0);
+        return Promise.resolve();
+      },
+      remove: function (k) { var changes = {}; changes[k] = { oldValue: store[k] }; delete store[k]; setTimeout(function () { onChanged.fire(changes, name); }, 0); return Promise.resolve(); }
     };
   }
-  function evt() { var l = []; return { addListener: function (f) { l.push(f); }, fire: function () { var a = arguments; l.forEach(function (f) { f.apply(null, a); }); } }; }
+  window.__session = session;
+  window.__setSettings = function (patch) {
+    return chrome.storage.local.set({ settings: Object.assign({}, local.settings, patch) });
+  };
+  window.__setLang = function (lang) {
+    return lang ? chrome.storage.local.set({ language: lang }) : chrome.storage.local.remove('language');
+  };
+  var dlChanged = evt();
   window.chrome = {
     i18n: {
       getMessage: function (k, subs) { var m = msgs[k]; if (!m) return ''; var s = m.message; (subs || []).forEach(function (v, i) { s = s.split('$' + (i + 1)).join(v); }); return s; },
@@ -42,13 +66,29 @@
       connect: function () {
         var onMsg = evt(), onDis = evt();
         var port = { onMessage: onMsg, onDisconnect: onDis,
-          postMessage: function (m) { __log.push(['port', m]); if (m.type === 'hello') setTimeout(function () { onMsg.fire({ type: 'view', view: 'help' }); }, 10); },
+          postMessage: function (m) { __log.push(['port', m]); if (m.type === 'hello') setTimeout(function () { onMsg.fire({ type: 'view', view: new URLSearchParams(location.search).get('view') || 'home' }); }, 10); },
           disconnect: function () {} };
         return port;
       },
       lastError: null
     },
-    storage: { local: area(local), session: area(session), onChanged: evt() },
+    storage: { local: area(local, 'local'), session: area(session, 'session'), onChanged: onChanged },
+    permissions: {
+      request: function (p) { __log.push(['permissions.request', p]); return Promise.resolve(window.__grant); }
+    },
+    downloads: {
+      onChanged: dlChanged,
+      download: function (o) {
+        __log.push(['downloads.download', o.filename]);
+        return fetch(o.url).then(function (r) { return r.text(); }).then(function (body) {
+          __files.push({ name: o.filename, via: 'downloads', body: body });
+          setTimeout(function () { dlChanged.fire({ id: 1, state: { current: 'complete' } }); }, 30);
+          return 1;
+        });
+      },
+      search: function () { return Promise.resolve([]); },
+      open: function (id, cb) { __log.push(['downloads.open', id]); if (cb) cb(); }
+    },
     windows: { getCurrent: function () { return Promise.resolve({ id: 1 }); } },
     tabs: {
       query: function () { return Promise.resolve([{ id: 7, windowId: 1, url: 'https://businesscentral.dynamics.com/contoso.com/Production/?company=CRONUS&page=42', title: 'Sales Order 1001' }]); },
@@ -67,12 +107,49 @@
     scripting: {
       insertCSS: function () { return Promise.resolve(); },
       executeScript: function (o) {
-        __log.push(['exec', o.files || String(o.func).slice(0, 60)]);
+        __log.push(['exec', o.files || String(o.func).slice(0, 80)]);
         if (o.files) return Promise.resolve([{ result: undefined }]);
         return Promise.resolve(o.func.apply(null, o.args || [])).then(function (r) { return [{ result: r }]; });
       }
     }
   };
+  // The clipboard, the email app, plain downloads and closing the panel
+  // are logged instead.
+  try {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { write: function (items) {
+      return items[0].getType('text/html').then(function (b) { return b.text(); }).then(function (html) { __log.push(['clipboard']); window.__clip = html; });
+    } } });
+  } catch (e) { /* keep the real one */ }
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href^="mailto:"], a[download]');
+    if (!a) return;
+    e.preventDefault();
+    if (a.hasAttribute('download')) {
+      var name = a.download;
+      fetch(a.href).then(function (r) { return r.text(); }).then(function (body) { __files.push({ name: name, via: 'a', body: body }); });
+      __log.push(['a-download', name]);
+    } else __log.push(['mailto', decodeURIComponent(a.href)]);
+  }, true);
+  window.close = function () { __log.push(['window.close']); };
+  // The settings fields of the new Help & feedback contract, until
+  // settings.js has them: normalize() lets them through as they are.
+  var BCB = window.BCBuddy = {};
+  var realNormalize = null;
+  Object.defineProperty(BCB, 'normalize', {
+    configurable: true,
+    get: function () { return realNormalize; },
+    set: function (fn) {
+      realNormalize = function (raw) {
+        var s = fn(raw);
+        var r = raw || {};
+        if (!('feedbackPriorities' in s)) s.feedbackPriorities = Array.isArray(r.feedbackPriorities) ? r.feedbackPriorities : null;
+        if (!('feedbackDefaultPriority' in s)) s.feedbackDefaultPriority = typeof r.feedbackDefaultPriority === 'string' ? r.feedbackDefaultPriority : '';
+        if (!('feedbackSubjectBug' in s)) s.feedbackSubjectBug = typeof r.feedbackSubjectBug === 'string' ? r.feedbackSubjectBug : '';
+        if (!('feedbackSubjectIdea' in s)) s.feedbackSubjectIdea = typeof r.feedbackSubjectIdea === 'string' ? r.feedbackSubjectIdea : '';
+        return s;
+      };
+    }
+  });
 })();
 </script>
 </head>
