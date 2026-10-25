@@ -38,7 +38,10 @@ $FeedbackUrgentLink      = $null   # 'https://...' or 'tel:+00 000 00 00 00'
 # also what other languages get. $null to leave unset. Full example, to copy
 # into the assignment below (with the plain values above in English):
 #
-#   $FeedbackPriorities = @('Low', 'Normal', 'High', 'Critical')
+#   $FeedbackPriorities  = @('Low', 'Normal', 'High', 'Critical')
+#   $FeedbackSubjectBug  = '[BC] Problem - {prio} - {company}: {title}'
+#   $FeedbackSubjectIdea = '[BC] Feedback - {prio} - {company}: {title}'
+#   $FeedbackUrgentText  = 'Urgent? Call the helpdesk on +00 000 00 00 00.'
 #   $FeedbackTranslations = @{
 #     nl = @{
 #       priorities  = @('Laag', 'Normaal', 'Hoog', 'Kritiek')
