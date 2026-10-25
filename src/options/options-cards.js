@@ -201,7 +201,6 @@
         var textColor = BCBuddy.idealText(color);
 
         card.style.setProperty('--rule-color', color);
-        card.classList.toggle('rule--disabled', item.enabled === false);
 
         var swatch = card.querySelector('[data-swatch]');
         if (swatch) swatch.style.background = color;

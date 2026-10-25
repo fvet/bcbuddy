@@ -7,10 +7,6 @@
     "message": "BC Buddy - options",
     "description": "Title of the options page. BC Buddy is a product name and stays as it is."
   },
-  "extensionActive": {
-    "message": "Active",
-    "description": "Label of the switch that turns BC Buddy on or off, at the bottom of the options menu. Keep it to one short word."
-  },
   "languageLabel": { "message": "Language" },
   "languageTitle": { "message": "The language of BC Buddy. Business Central keeps its own." },
   "themeLabel": {
@@ -125,10 +121,10 @@
   },
   "unknownDate": { "message": "unknown" },
   "importExportHeading": { "message": "Import / export" },
-  "importExportIntro": { "message": "Move your own rules, styles and Web client settings in one file." },
+  "importExportIntro": { "message": "Move your own rules, styles, Web client and Help & feedback settings in one file." },
   "importButton": { "message": "Import from file..." },
   "importNote": {
-    "message": "Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client settings in the file replace yours. The shared configuration is not touched.",
+    "message": "Import adds new rules and overwrites the ones you already have; rules that are not in the file stay. Web client and Help & feedback settings in the file replace yours, except the ones set by your organisation. The shared configuration is not touched.",
     "description": "Note under the Import and Export buttons in the Settings panel."
   },
   "importFailed": {
@@ -165,7 +161,6 @@
     "message": "Name (e.g. TEST)",
     "description": "Placeholder in the name field of a rule. TEST is an example of what somebody might call an environment."
   },
-  "ruleActiveTitle": { "message": "Rule active" },
   "toggleDetails": { "message": "Show or hide details" },
   "toggleOrDrag": { "message": "Click to show or hide details, drag to reorder" },
   "duplicate": { "message": "Duplicate" },
@@ -371,6 +366,14 @@
     "message": "original tab title",
     "description": "Explains the {title} token, see tokenName. Lowercase: it is read after the token itself."
   },
+  "tokenPrio": {
+    "message": "priority",
+    "description": "Explains the {prio} token of the Help & feedback email subjects. Lowercase: it is read after the token itself."
+  },
+  "tokenMessageTitle": {
+    "message": "first line of the message",
+    "description": "Explains the {title} token of the Help & feedback email subjects. Lowercase: it is read after the token itself."
+  },
   "tokensFooter": {
     "message": "A token that stays empty disappears together with the separator next to it.",
     "description": "Closing line under the list of tokens."
@@ -417,6 +420,10 @@
   "importWebClient": {
     "message": " Web client: $1 setting(s) changed.",
     "description": "Appended to importDone, which is why it starts with a space. $1 is how many switches or sliders on the Web client panel (see webClientHeading) the file changed."
+  },
+  "importSkippedLocked": {
+    "message": "Some settings are set by your organisation and were not changed.",
+    "description": "Added after the import result when the file held settings that IT or the shared file decides."
   },
   "emptyStyles": { "message": "No styles yet. Add one to reuse the same appearance across several rules." },
   "stylesIntro": {
@@ -600,26 +607,18 @@
     "message": "Environments",
     "description": "Navigation item leading to the rules, one per Business Central environment."
   },
-  "navHelp": {
-    "message": "Help",
+  "navDocs": {
+    "message": "Documentation",
     "description": "Last item in the options page navigation. It opens the BC Buddy documentation website in a new tab."
   },
-  "navSettings": { "message": "Settings" },
-  "shortcutsToggle": {
-    "message": "Keyboard shortcuts",
-    "description": "Label on the on/off switch that adds a keyboard icon to the top bar of Business Central, which shows the keyboard shortcuts."
-  },
-  "shortcutsDesc": {
-    "message": "A keyboard icon in the top bar lists the shortcuts that work where you are.",
-    "description": "Short description under the setting's name in the Web client panel; one line."
-  },
+  "navSettings": { "message": "Sharing" },
   "commandShortcuts": {
     "message": "Show the keyboard shortcuts for this Business Central page",
     "description": "Name of the browser keyboard shortcut people can set for the panel, shown on the browser page where extension shortcuts are set."
   },
   "scIconLabel": {
     "message": "Keyboard shortcuts",
-    "description": "Tooltip of the keyboard icon BC Buddy adds to the top bar of Business Central."
+    "description": "Title of the keyboard shortcuts view of the side panel, and of its entry on the start view."
   },
   "scTitle": {
     "message": "Keyboard shortcuts Buddy",
@@ -799,5 +798,389 @@
   "copyShared": {
     "message": "Make your own copy of this rule",
     "description": "Turns a shared rule into a copy the user owns and can edit."
+  },
+
+  "navFeedback": {
+    "message": "Help & feedback",
+    "description": "Navigation item leading to the Help & feedback settings."
+  },
+  "supportIntro": {
+    "message": "Lets users report a problem to your helpdesk straight from Business Central.",
+    "description": "Intro text of the Support section on the Settings panel."
+  },
+  "feedbackEmailLabel": {
+    "message": "Email",
+    "description": "Label on the field where the user enters the support team's email address. Kept short: the field sits on the same line."
+  },
+  "areaWebClientLabel": {
+    "message": "Use the Web client improvements",
+    "description": "Accessible name and tooltip of the switch in front of the Web client heading. Off: none of the Web client settings below do anything."
+  },
+  "areaEnvironmentsLabel": {
+    "message": "Use environment colours (your own and shared rules)",
+    "description": "Accessible name and tooltip of the switch in front of the Rules heading. Off: no rule colours anything."
+  },
+  "areaFeedbackLabel": {
+    "message": "Use Help & feedback",
+    "description": "Accessible name and tooltip of the switch in front of the Help & feedback heading."
+  },
+  "navAreaOff": {
+    "message": "(off)",
+    "description": "Read out by screen readers after a menu item whose area is switched off; not shown on screen."
+  },
+  "feedbackPrioritiesLabel": {
+    "message": "Priorities",
+    "description": "Label of the box with the priorities a report can have."
+  },
+  "feedbackPrioritiesDesc": {
+    "message": "One per line.",
+    "description": "Line under Priorities."
+  },
+  "feedbackPrioritiesSampleLoad": {
+    "message": "Load examples",
+    "description": "Link inside the empty Priorities box: fills it with feedbackPrioritiesSample."
+  },
+  "feedbackPrioritiesSample": {
+    "message": "Normal\nHigh\nCritical",
+    "description": "The example priorities, one per line, least urgent first: the last one is the most urgent."
+  },
+  "feedbackPrioritiesInvalid": {
+    "message": "One per line, each at most $1 characters and each only once.",
+    "description": "$1 and $2 are numbers. Shown when the typed list cannot be saved."
+  },
+  "feedbackDefaultPriorityLabel": {
+    "message": "Default priority",
+    "description": "Label of the list with the priority a new report starts with."
+  },
+  "feedbackDefaultPriorityDesc": {
+    "message": "The priority a new report starts with.",
+    "description": "Line under Default priority."
+  },
+  "feedbackPriorityNone": {
+    "message": "None",
+    "description": "Choice in Default priority: a new report starts without a priority."
+  },
+  "feedbackUrgentTextLabel": {
+    "message": "Message for urgent problems",
+    "description": "Label of the field with a short message from IT, shown in the report form when someone picks the most urgent priority."
+  },
+  "feedbackUrgentTextDesc": {
+    "message": "Shown when someone picks the last priority in the list.",
+    "description": "Line under Message for urgent problems."
+  },
+  "feedbackUrgentTextPlaceholder": {
+    "message": "Urgent? Call the helpdesk on 03 123 45 67.",
+    "description": "Example text in the empty Message for urgent problems field. The phone number is made up."
+  },
+  "feedbackUrgentTextInvalid": {
+    "message": "One line of at most $1 characters.",
+    "description": "$1 is a number. Shown when the message for urgent problems cannot be saved."
+  },
+  "feedbackUrgentLinkLabel": {
+    "message": "Link (optional)",
+    "description": "Label of the field with a link on the message for urgent problems."
+  },
+  "feedbackUrgentLinkDesc": {
+    "message": "An https:// address, such as a Teams link, or tel: with a phone number.",
+    "description": "Line under Link (optional). Keep https:// and tel: as they are."
+  },
+  "feedbackUrgentLinkPlaceholder": {
+    "message": "https://teams.microsoft.com/... or tel:+00 000 00 00 00",
+    "description": "Example in the empty Link field. Keep the address and tel: as they are; only translate the word between them."
+  },
+  "feedbackUrgentLinkInvalid": {
+    "message": "Use an address that starts with https://, or tel: followed by a phone number.",
+    "description": "Shown when the link for urgent problems cannot be saved. Keep https:// and tel: as they are."
+  },
+  "feedbackSubjectBugLabel": {
+    "message": "Email subject for a problem",
+    "description": "Label of the field with the subject line of a problem report."
+  },
+  "feedbackSubjectIdeaLabel": {
+    "message": "Email subject for feedback",
+    "description": "Label of the field with the subject line of feedback or a suggestion."
+  },
+  "feedbackSubjectInvalid": {
+    "message": "One line of at most $1 characters.",
+    "description": "$1 is a number. Shown when a subject cannot be saved."
+  },
+  "bpTitle": {
+    "message": "BC Buddy",
+    "description": "Title of the side panel's start view, and tooltip of the BC Buddy logo in the top bar of Business Central that opens it."
+  },
+  "bpBack": {
+    "message": "Back",
+    "description": "Tooltip of the back arrow in the side panel header; returns to the start view."
+  },
+  "bpBug": {
+    "message": "Report a problem",
+    "description": "Entry on the side panel's start view that opens a problem report to the helpdesk."
+  },
+  "bpBugNote": {
+    "message": "Something does not work as it should",
+    "description": "Line under Report a problem on the side panel's start view."
+  },
+  "bpIdea": {
+    "message": "Feedback or a suggestion",
+    "description": "Entry on the side panel's start view that opens a suggestion to the helpdesk."
+  },
+  "bpIdeaNote": {
+    "message": "An idea, or a question about something new",
+    "description": "Line under Feedback or a suggestion on the side panel's start view."
+  },
+  "bpShortcutsNote": {
+    "message": "Shortcuts for this page",
+    "description": "Line under Keyboard shortcuts on the side panel's start view."
+  },
+  "bpNothingOn": {
+    "message": "Nothing to show here yet. Switch on Web client or Help & feedback in the settings.",
+    "description": "Shown on the side panel's start view when both are switched off."
+  },
+  "spDescPlaceholder": {
+    "message": "What went wrong?\nWhat were you doing…",
+    "description": "Placeholder inside the empty message box of a problem report, also its accessible name. There is no label above the box."
+  },
+  "spDescPlaceholderImp": {
+    "message": "What would you like to improve?\nWhat would you like to see differently?",
+    "description": "Placeholder inside the empty message box of feedback or a suggestion, also its accessible name."
+  },
+  "spDraftNotSaved": {
+    "message": "Not saved: too large",
+    "description": "Under the message box when the report is too large to keep; it stays only while the panel is open."
+  },
+  "spDescNext": {
+    "message": "Describe the next step and add a screenshot of it.\n\nClick $1 to finish.",
+    "description": "Placeholder inside the empty message box once there is a screenshot. $1 is the button that sends the report: Email, or Download when no helpdesk address is set. Keep the empty line."
+  },
+  "spDescHint": {
+    "message": "Add a screenshot of every step.",
+    "description": "Second line of the placeholder inside the empty message box, under the question, for problems and feedback alike."
+  },
+  "spPriority": {
+    "message": "Priority",
+    "description": "Accessible name of the priority dropdown, its empty choice, and the label of the priority in the report."
+  },
+  "spAddShot": {
+    "message": "Region",
+    "description": "Button right under the message box that starts an area screenshot. It shares one line with Whole screen, so keep it short."
+  },
+  "spAddShotHint": {
+    "message": "Drag over the part of the page that matters",
+    "description": "Tooltip of the area screenshot button (spAddShot)."
+  },
+  "spDragHint": {
+    "message": "Drag to change the order",
+    "description": "Tooltip on a step's thumbnail in the side panel: drag it up or down to move the step."
+  },
+  "spShotScreen": {
+    "message": "Whole screen",
+    "description": "Button left of Add a screenshot: a screenshot of the whole visible page. Keep it short."
+  },
+  "spFullPage": {
+    "message": "Capture the whole screen",
+    "description": "Tooltip of the Whole screen button."
+  },
+  "spMaxShots": {
+    "message": "Maximum of $1 screenshots reached.",
+    "description": "Shown instead of the intro when the limit is hit. $1 is the limit."
+  },
+  "spSend": {
+    "message": "Email",
+    "description": "Main button at the end of the Help & feedback panel: opens the report as a new email, screenshots included."
+  },
+  "spSendHint": {
+    "message": "Open the report as a new email, screenshots included",
+    "description": "Tooltip of the Email button."
+  },
+  "spSendMore": {
+    "message": "More ways to send",
+    "description": "Tooltip and accessible name of the arrow next to the main button: a menu with Email (draft), Download and Copy."
+  },
+  "spSendDraft": {
+    "message": "Email (draft)",
+    "description": "Choice under the arrow next to Email: opens the email app with the report on the clipboard."
+  },
+  "spSendDraftNote": {
+    "message": "Opens your email app; you paste the report yourself",
+    "description": "Second line under Email (draft)."
+  },
+  "spCopy": {
+    "message": "Copy",
+    "description": "Button that puts the report on the clipboard."
+  },
+  "spCopyHint": {
+    "message": "Put the report on the clipboard, to paste it anywhere",
+    "description": "Tooltip of the Copy button."
+  },
+  "spSaveReport": {
+    "message": "Download",
+    "description": "Button that saves the report as a web page (.html)."
+  },
+  "spSaveReportHint": {
+    "message": "Save the report (.html), to attach to an email",
+    "description": "Tooltip of the Download button."
+  },
+  "spEdit": {
+    "message": "Draw on this screenshot",
+    "description": "Tooltip of the pencil on a thumbnail."
+  },
+  "spRemove": {
+    "message": "Remove",
+    "description": "Tooltip of the cross on a thumbnail."
+  },
+  "spShotAlt": {
+    "message": "Screenshot $1",
+    "description": "Alt text of a thumbnail. $1 is its number."
+  },
+  "spShotNote": {
+    "message": "Note (optional)",
+    "description": "Placeholder of the note under each screenshot: the text of that step."
+  },
+  "spShotNoteLabel": {
+    "message": "Note for screenshot $1",
+    "description": "Accessible name of the note field. $1 is the screenshot number."
+  },
+  "spCaptureFailed": {
+    "message": "Could not take the screenshot. Please try again.",
+    "description": "Error under the buttons."
+  },
+  "spSelectHint": {
+    "message": "Click and drag to select an area · Esc to cancel",
+    "description": "Hint pill shown during area selection."
+  },
+  "spToolArrow": {
+    "message": "Arrow",
+    "description": "Annotation tool tooltip."
+  },
+  "spToolPen": {
+    "message": "Pen",
+    "description": "Annotation tool tooltip."
+  },
+  "spToolBox": {
+    "message": "Box",
+    "description": "Annotation tool tooltip: draws a rectangle outline."
+  },
+  "spToolBlur": {
+    "message": "Blur",
+    "description": "Annotation tool tooltip: makes an area unreadable."
+  },
+  "spToolColour": {
+    "message": "Colour",
+    "description": "Annotation colour button tooltip."
+  },
+  "spUndo": {
+    "message": "Undo (Ctrl+Z)",
+    "description": "Annotation undo tooltip."
+  },
+  "spClear": {
+    "message": "Clear all",
+    "description": "Annotation tooltip: removes everything drawn on the screenshot."
+  },
+  "spEditorSave": {
+    "message": "Save (Enter)",
+    "description": "Tooltip of the save button in the annotation editor."
+  },
+  "spEditorSaveShort": {
+    "message": "Save",
+    "description": "Label on the save button in the annotation editor."
+  },
+  "spEditorCancel": {
+    "message": "Cancel (Esc)",
+    "description": "Tooltip of the cancel button in the annotation editor."
+  },
+  "spDoneTitle": {
+    "message": "One more step in your email app",
+    "description": "Title of the dialog shown after Email (draft) opened the email app."
+  },
+  "spDoneStepPaste": {
+    "message": "Click in the email and press Ctrl+V to paste the report.",
+    "description": "First step in the Email (draft) dialog. Keep Ctrl+V as written; it is shown in bold."
+  },
+  "spDoneStepSend": {
+    "message": "Click Send.",
+    "description": "Last step in the Email (draft) dialog."
+  },
+  "spDoneFallback": {
+    "message": "No email opened? Choose Download or Email, and open the file.",
+    "description": "Note in the Email (draft) dialog. Download and Email are the button labels (spSaveReport, spSend)."
+  },
+  "spDoneWebmail": {
+    "message": "Using Gmail or Outlook on the web? Pictures often do not paste there: use Download and attach the file.",
+    "description": "Note in the Email (draft) dialog for webmail users."
+  },
+  "spOk": {
+    "message": "OK",
+    "description": "The only button of the Email (draft) dialog; closes it."
+  },
+  "spCopyFailed": {
+    "message": "Copying failed. The report was saved as a file instead: attach it to the email.",
+    "description": "Status when Email (draft) cannot reach the clipboard; the report was downloaded instead."
+  },
+  "spCopyFailedPlain": {
+    "message": "Copying failed. Use Download and attach the file instead.",
+    "description": "Status when the Copy button cannot reach the clipboard."
+  },
+  "spSavedEml": {
+    "message": "Open the downloaded file at the top of the browser to see your email.",
+    "description": "Status after Email when the email could not be opened by itself: the .eml file was downloaded."
+  },
+  "spDiscardConfirm": {
+    "message": "Throw away this report?",
+    "description": "Confirmation when closing the panel with unsent screenshots."
+  },
+  "spDiscardText": {
+    "message": "Your description and screenshots are not kept.",
+    "description": "Line under the question in the throw-away confirmation of the Help & feedback side panel."
+  },
+  "spDiscardYes": {
+    "message": "Throw away",
+    "description": "Button in the close confirmation that discards the report."
+  },
+  "spDiscardNo": {
+    "message": "Cancel",
+    "description": "Button in the throw-away confirmation that keeps the report."
+  },
+  "spDiscard": {
+    "message": "Throw away this report",
+    "description": "Tooltip of the bin button in the Help & feedback side panel header."
+  },
+  "spClose": {
+    "message": "Done",
+    "description": "Replaces the main button at the bottom once the report was emailed, downloaded or copied: throws the report away and closes the side panel. Keep it short."
+  },
+  "spCloseHint": {
+    "message": "Throw the report away and close the panel",
+    "description": "Tooltip of the Done button."
+  },
+  "spSteps": {
+    "message": "Steps",
+    "description": "Heading of the card that lists the screenshots, one per step, in the Help & feedback side panel."
+  },
+  "spMailBody": {
+    "message": "Please paste the report here (Ctrl+V, or click Paste in the email toolbar).",
+    "description": "Body the email opens with."
+  },
+  "spSubjectDefaultBug": {
+    "message": "[BC] Problem - {prio} - {company}: {title}",
+    "description": "Subject of a problem report unless the settings give another. Keep {prio}, {company} and {title} as they are: they are filled in with the priority, the company and the first line of the report, and left out with their dash when empty."
+  },
+  "spSubjectDefaultIdea": {
+    "message": "[BC] Feedback - {prio} - {company}: {title}",
+    "description": "Subject of feedback or a suggestion unless the settings give another. Keep the {placeholders} as they are."
+  },
+  "spReportType": {
+    "message": "Type",
+    "description": "Label in the report before Problem or Feedback."
+  },
+  "spTypeBug": {
+    "message": "Problem",
+    "description": "Type of the report, in the report and in {type} of the subject: a problem report."
+  },
+  "spTypeIdea": {
+    "message": "Feedback",
+    "description": "Type of the report, in the report and in {type} of the subject: feedback or a suggestion."
+  },
+  "feedbackEmailInvalid": {
+    "message": "Enter one email address, such as helpdesk@example.com."
   }
 }

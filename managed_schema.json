@@ -5,6 +5,57 @@
       "title": "Shared configuration URL",
       "description": "HTTPS address of the shared bc-buddy.json. BC Buddy keeps it in sync daily and users cannot change or clear it.",
       "type": "string"
+    },
+    "webClientEnabled": {
+      "title": "Web client improvements",
+      "description": "Turns the Web client improvements (and the keyboard shortcuts) on or off. Users cannot change it.",
+      "type": "boolean"
+    },
+    "environmentsEnabled": {
+      "title": "Environment colours",
+      "description": "Turns environment colours (own and shared rules) on or off. Users cannot change it.",
+      "type": "boolean"
+    },
+    "feedbackEnabled": {
+      "title": "Help & feedback",
+      "description": "Turns the Help & feedback report form in the side panel on or off. Users cannot change it.",
+      "type": "boolean"
+    },
+    "feedbackEmail": {
+      "title": "Help & feedback email address",
+      "description": "The one address reports are sent to. An invalid address is ignored.",
+      "type": "string"
+    },
+    "feedbackPriorities": {
+      "title": "Help & feedback priorities",
+      "description": "The priorities the report form offers: 1 to 10 names of at most 40 characters. An empty list hides the priority field, as it is without priorities.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "feedbackDefaultPriority": {
+      "title": "Help & feedback default priority",
+      "description": "The priority the form starts on. Must be one of the priorities; anything else means no default.",
+      "type": "string"
+    },
+    "feedbackSubjectBug": {
+      "title": "Help & feedback subject for a problem",
+      "description": "Subject line of a problem report, at most 200 characters on one line. Placeholders: {prio} {company} {environment} {title}.",
+      "type": "string"
+    },
+    "feedbackSubjectIdea": {
+      "title": "Help & feedback subject for an idea",
+      "description": "Subject line of an idea, at most 200 characters on one line. Placeholders: {prio} {company} {environment} {title}.",
+      "type": "string"
+    },
+    "feedbackUrgentText": {
+      "title": "Help & feedback message for urgent problems",
+      "description": "Shown under the priority when someone picks the last priority in the list, at most 200 characters on one line. It does not go into the report.",
+      "type": "string"
+    },
+    "feedbackUrgentLink": {
+      "title": "Help & feedback link for urgent problems",
+      "description": "Optional link on that message: an https:// address (at most 500 characters) or tel: with a phone number (digits, spaces, + ( ) - . only).",
+      "type": "string"
     }
   }
 }

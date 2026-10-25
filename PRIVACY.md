@@ -1,6 +1,6 @@
 # Privacy policy - BC Buddy
 
-_Last updated: 17 October 2026_
+_Last updated: 24 October 2026_
 
 BC Buddy is a browser extension that colours and labels Business Central
 environments so you can tell them apart. **It does not collect, transmit or
@@ -16,6 +16,7 @@ Everything BC Buddy knows lives in `chrome.storage.local`, on your own machine:
 - your web client preferences (whether pages are maximized, and the dropdown
   size steps),
 - the widths you dragged Business Central's side panes to,
+- your Help & feedback settings (on or off, the helpdesk email address),
 - the URL of a shared configuration file, if you configured one, plus the
   rules it returned and the timestamp of the last synchronisation.
 
@@ -34,10 +35,25 @@ picker where they were never set.
 This happens entirely inside your browser. Nothing that is read is stored,
 logged or sent anywhere.
 
-If your organisation manages your browser, BC Buddy also reads the one browser
-policy it knows: the address of a shared configuration file
-(`sharedConfigUrl`, in `chrome.storage.managed`). Your IT department sets it;
-BC Buddy only reads it.
+If your organisation manages your browser, BC Buddy also reads the browser
+policies it knows (in `chrome.storage.managed`): the address of a shared
+configuration file (`sharedConfigUrl`), the switch of each part
+(`webClientEnabled`, `environmentsEnabled`, `feedbackEnabled`) and the
+*Help & feedback* settings (the helpdesk's email address, the priorities and
+the email subjects). Your IT department sets them; BC Buddy only reads them.
+
+## Report a problem
+
+When you open *Help & feedback* in the browser's side panel and add a
+screenshot, BC Buddy captures the visible part of the tab in front. The
+screenshots, your text and the details of the page (date and time, tenant,
+environment, company, page title and address, browser) stay in your browser while you
+work on the report: in the browser's session storage, so the report survives
+closing the panel, and is gone when you close it with *Close*, throw it away
+or close the browser. *Email* saves the report as an email file (.eml) and
+opens it in your own email app; *Email (draft)* opens your email app and puts
+the report on your clipboard; *Copy* only puts it on your clipboard;
+*Download* saves it as a web page. BC Buddy itself sends the report nowhere.
 
 ## Network requests
 
@@ -60,15 +76,23 @@ to it.
 - `storage` - keep your settings.
 - `alarms` - check the shared configuration file once a day, or every hour
   while it could not be loaded.
+- `scripting` - show the area selection and the drawing editor of *Help &
+  feedback* on the Business Central page, only while you use them.
+- `downloads` and `downloads.open` (optional, asked for the first time you
+  click *Email* in *Help & feedback*) - save the report as an email file and
+  open it in your email app in one click. BC Buddy only uses them for the
+  file it just made: it does not read or change your other downloads. If you
+  say no, the file is downloaded the normal way and you open it yourself.
 - `sidePanel` - show the keyboard shortcuts for the Business Central page
-  you are on in the browser's side panel. The panel only shows what the
-  extension reads from that page; nothing leaves your computer.
+  you are on, and *Help & feedback*, in the browser's side panel. The panel
+  only shows what the extension reads from that page and what you add;
+  nothing leaves your computer.
 - host permissions (`<all_urls>`) - rules may match any URL, because a
   Business Central on-premises server runs on your own host name, and your
   shared configuration file can be hosted anywhere. The extension only uses
   this access to draw its own markers on pages that match one of your rules,
-  and to apply its web client improvements on pages that are Business
-  Central.
+  to apply its web client improvements on pages that are Business
+  Central, and to take the screenshots you add in *Help & feedback*.
 
 ## Contact
 

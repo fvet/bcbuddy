@@ -3,12 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="scIconLabel">Keyboard shortcuts</title>
+  <title>BC Buddy</title>
+  <script src="../options/theme.js"></script>
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
   <header class="head">
-    <h1 data-i18n="scIconLabel">Keyboard shortcuts</h1>
+    <button type="button" id="back" class="icon-button back" data-i18n-title="bpBack" data-i18n-label="bpBack" hidden>
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg>
+    </button>
+    <h1 id="title"></h1>
+    <button type="button" id="help-discard" class="icon-button" data-i18n-title="spDiscard" data-i18n-label="spDiscard" hidden>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v5M14 11v5"/>
+      </svg>
+    </button>
     <button type="button" id="settings" class="icon-button" data-i18n-title="gearMenuSettings" data-i18n-label="gearMenuSettings">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
@@ -16,16 +25,170 @@
       </svg>
     </button>
   </header>
-  <main id="list" aria-live="polite"></main>
-  <p id="empty" class="empty" data-i18n="scPanelEmpty" hidden>Open a Business Central page to see its shortcuts.</p>
-  <section class="card">
-    <a id="docs" class="link" target="_blank" rel="noopener noreferrer">
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M4.5 2.5h7v9h-7z"/><path d="M2.5 4.5v9h7"/></svg>
-      <span data-i18n="scDocsAll">All keyboard shortcuts</span>
-    </a>
-  </section>
+
+  <div id="view-home" class="view" hidden>
+    <nav class="entries">
+      <button type="button" class="entry" id="go-bug" hidden>
+        <svg class="entry-icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 14.5v-12M3.5 2.5h8.5l-2 3 2 3H3.5"/></svg>
+        <span class="entry-text">
+          <span class="entry-title" data-i18n="bpBug">Report a problem</span>
+          <span class="entry-note" data-i18n="bpBugNote">Something does not work as it should</span>
+        </span>
+        <svg class="entry-go" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
+      </button>
+      <button type="button" class="entry" id="go-idea" hidden>
+        <svg class="entry-icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.7.6 1.2v.6h4v-.6c0-.5.2-.9.6-1.2A4.5 4.5 0 0 0 8 1.5z"/></svg>
+        <span class="entry-text">
+          <span class="entry-title" data-i18n="bpIdea">Feedback or a suggestion</span>
+          <span class="entry-note" data-i18n="bpIdeaNote">An idea, or a question about something new</span>
+        </span>
+        <svg class="entry-go" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
+      </button>
+      <button type="button" class="entry" id="go-shortcuts" hidden>
+        <span class="entry-icon entry-icon-keys" aria-hidden="true"></span>
+        <span class="entry-text">
+          <span class="entry-title" data-i18n="scIconLabel">Keyboard shortcuts</span>
+          <span class="entry-note" data-i18n="bpShortcutsNote">Shortcuts for this page</span>
+        </span>
+        <svg class="entry-go" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
+      </button>
+    </nav>
+    <p id="home-empty" class="empty" data-i18n="bpNothingOn" hidden>Nothing to show here yet. Switch on Keyboard shortcuts or Help &amp; feedback in the settings.</p>
+  </div>
+
+  <div id="view-shortcuts" class="view" hidden>
+    <main id="list" aria-live="polite"></main>
+    <p id="empty" class="empty" data-i18n="scPanelEmpty" hidden>Open a Business Central page to see its shortcuts.</p>
+    <section class="card">
+      <a id="docs" class="link" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><path d="M4.5 2.5h7v9h-7z"/><path d="M2.5 4.5v9h7"/></svg>
+        <span data-i18n="scDocsAll">All keyboard shortcuts</span>
+      </a>
+    </section>
+  </div>
+
+  <div id="view-help" class="view" hidden>
+    <div id="help-capture" class="stack">
+      <!-- Built from the settings (help.js): the built-in list, the team's
+           own, or not there at all. -->
+      <!-- IT's own line for the most urgent priority (the last in the list),
+           above the field it is about; filled with textContent by help.js;
+           guidance only, not in the report. -->
+      <p class="warn" id="help-urgent" role="note" hidden></p>
+      <!-- One box: the label inside it, before the choice. -->
+      <label class="prio field" id="help-prio-row" hidden>
+        <span class="prio-label" data-i18n="spPriority">Priority</span>
+        <span class="select-wrap"><select id="help-prio" class="select"></select></span>
+      </label>
+
+      <!-- One entry per step: the screenshot and the text that was in the
+           box when it was taken, still editable. -->
+      <section class="card" id="help-steps-card" hidden>
+        <h2 data-i18n="spSteps">Steps</h2>
+        <div id="help-thumbs" class="thumbs"></div>
+      </section>
+
+      <section class="card">
+        <!-- A text box with bold, italic and underline (Ctrl+B, I, U). The
+             guidance, the question and the ask for a screenshot of every
+             step, is the placeholder, drawn by CSS from data-placeholder. -->
+        <div id="help-desc" class="field desc rich" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true"></div>
+        <div class="hint-row">
+          <!-- Only when the report in progress could not be kept
+               (chrome.storage.session over its quota). -->
+          <p class="note saved unsaved" id="help-saved" role="status" hidden></p>
+        </div>
+        <div class="row shots">
+          <button type="button" class="btn grow tall" id="help-add-full" data-i18n-title="spFullPage">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            <span data-i18n="spShotScreen">Whole screen</span>
+          </button>
+          <button type="button" class="btn grow tall" id="help-add-area" data-i18n-title="spAddShotHint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+            <span data-i18n="spAddShot">Region</span>
+          </button>
+        </div>
+        <p class="note" id="help-max" hidden></p>
+      </section>
+
+      <div class="actions">
+        <!-- One button at the bottom, shown one at a time: Email (the report
+             as a new .eml), Download when there is no helpdesk address, and
+             Done once the report went out one way or another (throws it away
+             and closes the panel). The caret holds every other way; help.js
+             hides the one that is the main button. -->
+        <div class="row split dd">
+          <button type="button" class="btn grow tall" id="help-send" disabled data-i18n-title="spSendHint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7 12 13 2 7"/></svg>
+            <span data-i18n="spSend">Email</span>
+          </button>
+          <button type="button" class="btn grow tall" id="help-dl" disabled hidden data-i18n-title="spSaveReportHint">
+            <svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v8M4.5 7 7.5 10 10.5 7M2.5 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="spSaveReport">Download</span>
+          </button>
+          <button type="button" class="btn grow tall" id="help-close" hidden data-i18n-title="spCloseHint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span data-i18n="spClose">Done</span>
+          </button>
+          <button type="button" class="btn tall caret" id="help-send-more" disabled aria-haspopup="menu" aria-expanded="false" data-i18n-title="spSendMore" data-i18n-label="spSendMore">
+            <svg width="9" height="6" viewBox="0 0 8 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 1 4 4 7 1"/></svg>
+          </button>
+          <div class="dd-menu up" id="help-send-menu" role="menu" hidden>
+            <button type="button" class="dd-opt" role="menuitem" data-value="email" hidden>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7 12 13 2 7"/></svg>
+              <span class="dd-opt-text"><span data-i18n="spSend">Email</span><span class="dd-opt-note" data-i18n="spSendHint">Open the report as a new email, with the screenshots inside</span></span>
+            </button>
+            <button type="button" class="dd-opt" role="menuitem" data-value="draft">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7 12 13 2 7"/></svg>
+              <span class="dd-opt-text"><span data-i18n="spSendDraft">Email (draft)</span><span class="dd-opt-note" data-i18n="spSendDraftNote">Opens your email app; you paste the report yourself</span></span>
+            </button>
+            <button type="button" class="dd-opt" role="menuitem" data-value="download">
+              <svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1.5v8M4.5 7 7.5 10 10.5 7M2.5 13h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="dd-opt-text"><span data-i18n="spSaveReport">Download</span><span class="dd-opt-note" data-i18n="spSaveReportHint">Save the report (.html), to attach to an email</span></span>
+            </button>
+            <button type="button" class="dd-opt" role="menuitem" data-value="copy">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+              <span class="dd-opt-text"><span data-i18n="spCopy">Copy</span><span class="dd-opt-note" data-i18n="spCopyHint">Put the report on the clipboard, to paste anywhere</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Only for what needs the user: an error, or where a saved file is
+           when the email could not be opened. -->
+      <p class="status" id="help-status" role="status"></p>
+    </div>
+
+    <dialog id="help-confirm" class="dialog" aria-labelledby="help-confirm-title" aria-describedby="help-confirm-text">
+      <div class="dialog-body">
+        <svg class="dialog-icon" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="16" cy="16" r="14.5"/><path d="M12.3 12.2a3.8 3.8 0 1 1 5.3 3.5c-1 .5-1.6 1.4-1.6 2.5v1"/><circle cx="16" cy="22.6" r=".4" fill="currentColor"/></svg>
+        <div>
+          <h2 id="help-confirm-title" data-i18n="spDiscardConfirm">Throw away this report?</h2>
+          <p id="help-confirm-text" class="note" data-i18n="spDiscardText">Your description and screenshots are not kept.</p>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn danger" id="help-discard-yes" data-i18n="spDiscardYes">Throw away</button>
+        <button type="button" class="btn" id="help-discard-no" data-i18n="spDiscardNo">Cancel</button>
+      </div>
+    </dialog>
+
+    <!-- After Email (draft): what is left to do in the email app. -->
+    <dialog id="help-draft" class="dialog" aria-labelledby="help-draft-title">
+      <h2 id="help-draft-title" data-i18n="spDoneTitle">One more step in your email app</h2>
+      <ol class="steps" id="help-draft-steps"></ol>
+      <p class="note" data-i18n="spDoneFallback">No email opened? Choose Download or Email, and open the file.</p>
+      <p class="note" data-i18n="spDoneWebmail">Using Gmail or Outlook on the web? Pictures often do not paste there: use Download and attach the file.</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn primary" id="help-draft-ok" data-i18n="spOk">OK</button>
+      </div>
+    </dialog>
+  </div>
+
   <script src="../lib/i18n.js"></script>
+  <script src="../lib/match.js"></script>
+  <script src="../lib/settings.js"></script>
   <script src="../lib/shortcuts.js"></script>
+  <script src="help.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

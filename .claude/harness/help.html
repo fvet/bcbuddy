@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Help panel harness</title>
+<script src="../../src/options/theme.js"></script>
+<link rel="stylesheet" href="../../src/sidepanel/sidepanel.css">
+<style>
+  /* The side panel is ~360px wide; the rest stands in for the BC tab. */
+  html, body { height: 100%; }
+  body { display: flex; margin: 0; min-height: 0; }
+  #page { flex: 1; background: linear-gradient(135deg, #e8f1fb, #fdf3e7); padding: 24px; font: 14px Segoe UI; color: #1b1e23; }
+  #panel { width: 360px; border-left: 1px solid #ccc; overflow: auto; background: var(--ground); }
+</style>
+<script>
+// Stub of the chrome.* APIs the side panel uses. The "tab" is this page:
+// captures draw #page, executeScript runs the function right here, where
+// support-overlay.js is loaded too.
+//
+// Helpers for driving it from the console:
+//   __setSettings({...})  merge into the stored settings, fires onChanged
+//   __setLang('nl')       the language picker on the options page
+//   __grant = true        chrome.permissions.request() says yes
+//   __log, __files        what the panel did, what it downloaded
+(function () {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '../../_locales/' + (new URLSearchParams(location.search).get('lang') || 'en') + '/messages.json', false); xhr.send();
+  var msgs = JSON.parse(xhr.responseText);
+  var local = { settings: { enabled: true, webClientEnabled: true, feedbackEnabled: true, feedbackEmail: 'help@example.com',
+    feedbackUrgentText: 'Urgent? Call the helpdesk on 03 123 45 67.', feedbackUrgentLink: 'tel:+3231234567' } };
+  var session = {};
+  window.__log = [];
+  window.__files = [];
+  window.__grant = false;
+  function evt() { var l = []; return { addListener: function (f) { l.push(f); }, removeListener: function (f) { l = l.filter(function (x) { return x !== f; }); }, fire: function () { var a = arguments; l.slice().forEach(function (f) { f.apply(null, a); }); } }; }
+  var onChanged = evt();
+  function area(store, name) {
+    return {
+      get: function (k) { var o = {}; if (typeof k === 'string') { if (k in store) o[k] = JSON.parse(JSON.stringify(store[k])); } else Object.assign(o, JSON.parse(JSON.stringify(store))); return Promise.resolve(o); },
+      set: function (o) {
+        var changes = {};
+        Object.keys(o).forEach(function (k) { changes[k] = { oldValue: store[k], newValue: JSON.parse(JSON.stringify(o[k])) }; });
+        Object.assign(store, JSON.parse(JSON.stringify(o)));
+        setTimeout(function () { onChanged.fire(changes, name); }, 0);
+        return Promise.resolve();
+      },
+      remove: function (k) { var changes = {}; changes[k] = { oldValue: store[k] }; delete store[k]; setTimeout(function () { onChanged.fire(changes, name); }, 0); return Promise.resolve(); }
+    };
+  }
+  window.__session = session;
+  window.__setSettings = function (patch) {
+    return chrome.storage.local.set({ settings: Object.assign({}, local.settings, patch) });
+  };
+  window.__setLang = function (lang) {
+    return lang ? chrome.storage.local.set({ language: lang }) : chrome.storage.local.remove('language');
+  };
+  var dlChanged = evt();
+  window.chrome = {
+    i18n: {
+      getMessage: function (k, subs) { var m = msgs[k]; if (!m) return ''; var s = m.message; (subs || []).forEach(function (v, i) { s = s.split('$' + (i + 1)).join(v); }); return s; },
+      getUILanguage: function () { return 'en'; }
+    },
+    runtime: {
+      id: 'x', getURL: function (p) { return location.origin + '/' + String(p).replace(/^\//, ''); },
+      sendMessage: function (m) { __log.push(['runtime', m]); return Promise.resolve(null); },
+      connect: function () {
+        var onMsg = evt(), onDis = evt();
+        var port = { onMessage: onMsg, onDisconnect: onDis,
+          postMessage: function (m) { __log.push(['port', m]); if (m.type === 'hello') setTimeout(function () { onMsg.fire({ type: 'view', view: new URLSearchParams(location.search).get('view') || 'home' }); }, 10); },
+          disconnect: function () {} };
+        return port;
+      },
+      lastError: null
+    },
+    storage: { local: area(local, 'local'), session: area(session, 'session'), onChanged: onChanged },
+    permissions: {
+      request: function (p) { __log.push(['permissions.request', p]); return Promise.resolve(window.__grant); }
+    },
+    downloads: {
+      onChanged: dlChanged,
+      download: function (o) {
+        __log.push(['downloads.download', o.filename]);
+        return fetch(o.url).then(function (r) { return r.text(); }).then(function (body) {
+          __files.push({ name: o.filename, via: 'downloads', body: body });
+          setTimeout(function () { dlChanged.fire({ id: 1, state: { current: 'complete' } }); }, 30);
+          return 1;
+        });
+      },
+      search: function () { return Promise.resolve([]); },
+      open: function (id, cb) { __log.push(['downloads.open', id]); if (cb) cb(); }
+    },
+    windows: { getCurrent: function () { return Promise.resolve({ id: 1 }); } },
+    tabs: {
+      query: function () { return Promise.resolve([{ id: 7, windowId: 1, url: 'https://businesscentral.dynamics.com/contoso.com/Production/?company=CRONUS&page=42', title: 'Sales Order 1001' }]); },
+      get: function () { return chrome.tabs.query({}).then(function (t) { return t[0]; }); },
+      sendMessage: function (id, m) { __log.push(['tab', m]); return Promise.resolve(m.type === 'bcb:support-context' ? { webClient: true, tenant: 'contoso.com', environment: 'Production', company: 'CRONUS' } : null); },
+      connect: function () { return { onMessage: evt(), onDisconnect: evt(), postMessage: function () {}, disconnect: function () {} }; },
+      getZoom: function () { return Promise.resolve(1); },
+      onZoomChange: evt(), onActivated: evt(), onUpdated: evt(),
+      captureVisibleTab: function () {
+        var c = document.createElement('canvas'); c.width = innerWidth; c.height = innerHeight;
+        var x = c.getContext('2d'); x.fillStyle = '#e8f1fb'; x.fillRect(0, 0, c.width, c.height);
+        x.fillStyle = '#c4314b'; x.font = '28px Segoe UI'; x.fillText('Sales Order 1001 - error here', 40, 80);
+        return Promise.resolve(c.toDataURL('image/png'));
+      }
+    },
+    scripting: {
+      insertCSS: function () { return Promise.resolve(); },
+      executeScript: function (o) {
+        __log.push(['exec', o.files || String(o.func).slice(0, 80)]);
+        if (o.files) return Promise.resolve([{ result: undefined }]);
+        return Promise.resolve(o.func.apply(null, o.args || [])).then(function (r) { return [{ result: r }]; });
+      }
+    }
+  };
+  // The clipboard, the email app, plain downloads and closing the panel
+  // are logged instead.
+  try {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { write: function (items) {
+      return items[0].getType('text/html').then(function (b) { return b.text(); }).then(function (html) { __log.push(['clipboard']); window.__clip = html; });
+    } } });
+  } catch (e) { /* keep the real one */ }
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href^="mailto:"], a[download]');
+    if (!a) return;
+    e.preventDefault();
+    if (a.hasAttribute('download')) {
+      var name = a.download;
+      fetch(a.href).then(function (r) { return r.text(); }).then(function (body) { __files.push({ name: name, via: 'a', body: body }); });
+      __log.push(['a-download', name]);
+    } else __log.push(['mailto', decodeURIComponent(a.href)]);
+  }, true);
+  window.close = function () { __log.push(['window.close']); };
+  // The settings fields of the new Help & feedback contract, until
+  // settings.js has them: normalize() lets them through as they are.
+  var BCB = window.BCBuddy = {};
+  var realNormalize = null;
+  Object.defineProperty(BCB, 'normalize', {
+    configurable: true,
+    get: function () { return realNormalize; },
+    set: function (fn) {
+      realNormalize = function (raw) {
+        var s = fn(raw);
+        var r = raw || {};
+        if (!('feedbackPriorities' in s)) s.feedbackPriorities = Array.isArray(r.feedbackPriorities) ? r.feedbackPriorities : null;
+        if (!('feedbackDefaultPriority' in s)) s.feedbackDefaultPriority = typeof r.feedbackDefaultPriority === 'string' ? r.feedbackDefaultPriority : '';
+        if (!('feedbackSubjectBug' in s)) s.feedbackSubjectBug = typeof r.feedbackSubjectBug === 'string' ? r.feedbackSubjectBug : '';
+        if (!('feedbackSubjectIdea' in s)) s.feedbackSubjectIdea = typeof r.feedbackSubjectIdea === 'string' ? r.feedbackSubjectIdea : '';
+        return s;
+      };
+    }
+  });
+})();
+</script>
+</head>
+<body>
+<div id="page"><h2>Business Central (stand-in)</h2><p>The tab in front.</p></div>
+<div id="panel"></div>
+<script>
+// Move the side panel's body markup in from the real file, so the harness
+// always shows what ships.
+(function () {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '../../src/sidepanel/sidepanel.html', false); xhr.send();
+  var doc = new DOMParser().parseFromString(xhr.responseText, 'text/html');
+  var panel = document.getElementById('panel');
+  Array.prototype.forEach.call(doc.body.children, function (n) { if (n.tagName !== 'SCRIPT') panel.appendChild(document.importNode(n, true)); });
+  ['../../src/lib/i18n.js', '../../src/lib/match.js', '../../src/lib/settings.js', '../../src/lib/shortcuts.js', '../../src/sidepanel/help.js', '../../src/sidepanel/sidepanel.js', '../../src/support/support-overlay.js']
+    .forEach(function (src) { var s = document.createElement('script'); s.src = src; s.async = false; document.body.appendChild(s); });
+  // The overlay draws in a closed shadow root and takes its CSS as text, as
+  // the real panel hands it over after injecting it.
+  var css = fetch('../../src/support/support-overlay.css').then(function (r) { return r.text(); });
+  document.querySelector('script[src$="support-overlay.js"]').addEventListener('load', function () {
+    css.then(function (text) { window.BCBuddy.SupportOverlay.useStyle(text); });
+  });
+})();
+</script>
+</body>
+</html>

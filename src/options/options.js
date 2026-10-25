@@ -14,6 +14,9 @@
       // The shared file's address when IT set it by browser policy; the field
       // is locked then.
       policyUrl: '',
+      // What IT set by browser policy (chrome.storage.managed), as read; see
+      // page.locked().
+      policy: {},
       // How BC Buddy was installed (chrome.management); 'admin' when IT
       // pushed it. Empty until known, and then the samples stay hidden.
       installType: '',
@@ -33,6 +36,13 @@
     el: {},
     t: t,
     TRIMMED_TYPES: ['text', 'url', 'search'],
+    // The three areas, each with its switch in front of its panel heading.
+    AREAS: ['webClientEnabled', 'environmentsEnabled', 'feedbackEnabled'],
+    SUBJECT_KEYS: ['feedbackSubjectBug', 'feedbackSubjectIdea'],
+    URGENT_FIELDS: [
+      { setting: 'feedbackUrgentText', clean: 'cleanUrgentText', invalid: 'feedbackUrgentTextInvalid' },
+      { setting: 'feedbackUrgentLink', clean: 'cleanUrgentLink', invalid: 'feedbackUrgentLinkInvalid' }
+    ],
     UI_KEY: 'ui',
     SAMPLE_URL: 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
       'Sandbox?company=CRONUS%20BE&page=1'
@@ -43,7 +53,6 @@
   /* -------------------------------------------------------------- rendering */
 
   page.renderAll = function () {
-    page.el.globalEnabled.checked = page.state.settings.enabled;
     // Settings changed under us (or the page just opened): an undo from
     // before would now put back something else.
     page.setResetStatus('');
@@ -51,14 +60,143 @@
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
 
+    page.renderAreas();
+    page.renderFeedback();
     page.refreshContext();
     page.renderHosted();
+  };
+
+  /**
+   * The settings IT (by policy) or the shared file decide, as
+   * an object from setting name to 'policy' or 'shared'; see BCBuddy.lockedKeys(). Worked out again
+   * every time, so a new policy or sync counts at once.
+   */
+  page.locked = function () {
+    return BCBuddy.lockedKeys(page.state.settings, page.state.policy);
+  };
+
+  page.isLocked = function (key) {
+    return Object.prototype.hasOwnProperty.call(page.locked(), key);
+  };
+
+  /**
+   * Each area's switch, its nav item and the dimming of its panel. An
+   * area that is off stays editable: the dimming only says it does nothing
+   * in Business Central right now.
+   */
+  page.renderAreas = function () {
+    var s = page.state.settings;
+    page.AREAS.forEach(function (key) {
+      var on = s[key] === true;
+      page.el[key].checked = on;
+      document.querySelectorAll('.panel[data-area="' + key + '"]').forEach(function (panel) {
+        panel.classList.toggle('area--off', !on);
+      });
+      var item = document.querySelector('.nav__item[data-area-nav="' + key + '"]');
+      if (item) {
+        item.classList.toggle('nav__item--on', on);
+        item.classList.toggle('nav__item--off', !on);
+      }
+      var said = document.querySelector('[data-area-state="' + key + '"]');
+      if (said) said.textContent = on ? '' : ' ' + t('navAreaOff');
+    });
+    page.renderLocks();
+  };
+
+  /**
+   * Every control with data-lock="key" is read-only while that key is
+   * locked, with "Set by your organisation." (data-lock-note) beside it.
+   * Switches and lists are disabled, text fields read-only so they can still
+   * be read and copied.
+   */
+  page.renderLocks = function () {
+    var locked = page.locked();
+    var has = function (key) { return Object.prototype.hasOwnProperty.call(locked, key); };
+    document.querySelectorAll('[data-lock]').forEach(function (control) {
+      var on = has(control.dataset.lock);
+      if (control.matches('input[type="checkbox"], select')) {
+        control.disabled = on;
+      } else {
+        control.readOnly = on;
+      }
+    });
+    document.querySelectorAll('[data-lock-note]').forEach(function (note) {
+      note.hidden = !has(note.dataset.lockNote);
+    });
+  };
+
+  page.renderFeedback = function () {
+    var s = page.state.settings;
+    var el = page.el;
+    var values = BCBuddy.priorityValues(s.feedbackPriorities);
+    page.fill(el.feedbackEmail, s.feedbackEmail);
+
+    // Empty is no priority field: then the default, the urgent message and
+    // its link have nothing to be about, and are not shown.
+    page.fill(el.feedbackPriorities, values.join('\n'));
+    el.feedbackPrioritiesSample.hidden = values.length > 0 || page.isLocked('feedbackPriorities');
+    document.querySelectorAll('[data-needs-priorities]').forEach(function (row) {
+      row.hidden = !values.length;
+    });
+
+    var select = el.feedbackDefaultPriority;
+    select.textContent = '';
+    [''].concat(values).forEach(function (value) {
+      var option = document.createElement('option');
+      option.value = value;
+      option.textContent = value || t('feedbackPriorityNone');
+      select.appendChild(option);
+    });
+    select.value = s.feedbackDefaultPriority;
+
+    // A subject left at the standard one shows it, so nobody has to guess;
+    // without priorities, without {prio}.
+    page.SUBJECT_KEYS.forEach(function (key) { page.fill(el[key], s[key] || page.defaultSubject(key)); });
+    el.feedbackSubjectTokens.innerHTML = page.subjectTokenLine(values.length > 0);
+    page.URGENT_FIELDS.forEach(function (spec) { page.fill(el[spec.setting], s[spec.setting]); });
+    page.renderLocks();
+  };
+
+  /** The built-in subject for that field, as the side panel would use it. */
+  page.defaultSubject = function (key) {
+    var template = t(key === 'feedbackSubjectIdea' ? 'spSubjectDefaultIdea' : 'spSubjectDefaultBug');
+    var hasPriorities = BCBuddy.priorityValues(page.state.settings.feedbackPriorities).length > 0;
+    return hasPriorities ? template : BCBuddy.fillSubject(template, { prio: '' });
+  };
+
+  /** Not while someone is typing in it: a half-typed value is not saved yet. */
+  page.fill = function (field, value) {
+    if (document.activeElement !== field) field.value = value;
+  };
+
+  /**
+   * The priorities as typed, one per line: [] for none typed (no priority
+   * field), undefined when the list cannot be saved as it stands:
+   * too many lines, a line too long, the same name twice or a character a
+   * subject line cannot hold. Nothing typed is dropped quietly.
+   */
+  page.readPriorities = function () {
+    var lines = page.el.feedbackPriorities.value.split(/\r?\n/)
+      .map(function (line) { return line.trim(); })
+      .filter(Boolean);
+    if (!lines.length) return [];
+    if (lines.length > BCBuddy.MAX_PRIORITIES) return undefined;
+    var clean = BCBuddy.cleanPriorities(lines);
+    return clean && clean.length === lines.length ? clean : undefined;
+  };
+
+  /** Stores a priority list; a default that is no longer in it becomes none. */
+  page.setPriorities = function (list) {
+    var s = page.state.settings;
+    s.feedbackPriorities = list;
+    s.feedbackDefaultPriority = BCBuddy.cleanDefaultPriority(s.feedbackDefaultPriority, list);
+    page.renderFeedback();
+    page.save();
   };
 
   page.renderWebClient = function () {
     page.el.copyValuesEnabled.checked = page.state.settings.copyValues.enabled;
     page.el.weekNumbersEnabled.checked = page.state.settings.weekNumbers.enabled;
-    page.el.shortcutsEnabled.checked = page.state.settings.shortcuts.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
     page.el.pinActionBarEnabled.checked = page.state.settings.pinActionBar.enabled;
     page.el.hideFactBoxEnabled.checked = page.state.settings.hideFactBox.enabled;
@@ -81,7 +219,7 @@
 
   /**
    * Puts the Web client settings back to the defaults (see
-   * BCBuddy.webClientDefaults) and offers to undo it. The master switch is not
+   * BCBuddy.webClientDefaults) and offers to undo it. The area switch is not
    * part of it, as it is not part of an export.
    */
   page.resetWebClient = function () {
@@ -382,18 +520,28 @@
     document.title = t('optionsTitle');
     BCBuddy.applyI18n();
     [
-      'status', 'globalEnabled', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
+      'status', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
       'addRule', 'loadSamples', 'samplesStatus', 'stylesStatus', 'language', 'hostedUrl', 'syncNow',
       'hostedStatus', 'hostedList', 'importFile', 'importFileBtn',
       'exportDownload', 'transferStatus',
       'addStyle', 'styleList', 'hostedStyleList', 'emptyStyles',
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
-      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
+      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled',
       'resizePanesEnabled', 'hideFactBoxEnabled',
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
-      'dropdownWidth', 'dropdownHeight'
+      'dropdownWidth', 'dropdownHeight',
+      'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled', 'feedbackEmail',
+      'feedbackPriorities', 'feedbackPrioritiesSample', 'feedbackDefaultPriority',
+      'feedbackSubjectBug', 'feedbackSubjectIdea', 'feedbackSubjectTokens', 'feedbackUrgentText', 'feedbackUrgentLink'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
+
+    // The BC top bar's two people on Help & feedback, from the one drawing.
+    document.querySelectorAll('[data-people-icon]').forEach(function (slot) {
+      var svg = BCBuddy.Shortcuts.peopleSvg(document);
+      svg.setAttribute('class', 'nav__icon');
+      slot.replaceWith(svg);
+    });
 
     bindLanguage();
 
@@ -407,7 +555,8 @@
       page.readInstallType()
     ]).then(function (results) {
       state.settings = results[0];
-      state.policyUrl = BCBuddy.policyUrl(results[3]);
+      state.policy = results[3] || {};
+      state.policyUrl = BCBuddy.policyUrl(state.policy);
       state.installType = results[5];
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
@@ -430,11 +579,14 @@
 
     chrome.storage.onChanged.addListener(function (changes, area) {
       // IT set, changed or removed the policy while this page was open. The
-      // service worker writes the address itself; this only (un)locks.
+      // service worker writes the values itself; this only (un)locks.
       if (area === 'managed') {
         BCBuddy.readPolicy().then(function (policy) {
-          state.policyUrl = BCBuddy.policyUrl(policy);
-          if (state.settings) page.renderHosted();
+          state.policy = policy || {};
+          state.policyUrl = BCBuddy.policyUrl(state.policy);
+          if (!state.settings) return;
+          page.renderLocks();
+          page.renderHosted();
         });
         return;
       }
@@ -487,9 +639,131 @@
   /* --------------------------------------------------------------- binding */
 
   function bind() {
-    el.globalEnabled.addEventListener('change', function () {
-      state.settings.enabled = el.globalEnabled.checked;
+    // A locked field is disabled or read-only, so these checks only matter
+    // when a policy arrived between drawing and the change: then the value
+    // goes back to what IT set, and the service worker would put it back
+    // anyway (enforceLocks()).
+    page.AREAS.forEach(function (key) {
+      el[key].addEventListener('change', function () {
+        if (!page.isLocked(key)) {
+          state.settings[key] = el[key].checked;
+          page.save();
+        }
+        page.renderAreas();
+      });
+    });
+
+    // Saved when the field is left, and only as one valid address: it goes
+    // into a mailto: link (see feedbackEmail() in settings.js).
+    el.feedbackEmail.addEventListener('input', function () {
+      el.feedbackEmail.setCustomValidity('');
+    });
+    el.feedbackEmail.addEventListener('change', function () {
+      if (page.isLocked('feedbackEmail')) {
+        page.renderFeedback();
+        return;
+      }
+      page.trimField(el.feedbackEmail);
+      var typed = el.feedbackEmail.value;
+      var valid = BCBuddy.normalize({ feedbackEmail: typed }).feedbackEmail;
+      if (typed && !valid) {
+        el.feedbackEmail.setCustomValidity(t('feedbackEmailInvalid'));
+        el.feedbackEmail.reportValidity();
+        return;
+      }
+      state.settings.feedbackEmail = valid;
       page.save();
+    });
+
+    // Saved when the field is left, and only when every line can be kept.
+    el.feedbackPriorities.addEventListener('input', function () {
+      el.feedbackPriorities.setCustomValidity('');
+      // At most MAX_PRIORITIES lines: what goes past that is cut off as it
+      // is typed or pasted, so the list never has to be refused for it.
+      var lines = el.feedbackPriorities.value.split(/\r?\n/);
+      if (lines.length > BCBuddy.MAX_PRIORITIES) {
+        el.feedbackPriorities.value = lines.slice(0, BCBuddy.MAX_PRIORITIES).join('\n');
+      }
+      el.feedbackPrioritiesSample.hidden = !!el.feedbackPriorities.value || page.isLocked('feedbackPriorities');
+    });
+    // Load examples: a starting list in the page's language, saved at once.
+    el.feedbackPrioritiesSample.addEventListener('click', function (event) {
+      if (!event.isTrusted || page.isLocked('feedbackPriorities')) return;
+      el.feedbackPriorities.value = t('feedbackPrioritiesSample');
+      el.feedbackPriorities.setCustomValidity('');
+      var list = page.readPriorities();
+      if (list) page.setPriorities(list);
+      el.feedbackPriorities.focus();
+    });
+    el.feedbackPriorities.addEventListener('change', function () {
+      if (page.isLocked('feedbackPriorities')) {
+        page.renderFeedback();
+        return;
+      }
+      var list = page.readPriorities();
+      if (list === undefined) {
+        el.feedbackPriorities.setCustomValidity(t('feedbackPrioritiesInvalid',
+          [BCBuddy.MAX_PRIORITY_LENGTH]));
+        el.feedbackPriorities.reportValidity();
+        return;
+      }
+      page.setPriorities(list);
+    });
+    el.feedbackDefaultPriority.addEventListener('change', function () {
+      if (!page.isLocked('feedbackDefaultPriority')) {
+        state.settings.feedbackDefaultPriority = BCBuddy.cleanDefaultPriority(
+          el.feedbackDefaultPriority.value, state.settings.feedbackPriorities);
+        page.save();
+      }
+      page.renderFeedback();
+    });
+
+    // One line each; empty, or the built-in subject as shown, is stored as
+    // '' (see cleanSubject()), so it follows the language and the priorities.
+    page.SUBJECT_KEYS.forEach(function (key) {
+      var field = el[key];
+      field.addEventListener('input', function () { field.setCustomValidity(''); });
+      field.addEventListener('change', function () {
+        if (page.isLocked(key)) {
+          page.renderFeedback();
+          return;
+        }
+        page.trimField(field);
+        var typed = field.value === page.defaultSubject(key) ? '' : field.value;
+        var valid = BCBuddy.cleanSubject(typed);
+        if (typed && !valid) {
+          field.setCustomValidity(t('feedbackSubjectInvalid', [BCBuddy.MAX_SUBJECT_LENGTH]));
+          field.reportValidity();
+          return;
+        }
+        state.settings[key] = valid;
+        page.save();
+        if (!valid) field.value = page.defaultSubject(key);
+      });
+    });
+
+    // The notice for the most urgent priority and its link: refused rather
+    // than repaired, like the subjects. A link is shown as it is stored.
+    page.URGENT_FIELDS.forEach(function (spec) {
+      var field = el[spec.setting];
+      field.addEventListener('input', function () { field.setCustomValidity(''); });
+      field.addEventListener('change', function () {
+        if (page.isLocked(spec.setting)) {
+          page.renderFeedback();
+          return;
+        }
+        page.trimField(field);
+        var typed = field.value;
+        var valid = BCBuddy[spec.clean](typed);
+        if (typed && !valid) {
+          field.setCustomValidity(t(spec.invalid, [BCBuddy.MAX_URGENT_TEXT_LENGTH]));
+          field.reportValidity();
+          return;
+        }
+        field.value = valid;
+        state.settings[spec.setting] = valid;
+        page.save();
+      });
     });
 
     el.copyValuesEnabled.addEventListener('change', function () {
@@ -504,11 +778,6 @@
 
     el.weekNumbersEnabled.addEventListener('change', function () {
       state.settings.weekNumbers.enabled = el.weekNumbersEnabled.checked;
-      page.save();
-    });
-
-    el.shortcutsEnabled.addEventListener('change', function () {
-      state.settings.shortcuts.enabled = el.shortcutsEnabled.checked;
       page.save();
     });
 

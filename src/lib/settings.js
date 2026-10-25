@@ -11,7 +11,33 @@
   // service worker when the toolbar icon is clicked and cleared by the page.
   var OPEN_PANEL_KEY = 'openPanel';
   var EXPORT_APP = 'bc-buddy';
-  var SCHEMA_VERSION = 2;
+  // 3: one switch per area (webClientEnabled, environmentsEnabled,
+  // feedbackEnabled) instead of one for the whole extension, and no on/off
+  // switch per rule: a rule that exists is active. See migrate().
+  var SCHEMA_VERSION = 3;
+  // RFC 5321 caps an address at 254 characters.
+  var MAX_EMAIL_LENGTH = 254;
+
+  // Help & feedback: the priorities the report form offers, and its subjects.
+  // An empty list means no priority field at all.
+  var MAX_PRIORITIES = 10;
+  var MAX_PRIORITY_LENGTH = 40;
+  var MAX_SUBJECT_LENGTH = 200;
+  // The notice shown when someone picks the most urgent priority, and the
+  // link it may carry: an https: address or a tel: number.
+  var MAX_URGENT_TEXT_LENGTH = 200;
+  var MAX_URGENT_LINK_LENGTH = 500;
+  var MAX_TEL_LENGTH = 30;
+  // Line breaks, control characters and the bidi overrides that make text
+  // read differently from what it holds. Text with any of them is refused.
+  var UNSAFE_TEXT = /[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/;
+
+  // The switch of each area. The Help & feedback switch is one of the
+  // FEEDBACK_KEYS, because it travels and locks with the rest of that area.
+  var AREA_KEYS = ['webClientEnabled', 'environmentsEnabled'];
+  var FEEDBACK_KEYS = ['feedbackEnabled', 'feedbackEmail', 'feedbackPriorities',
+    'feedbackDefaultPriority', 'feedbackSubjectBug', 'feedbackSubjectIdea',
+    'feedbackUrgentText', 'feedbackUrgentLink'];
 
   var BRAND_NAME = 'Dynamics 365 Business Central';
   var DEFAULT_RIBBON_TEXT = BRAND_NAME + ' - {company} ({environment})';
@@ -51,8 +77,9 @@
   // failed try in a row, and daily after that.
   var RETRY_MINUTES = [60, 120, 240, 480];
 
-  // The keys IT can set by policy (managed_schema.json).
-  var POLICY_KEYS = ['sharedConfigUrl'];
+  // The keys IT can set by policy (managed_schema.json). Every one of them is
+  // locked while the policy sets a valid value.
+  var POLICY_KEYS = ['sharedConfigUrl'].concat(AREA_KEYS, FEEDBACK_KEYS);
 
   /**
    * The shared configuration is 'active' once you have synced once; from then
@@ -186,7 +213,8 @@
     return {
       id: str(r.id) || uid(),
       name: str(r.name, BCBuddy.t('newRuleName')),
-      enabled: bool(r.enabled, true),
+      // No on/off switch: a rule that exists is active. Rules that say
+      // enabled: false are dropped before they get here (liveRules()).
       conditions: conditions,
       // No text colour: BC Buddy always picks black or white for what is on
       // screen (BCBuddy.idealText). A textColor in an older file is dropped.
@@ -294,6 +322,17 @@
     return { name: name.toUpperCase(), conditions: conditions };
   }
 
+  /**
+   * The rules in a list from storage, an import or the shared file without
+   * the ones an older version had switched off: that switch is gone, and a
+   * rule that was off must not start colouring a page by itself.
+   */
+  function liveRules(list) {
+    return (Array.isArray(list) ? list : []).filter(function (r) {
+      return !(r && typeof r === 'object' && r.enabled === false);
+    });
+  }
+
   function newRule(patch) {
     var rule = normalizeRule(patch || {});
     rule.id = uid();
@@ -325,10 +364,11 @@
   }
 
   // The settings of the Web client panel. They travel in an export as
-  // `webClient`, shaped exactly as they are stored. The master switch does not:
-  // it belongs to whoever runs the extension.
+  // `webClient`, shaped exactly as they are stored. The area's own switch
+  // (webClientEnabled) does not: it belongs to whoever runs the extension.
+  // The keyboard shortcuts have no switch: they come with the area.
   var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'resizePanes', 'highlightRow',
-    'stripeRows', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers', 'shortcuts',
+    'stripeRows', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers',
     'hideFactBox'];
 
   function normalizeWebClient(s) {
@@ -342,7 +382,6 @@
     var hideNotifications = s.hideNotifications || {};
     var copyValues = s.copyValues || {};
     var weekNumbers = s.weekNumbers || {};
-    var shortcuts = s.shortcuts || {};
     var hideFactBox = s.hideFactBox || {};
 
     return {
@@ -382,9 +421,6 @@
       weekNumbers: {
         enabled: bool(weekNumbers.enabled, true)
       },
-      shortcuts: {
-        enabled: bool(shortcuts.enabled, false)
-      },
       // Off until asked for: the FactBoxes are BC's own, and many people
       // read them.
       hideFactBox: {
@@ -410,20 +446,348 @@
     return picked;
   }
 
+  /**
+   * The helpdesk address goes into a mailto: link, so it is one plain address
+   * or nothing: no spaces, no second address, no ?subject= of its own.
+   */
+  function feedbackEmail(value) {
+    var s = str(value);
+    if (s.length > MAX_EMAIL_LENGTH) return '';
+    return /^[^\s@<>()",;:?&=%\/\\]+@[^\s@<>()",;:?&=%\/\\]+$/.test(s) ? s : '';
+  }
+
+  function has(o, key) {
+    return !!o && Object.prototype.hasOwnProperty.call(o, key);
+  }
+
+  function copy(value) {
+    return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  }
+
+  /**
+   * One line of plain text of at most `max` characters, trimmed, or null when
+   * it is not a string, is too long, or holds a line break, a control
+   * character or a bidi override. The text ends up in a form, a subject line
+   * and a mailto: link, so it is refused rather than repaired.
+   */
+  function plainText(value, max) {
+    if (typeof value !== 'string') return null;
+    var s = value.trim();
+    if (UNSAFE_TEXT.test(s) || Array.from(s).length > max) return null;
+    return s;
+  }
+
+  /**
+   * The priorities the report form offers: up to MAX_PRIORITIES names, each
+   * plain text of at most MAX_PRIORITY_LENGTH characters, each once
+   * (ignoring case). Empty, or anything that is not a list, is [], and then
+   * there is no priority field.
+   */
+  function cleanPriorities(value) {
+    if (!Array.isArray(value)) return [];
+    var out = [];
+    for (var i = 0; i < value.length && out.length < MAX_PRIORITIES; i++) {
+      var name = plainText(value[i], MAX_PRIORITY_LENGTH);
+      if (!name) continue;
+      var lower = name.toLowerCase();
+      if (out.some(function (other) { return other.toLowerCase() === lower; })) continue;
+      out.push(name);
+    }
+    return out;
+  }
+
+  /** The priority values in effect: the list itself, or none. */
+  function priorityValues(list) {
+    return Array.isArray(list) ? list.slice() : [];
+  }
+
+  /**
+   * The priority the form starts on: one of the values of `list` (as spelled
+   * there), or '' for none. Anything else, or anything when there is no
+   * priority field, is ''.
+   */
+  function cleanDefaultPriority(value, list) {
+    var name = plainText(value, MAX_PRIORITY_LENGTH);
+    if (!name) return '';
+    var lower = name.toLowerCase();
+    var values = priorityValues(list);
+    for (var i = 0; i < values.length; i++) {
+      if (values[i].toLowerCase() === lower) return values[i];
+    }
+    return '';
+  }
+
+  /**
+   * A subject line for the report email, with the side panel's placeholders
+   * ({prio} {type} {company} {environment} {tenant} {title}) left as they
+   * are. '' means the built-in subject, and so does anything invalid.
+   */
+  function cleanSubject(value) {
+    return plainText(value, MAX_SUBJECT_LENGTH) || '';
+  }
+
+  var SUBJECT_TOKENS = /\{(prio|type|company|environment|tenant|title)\}/g;
+  var MAX_FILLED_SUBJECT = 250;
+
+  /**
+   * A subject pattern with its placeholders filled in from `values`; one
+   * whose key `values` does not have stays as it is. An empty placeholder
+   * takes its separator with it, so no " - " or ": " is left hanging. Never
+   * a line break: the subject is one header line. The side panel fills in
+   * everything; the options page drops only {prio} when there is no
+   * priority field.
+   */
+  function fillSubject(template, values) {
+    values = values || {};
+    var EMPTY = '\u0000';
+    var flat = function (v, max) {
+      return typeof v === 'string'
+        ? v.replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max)
+        : '';
+    };
+    var s = flat(template, MAX_SUBJECT_LENGTH).replace(SUBJECT_TOKENS, function (all, key) {
+      if (!Object.prototype.hasOwnProperty.call(values, key)) return all;
+      return flat(values[key], 100) || EMPTY;
+    });
+    var gap = /(\s*[-–—:|,\/]\s*)?\u0000(\s*[-–—:|,\/]\s*)?/;
+    for (var guard = 0; s.indexOf(EMPTY) !== -1 && guard < 20; guard++) {
+      s = s.replace(gap, function (all, left, right) {
+        // Between two separators the first stays; at either end it goes.
+        return left && right ? left : (left || right ? ' ' : '');
+      });
+    }
+    return s.replace(/\[\s*\]|\(\s*\)/g, '').replace(/\s+/g, ' ')
+      .replace(/^(\s*[-–—:|,\/]\s*)+/, '').replace(/(\s*[-–—:|,\/]\s*)+$/, '')
+      .trim().slice(0, MAX_FILLED_SUBJECT);
+  }
+
+  /** The notice for the most urgent priority: one line of plain text, or ''. */
+  function cleanUrgentText(value) {
+    return plainText(value, MAX_URGENT_TEXT_LENGTH) || '';
+  }
+
+  /**
+   * The link on that notice, or '' for none. Only two kinds pass: an https:
+   * address without spaces or a user name or password in it, and a tel:
+   * number of digits, spaces, +, (, ), - and dots. Anything else (http:,
+   * javascript:, data:, mailto:, ...) is '', so the notice has no link.
+   */
+  function cleanUrgentLink(value) {
+    if (typeof value !== 'string') return '';
+    var s = value.trim();
+    if (!s || UNSAFE_TEXT.test(s)) return '';
+    if (/^tel:/i.test(s)) {
+      var number = s.slice(4);
+      if (!number || number.length > MAX_TEL_LENGTH) return '';
+      if (!/^[+0-9 ().\-]+$/.test(number) || !/[0-9]/.test(number)) return '';
+      return 'tel:' + number;
+    }
+    if (s.length > MAX_URGENT_LINK_LENGTH || /\s/.test(s) || !/^https:\/\//i.test(s)) return '';
+    var url;
+    try { url = new URL(s); } catch (e) { return ''; }
+    if (url.protocol !== 'https:' || !url.hostname || url.username || url.password) return '';
+    return url.href.length > MAX_URGENT_LINK_LENGTH ? '' : url.href;
+  }
+
+  /**
+   * The Help & feedback fields of stored settings, each checked. A default
+   * priority that is not in the list is none.
+   */
+  function normalizeFeedback(s) {
+    var priorities = cleanPriorities(s.feedbackPriorities);
+    var defaultPriority = s.feedbackDefaultPriority;
+    return {
+      feedbackEnabled: bool(s.feedbackEnabled, false),
+      feedbackEmail: feedbackEmail(s.feedbackEmail),
+      feedbackPriorities: priorities,
+      feedbackDefaultPriority: cleanDefaultPriority(defaultPriority, priorities),
+      feedbackSubjectBug: cleanSubject(s.feedbackSubjectBug),
+      feedbackSubjectIdea: cleanSubject(s.feedbackSubjectIdea),
+      feedbackUrgentText: cleanUrgentText(s.feedbackUrgentText),
+      feedbackUrgentLink: cleanUrgentLink(s.feedbackUrgentLink)
+    };
+  }
+
+  /** Checks the Help & feedback fields again in place, e.g. after a lock wrote some. */
+  function tidyFeedback(settings) {
+    var clean = normalizeFeedback(settings);
+    FEEDBACK_KEYS.forEach(function (key) { settings[key] = clean[key]; });
+  }
+
+  /**
+   * The Help & feedback part of an import or a shared file: only what it
+   * names, each value checked, so a file that leaves it out leaves the local
+   * choice alone. Null when the file says nothing about Help & feedback. The
+   * default priority is checked against the list once it is applied.
+   */
+  function readFeedback(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+    var picked = null;
+    function take(key, value) {
+      picked = picked || {};
+      picked[key] = value;
+    }
+    if (typeof data.feedbackEnabled === 'boolean') take('feedbackEnabled', data.feedbackEnabled);
+    if (feedbackEmail(data.feedbackEmail)) take('feedbackEmail', feedbackEmail(data.feedbackEmail));
+    if (data.feedbackPriorities === null || Array.isArray(data.feedbackPriorities)) {
+      take('feedbackPriorities', cleanPriorities(data.feedbackPriorities));
+    }
+    var priority = plainText(data.feedbackDefaultPriority, MAX_PRIORITY_LENGTH);
+    if (priority !== null) take('feedbackDefaultPriority', priority);
+    ['feedbackSubjectBug', 'feedbackSubjectIdea'].forEach(function (key) {
+      if (typeof data[key] === 'string') take(key, cleanSubject(data[key]));
+    });
+    if (typeof data.feedbackUrgentText === 'string') {
+      take('feedbackUrgentText', cleanUrgentText(data.feedbackUrgentText));
+    }
+    if (typeof data.feedbackUrgentLink === 'string') {
+      take('feedbackUrgentLink', cleanUrgentLink(data.feedbackUrgentLink));
+    }
+    return picked;
+  }
+
+  /**
+   * Takes over what readFeedback() found, except the keys in `locked` (from
+   * lockedKeys()): those stay as IT or the shared file set them. Returns the
+   * locked keys the file tried to change, so the page can say so.
+   */
+  function applyFeedback(settings, incoming, locked) {
+    var skipped = [];
+    if (!incoming) return skipped;
+    FEEDBACK_KEYS.forEach(function (key) {
+      if (!has(incoming, key)) return;
+      if (locked && has(locked, key)) {
+        if (JSON.stringify(settings[key]) !== JSON.stringify(incoming[key])) skipped.push(key);
+        return;
+      }
+      settings[key] = copy(incoming[key]);
+    });
+    tidyFeedback(settings);
+    return skipped;
+  }
+
+  /**
+   * The area switches a file names (webClientEnabled, environmentsEnabled),
+   * or null when it names none. Export leaves them out; IT may add them to a
+   * shared file as the team's defaults.
+   */
+  function readAreas(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+    var picked = null;
+    AREA_KEYS.forEach(function (key) {
+      if (typeof data[key] !== 'boolean') return;
+      picked = picked || {};
+      picked[key] = data[key];
+    });
+    return picked;
+  }
+
+  /** Like applyFeedback(), for the area switches. Returns the locked keys it skipped. */
+  function applyAreas(settings, incoming, locked) {
+    var skipped = [];
+    AREA_KEYS.forEach(function (key) {
+      if (!incoming || typeof incoming[key] !== 'boolean') return;
+      if (locked && has(locked, key)) {
+        if (settings[key] !== incoming[key]) skipped.push(key);
+        return;
+      }
+      settings[key] = incoming[key];
+    });
+    return skipped;
+  }
+
+  /**
+   * The area switches of a shared file (parsed with parseImport), as team
+   * defaults. A file with rules that does not say otherwise means environment
+   * colours on: that is what sharing rules is for, and what every version
+   * before the area switches did.
+   */
+  function sharedAreas(parsed) {
+    var areas = (parsed && readAreas(parsed.areas)) || {};
+    if (parsed && parsed.rules && parsed.rules.length && !has(areas, 'environmentsEnabled')) {
+      areas.environmentsEnabled = true;
+    }
+    return areas;
+  }
+
+  /**
+   * The shared file's area switches are defaults, like its Web client
+   * settings (applySharedWebClient): each is taken over on the first sync and
+   * after that only when its value in the file changes. Keys in `locked` (a
+   * policy) are left alone. Returns how many switches changed.
+   */
+  function applySharedAreas(settings, incoming, locked) {
+    var previous = settings.hosted.areas || {};
+    var news = {};
+    var changed = 0;
+    AREA_KEYS.forEach(function (key) {
+      if (!incoming || typeof incoming[key] !== 'boolean' || previous[key] === incoming[key]) return;
+      news[key] = incoming[key];
+      if (settings[key] !== incoming[key] && !(locked && has(locked, key))) changed++;
+    });
+    settings.hosted.areas = readAreas(incoming) || {};
+    applyAreas(settings, news, locked);
+    return changed;
+  }
+
+  /**
+   * Settings stored by a version before the area switches: something is
+   * stored, but no webClientEnabled. Nothing stored at all is a new install.
+   */
+  function isLegacy(s) {
+    return !!s && typeof s === 'object' && !Array.isArray(s) &&
+      Object.keys(s).length > 0 && typeof s.webClientEnabled !== 'boolean';
+  }
+
+  /**
+   * Brings settings from before the area switches over, for normalize().
+   * The master switch becomes the Web client switch. Environment colours are
+   * on only when the master switch was and something coloured: an own rule
+   * that was on, or a shared file with rules. Then the own rules that were
+   * off are dropped, since a rule can no longer be off and a wrong colour on
+   * Production is worse than a lost rule nobody used; with the area off, all
+   * own rules stay, as they colour nothing. Help & feedback stays on only if
+   * both it and the master switch were. Reading the same old settings again
+   * gives the same answer, and the result is no longer legacy.
+   */
+  function migrate(s) {
+    var on = s.enabled !== false;
+    var hosted = s.hosted && typeof s.hosted === 'object' ? s.hosted : {};
+    var ownLive = liveRules(s.rules);
+    var sharedLive = normalizeActive(hosted) && liveRules(hosted.rules).length > 0;
+    var environments = on && (ownLive.length > 0 || sharedLive);
+    return {
+      webClientEnabled: on,
+      environmentsEnabled: environments,
+      feedbackEnabled: on && s.feedbackEnabled === true,
+      rules: environments ? ownLive : (Array.isArray(s.rules) ? s.rules : []),
+      // What the shared file implied before (sharedAreas()), so the next sync
+      // does not count it as new and turn colours on behind the user's back.
+      hostedAreas: sharedLive ? { environmentsEnabled: true } : {}
+    };
+  }
+
   function normalize(settings) {
-    var s = settings || {};
-    var hosted = s.hosted || {};
+    var s = settings && typeof settings === 'object' && !Array.isArray(settings) ? settings : {};
+    var hosted = s.hosted && typeof s.hosted === 'object' ? s.hosted : {};
+    var legacy = isLegacy(s) ? migrate(s) : null;
     var webClient = normalizeWebClient(s);
-    var rules = (Array.isArray(s.rules) ? s.rules : []).map(normalizeRule);
+    var rules = (legacy ? legacy.rules : liveRules(s.rules)).map(normalizeRule);
     var styles = stylesOf(s).map(normalizeStyle);
-    var hostedRules = (Array.isArray(hosted.rules) ? hosted.rules : []).map(normalizeRule);
+    var hostedRules = liveRules(hosted.rules).map(normalizeRule);
     var hostedStyles = stylesOf(hosted).map(normalizeStyle);
+    var feedback = normalizeFeedback(s);
 
     var result = {
       version: SCHEMA_VERSION,
-      enabled: bool(s.enabled, true)
+      // A new install starts with the Web client on and environment colours
+      // off: nothing gets coloured until someone (or IT) turns that on.
+      webClientEnabled: legacy ? legacy.webClientEnabled : bool(s.webClientEnabled, true),
+      environmentsEnabled: legacy ? legacy.environmentsEnabled : bool(s.environmentsEnabled, false)
     };
+    if (legacy) feedback.feedbackEnabled = legacy.feedbackEnabled;
     WEB_CLIENT_KEYS.forEach(function (key) { result[key] = webClient[key]; });
+    FEEDBACK_KEYS.forEach(function (key) { result[key] = feedback[key]; });
     if (hostedRules.length || hostedStyles.length) withDefaultStyle(hostedStyles, hostedRules);
     // Own rules may pick a shared style too, so those count as available.
     result.rules = rules;
@@ -436,6 +800,11 @@
       // What the shared file said about the Web client last time, so a sync
       // only passes on what changed; see applySharedWebClient().
       webClient: readWebClient(hosted.webClient) || {},
+      // The same for the area switches; see applySharedAreas().
+      areas: readAreas(hosted.areas) || (legacy ? legacy.hostedAreas : {}),
+      // The Help & feedback values the file sets. Unlike the rest these are
+      // locked while the shared configuration is active; see applySharedLocks().
+      feedback: readFeedback(hosted.feedback) || {},
       sourceName: str(hosted.sourceName),
       lastSync: hosted.lastSync || null,
       lastError: hosted.lastError || null,
@@ -464,72 +833,46 @@
   }
 
   /**
-   * Maximize runs only while the extension as a whole is active: switching
-   * BC Buddy off must stop it clicking BC's layout controls too.
+   * The three areas, each with its own switch. Only a stored true counts, so
+   * settings that never went through normalize() switch nothing on.
+   *   Web client: the tweaks to Business Central itself, and its shortcuts.
+   *   Environment colours: own and shared rules, on every site.
+   *   Help & feedback: the report form in the side panel.
    */
-  function maximizeOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.maximize && settings.maximize.enabled);
+  function webClientOn(settings) {
+    return !!(settings && settings.webClientEnabled === true);
   }
 
-  /** Pinning the action bar clicks BC's controls too, so it follows the master switch. */
-  function pinActionBarOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.pinActionBar && settings.pinActionBar.enabled);
+  function environmentsOn(settings) {
+    return !!(settings && settings.environmentsEnabled === true);
   }
 
-  /** Hiding the FactBox pane clicks BC's controls too, so it follows the master switch. */
-  function hideFactBoxOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.hideFactBox && settings.hideFactBox.enabled);
+  function feedbackOn(settings) {
+    return !!(settings && settings.feedbackEnabled === true);
   }
 
-  /** The drag handles on BC's side panes follow the master switch as well. */
-  function resizePanesOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.resizePanes && settings.resizePanes.enabled);
+  /**
+   * One Web client tweak: on only while the Web client area is, so switching
+   * the area off stops it clicking BC's layout controls too.
+   */
+  function tweakOn(settings, key) {
+    return webClientOn(settings) && !!(settings[key] && settings[key].enabled);
   }
 
-  /** The current-row tint follows the master switch as well, like maximize. */
-  function highlightRowOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.highlightRow && settings.highlightRow.enabled);
-  }
+  function maximizeOn(settings) { return tweakOn(settings, 'maximize'); }
+  function pinActionBarOn(settings) { return tweakOn(settings, 'pinActionBar'); }
+  function hideFactBoxOn(settings) { return tweakOn(settings, 'hideFactBox'); }
+  function resizePanesOn(settings) { return tweakOn(settings, 'resizePanes'); }
+  function highlightRowOn(settings) { return tweakOn(settings, 'highlightRow'); }
+  function stripeRowsOn(settings) { return tweakOn(settings, 'stripeRows'); }
+  function noAnimationsOn(settings) { return tweakOn(settings, 'noAnimations'); }
+  function hideNotificationsOn(settings) { return tweakOn(settings, 'hideNotifications'); }
+  function copyValuesOn(settings) { return tweakOn(settings, 'copyValues'); }
+  function weekNumbersOn(settings) { return tweakOn(settings, 'weekNumbers'); }
 
-  /** Striped list rows follow the master switch as well. */
-  function stripeRowsOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.stripeRows && settings.stripeRows.enabled);
-  }
-
-  /** Turning animations off follows the master switch as well. */
-  function noAnimationsOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.noAnimations && settings.noAnimations.enabled);
-  }
-
-  /** Hiding the notifications bell follows the master switch as well. */
-  function hideNotificationsOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.hideNotifications && settings.hideNotifications.enabled);
-  }
-
-  /** The copy icon follows the master switch as well. */
-  function copyValuesOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.copyValues && settings.copyValues.enabled);
-  }
-
-  /** Week numbers in the date picker follow the master switch as well. */
-  function weekNumbersOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.weekNumbers && settings.weekNumbers.enabled);
-  }
-
-  /** The keyboard shortcuts icon and panel follow the master switch as well. */
+  /** The keyboard shortcuts have no switch of their own: they come with the Web client. */
   function shortcutsOn(settings) {
-    return !!(settings && settings.enabled &&
-      settings.shortcuts && settings.shortcuts.enabled);
+    return webClientOn(settings);
   }
 
   function load() {
@@ -558,7 +901,7 @@
       var shared = findById(s.hosted.styles, rule.styleId);
       if (shared) styles.push(shared);
     });
-    return {
+    var result = {
       app: EXPORT_APP,
       version: SCHEMA_VERSION,
       name: str(name),
@@ -567,10 +910,29 @@
       rules: s.rules,
       webClient: webClient
     };
+    // Only a Help & feedback someone set up travels, so a file from a colleague who
+    // never touched it does not switch it off for the team. The area switches
+    // stay out: they belong to whoever runs the extension.
+    if (feedbackSetUp(s)) {
+      FEEDBACK_KEYS.forEach(function (key) {
+        if (key === 'feedbackEmail' && !s.feedbackEmail) return;
+        result[key] = copy(s[key]);
+      });
+    }
+    return result;
+  }
+
+  /** Whether any Help & feedback field differs from a new install's. */
+  function feedbackSetUp(s) {
+    var fresh = normalizeFeedback({});
+    return FEEDBACK_KEYS.some(function (key) {
+      return JSON.stringify(s[key]) !== JSON.stringify(fresh[key]);
+    });
   }
 
   /**
-   * Accepts the own export format or a bare array of rules.
+   * Accepts the own export format or a bare array of rules. Rules an older
+   * version had switched off are left out (see liveRules()).
    * Throws an Error with a readable message.
    */
   function parseImport(text) {
@@ -597,7 +959,7 @@
       throw new Error(BCBuddy.t('errOtherApp', data.app));
     }
 
-    var normalizedRules = rules.map(normalizeRule);
+    var normalizedRules = liveRules(rules).map(normalizeRule);
     var normalizedStyles = styles.map(normalizeStyle);
     // A file with styles has its rules pointed at them here. A rules-only file
     // derives nothing: after the merge, normalize() assigns the importer's own
@@ -608,8 +970,29 @@
       rules: normalizedRules,
       styles: normalizedStyles,
       webClient: webClient,
+      areas: Array.isArray(data) ? null : readAreas(data),
+      feedback: Array.isArray(data) ? null : readFeedback(data),
       name: name
     };
+  }
+
+  /**
+   * An import by hand (parsed with parseImport) into `settings`: styles and
+   * rules merged, the file's Web client settings, area switches and Help &
+   * feedback taken over, except the keys in `locked` (from lockedKeys()),
+   * which IT or the shared file set. Returns
+   * { rules: stats, styles: stats, webClient: changed, skipped: [keys] }.
+   */
+  function applyImported(settings, parsed, locked) {
+    // Styles first, so rules can point at something that already exists.
+    var styles = mergeStyles(settings.styles, parsed.styles);
+    settings.styles = styles.styles;
+    var rules = mergeRules(settings.rules, parsed.rules);
+    settings.rules = rules.rules;
+    var webClient = applyWebClient(settings, parsed.webClient);
+    var skipped = applyAreas(settings, parsed.areas, locked)
+      .concat(applyFeedback(settings, parsed.feedback, locked));
+    return { rules: rules.stats, styles: styles.stats, webClient: webClient, skipped: skipped };
   }
 
   /**
@@ -763,14 +1146,7 @@
       var mine = findSame(rules, sample);
       if (mine) {
         at = rules.indexOf(mine) + 1;
-        // A sample the install put there, off and as it came: Load samples
-        // switches it on, as if it had just been added.
-        if (!mine.enabled && isSample(mine, sample, styleIds)) {
-          mine.enabled = true;
-          stats.added++;
-        } else {
-          stats.skipped++;
-        }
+        stats.skipped++;
         return;
       }
       if (at < 0) {
@@ -818,26 +1194,23 @@
 
   /**
    * A first install starts with the samples (parsed with parseImport): their
-   * styles instead of the bare Default, and their rules switched off, so
-   * nothing gets coloured until someone turns a rule on. That matters when IT
-   * installs BC Buddy on many computers at once. Only while nothing is set up
-   * yet: no own rules and only that Default. Returns true when it added them.
+   * styles instead of the bare Default, and their rules. Nothing gets
+   * coloured, because environment colours start off until someone turns
+   * them on. That matters when IT installs BC Buddy on many computers at
+   * once. Only while nothing is set up yet: no own rules and only that
+   * Default. Returns true when it added them.
    */
   function seedSamples(settings, samples) {
     if (!untouched(settings) || !samples.styles.length) return false;
     settings.styles = samples.styles.slice();
-    settings.rules = samples.rules.map(function (sample) {
-      var rule = normalizeRule(sample);
-      rule.enabled = false;
-      return rule;
-    });
+    settings.rules = samples.rules.map(normalizeRule);
     withDefaultStyle(settings.styles, settings.rules);
     return true;
   }
 
   /**
    * Shared rules take over from the samples: the own rules that are still a
-   * sample as it came (on or off, but nothing else changed) are removed. For
+   * sample as it came (nothing changed) are removed. For
    * the sync that brings the first shared rules. Returns how many went.
    */
   function dropSamples(settings, samples) {
@@ -851,7 +1224,7 @@
   }
 
   /**
-   * Whether `rule` is `sample` with nothing edited but its on/off switch.
+   * Whether `rule` is `sample` with nothing edited.
    * `styleIds` maps a sample style to the one it was added as, if not itself.
    */
   function isSample(rule, sample, styleIds) {
@@ -953,18 +1326,119 @@
   }
 
   /**
-   * Puts the policy's address in place and keeps the shared configuration on.
-   * Returns true when something changed and the settings need saving. Without
-   * a policy nothing changes: removing it unlocks the field, and the address
-   * and shared rules stay as they are.
+   * The values the policy sets, each checked like any other value. A value
+   * that does not pass is left out rather than locking a field on something
+   * unusable, and so is an empty text. Returns { key: value } for the keys of
+   * POLICY_KEYS that the policy sets validly; sharedConfigUrl already in its
+   * raw form.
+   */
+  function policyValues(policy) {
+    var values = {};
+    if (!policy || typeof policy !== 'object' || Array.isArray(policy)) return values;
+    var url = policyUrl(policy);
+    if (url) values.sharedConfigUrl = url;
+    AREA_KEYS.concat('feedbackEnabled').forEach(function (key) {
+      if (typeof policy[key] === 'boolean') values[key] = policy[key];
+    });
+    var email = feedbackEmail(policy.feedbackEmail);
+    if (email) values.feedbackEmail = email;
+    // An empty list is a choice (no priority field); one with nothing valid
+    // in it is not.
+    if (Array.isArray(policy.feedbackPriorities)) {
+      var priorities = cleanPriorities(policy.feedbackPriorities);
+      if (!policy.feedbackPriorities.length || priorities.length) values.feedbackPriorities = priorities;
+    }
+    var priority = plainText(policy.feedbackDefaultPriority, MAX_PRIORITY_LENGTH);
+    if (priority) values.feedbackDefaultPriority = priority;
+    ['feedbackSubjectBug', 'feedbackSubjectIdea'].forEach(function (key) {
+      var subject = cleanSubject(policy[key]);
+      if (subject) values[key] = subject;
+    });
+    var urgentText = cleanUrgentText(policy.feedbackUrgentText);
+    if (urgentText) values.feedbackUrgentText = urgentText;
+    var urgentLink = cleanUrgentLink(policy.feedbackUrgentLink);
+    if (urgentLink) values.feedbackUrgentLink = urgentLink;
+    return values;
+  }
+
+  /**
+   * Which settings someone else decides, for the options page to show them
+   * read-only: an object from setting name to 'policy' or 'shared'. Policy
+   * first: every key the policy sets validly (sharedConfigUrl among them),
+   * so a missing key is not locked. Then, while the shared
+   * configuration is active, the Help & feedback keys the shared file names.
+   * The shared file's area switches and Web client settings are defaults,
+   * never locked.
+   */
+  function lockedKeys(settings, policy) {
+    var locked = {};
+    Object.keys(policyValues(policy)).forEach(function (key) { locked[key] = 'policy'; });
+    var hosted = settings && settings.hosted;
+    if (hosted && hosted.active && hosted.feedback) {
+      FEEDBACK_KEYS.forEach(function (key) {
+        if (!has(locked, key) && has(hosted.feedback, key)) locked[key] = 'shared';
+      });
+    }
+    return locked;
+  }
+
+  /** What the locks guard, to tell whether applying them changed anything. */
+  function lockedState(settings) {
+    var state = { url: settings.hosted.url, active: settings.hosted.active };
+    AREA_KEYS.concat(FEEDBACK_KEYS).forEach(function (key) { state[key] = settings[key]; });
+    return JSON.stringify(state);
+  }
+
+  /**
+   * Puts what the policy sets in place: the address (and keeps the shared
+   * configuration on), the area switches and Help & feedback. Returns true
+   * when something changed and the settings need saving. Without a policy
+   * nothing changes: removing it unlocks the fields, and the values stay as
+   * they are. The result is normalised, so saving it and applying the policy
+   * again changes nothing: the service worker can re-apply it after every
+   * write without a loop.
    */
   function applyPolicy(settings, policy) {
-    var url = policyUrl(policy);
+    var values = policyValues(policy);
+    var before = lockedState(settings);
+    if (values.sharedConfigUrl) {
+      settings.hosted.url = values.sharedConfigUrl;
+      settings.hosted.active = true;
+    }
+    AREA_KEYS.concat(FEEDBACK_KEYS).forEach(function (key) {
+      if (has(values, key)) settings[key] = copy(values[key]);
+    });
+    tidyFeedback(settings);
+    return lockedState(settings) !== before;
+  }
+
+  /**
+   * While the shared configuration is active, the Help & feedback values the
+   * shared file names are the team's: they are written over the local ones,
+   * except where the policy sets its own. Returns true when something changed.
+   */
+  function applySharedLocks(settings, policy) {
     var hosted = settings.hosted;
-    if (!url || (hosted.url === url && hosted.active)) return false;
-    hosted.url = url;
-    hosted.active = true;
-    return true;
+    if (!hosted || !hosted.active || !hosted.feedback) return false;
+    var byPolicy = policyValues(policy);
+    var before = lockedState(settings);
+    FEEDBACK_KEYS.forEach(function (key) {
+      if (has(hosted.feedback, key) && !has(byPolicy, key)) settings[key] = copy(hosted.feedback[key]);
+    });
+    tidyFeedback(settings);
+    return lockedState(settings) !== before;
+  }
+
+  /**
+   * Policy, then the shared file, over whatever was written locally. The
+   * service worker runs this after every settings write, so a value someone
+   * changed around the lock (an options page open before the policy came, an
+   * edited export) is put back. Returns true when the settings need saving.
+   */
+  function enforceLocks(settings, policy) {
+    var byPolicy = applyPolicy(settings, policy);
+    var byShared = applySharedLocks(settings, policy);
+    return byPolicy || byShared;
   }
 
   BCBuddy.STORAGE_KEY = STORAGE_KEY;
@@ -975,12 +1449,24 @@
   BCBuddy.POSITIONS = POSITIONS;
   BCBuddy.DROPDOWN_STEPS = DROPDOWN_STEPS;
   BCBuddy.WEB_CLIENT_KEYS = WEB_CLIENT_KEYS;
+  BCBuddy.AREA_KEYS = AREA_KEYS;
+  BCBuddy.FEEDBACK_KEYS = FEEDBACK_KEYS;
+  BCBuddy.POLICY_KEYS = POLICY_KEYS;
+  BCBuddy.MAX_PRIORITIES = MAX_PRIORITIES;
+  BCBuddy.MAX_PRIORITY_LENGTH = MAX_PRIORITY_LENGTH;
+  BCBuddy.MAX_SUBJECT_LENGTH = MAX_SUBJECT_LENGTH;
+  BCBuddy.MAX_URGENT_TEXT_LENGTH = MAX_URGENT_TEXT_LENGTH;
+  BCBuddy.MAX_URGENT_LINK_LENGTH = MAX_URGENT_LINK_LENGTH;
   BCBuddy.isCorner = isCorner;
   BCBuddy.SYNC_INTERVAL_MINUTES = SYNC_INTERVAL_MINUTES;
   BCBuddy.syncIntervalMinutes = syncIntervalMinutes;
   BCBuddy.policyUrl = policyUrl;
   BCBuddy.readPolicy = readPolicy;
   BCBuddy.applyPolicy = applyPolicy;
+  BCBuddy.policyValues = policyValues;
+  BCBuddy.lockedKeys = lockedKeys;
+  BCBuddy.applySharedLocks = applySharedLocks;
+  BCBuddy.enforceLocks = enforceLocks;
   BCBuddy.DEFAULT_RIBBON_TEXT = DEFAULT_RIBBON_TEXT;
   BCBuddy.uid = uid;
   BCBuddy.leading = leading;
@@ -996,6 +1482,10 @@
   BCBuddy.DEFAULT_STYLE_ID = DEFAULT_STYLE_ID;
   BCBuddy.normalize = normalize;
   BCBuddy.effectiveRules = effectiveRules;
+  BCBuddy.isLegacy = isLegacy;
+  BCBuddy.webClientOn = webClientOn;
+  BCBuddy.environmentsOn = environmentsOn;
+  BCBuddy.feedbackOn = feedbackOn;
   BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.pinActionBarOn = pinActionBarOn;
   BCBuddy.hideFactBoxOn = hideFactBoxOn;
@@ -1011,6 +1501,7 @@
   BCBuddy.saveSettings = save;
   BCBuddy.toExport = toExport;
   BCBuddy.parseImport = parseImport;
+  BCBuddy.applyImported = applyImported;
   BCBuddy.mergeRules = mergeRules;
   BCBuddy.mergeStyles = mergeStyles;
   BCBuddy.addSamples = addSamples;
@@ -1022,6 +1513,18 @@
   BCBuddy.SAMPLES_PATH = 'examples/bc-buddy.json';
   BCBuddy.applyWebClient = applyWebClient;
   BCBuddy.applySharedWebClient = applySharedWebClient;
+  BCBuddy.applyFeedback = applyFeedback;
+  BCBuddy.applyAreas = applyAreas;
+  BCBuddy.sharedAreas = sharedAreas;
+  BCBuddy.applySharedAreas = applySharedAreas;
+  BCBuddy.cleanFeedbackEmail = feedbackEmail;
+  BCBuddy.cleanPriorities = cleanPriorities;
+  BCBuddy.cleanDefaultPriority = cleanDefaultPriority;
+  BCBuddy.cleanSubject = cleanSubject;
+  BCBuddy.fillSubject = fillSubject;
+  BCBuddy.cleanUrgentText = cleanUrgentText;
+  BCBuddy.cleanUrgentLink = cleanUrgentLink;
+  BCBuddy.priorityValues = priorityValues;
   BCBuddy.webClientDefaults = webClientDefaults;
   BCBuddy.webClientOf = webClientOf;
   BCBuddy.hash = hash;

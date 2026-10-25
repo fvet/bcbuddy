@@ -1,0 +1,159 @@
+/* BC Buddy - Help & feedback, the parts that have to be on the page itself:
+   the area selection and the drawing editor (support-overlay.js). The side
+   panel hands this file over as text and the overlay puts it inside its
+   closed shadow root, so it styles nothing on the page; every selector is
+   one of our own ids or classes. */
+/* ==========================================================================
+   Tooltip bubble (last in the shadow root, above the editor)
+   ========================================================================== */
+
+#bcb-sp-tip {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  max-width: 260px !important;
+  padding: 8px 12px !important;
+  background: #1a1f27 !important;
+  color: #ffffff !important;
+  font: 14px/1.4 "Segoe UI", system-ui, Arial, sans-serif !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  pointer-events: none !important;
+  white-space: normal !important;
+}
+#bcb-sp-tip[hidden] { display: none !important; }
+
+/* ==========================================================================
+   Area selection overlay (elements sit directly in document.body)
+   ========================================================================== */
+
+#bcb-sp-sel {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483643 !important;
+  cursor: crosshair !important;
+  user-select: none !important;
+}
+
+/* They take the focus for their keys (trapKeys), without a focus ring. */
+#bcb-sp-sel:focus, #bcb-sp-ed:focus { outline: none !important; }
+
+.bcb-sp-sel-m, #bcb-sp-sel-ch-h, #bcb-sp-sel-ch-v { pointer-events: none !important; }
+
+#bcb-sp-sel-hint {
+  position: fixed !important;
+  top: 14px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  color: #ffffff !important;
+  font: 13px/1 "Segoe UI", system-ui, Arial, sans-serif !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  pointer-events: none !important;
+  z-index: 2147483645 !important;
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Annotation editor overlay
+   ========================================================================== */
+
+#bcb-sp-ed {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 0, 0, 0.82) !important;
+  padding: 20px !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+}
+
+#bcb-sp-ed-canvas {
+  max-width: 100% !important;
+  max-height: calc(100vh - 116px) !important;
+  display: block !important;
+  cursor: crosshair !important;
+  box-shadow: 0 6px 40px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 3px !important;
+  background: #ffffff !important;
+}
+
+#bcb-sp-ed-bar {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  background: #1a1f27 !important;
+  border-radius: 12px !important;
+  padding: 7px 10px !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55) !important;
+  user-select: none !important;
+  font-family: "Segoe UI", system-ui, Arial, sans-serif !important;
+}
+
+.bcb-sp-eb-tool, .bcb-sp-eb-ok, .bcb-sp-eb-no {
+  height: 32px !important;
+  border: none !important;
+  border-radius: 7px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  transition: background 0.1s, color 0.1s !important;
+}
+
+.bcb-sp-eb-tool { width: 32px !important; background: transparent !important; color: #8a95a3 !important; }
+.bcb-sp-eb-tool:hover { background: rgba(255,255,255,0.1) !important; color: #ffffff !important; }
+.bcb-sp-eb-tool.bcb-sp-eb-on { background: #007a83 !important; color: #ffffff !important; }
+
+.bcb-sp-eb-color {
+  width: 22px !important; height: 22px !important;
+  border-radius: 50% !important;
+  border: 2.5px solid rgba(255,255,255,0.25) !important;
+  cursor: pointer !important; padding: 0 !important; flex-shrink: 0 !important;
+  transition: transform 0.1s, border-color 0.1s !important;
+  margin: 0 3px !important;
+}
+.bcb-sp-eb-color:hover { transform: scale(1.15) !important; border-color: rgba(255,255,255,0.7) !important; }
+
+.bcb-sp-eb-sep { width: 1px !important; height: 20px !important; background: rgba(255, 255, 255, 0.12) !important; margin: 0 4px !important; flex-shrink: 0 !important; }
+
+/* Save carries a word: it is the one button a first-time user must find.
+   The BC Buddy teal, as on the side panel's buttons. */
+.bcb-sp-eb-ok {
+  padding: 0 12px 0 10px !important; gap: 6px !important;
+  background: #007a83 !important; color: #ffffff !important;
+  font: 600 13px/1 "Segoe UI", system-ui, Arial, sans-serif !important;
+}
+.bcb-sp-eb-ok:hover { background: #00676f !important; }
+
+.bcb-sp-eb-no { width: 32px !important; background: #2e3440 !important; color: #8a95a3 !important; }
+.bcb-sp-eb-no:hover { background: #c4314b !important; color: #ffffff !important; }
+
+#bcb-sp-col-pick {
+  position: fixed !important;
+  z-index: 2147483649 !important;
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 28px) !important;
+  gap: 7px !important;
+}
+
+.bcb-sp-cp-btn {
+  width: 28px !important; height: 28px !important;
+  border-radius: 50% !important;
+  border: 2.5px solid transparent !important;
+  cursor: pointer !important; padding: 0 !important;
+  transition: transform 0.1s !important;
+}
+.bcb-sp-cp-btn:hover { transform: scale(1.1) !important; }
+.bcb-sp-cp-btn.bcb-sp-cp-on { border-color: #ffffff !important; box-shadow: 0 0 0 2.5px rgba(0, 0, 0, 0.35) !important; }

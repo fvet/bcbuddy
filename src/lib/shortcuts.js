@@ -1,7 +1,8 @@
 /*
  * BC Buddy - the keyboard shortcuts that work where you are.
  *
- * A keyboard icon in BC's top bar, just before Help, opens a panel with three
+ * BC Buddy's icon in BC's top bar (two people), just before the Settings gear (so:
+ * notifications, BC Buddy, gear, Help; before Help when the gear is not there), opens a panel with three
  * kinds of shortcut:
  *
  *   - This page's own actions. BC writes an action's shortcut only at the end
@@ -27,7 +28,10 @@
  * Cost: one observer on the top window's body (subtree) while the icon is
  * wanted. BC's grids live in the iframe's document, so the top window only
  * changes when the shell opens a pane or redraws its bar; each change costs
- * one getElementById. Everything else runs when the panel opens, and again
+ * one getElementById. A ResizeObserver on the top bar's row (three or four
+ * boxes) hides the icon where the bar has no room for it; it fires only when
+ * the window or the shell's buttons change size. Everything else runs when
+ * the panel opens, and again
  * when BC swaps the page under an open panel: while it is open, an observer
  * on the direct children of each .spa-container (no subtree) notices that.
  */
@@ -38,6 +42,9 @@
   var ICON_ID = 'bcb-keys_container';
   var PANEL_ID = 'bcb-keys';
   var HELP_ID = 'O365_MainLink_Help_container';
+  var GEAR_ID = 'O365_MainLink_Settings_container';
+  // The name and avatar, to the right of the buttons.
+  var RIGHT_ID = 'O365_HeaderRightRegion';
   var CLIENT_FRAME = 'iframe.designer-client-frame';
   var CONTAINER_SEL = '.spa-container';
   var VIEW_SEL = '.spa-container > .spa-view:not(.spa-lookup)';
@@ -344,27 +351,29 @@
 
   /* ----------------------------------------------------------------- icon */
 
-  function keyboardSvg(doc) {
+  /**
+   * Two people, a buddy next to you: the button opens help, feedback and the
+   * shortcuts, so it gets a neutral glyph rather than one that means only
+   * one of them. Outlined in currentColor like the shell's own icons, which
+   * take the top bar's text colour and follow the theme.
+   */
+  var PEOPLE = [
+    ['circle', { cx: '6', cy: '5', r: '2.5' }],
+    ['path', { d: 'M1.5 14c0-2.6 2-4.6 4.5-4.6s4.5 2 4.5 4.6' }],
+    ['path', { d: 'M10.2 2.6a2.2 2.2 0 1 1 .6 4.3' }],
+    ['path', { d: 'M12 9.6c1.5.5 2.5 2.2 2.5 4.4' }]
+  ];
+
+  function peopleSvg(doc) {
     var svg = doc.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('viewBox', '0 0 16 16');
-    svg.setAttribute('width', '16');
-    svg.setAttribute('height', '16');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('fill', 'none');
-    svg.setAttribute('stroke', 'currentColor');
-    svg.setAttribute('stroke-width', '1.1');
-    svg.setAttribute('stroke-linecap', 'round');
-    var box = doc.createElementNS(SVG_NS, 'rect');
-    box.setAttribute('x', '1');
-    box.setAttribute('y', '3.5');
-    box.setAttribute('width', '14');
-    box.setAttribute('height', '9');
-    box.setAttribute('rx', '1.5');
-    var keys = doc.createElementNS(SVG_NS, 'path');
-    keys.setAttribute('d', 'M3.6 6.2h.8M6 6.2h.8M8.4 6.2h.8M10.8 6.2h1.6' +
-      'M3.6 8.2h.8M6 8.2h.8M8.4 8.2h.8M10.8 8.2h1.6M5.2 10.3h5.6');
-    svg.appendChild(box);
-    svg.appendChild(keys);
+    [['viewBox', '0 0 16 16'], ['width', '16'], ['height', '16'], ['fill', 'none'],
+      ['stroke', 'currentColor'], ['stroke-width', '1.2'], ['stroke-linecap', 'round'],
+      ['aria-hidden', 'true']].forEach(function (a) { svg.setAttribute(a[0], a[1]); });
+    PEOPLE.forEach(function (shape) {
+      var el = doc.createElementNS(SVG_NS, shape[0]);
+      Object.keys(shape[1]).forEach(function (name) { el.setAttribute(name, shape[1][name]); });
+      svg.appendChild(el);
+    });
     return svg;
   }
 
@@ -390,7 +399,7 @@
     button.setAttribute('aria-expanded', 'false');
     var wrap = model.firstElementChild ? model.firstElementChild.cloneNode(false) : doc.createElement('div');
     wrap.removeAttribute('id');
-    wrap.appendChild(keyboardSvg(doc));
+    wrap.appendChild(peopleSvg(doc));
     button.appendChild(wrap);
     // Pressing a button moves the focus to it, and once BC's frame loses the
     // focus BC lets go of the field the cursor was in. Keeping the focus where
@@ -404,6 +413,35 @@
     (inner || box).appendChild(button);
     if (inner) box.appendChild(inner);
     return box;
+  }
+
+  /**
+   * Whether the buttons in the shell's top bar end before the name and avatar
+   * (#O365_HeaderRightRegion). The row they sit in can itself spill past that,
+   * so its own edge says nothing. Reads layout only. True when the bar is not
+   * shaped as we know, so the icon stays.
+   */
+  function iconFits(icon) {
+    var buttons = icon.parentNode;
+    var row = buttons && buttons.parentNode;
+    if (!row) return true;
+    var right = icon.ownerDocument.getElementById(RIGHT_ID);
+    var limit = right ? right.getBoundingClientRect().left : row.getBoundingClientRect().right;
+    return buttons.getBoundingClientRect().right <= limit + 0.5;
+  }
+
+  /**
+   * Shows the icon when the bar has room for it, hides it when not. The shell
+   * decides from the window width which buttons fit, without counting ours,
+   * and the room is not always in the same box (a narrow window drops the
+   * title but keeps its space), so it is not worked out: the icon is shown,
+   * measured and, where the buttons now pass the name, hidden again. All in
+   * one task, so nothing is painted in between.
+   */
+  function fitIcon(icon) {
+    if (!icon.isConnected) return;
+    icon.style.display = '';
+    if (!iconFits(icon)) icon.style.display = 'none';
   }
 
   /**
@@ -478,6 +516,8 @@
     var detached = false;
     var observer = null;
     var spot = null;
+    // Keeps the icon out of the way when the bar is full; see watchFit().
+    var fit = null;
 
     if (options.icon) {
       observer = new win.MutationObserver(insertIcon);
@@ -495,8 +535,28 @@
       if (detached || doc.getElementById(ICON_ID)) return;
       var help = doc.getElementById(HELP_ID);
       if (!help || !help.parentNode) return;
-      var icon = buildIcon(doc, help, t('scIconLabel'), options.onIcon || toggle);
-      if (icon) help.parentNode.insertBefore(icon, help);
+      var icon = buildIcon(doc, help, t(options.iconLabel || 'scIconLabel'), options.onIcon || toggle);
+      if (!icon) return;
+      // Just before the Settings gear when it sits next to Help, else before Help.
+      var gear = doc.getElementById(GEAR_ID);
+      help.parentNode.insertBefore(icon, gear && gear.parentNode === help.parentNode ? gear : help);
+      watchFit(icon);
+    }
+
+    // See fitIcon(): re-checked when the bar changes size, never otherwise.
+    function watchFit(icon) {
+      if (fit) fit.disconnect();
+      fit = null;
+      var row = icon.parentNode.parentNode;
+      if (!row || !win.ResizeObserver) return;
+      // Resizes only: the window, the shell showing or hiding a button, the
+      // title changing. Three or four boxes, never the grid.
+      fit = new win.ResizeObserver(function () { fitIcon(icon); });
+      for (var i = 0; i < row.children.length; i++) fit.observe(row.children[i]);
+      fit.observe(row);
+      var right = doc.getElementById(RIGHT_ID);
+      if (right) fit.observe(right);
+      fitIcon(icon);
     }
 
     function setExpanded(value) {
@@ -649,6 +709,7 @@
       detached = true;
       hide(false);
       if (observer) observer.disconnect();
+      if (fit) fit.disconnect();
       var icon = doc.getElementById(ICON_ID);
       if (icon) icon.remove();
     }
@@ -668,9 +729,13 @@
     DOCS: DOCS,
     tooltipKey: tooltipKey,
     keyParts: keyParts,
+    iconFits: iconFits,
+    fitIcon: fitIcon,
     pageActions: pageActions,
     context: context,
     sections: sections,
-    attach: attach
+    attach: attach,
+    // The options page draws the same two people on Help & feedback.
+    peopleSvg: peopleSvg
   };
 })(typeof self !== 'undefined' ? self : this);

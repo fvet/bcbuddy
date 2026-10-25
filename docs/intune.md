@@ -18,9 +18,10 @@ Edge installs it from the Chrome Web Store too, even when *Allow extensions
 from other stores* is off. Updates arrive by themselves. A computer that gets
 BC Buddy this way does not open its settings page on first start.
 
-## 2. Set the shared file
+## 2. Set the shared file and settings
 
-BC Buddy reads the string value `sharedConfigUrl` from these keys:
+BC Buddy reads the string value `sharedConfigUrl`, and the optional values in
+the table below, from these keys:
 
 ```
 HKLM\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy
@@ -40,6 +41,33 @@ as system, in 64-bit PowerShell:
 
 For Group Policy, or one test computer, there is
 [`bc-buddy-policy.reg`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/bc-buddy-policy.reg).
+
+### Other settings you can set
+
+Each one is optional. In the script, leave it at `$null` to let people choose;
+give it a value to set it and lock it.
+
+| Value | Type | What it does |
+|---|---|---|
+| `webClientEnabled` | DWORD, 1 or 0 | The **Web client** improvements, keyboard shortcuts included, on or off |
+| `environmentsEnabled` | DWORD, 1 or 0 | Environment colours, own and shared rules, on or off |
+| `feedbackEnabled` | DWORD, 1 or 0 | [Help & feedback](help-feedback.md) on or off |
+| `feedbackEmail` | String | The one helpdesk address reports go to |
+| `feedbackPriorities` | Subkey with values `1`, `2`, … | The priorities, 1 to 10 names of at most 40 characters; an empty subkey hides the priority field |
+| `feedbackDefaultPriority` | String | The priority a report starts on; must be one of the priorities |
+| `feedbackSubjectBug` | String | The subject for a problem, with `{prio}` `{company}` `{environment}` `{title}` |
+| `feedbackSubjectIdea` | String | The subject for feedback, with the same placeholders |
+| `feedbackUrgentText` | String | The message shown when someone picks the last priority, one line of at most 200 characters |
+| `feedbackUrgentLink` | String | A link on that message: an `https://` address, or `tel:` with a phone number |
+
+A value BC Buddy cannot accept, such as an address that is not one email
+address, is ignored, and that setting stays free.
+
+What a policy sets wins: over the [team file](sharing.md), over what people
+choose on the settings page and over an import from file. Without a policy,
+the Help & feedback settings in the team file are locked too, and its
+`webClientEnabled` and `environmentsEnabled` are only a starting point; see
+[Team file](sharing.md#which-parts-are-on).
 
 ## 3. Keep BC Buddy to Business Central
 
@@ -82,19 +110,22 @@ applies. The value is also in
 ## 4. Check it
 
 On a test computer, open `edge://policy` or `chrome://policy` and look for
-`sharedConfigUrl` under BC Buddy's ID, and for the extension settings without
-an error. Open Business Central and check that the colours and the shared
+`sharedConfigUrl`, and any other value you set, under BC Buddy's ID, and for
+the extension settings without an error. Open Business Central and check that the colours and the shared
 rules are there. Then roll out to a small pilot group before everyone.
 
 ## What people see
 
-Under **Shared configuration** the address is greyed out with *Set by your
-organisation*, and the **X** that clears the shared rules is gone.
-**Synchronise** still works.
+Under **Sharing** > **Shared configuration** the address is greyed out with
+*Set by your organisation*, and the **X** that clears the shared rules is gone.
+**Synchronise** still works. Every other setting the policy sets, such as the
+switch in front of a heading or the helpdesk address, is greyed out the same
+way.
 
 BC Buddy loads the file straight away. If that fails, it tries again after 1,
 2, 4 and 8 hours, then once a day; once the file loads, it checks it daily.
-When you remove the policy, the field unlocks and the shared rules stay.
+When you remove the policy, the fields unlock and keep their values, and the
+shared rules stay.
 
 ## Good to know
 

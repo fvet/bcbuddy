@@ -1,14 +1,24 @@
 /*
- * BC Buddy - the keyboard shortcuts in the browser's side panel.
+ * BC Buddy - the browser's side panel. It opens on a start view with one
+ * entry per thing it can do: Report a problem and Feedback or a suggestion
+ * (both Help & feedback, help.js, with the type set by the entry), and the
+ * keyboard shortcuts. Each shows only while its switch is on. The back arrow
+ * in the header returns to the start view; a report in progress is kept.
  *
- * The keyboard icon in BC's top bar (shortcuts.js), or the browser shortcut,
- * asks the service worker to open this panel in the window; a second press
- * closes it again. The panel follows the tab in front: it connects to that
+ * The BC Buddy icon in BC's top bar (shortcuts.js), and the toolbar icon
+ * while Help & feedback is on, open the panel on the start view; the icon
+ * closes it again. The browser shortcut goes straight to the shortcuts. The
+ * service worker says which view to show when the panel connects, and again
+ * when it is asked for another one while the panel is open.
+ *
+ * The shortcuts view follows the tab in front: it connects to that
  * tab's top frame, whose content script sends the sections to show and sends
  * them again when the page or the cursor's place changes (listen() in
  * shortcuts.js). A tab that is not Business Central does not answer, and the
  * panel says to open one. When the tab it showed BC in goes to another site,
- * the panel closes itself. It takes the zoom of the tab in front.
+ * the shortcuts view closes the panel; Help & feedback stays, since the
+ * report in progress is not about the page in front. The panel takes the
+ * zoom of the tab in front.
  *
  * What arrives over the port was partly read from the page (action names
  * from tooltips), so it is checked and capped here and only ever put on the
@@ -29,8 +39,68 @@
   var tabPort = null;
   // The origin of the tab in front once it showed BC shortcuts, else ''.
   var bcOrigin = '';
+  // 'home', 'shortcuts' or 'help', once known.
+  var view = '';
+  // Help & feedback and the keyboard shortcuts are switched on; a view whose
+  // switch is off is not offered.
+  var helpOn = false;
+  var shortcutsOn = false;
 
-  BCBuddy.loadLanguage().then(start);
+  var VIEW_TIMEOUT_MS = 800;
+
+  // Which entry Help & feedback was opened from: 'Bug' or 'Improvement'.
+  var helpType = 'Bug';
+
+  Promise.all([BCBuddy.loadLanguage(), BCBuddy.loadSettings().catch(function () { return null; })]).then(function (r) {
+    takeSwitches(r[1]);
+    start();
+  });
+
+  function takeSwitches(settings) {
+    helpOn = !!(settings && (BCBuddy.feedbackOn ? BCBuddy.feedbackOn(settings) : settings.feedbackEnabled));
+    shortcutsOn = !!(settings && BCBuddy.shortcutsOn(settings));
+  }
+
+  /** The start view offers what is switched on. */
+  function showEntries() {
+    document.getElementById('go-bug').hidden = !helpOn;
+    document.getElementById('go-idea').hidden = !helpOn;
+    document.getElementById('go-shortcuts').hidden = !shortcutsOn;
+    document.getElementById('home-empty').hidden = helpOn || shortcutsOn;
+  }
+
+  /**
+   * A switch turned on or off on the options page (or by IT) applies here at
+   * once: the start view follows, and a view whose switch went off gives
+   * way to it. A report in progress stays in its draft.
+   */
+  function refreshSwitches() {
+    BCBuddy.loadSettings().catch(function () { return null; }).then(function (settings) {
+      takeSwitches(settings);
+      showEntries();
+      if ((view === 'help' && !helpOn) || (view === 'shortcuts' && !shortcutsOn)) setView('home');
+    });
+  }
+
+  /**
+   * The language picked on the options page applies here at once: the
+   * fixed texts, the title and everything Help & feedback drew. The report
+   * in progress stays as it is.
+   */
+  function relocalize() {
+    BCBuddy.loadLanguage().then(function () {
+      BCBuddy.applyI18n();
+      showTitle();
+      if (BCBuddy.HelpPanel.relocalize) BCBuddy.HelpPanel.relocalize();
+    });
+  }
+
+  function showTitle() {
+    var title = BCBuddy.t(view === 'help' ? (helpType === 'Improvement' ? 'bpIdea' : 'bpBug')
+      : view === 'shortcuts' ? 'scIconLabel' : 'bpTitle');
+    document.getElementById('title').textContent = title;
+    document.title = title;
+  }
 
   function start() {
     BCBuddy.applyI18n();
@@ -39,12 +109,36 @@
 
     document.getElementById('settings').addEventListener('click', function (event) {
       if (!event.isTrusted) return;
-      chrome.runtime.sendMessage({ type: 'bcb:open-options' }).catch(function () {});
+      // Each view's gear opens its own settings panel.
+      var message = { type: 'bcb:open-options' };
+      if (view === 'help') message.panel = 'feedback';
+      chrome.runtime.sendMessage(message).catch(function () {});
+    });
+
+    document.getElementById('back').addEventListener('click', function (event) {
+      if (event.isTrusted) setView('home');
+    });
+    document.getElementById('go-bug').addEventListener('click', function (event) {
+      if (event.isTrusted) setView('help', null, 'Bug');
+    });
+    document.getElementById('go-idea').addEventListener('click', function (event) {
+      if (event.isTrusted) setView('help', null, 'Improvement');
+    });
+    document.getElementById('go-shortcuts').addEventListener('click', function (event) {
+      if (event.isTrusted) setView('shortcuts');
+    });
+    showEntries();
+
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY]) relocalize();
+      if ((area === 'local' && changes[BCBuddy.STORAGE_KEY]) || area === 'managed') refreshSwitches();
     });
 
     chrome.windows.getCurrent().then(function (win) {
       windowId = win.id;
       register();
+      // Should the service worker not answer, the panel still shows something.
+      setTimeout(function () { if (!view) setView(null); }, VIEW_TIMEOUT_MS);
       chrome.tabs.query({ active: true, windowId: windowId }).then(function (tabs) {
         if (tabs[0]) follow(tabs[0].id);
       });
@@ -63,7 +157,7 @@
       // The tab left the site it showed Business Central on: the panel
       // closes, so it is not in the way elsewhere. Moving around in BC keeps
       // the same origin.
-      if (change.url && bcOrigin && origin(change.url) !== bcOrigin) {
+      if (view === 'shortcuts' && change.url && bcOrigin && origin(change.url) !== bcOrigin) {
         window.close();
         return;
       }
@@ -79,9 +173,44 @@
     var port = chrome.runtime.connect({ name: 'bcb-sidepanel' });
     port.postMessage({ type: 'hello', windowId: windowId });
     port.onMessage.addListener(function (message) {
-      if (message && message.type === 'close') window.close();
+      if (!message) return;
+      if (message.type === 'close') window.close();
+      else if (message.type === 'view') setView(message.view, port);
     });
     port.onDisconnect.addListener(function () { setTimeout(register, 500); });
+    panelPort = port;
+  }
+
+  var panelPort = null;
+
+  var VIEWS = ['home', 'shortcuts', 'help'];
+
+  /**
+   * Shows one view. Without a request, the start view; a view whose switch
+   * is off shows the start view too. Help & feedback takes the type its entry
+   * on the start view gave it, 'Bug' or 'Improvement'; asked for by the
+   * service worker it is a problem report.
+   */
+  function setView(want, port, type) {
+    if (VIEWS.indexOf(want) === -1) {
+      // A reconnect after the worker restarted asks again; keep what is shown.
+      want = view || 'home';
+    }
+    if ((want === 'help' && !helpOn) || (want === 'shortcuts' && !shortcutsOn)) want = 'home';
+    view = want;
+    document.getElementById('view-home').hidden = want !== 'home';
+    document.getElementById('view-help').hidden = want !== 'help';
+    document.getElementById('view-shortcuts').hidden = want !== 'shortcuts';
+    document.getElementById('back').hidden = want === 'home';
+    document.getElementById('help-discard').hidden = true;
+    // Help & feedback is titled after the entry it was opened from.
+    if (want === 'help' && type) helpType = type === 'Improvement' ? 'Improvement' : 'Bug';
+    showTitle();
+    if (want === 'help') {
+      BCBuddy.HelpPanel.start(windowId, function () { setView('home'); });
+      BCBuddy.HelpPanel.shown(helpType);
+    }
+    try { (port || panelPort).postMessage({ type: 'shown', view: want }); } catch (e) { /* reconnecting */ }
   }
 
   function zoom(factor) {

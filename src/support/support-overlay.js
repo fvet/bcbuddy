@@ -1,0 +1,632 @@
+/*
+ * BC Buddy - Help & feedback, the parts that have to be on the page itself.
+ *
+ * The report is written in the browser's side panel (src/sidepanel/help.js).
+ * Two steps need the Business Central page under the mouse, so the panel
+ * injects this file into the tab's top frame when one of them starts:
+ *
+ *   BCBuddy.SupportOverlay.selectArea()  drag a rectangle over the page;
+ *     resolves { x, y, w, h, vw, vh } in CSS pixels, or null on Esc.
+ *   BCBuddy.SupportOverlay.cancel()  ends a running area selection or
+ *     drawing editor as Esc does, and confirm() saves the editor as Enter
+ *     does. The side panel calls them when Esc or Enter is pressed there:
+ *     the panel may still have the focus, so the page never sees that key.
+ *   BCBuddy.SupportOverlay.edit(dataUrl, annotations) the drawing editor
+ *     over the page. dataUrl is the screenshot as it was captured and
+ *     annotations what was drawn on it before, so earlier drawings can be
+ *     undone and Clear all goes back to the capture. Resolves
+ *     { image, annotations }: the image with the drawings, the capture
+ *     itself when there are none. Null on cancel.
+ *
+ * The panel calls them through chrome.scripting, which hands back what they
+ * resolve. It runs in the content scripts' isolated world, so the page cannot
+ * call it or see its variables. Nothing here listens until a step starts,
+ * and every listener goes when it ends.
+ *
+ * The isolated world hides variables, not the DOM: a canvas in the page's
+ * own tree is one toDataURL() away from the page's scripts, and the editor
+ * draws screenshots that may come from another tab (or from frames of
+ * another site). So everything this file shows lives in a closed shadow
+ * root, attached from here: the page sees one empty host element and gets
+ * no handle on what is inside. Its look comes from support-overlay.css,
+ * which the panel hands over as text (useStyle) because a stylesheet on the
+ * page does not reach into a shadow root.
+ */
+(function () {
+  'use strict';
+
+  var BCBuddy = window.BCBuddy = window.BCBuddy || {};
+  if (BCBuddy.SupportOverlay) return;
+
+  /** Translation with a readable fallback: a missing key shows the key. */
+  function t(key) {
+    if (BCBuddy.t) return BCBuddy.t(key, []);
+    var msg = '';
+    try { msg = chrome.i18n.getMessage(key); } catch (e) { /* extension reloaded */ }
+    return msg || key;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  var ICON_X =
+    '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">' +
+      '<line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>' +
+    '</svg>';
+
+  // Only one step at a time: a second request while one is open gets null.
+  var busy = false;
+  // End the area selection or the editor that runs, if any.
+  var cancelStep = null;
+  var confirmStep = null;
+
+  function cancel() {
+    if (cancelStep) cancelStep();
+    return true;
+  }
+
+  function confirm() {
+    if (confirmStep) confirmStep();
+    return true;
+  }
+
+  /**
+   * Keys for one step, before Business Central sees them. BC online keeps
+   * its focus inside its client iframe, whose keys never pass this
+   * document, so the step takes the focus (target, in the shadow root) and
+   * listens in the capture phase here and in every same-origin frame. Hands
+   * back the function that undoes it all and gives the focus back.
+   */
+  function trapKeys(target, onKey) {
+    var docs = [document];
+    var frames = document.querySelectorAll('iframe');
+    for (var i = 0; i < frames.length && i < 20; i++) {
+      try {
+        var d = frames[i].contentDocument;
+        if (d) docs.push(d);
+      } catch (e) { /* another site's frame */ }
+    }
+    var before = document.activeElement;
+    docs.forEach(function (d) { d.addEventListener('keydown', onKey, true); });
+    target.tabIndex = -1;
+    try { window.focus(); target.focus({ preventScroll: true }); } catch (e) { /* not focusable */ }
+    return function () {
+      docs.forEach(function (d) { d.removeEventListener('keydown', onKey, true); });
+      try {
+        if (before && before.isConnected && before.focus) before.focus({ preventScroll: true });
+      } catch (e) { /* gone */ }
+    };
+  }
+
+  // ------------------------------------------------------------------ layer
+
+  var host = null;
+  var layerRoot = null;
+  var styleEl = null;
+  var styleText = '';
+
+  /** The overlay's CSS, from the panel; kept for every step that follows. */
+  function useStyle(css) {
+    if (typeof css !== 'string') return false;
+    styleText = css;
+    if (styleEl) styleEl.textContent = ':host{all:initial!important}' + styleText;
+    return true;
+  }
+
+  /**
+   * The closed shadow root everything is drawn in, its host put back in the
+   * page when the page removed it. :host{all:initial} keeps the page's
+   * inherited styles (font, colour) out.
+   */
+  function layer() {
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'bcb-sp-host';
+      layerRoot = host.attachShadow({ mode: 'closed' });
+      styleEl = document.createElement('style');
+      layerRoot.appendChild(styleEl);
+      useStyle(styleText);
+    }
+    if (!host.isConnected) (document.body || document.documentElement).appendChild(host);
+    return layerRoot;
+  }
+
+  // ------------------------------------------------------------------ tooltips
+
+  // Browser tooltips are tiny and slow to appear. One shared bubble instead,
+  // for the editor's buttons that carry data-bcb-tip. Listens only while the
+  // editor is open.
+  var tipEl = null;
+
+  function showTip(target) {
+    var text = target.getAttribute('data-bcb-tip');
+    if (!text) return;
+    if (!tipEl) {
+      tipEl = document.createElement('div');
+      tipEl.id = 'bcb-sp-tip';
+    }
+    tipEl.textContent = text;
+    // Last in the layer wins at equal z-index: the bubble goes after the editor.
+    layer().appendChild(tipEl);
+    tipEl.hidden = false;
+    var r = target.getBoundingClientRect();
+    var w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+    var left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2));
+    var top = r.top - h - 8;
+    if (top < 8) top = r.bottom + 8;
+    tipEl.style.setProperty('left', left + 'px', 'important');
+    tipEl.style.setProperty('top', top + 'px', 'important');
+  }
+
+  function hideTip() { if (tipEl) tipEl.hidden = true; }
+
+  function onTipOver(e) {
+    var target = e.target.closest && e.target.closest('[data-bcb-tip]');
+    if (target) showTip(target); else hideTip();
+  }
+  function onTipOut(e) {
+    var to = e.relatedTarget;
+    if (!to || !to.closest || !to.closest('[data-bcb-tip]')) hideTip();
+  }
+
+  // On the shadow root, where the targets are still the buttons themselves;
+  // at the document they read as the host.
+  function tipsOn() {
+    layer().addEventListener('mouseover', onTipOver);
+    layer().addEventListener('mouseout', onTipOut);
+    document.addEventListener('mousedown', hideTip, true);
+  }
+
+  function tipsOff() {
+    layer().removeEventListener('mouseover', onTipOver);
+    layer().removeEventListener('mouseout', onTipOut);
+    document.removeEventListener('mousedown', hideTip, true);
+    if (tipEl && tipEl.parentNode) tipEl.parentNode.removeChild(tipEl);
+  }
+
+  // ------------------------------------------------------------------ area selection
+
+  function selectArea() {
+    if (busy) return Promise.resolve(null);
+    busy = true;
+    return new Promise(function (resolve) {
+      var dragging = false, startX = 0, startY = 0;
+
+      var sel  = document.createElement('div'); sel.id = 'bcb-sp-sel';
+      var chH  = document.createElement('div'); chH.id = 'bcb-sp-sel-ch-h';
+      var chV  = document.createElement('div'); chV.id = 'bcb-sp-sel-ch-v';
+      var mTop = document.createElement('div'); mTop.className = 'bcb-sp-sel-m';
+      var mBot = document.createElement('div'); mBot.className = 'bcb-sp-sel-m';
+      var mL   = document.createElement('div'); mL.className   = 'bcb-sp-sel-m';
+      var mR   = document.createElement('div'); mR.className   = 'bcb-sp-sel-m';
+      var sBox = document.createElement('div'); sBox.id = 'bcb-sp-sel-box';
+      var hint = document.createElement('div'); hint.id = 'bcb-sp-sel-hint';
+      hint.textContent = t('spSelectHint');
+
+      sel.appendChild(mTop); sel.appendChild(mBot);
+      sel.appendChild(mL);   sel.appendChild(mR);
+      sel.appendChild(sBox); sel.appendChild(chH);
+      sel.appendChild(chV);  sel.appendChild(hint);
+      layer().appendChild(sel);
+
+      setMasks(0, 0, 0, 0);
+      sBox.hidden = true;
+
+      function gr(x1, y1, x2, y2) {
+        return { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1) };
+      }
+
+      function setMasks(x, y, w, h) {
+        var mask = 'background:rgba(0,0,0,0.45)!important;pointer-events:none!important;z-index:2147483640!important;position:fixed!important;';
+        mTop.style.cssText = mask + 'inset:0 0 auto!important;height:' + y + 'px!important';
+        mBot.style.cssText = mask + 'top:' + (y + h) + 'px!important;left:0!important;right:0!important;bottom:0!important';
+        mL.style.cssText   = mask + 'top:' + y + 'px!important;left:0!important;width:' + x + 'px!important;height:' + h + 'px!important';
+        mR.style.cssText   = mask + 'top:' + y + 'px!important;left:' + (x + w) + 'px!important;right:0!important;height:' + h + 'px!important';
+        if (w > 0 && h > 0) {
+          sBox.style.cssText = 'position:fixed!important;top:' + y + 'px!important;left:' + x + 'px!important;width:' + w + 'px!important;height:' + h + 'px!important;border:1.5px solid #fff!important;box-sizing:border-box!important;pointer-events:none!important;z-index:2147483641!important';
+          sBox.hidden = false;
+        } else {
+          sBox.hidden = true;
+        }
+      }
+
+      function moveCH(x, y) {
+        var line = 'position:fixed!important;background:#fff!important;opacity:0.5!important;pointer-events:none!important;z-index:2147483642!important;';
+        chH.style.cssText = line + 'top:' + y + 'px!important;left:0!important;right:0!important;height:1px!important;transform:translateY(-0.5px)!important';
+        chV.style.cssText = line + 'top:0!important;left:' + x + 'px!important;bottom:0!important;width:1px!important;transform:translateX(-0.5px)!important';
+      }
+
+      function finish(result) {
+        cancelStep = null;
+        keysOff();
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        if (sel.parentNode) sel.parentNode.removeChild(sel);
+        busy = false;
+        if (!result) { resolve(null); return; }
+        // Two frames, so the browser has painted the page without the
+        // overlay before the panel takes the screenshot.
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () { resolve(result); });
+        });
+      }
+
+      function onMove(e) {
+        moveCH(e.clientX, e.clientY);
+        if (!dragging) return;
+        var r = gr(startX, startY, e.clientX, e.clientY);
+        setMasks(r.x, r.y, r.w, r.h);
+      }
+
+      function onDown(e) {
+        if (e.button !== 0 || !e.isTrusted) return;
+        e.preventDefault();
+        dragging = true;
+        startX = e.clientX; startY = e.clientY;
+        hint.hidden = true;
+      }
+
+      function onUp(e) {
+        if (!dragging) return;
+        dragging = false;
+        var r = gr(startX, startY, e.clientX, e.clientY);
+        if (r.w < 10 || r.h < 10) {
+          setMasks(0, 0, 0, 0); sBox.hidden = true; hint.hidden = false;
+          return;
+        }
+        r.vw = window.innerWidth;
+        r.vh = window.innerHeight;
+        finish(r);
+      }
+
+      function onKey(e) {
+        if (e.key !== 'Escape' || !e.isTrusted) return;
+        e.preventDefault(); e.stopPropagation();
+        finish(null);
+      }
+
+      cancelStep = function () { finish(null); };
+      sel.addEventListener('mousedown', onDown);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      // Business Central must not see the Esc.
+      var keysOff = trapKeys(sel, onKey);
+    });
+  }
+
+  // ------------------------------------------------------------------ annotation editor
+
+  function edit(dataUrl, before) {
+    if (busy) return Promise.resolve(null);
+    busy = true;
+    tipsOn();
+    return new Promise(function (resolve) {
+      // What was drawn last time comes back as separate drawings on the
+      // capture, so it can be undone or cleared like new ones.
+      var annotations = Array.isArray(before) ? before.slice() : [];
+      var tool    = 'arrow';
+      var color   = '#c4314b';
+      var drawing = false;
+      var arrowStart = null;
+      var freePath   = null;
+      var colPop     = null;
+      var cleared    = null;
+
+      // Six of the environment colours (PALETTE in settings.js), so a
+      // drawing looks like the rest of BC Buddy.
+      var COLOURS = ['#c4314b', '#d83b01', '#eaa300', '#107c10', '#038387', '#0f6cbd'];
+
+      var ed = document.createElement('div');
+      ed.id = 'bcb-sp-ed';
+
+      var canvas = document.createElement('canvas');
+      canvas.id  = 'bcb-sp-ed-canvas';
+      var ctx2d  = canvas.getContext('2d');
+
+      var baseImg = new Image();
+      baseImg.onload = function () {
+        canvas.width  = baseImg.naturalWidth;
+        canvas.height = baseImg.naturalHeight;
+        render();
+      };
+      baseImg.onerror = function () { close(null); };
+      baseImg.src = dataUrl;
+
+      var bar = document.createElement('div');
+      bar.id = 'bcb-sp-ed-bar';
+
+      function sep() { var s = document.createElement('div'); s.className = 'bcb-sp-eb-sep'; return s; }
+
+      function toolBtn(cls, title, svg) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = cls; b.setAttribute('data-bcb-tip', title); b.innerHTML = svg;
+        return b;
+      }
+
+      var btnArrow = toolBtn('bcb-sp-eb-tool bcb-sp-eb-on', t('spToolArrow'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="9 5 19 5 19 15"/></svg>');
+      var btnDraw = toolBtn('bcb-sp-eb-tool', t('spToolPen'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>');
+
+      var btnBox = toolBtn('bcb-sp-eb-tool', t('spToolBox'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/></svg>');
+      var btnBlur = toolBtn('bcb-sp-eb-tool', t('spToolBlur'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="4" height="4" rx="0.5"/><rect x="10" y="4" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="16" y="4" width="4" height="4" rx="0.5"/><rect x="4" y="10" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="10" y="10" width="4" height="4" rx="0.5"/><rect x="16" y="10" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="4" y="16" width="4" height="4" rx="0.5"/><rect x="10" y="16" width="4" height="4" rx="0.5" opacity="0.5"/><rect x="16" y="16" width="4" height="4" rx="0.5"/></svg>');
+
+      var TOOLS = [['arrow', btnArrow], ['draw', btnDraw], ['box', btnBox], ['blur', btnBlur]];
+      TOOLS.forEach(function (entry) {
+        entry[1].addEventListener('click', function (e) {
+          if (!e.isTrusted) return;
+          tool = entry[0];
+          TOOLS.forEach(function (other) {
+            other[1].classList.toggle('bcb-sp-eb-on', other[0] === tool);
+          });
+        });
+      });
+
+      var btnColor = document.createElement('button');
+      btnColor.type = 'button';
+      btnColor.className = 'bcb-sp-eb-color';
+      btnColor.setAttribute('data-bcb-tip', t('spToolColour'));
+      btnColor.style.setProperty('background', color, '');
+
+      function openColorPicker() {
+        if (colPop) { closeColorPicker(); return; }
+        colPop = document.createElement('div');
+        colPop.id = 'bcb-sp-col-pick';
+        COLOURS.forEach(function (c) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'bcb-sp-cp-btn' + (c === color ? ' bcb-sp-cp-on' : '');
+          b.style.setProperty('background', c, '');
+          b.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!e.isTrusted) return;
+            color = c;
+            btnColor.style.setProperty('background', c, '');
+            closeColorPicker();
+          });
+          colPop.appendChild(b);
+        });
+        layer().appendChild(colPop);
+        var br = btnColor.getBoundingClientRect();
+        var pw = colPop.offsetWidth || 100;
+        colPop.style.cssText =
+          'left:' + Math.max(8, br.left + br.width / 2 - pw / 2) + 'px;' +
+          'bottom:' + (window.innerHeight - br.top + 8) + 'px';
+        setTimeout(function () {
+          document.addEventListener('click', closeColorPicker, { once: true });
+        }, 0);
+      }
+
+      function closeColorPicker() {
+        if (colPop && colPop.parentNode) colPop.parentNode.removeChild(colPop);
+        colPop = null;
+      }
+
+      btnColor.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (e.isTrusted) openColorPicker();
+      });
+
+      var btnUndo = toolBtn('bcb-sp-eb-tool', t('spUndo'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>');
+      btnUndo.addEventListener('click', function (e) { if (e.isTrusted) undo(); });
+
+      var btnClear = toolBtn('bcb-sp-eb-tool', t('spClear'),
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L11 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>');
+      btnClear.addEventListener('click', function (e) {
+        if (!e.isTrusted || !annotations.length) return;
+        // Undo right after Clear brings everything back.
+        cleared = annotations;
+        annotations = [];
+        render();
+      });
+
+      function undo() {
+        if (annotations.length) annotations.pop();
+        else if (cleared) { annotations = cleared; cleared = null; }
+        render();
+      }
+
+      function add(a) { annotations.push(a); cleared = null; }
+
+      var btnOk = toolBtn('bcb-sp-eb-ok', t('spEditorSave'),
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>' +
+        '<span>' + esc(t('spEditorSaveShort')) + '</span>');
+      var btnNo = toolBtn('bcb-sp-eb-no', t('spEditorCancel'), ICON_X);
+
+      bar.appendChild(btnArrow);
+      bar.appendChild(btnDraw);
+      bar.appendChild(btnBox);
+      bar.appendChild(btnBlur);
+      bar.appendChild(sep());
+      bar.appendChild(btnColor);
+      bar.appendChild(sep());
+      bar.appendChild(btnUndo);
+      bar.appendChild(btnClear);
+      bar.appendChild(sep());
+      bar.appendChild(btnOk);
+      bar.appendChild(btnNo);
+
+      ed.appendChild(canvas);
+      ed.appendChild(bar);
+      layer().appendChild(ed);
+
+      function coords(e) {
+        var r = canvas.getBoundingClientRect();
+        return {
+          x: (e.clientX - r.left) * (canvas.width  / r.width),
+          y: (e.clientY - r.top)  * (canvas.height / r.height)
+        };
+      }
+
+      canvas.addEventListener('mousedown', function (e) {
+        if (e.button !== 0 || !e.isTrusted) return;
+        e.preventDefault();
+        drawing = true;
+        var p = coords(e);
+        if (tool === 'draw') { freePath = { type: 'draw', pts: [p], color: color }; }
+        else { arrowStart = p; }
+      });
+
+      canvas.addEventListener('mousemove', function (e) {
+        if (!drawing) return;
+        var p = coords(e);
+        if (arrowStart) {
+          render();
+          var s = arrowStart;
+          if (tool === 'arrow') paintArrow(ctx2d, s.x, s.y, p.x, p.y, color);
+          else if (tool === 'box') paintBox(ctx2d, s.x, s.y, p.x, p.y, color);
+          else paintBlur(ctx2d, s.x, s.y, p.x, p.y);
+        } else if (freePath) {
+          freePath.pts.push(p);
+          render(); paintPath(ctx2d, freePath.pts, color);
+        }
+      });
+
+      function commitDraw(e) {
+        if (!drawing) return;
+        drawing = false;
+        var p = e ? coords(e) : null;
+        if (arrowStart) {
+          if (p) {
+            var dx = p.x - arrowStart.x, dy = p.y - arrowStart.y;
+            // Box and blur need some size both ways; an arrow only length.
+            var big = tool === 'arrow' ? dx * dx + dy * dy > 25 : Math.abs(dx) > 4 && Math.abs(dy) > 4;
+            if (big) {
+              add({ type: tool, x1: arrowStart.x, y1: arrowStart.y, x2: p.x, y2: p.y, color: color });
+            }
+          }
+          arrowStart = null;
+        } else if (freePath) {
+          if (freePath.pts.length > 2) add(freePath);
+          freePath = null;
+        }
+        render();
+      }
+
+      canvas.addEventListener('mouseup', commitDraw);
+      canvas.addEventListener('mouseleave', function () { if (drawing) commitDraw(null); });
+
+      function render() {
+        if (!canvas.width) return;
+        ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+        ctx2d.drawImage(baseImg, 0, 0);
+        annotations.forEach(function (a) {
+          if (a.type === 'arrow') paintArrow(ctx2d, a.x1, a.y1, a.x2, a.y2, a.color);
+          else if (a.type === 'box') paintBox(ctx2d, a.x1, a.y1, a.x2, a.y2, a.color);
+          else if (a.type === 'blur') paintBlur(ctx2d, a.x1, a.y1, a.x2, a.y2);
+          else paintPath(ctx2d, a.pts, a.color);
+        });
+      }
+
+      function close(result) {
+        closeColorPicker();
+        tipsOff();
+        cancelStep = confirmStep = null;
+        keysOff();
+        if (ed.parentNode) ed.parentNode.removeChild(ed);
+        busy = false;
+        resolve(result);
+      }
+
+      function save() {
+        // Nothing drawn (or all of it cleared): the capture as it was.
+        close({
+          image: annotations.length ? canvas.toDataURL('image/png') : dataUrl,
+          annotations: annotations
+        });
+      }
+
+      btnOk.addEventListener('click', function (e) { if (e.isTrusted) save(); });
+      btnNo.addEventListener('click', function (e) { if (e.isTrusted) close(null); });
+
+      function onEdKey(e) {
+        if (!e.isTrusted) return;
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(null); }
+        else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); save(); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.stopPropagation(); undo(); }
+      }
+      // The host page (BC) must not see these keys while editing.
+      var keysOff = trapKeys(ed, onEdKey);
+      cancelStep = function () { close(null); };
+      confirmStep = save;
+    });
+  }
+
+  // A slim head with a notched back and rounded corners, and a soft shadow
+  // that keeps it readable on a busy screen.
+  function paintArrow(ctx, x1, y1, x2, y2, color) {
+    var dx = x2 - x1, dy = y2 - y1;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    var ux = dx / dist, uy = dy / dist;        // along the arrow
+    var nx = -uy, ny = ux;                     // across it
+    var head  = Math.max(14, Math.min(26, dist * 0.25));
+    var half  = head * 0.42;
+    var baseX = x2 - ux * head, baseY = y2 - uy * head;
+    var notchX = x2 - ux * head * 0.72, notchY = y2 - uy * head * 0.72;
+
+    ctx.save();
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); ctx.lineTo(notchX, notchY);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(baseX + nx * half, baseY + ny * half);
+    ctx.lineTo(notchX, notchY);
+    ctx.lineTo(baseX - nx * half, baseY - ny * half);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  function paintBox(ctx, x1, y1, x2, y2, color) {
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.lineJoin = 'round';
+    ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+    ctx.restore();
+  }
+
+  // Blur that hides: the area is shrunk to blocks of about 12 pixels and
+  // stretched back, so the text under it is gone from the saved image, not
+  // just soft. It takes what is on the canvas, earlier drawings included.
+  function paintBlur(ctx, x1, y1, x2, y2) {
+    var cw = ctx.canvas.width, ch = ctx.canvas.height;
+    var x = Math.max(0, Math.round(Math.min(x1, x2)));
+    var y = Math.max(0, Math.round(Math.min(y1, y2)));
+    var w = Math.min(cw, Math.round(Math.max(x1, x2))) - x;
+    var h = Math.min(ch, Math.round(Math.max(y1, y2))) - y;
+    if (w < 1 || h < 1) return;
+    var small = document.createElement('canvas');
+    small.width  = Math.max(1, Math.round(w / 12));
+    small.height = Math.max(1, Math.round(h / 12));
+    var sctx = small.getContext('2d');
+    sctx.imageSmoothingEnabled = true;
+    sctx.imageSmoothingQuality = 'high';
+    sctx.drawImage(ctx.canvas, x, y, w, h, 0, 0, small.width, small.height);
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(small, 0, 0, small.width, small.height, x, y, w, h);
+    ctx.restore();
+  }
+
+  function paintPath(ctx, pts, color) {
+    if (!pts || pts.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = 4;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.stroke(); ctx.restore();
+  }
+
+  BCBuddy.SupportOverlay = { selectArea: selectArea, edit: edit, cancel: cancel, confirm: confirm, useStyle: useStyle };
+}());

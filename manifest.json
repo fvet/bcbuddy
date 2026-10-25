@@ -5,7 +5,8 @@
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "minimum_chrome_version": "116",
-  "permissions": ["storage", "alarms", "sidePanel"],
+  "permissions": ["storage", "alarms", "scripting", "sidePanel"],
+  "optional_permissions": ["downloads", "downloads.open"],
   "storage": {
     "managed_schema": "managed_schema.json"
   },
@@ -16,7 +17,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/lib/i18n.js", "src/lib/match.js", "src/lib/settings.js", "src/lib/dropdowns.js", "src/lib/panes.js", "src/lib/bcstate.js", "src/lib/maximize.js", "src/lib/actionbar.js", "src/lib/factbox.js", "src/lib/copyvalues.js", "src/lib/newtab.js", "src/lib/weeknumbers.js", "src/lib/gearmenu.js", "src/lib/shortcuts.js", "src/content/content.js"],
+      "js": ["src/lib/i18n.js", "src/lib/match.js", "src/lib/settings.js", "src/lib/dropdowns.js", "src/lib/panes.js", "src/lib/bcstate.js", "src/lib/maximize.js", "src/lib/actionbar.js", "src/lib/factbox.js", "src/lib/copyvalues.js", "src/lib/newtab.js", "src/lib/weeknumbers.js", "src/lib/shortcuts.js", "src/content/content.js"],
       "css": ["src/content/content.css"],
       "run_at": "document_start",
       "all_frames": true,

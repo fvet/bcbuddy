@@ -63,56 +63,64 @@
 
   <div class="layout">
     <nav class="nav" data-i18n-label="navSections" aria-label="Sections">
-      <button type="button" class="nav__item" data-panel="webclient">
+      <button type="button" class="nav__item" data-panel="webclient" data-area-nav="webClientEnabled">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/>
           <path d="M1.5 5.5h13M4 8.5h5M4 11h3"/>
         </svg>
         <span data-i18n="navWebClient">Web client</span>
+        <!-- Dimmed while the area is off; the hidden word says the same to a
+             screen reader (renderAreas()). -->
+        <span class="sr-only" data-area-state="webClientEnabled"></span>
       </button>
-      <button type="button" class="nav__item" data-panel="environments" aria-current="page">
+      <button type="button" class="nav__item" data-panel="environments" data-area-nav="environmentsEnabled" aria-current="page">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
           <rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/>
           <path d="M5 13.5h6"/>
         </svg>
         <span data-i18n="navEnvironments">Environments</span>
+        <span class="sr-only" data-area-state="environmentsEnabled"></span>
+      </button>
+      <button type="button" class="nav__item" data-panel="feedback" data-area-nav="feedbackEnabled">
+        <!-- The two people of the BC Buddy icon in BC's top bar, drawn by
+             shortcuts.js (peopleSvg) so there is one drawing (options.js). -->
+        <span class="nav__icon" data-people-icon></span>
+        <span data-i18n="navFeedback">Help &amp; feedback</span>
+        <span class="sr-only" data-area-state="feedbackEnabled"></span>
       </button>
       <button type="button" class="nav__item" data-panel="settings">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="8" r="2.4"/>
-          <path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1"/>
+          <circle cx="4" cy="8" r="2"/>
+          <circle cx="12" cy="3.5" r="2"/>
+          <circle cx="12" cy="12.5" r="2"/>
+          <path d="M5.8 7 10.2 4.5M5.8 9l4.4 2.5"/>
         </svg>
-        <span data-i18n="navSettings">Settings</span>
+        <span data-i18n="navSettings">Sharing</span>
       </button>
-      <!-- Not a section: help is the documentation site, in a new tab. -->
+      <!-- Not a section: the documentation site, in a new tab. -->
       <a class="nav__item" href="https://fvet.github.io/bcbuddy/" target="_blank" rel="noopener noreferrer">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="8" r="6.2"/>
-          <path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.5"/>
-          <circle cx="8" cy="11.4" r=".7" fill="currentColor" stroke="none"/>
+          <path d="M8 4.2C6.6 3.2 4.6 2.8 2.5 3v9.3c2.1-.2 4.1.2 5.5 1.2 1.4-1 3.4-1.4 5.5-1.2V3c-2.1-.2-4.1.2-5.5 1.2zM8 4.2v9.3"/>
         </svg>
-        <span data-i18n="navHelp">Help</span>
+        <span data-i18n="navDocs">Documentation</span>
         <svg class="nav__icon nav__external" viewBox="0 0 16 16" aria-hidden="true">
           <path d="M6.5 3.5h-3v9h9v-3M9.5 2.5h4v4M13.5 2.5 7.5 8.5"/>
         </svg>
       </a>
-
-      <!-- Below the nav, separate from the sections: the master switch, with
-           a dot that is green while BC Buddy is on. -->
-      <label class="switch nav__toggle">
-        <input type="checkbox" class="toggle" id="globalEnabled">
-        <span class="nav__state">
-          <span class="nav__dot" aria-hidden="true"></span>
-          <span data-i18n="extensionActive">Active</span>
-        </span>
-      </label>
     </nav>
 
     <main>
-    <div class="panel" data-panel="webclient" hidden>
+    <!-- The area switch is in front of the heading; while it is off the rest
+         of the panel is dimmed but stays editable (renderAreas()). -->
+    <div class="panel" data-panel="webclient" data-area="webClientEnabled" hidden>
     <section>
-      <div class="section-head">
-        <h2 data-i18n="webClientHeading">Web client</h2>
+      <div class="section-head section-head--area">
+        <div class="section-title">
+          <input type="checkbox" class="toggle area-switch" id="webClientEnabled" data-lock="webClientEnabled"
+                 data-i18n-label="areaWebClientLabel" data-i18n-title="areaWebClientLabel">
+          <h2 data-i18n="webClientHeading">Web client</h2>
+          <span class="muted small lock-note" data-lock-note="webClientEnabled" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+        </div>
         <div class="row">
           <!-- The label says where the defaults come from; see renderWebClient(). -->
           <button type="button" class="btn btn--icon" id="resetWebClient" data-i18n-title="resetWebClientTitle">
@@ -125,48 +133,44 @@
       </div>
       <p class="muted small" data-i18n="webClientIntro">Small fixes for the Business Central screens you use every day.</p>
       <!-- Two lists: the switches that start on, then the extras that start
-           off. A row has the name with one line below it and the control on
-           the right; the docs link below has the rest. -->
+           off. A row has the icon and name with the control on the right; the
+           one-line description is the row's tooltip, and the docs link below
+           has the rest. -->
       <div class="setting-group">
       <h3 class="setting-group__title" data-i18n="webClientStandard">Works straight away</h3>
       <div class="card card--list">
-        <label class="setting">
+        <label class="setting" data-i18n-title="copyValuesDesc">
           <span class="setting__icon setting__icon--copy-values" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="copyValuesToggle">Copy values</span>
-            <span class="setting__desc" data-i18n="copyValuesDesc">Rest the mouse on a value and click the icon to copy it.</span>
           </span>
           <input type="checkbox" class="toggle" id="copyValuesEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="maximizeDesc">
           <span class="setting__icon setting__icon--maximize" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="maximizeToggle">Maximize pages</span>
-            <span class="setting__desc" data-i18n="maximizeDesc">Every page opens in wide layout; tile pages open as a list.</span>
           </span>
           <input type="checkbox" class="toggle" id="maximizeEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="pinActionBarDesc">
           <span class="setting__icon setting__icon--pin-action-bar" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="pinActionBarToggle">Pin the action bar</span>
-            <span class="setting__desc" data-i18n="pinActionBarDesc">The actions under a page's tabs stay in view.</span>
           </span>
           <input type="checkbox" class="toggle" id="pinActionBarEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="highlightRowDesc">
           <span class="setting__icon setting__icon--highlight-row" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="highlightRowToggle">Highlight the current line</span>
-            <span class="setting__desc" data-i18n="highlightRowDesc">A light tint on the line you are on in sales lines and journals.</span>
           </span>
           <input type="checkbox" class="toggle" id="highlightRowEnabled">
         </label>
-        <div class="setting setting--wrap">
+        <div class="setting setting--wrap" data-i18n-title="dropdownDesc">
           <span class="setting__icon setting__icon--dropdown" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="dropdownHeading">Dropdown size</span>
-            <span class="setting__desc" data-i18n="dropdownDesc">More room for the list that opens under a field.</span>
           </span>
           <span class="setting__sliders">
             <label class="slider">
@@ -179,19 +183,17 @@
             </label>
           </span>
         </div>
-        <label class="setting">
+        <label class="setting" data-i18n-title="resizePanesDesc">
           <span class="setting__icon setting__icon--resize-panes" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="resizePanesToggle">Resize panes</span>
-            <span class="setting__desc" data-i18n="resizePanesDesc">Drag the edge of Help, Copilot or Page Inspection to make it wider.</span>
           </span>
           <input type="checkbox" class="toggle" id="resizePanesEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="weekNumbersDesc">
           <span class="setting__icon setting__icon--week-numbers" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="weekNumbersToggle">Week numbers in the date picker</span>
-            <span class="setting__desc" data-i18n="weekNumbersDesc">The calendar of a date field shows week numbers.</span>
           </span>
           <input type="checkbox" class="toggle" id="weekNumbersEnabled">
         </label>
@@ -202,43 +204,31 @@
       <div class="setting-group">
       <h3 class="setting-group__title" data-i18n="webClientExtras">Extras</h3>
       <div class="card card--list">
-        <label class="setting">
-          <span class="setting__icon setting__icon--shortcuts" aria-hidden="true"></span>
-          <span class="setting__text">
-            <span class="setting__name" data-i18n="shortcutsToggle">Keyboard shortcuts</span>
-            <span class="setting__desc" data-i18n="shortcutsDesc">A keyboard icon in the top bar lists the shortcuts that work where you are.</span>
-          </span>
-          <input type="checkbox" class="toggle" id="shortcutsEnabled">
-        </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="stripeRowsDesc">
           <span class="setting__icon setting__icon--stripe-rows" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="stripeRowsToggle">Striped rows</span>
-            <span class="setting__desc" data-i18n="stripeRowsDesc">Every other row in a list gets a light grey, so you stay on the right line.</span>
           </span>
           <input type="checkbox" class="toggle" id="stripeRowsEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="hideFactBoxDesc">
           <span class="setting__icon setting__icon--hide-fact-box" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="hideFactBoxToggle">Hide the FactBox pane</span>
-            <span class="setting__desc" data-i18n="hideFactBoxDesc">Closes the FactBox pane on pages you open for the first time.</span>
           </span>
           <input type="checkbox" class="toggle" id="hideFactBoxEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="hideNotificationsDesc">
           <span class="setting__icon setting__icon--hide-notifications" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="hideNotificationsToggle">Hide the notifications icon</span>
-            <span class="setting__desc" data-i18n="hideNotificationsDesc">Hides the bell at the top right of Business Central.</span>
           </span>
           <input type="checkbox" class="toggle" id="hideNotificationsEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="noAnimationsDesc">
           <span class="setting__icon setting__icon--no-animations" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>
-            <span class="setting__desc" data-i18n="noAnimationsDesc">Pages and panes appear at once instead of sliding in.</span>
           </span>
           <input type="checkbox" class="toggle" id="noAnimationsEnabled">
         </label>
@@ -252,15 +242,19 @@
     </section>
     </div>
 
-    <div class="panel" data-panel="environments">
+    <!-- One switch for own and shared rules alike, on the Rules heading. -->
+    <div class="panel" data-panel="environments" data-area="environmentsEnabled">
     <section>
-      <div class="section-head">
+      <div class="section-head section-head--area">
         <div class="section-title">
+          <input type="checkbox" class="toggle area-switch" id="environmentsEnabled" data-lock="environmentsEnabled"
+                 data-i18n-label="areaEnvironmentsLabel" data-i18n-title="areaEnvironmentsLabel">
           <h2 data-i18n="rulesHeading">Rules</h2>
           <button type="button" class="icon-btn icon-btn--add" id="addRule"
                   data-i18n-title="addRule" data-i18n-label="addRule">
             <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
           </button>
+          <span class="muted small lock-note" data-lock-note="environmentsEnabled" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
         </div>
         <div class="row">
           <!-- Hidden when IT manages BC Buddy: the team's rules come from the shared file. -->
@@ -334,6 +328,91 @@
       </div>
     </section>
 
+    </div>
+
+    <div class="panel" data-panel="feedback" data-area="feedbackEnabled" hidden>
+    <section>
+      <div class="section-head section-head--area">
+        <div class="section-title">
+          <input type="checkbox" class="toggle area-switch" id="feedbackEnabled" data-lock="feedbackEnabled"
+                 data-i18n-label="areaFeedbackLabel" data-i18n-title="areaFeedbackLabel">
+          <h2 data-i18n="navFeedback">Help &amp; feedback</h2>
+          <span class="muted small lock-note" data-lock-note="feedbackEnabled" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+        </div>
+      </div>
+      <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central.</p>
+      <!-- Every field is checked by the helpers in settings.js before it is
+           saved; a field IT or the shared file sets is read-only (renderLocks()). -->
+      <div class="card card--list">
+        <label class="setting">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackEmailLabel">Email</span>
+            <span class="muted small lock-note" data-lock-note="feedbackEmail" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="email" id="feedbackEmail" data-lock="feedbackEmail" spellcheck="false" maxlength="254"
+                 placeholder="helpdesk@example.com">
+        </label>
+        <div class="setting setting--top">
+          <span class="setting__text">
+            <label class="setting__name" for="feedbackPriorities" data-i18n="feedbackPrioritiesLabel">Priorities</label>
+            <span class="setting__desc" data-i18n="feedbackPrioritiesDesc">One per line.</span>
+            <span class="muted small lock-note" data-lock-note="feedbackPriorities" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <!-- While empty, a link inside the box fills in an example list. -->
+          <div class="textarea-wrap">
+            <textarea id="feedbackPriorities" data-lock="feedbackPriorities" rows="4" spellcheck="false"></textarea>
+            <button type="button" class="inline-link" id="feedbackPrioritiesSample" data-i18n="feedbackPrioritiesSampleLoad" hidden>Load examples</button>
+          </div>
+        </div>
+        <!-- The three below are about the priorities: gone while there are
+             none (data-needs-priorities, renderFeedback()). -->
+        <label class="setting" data-needs-priorities>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackDefaultPriorityLabel">Default priority</span>
+            <span class="setting__desc" data-i18n="feedbackDefaultPriorityDesc">The priority a new report starts with.</span>
+            <span class="muted small lock-note" data-lock-note="feedbackDefaultPriority" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <select id="feedbackDefaultPriority" data-lock="feedbackDefaultPriority"></select>
+        </label>
+        <label class="setting" data-needs-priorities>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackUrgentTextLabel">Message for urgent problems</span>
+            <span class="setting__desc" data-i18n="feedbackUrgentTextDesc">Shown when someone picks the last priority in the list. It does not go into the report.</span>
+            <span class="muted small lock-note" data-lock-note="feedbackUrgentText" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="text" id="feedbackUrgentText" data-lock="feedbackUrgentText" maxlength="200"
+                 data-i18n-placeholder="feedbackUrgentTextPlaceholder" placeholder="Urgent? Call the helpdesk on 03 123 45 67.">
+        </label>
+        <label class="setting" data-needs-priorities>
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackUrgentLinkLabel">Link (optional)</span>
+            <span class="setting__desc" data-i18n="feedbackUrgentLinkDesc">An https:// address, such as a Teams link, or tel: with a phone number.</span>
+            <span class="muted small lock-note" data-lock-note="feedbackUrgentLink" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="text" id="feedbackUrgentLink" data-lock="feedbackUrgentLink" spellcheck="false" maxlength="500"
+                 data-i18n-placeholder="feedbackUrgentLinkPlaceholder" placeholder="https://teams.microsoft.com/... or tel:+00 000 00 00 00">
+        </label>
+        <label class="setting">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackSubjectBugLabel">Email subject for a problem</span>
+            <span class="muted small lock-note" data-lock-note="feedbackSubjectBug" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="text" id="feedbackSubjectBug" data-lock="feedbackSubjectBug" spellcheck="false" maxlength="200">
+        </label>
+        <label class="setting">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackSubjectIdeaLabel">Email subject for feedback</span>
+            <span class="muted small lock-note" data-lock-note="feedbackSubjectIdea" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="text" id="feedbackSubjectIdea" data-lock="feedbackSubjectIdea" spellcheck="false" maxlength="200">
+        </label>
+        <!-- The tokens the subjects can use, one line as on a style; {prio}
+             only while there are priorities (renderFeedback()). -->
+        <div class="setting setting--note">
+          <p class="tokens" id="feedbackSubjectTokens"></p>
+        </div>
+      </div>
+    </section>
     </div>
 
     <div class="panel" data-panel="settings" hidden>
@@ -410,9 +489,6 @@
              the same to a screen reader. -->
         <span class="sr-only" data-match></span>
         <div class="rule__tools">
-          <label class="switch switch--compact" data-i18n-title="ruleActiveTitle">
-            <input type="checkbox" class="toggle" data-path="enabled" data-i18n-label="ruleActiveTitle">
-          </label>
           <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
           <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteRule">&#10005;</button>
         </div>
@@ -582,6 +658,7 @@
   <script src="../lib/match.js"></script>
   <script src="../lib/settings.js"></script>
   <script src="../lib/dropdowns.js"></script>
+  <script src="../lib/shortcuts.js"></script>
   <script src="options-helpers.js"></script>
   <script src="options-cards.js"></script>
   <script src="options-hosted.js"></script>

@@ -47,13 +47,20 @@ company or per customer.
 Setting up your first two colours takes a minute:
 [Getting started](getting-started.md#environments).
 
+## Report a problem in a few clicks
+
+Something does not work? Write what you did, take a screenshot of each step,
+and BC Buddy creates the email to your helpdesk, with the company and the
+environment already in it. Your helpdesk sees what you saw.
+[How it works](help-feedback.md).
+
 ## Good to know
 
 - **Works for your whole team.** One person sets up the colours and everyone
   else gets them automatically. See [Sharing with your team](sharing.md).
 - **Nothing leaves your computer.** No account, no tracking. See
   [Privacy](privacy.md).
-- **Chrome and Edge**, version 111 or newer, with Business Central online or
+- **Chrome and Edge**, version 116 or newer, with Business Central online or
   on your own server.
 - **In English, Dutch and French**, following the language of your browser.
   To choose another one, use the language list at the top right of the BC

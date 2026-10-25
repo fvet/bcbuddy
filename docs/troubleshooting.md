@@ -9,19 +9,25 @@ Click a question to see the answer.
     Reload the Business Central tab (press F5). Tabs that were open before you
     installed BC Buddy do not see it until they reload.
 
-    Still nothing? Open the BC Buddy settings page and check that **Active**,
-    below the menu on the left, is on.
+    Still nothing? Open the BC Buddy settings page and look at the menu on the
+    left. A green dot next to **Web client**, **Environments** or **Help &
+    feedback** means that part is on, a grey one that it is off. To turn a part
+    on, open it and turn on the switch in front of its heading (for
+    Environments, in front of **Rules**). Environment colours and Help &
+    feedback start off.
 
-??? faq "No BC Buddy in the gear menu"
+??? faq "A setting says Set by your organisation"
 
-    In Business Central, the gear icon at the top right has a **BC Buddy**
-    section with **Settings**. Not there? Reload the Business Central tab (press
-    F5): a tab that was open before you installed or updated BC Buddy does not
-    see it yet.
+    Your IT department set it by policy, or it comes from your team's shared
+    file. You cannot change it on the settings page, and an import from file
+    leaves it alone too. Ask your IT department if it should be different.
 
-    Business Central on your own server (on-premises) has a different gear
-    menu, without BC Buddy. The BC Buddy icon in the toolbar always opens the
-    settings page.
+??? faq "How do I open the settings?"
+
+    Click the BC Buddy icon in the browser toolbar. Do you see the BC Buddy
+    panel instead? Then click the gear at the top of the panel. In Business
+    Central, the BC Buddy icon in the top bar (two people, before the gear)
+    opens the same panel.
 
 ## Web client
 
@@ -73,12 +79,13 @@ Click a question to see the answer.
     small window it stops growing early. Double-click the edge to go back to
     Business Central's own width.
 
-??? faq "No keyboard icon in the top bar"
+??? faq "No BC Buddy icon in the top bar"
 
-    **Keyboard shortcuts** starts off. Switch it on under **Web client** on the
-    settings page, and reload the Business Central tab (F5). Business Central on
-    your own server has a different top bar without the icon; there you can open
-    the panel with a key of your own, see
+    The icon, two people just before the gear, shows while **Web client** or
+    **Help & feedback** is on. Check the dots in the menu of the settings page,
+    and reload the Business Central tab (F5). Business Central on your own
+    server has a different top bar without the icon; there you can open the
+    panel with a key of your own, see
     [Keyboard shortcuts](web-client.md#keyboard-shortcuts).
 
 ??? faq "No week numbers in the date picker"
@@ -107,7 +114,10 @@ Click a question to see the answer.
 
 ??? faq "Nothing is coloured"
 
-    Open **Environments** with your Business Central tab still open. At the
+    First check that the switch in front of **Rules** under **Environments**
+    is on: environment colours start off.
+
+    Then open **Environments** with your Business Central tab still open. At the
     top, BC Buddy shows what it reads from that tab, and the rule that tab gets
     has a border all round in its colour. No such border means none of your
     rules fits that tab: compare the environment and company it shows with the
@@ -128,6 +138,21 @@ Click a question to see the answer.
 
     Rules from your team's file cannot be changed. Click the copy button on the
     rule to get your own version. See [Sharing with your team](sharing.md).
+
+## Help & feedback
+
+??? faq "The email does not open"
+
+    Look at the top right of the browser for the download and open the file:
+    it opens in your email app. Or use **Email (draft)** under the arrow next
+    to **Email**, and press **Ctrl+V** in the new email. In Gmail or Outlook on
+    the web, pictures often do not paste: use **Download** and attach the file.
+    See [Help & feedback](help-feedback.md#when-something-does-not-work).
+
+??? faq "Why Download replaces Email"
+
+    The report has nowhere to go yet. Ask your helpdesk or IT department, or
+    fill in the address under **Help & feedback** on the settings page.
 
 ## Something else
 

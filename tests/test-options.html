@@ -174,10 +174,11 @@ function report() {
 var FILES = [
   'src/lib/match.js', 'src/lib/settings.js', 'src/lib/dropdowns.js', 'src/lib/panes.js', 'src/lib/bcstate.js',
   'src/lib/maximize.js', 'src/lib/actionbar.js', 'src/lib/factbox.js', 'src/lib/copyvalues.js', 'src/lib/newtab.js',
-  'src/lib/weeknumbers.js', 'src/lib/gearmenu.js', 'src/lib/shortcuts.js',
+  'src/lib/weeknumbers.js', 'src/lib/shortcuts.js',
   'src/content/content.js',
   'src/background.js', 'src/options/options-helpers.js', 'src/options/options-cards.js',
-  'src/options/options-hosted.js', 'src/options/options.js', 'src/sidepanel/sidepanel.js'
+  'src/options/options-hosted.js', 'src/options/options.js', 'src/sidepanel/sidepanel.js', 'src/sidepanel/help.js',
+  'src/support/support-overlay.js'
 ];
 
 Promise.all(FILES.map(function (f) {
@@ -528,6 +529,7 @@ function runOptions() {
         .then(function () { return loadScript(ROOT + 'src/lib/match.js'); })
         .then(function () { return loadScript(ROOT + 'src/lib/settings.js'); })
         .then(function () { return loadScript(ROOT + 'src/lib/dropdowns.js'); })
+        .then(function () { return loadScript(ROOT + 'src/lib/shortcuts.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-helpers.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-cards.js'); })
         .then(function () { return loadScript(ROOT + 'src/options/options-hosted.js'); })
@@ -642,8 +644,8 @@ function assertOptions() {
     first.querySelector('[data-swatch]').tagName, 'SPAN');
   check('options: aria-expanded is false',
     first.querySelector('[data-action="toggle"]').getAttribute('aria-expanded'), 'false');
-  check('options: rule on/off uses the same toggle',
-    getComputedStyle(first.querySelector('[data-path="enabled"]')).width, '34px');
+  check('options: a rule has no on/off switch: rules that exist are active',
+    first.querySelector('[data-path="enabled"]'), null);
   truthy('options: name stays visible when collapsed',
     first.querySelector('.rule__name').offsetParent !== null);
   truthy('options: details hidden when collapsed',
@@ -739,11 +741,6 @@ function assertOptions() {
     [document.querySelector('label[for="testUrl"]'), document.getElementById('testUrl').placeholder,
       document.getElementById('testUrl').getAttribute('aria-label')],
     [null, chrome.i18n.getMessage('testUrlLabel'), chrome.i18n.getMessage('testUrlLabel')]);
-  // the rule switch shows its state itself; the label is for screen readers
-  var ruleSwitch = first.querySelector('input[data-path="enabled"]');
-  check('options: rule switch has no On text', ruleSwitch.closest('label').textContent.trim(), '');
-  check('options: rule switch is labelled', ruleSwitch.getAttribute('aria-label'),
-    chrome.i18n.getMessage('ruleActiveTitle'));
   truthy('options: active config says daily update',
     document.getElementById('hostedStatus').textContent
       .indexOf(chrome.i18n.getMessage('statusDaily')) !== -1);
@@ -1152,7 +1149,8 @@ function assertOptions() {
     check('options: saved order', STORE.settings.rules[0].name, 'PROD');
     return assertNav().then(assertToolbarOpen).then(assertWebClient).then(assertStyles).then(importFile)
       .then(assertParsedUrl).then(assertSharedCopy).then(assertClearShared)
-      .then(assertExternalWrite).then(assertPolicyLock).then(assertEdgeCases).then(assertSamples)
+      .then(assertExternalWrite).then(assertPolicyLock).then(assertAreas).then(assertFeedback)
+      .then(assertLocks).then(assertEdgeCases).then(assertSamples)
       .then(assertResetWebClient);
   });
 }
@@ -1183,11 +1181,10 @@ function assertWebClient() {
       .contains(document.getElementById('noAnimationsEnabled')), true);
   check('web client: striped rows sits with the switches that start off',
     stripes.closest('.setting').nextElementSibling.contains(factBox), true);
-  var keys = document.getElementById('shortcutsEnabled');
-  check('web client: keyboard shortcuts switch lives in the panel', keys.closest('.panel'), panel);
-  check('web client: keyboard shortcuts switch is off by default', keys.checked, false);
-  check('web client: keyboard shortcuts sits with the switches that start off',
-    keys.closest('.setting').nextElementSibling.contains(stripes), true);
+  check('web client: no keyboard shortcuts switch any more',
+    document.getElementById('shortcutsEnabled'), null);
+  check('web client: striped rows is the first extra',
+    stripes.closest('.card').querySelector('.setting').contains(stripes), true);
   var calm = document.getElementById('noAnimationsEnabled');
   check('web client: animations switch lives in the panel', calm.closest('.panel'), panel);
   check('web client: animations switch is off by default', calm.checked, false);
@@ -1211,10 +1208,9 @@ function assertWebClient() {
   check('web client: animations switch is the last row',
     webClientRows[webClientRows.length - 1].contains(
       document.getElementById('noAnimationsEnabled')), true);
-  check('web client: every row has a short description',
+  check('web client: every row has a short description as its tooltip',
     Array.prototype.every.call(webClientRows, function (row) {
-      var desc = row.querySelector('.setting__desc');
-      return !!desc && desc.textContent.trim().length > 0;
+      return (row.getAttribute('title') || '').trim().length > 0;
     }), true);
 
   // Works straight away holds the switches that start on, Extras the ones
@@ -1231,16 +1227,7 @@ function assertWebClient() {
   check('web client: Extras is the second group',
     groups[1].querySelector('.setting-group__title').textContent, chrome.i18n.getMessage('webClientExtras'));
 
-  // The master switch: one short label, the dot shows on or off.
-  var master = document.getElementById('globalEnabled');
-  check('master switch: labelled Active',
-    master.closest('label').textContent.trim(), chrome.i18n.getMessage('extensionActive'));
-  var dot = master.closest('label').querySelector('.nav__dot');
-  var dotOn = getComputedStyle(dot).backgroundColor;
-  master.click();
-  truthy('master switch: the dot changes colour when off', getComputedStyle(dot).backgroundColor !== dotOn);
-  master.click();
-  check('master switch: and back when on', getComputedStyle(dot).backgroundColor, dotOn);
+  check('web client: no master switch any more', document.getElementById('globalEnabled'), null);
   check('web client: both sliders live in the panel',
     [width.closest('.panel'), height.closest('.panel')], [panel, panel]);
   check('web client: sliders have five steps',
@@ -1341,14 +1328,6 @@ function assertWebClient() {
     return wait(400);
   }).then(function () {
     check('web client: and the factbox switch turns back off', STORE.settings.hideFactBox, { enabled: false });
-    keys.click();
-    return wait(400);
-  }).then(function () {
-    check('web client: keyboard shortcuts switch is saved', STORE.settings.shortcuts, { enabled: true });
-    keys.click();
-    return wait(400);
-  }).then(function () {
-    check('web client: and the keyboard shortcuts switch turns back off', STORE.settings.shortcuts, { enabled: false });
   });
 }
 
@@ -1447,45 +1426,44 @@ function assertToolbarOpen() {
 
 function assertNav() {
   var items = document.querySelectorAll('.nav__item');
-  check('nav: master toggle at bottom of nav',
-    document.getElementById('globalEnabled').closest('nav.nav').lastElementChild
-      .contains(document.getElementById('globalEnabled')), true);
-  check('nav: no longer in top bar',
-    document.querySelector('.topbar__actions #globalEnabled'), null);
-  check('nav: master toggle is a switch not checkbox',
-    getComputedStyle(document.getElementById('globalEnabled')).width, '34px');
-  check('nav: three sections and a help link',
+  check('nav: no master switch under the nav', document.querySelector('.nav input'), null);
+  check('nav: the sharing section is called Sharing',
+    items[3].textContent.trim(), chrome.i18n.getMessage('navSettings'));
+  check('nav: and that says Sharing in English', chrome.i18n.getMessage('navSettings'), 'Sharing');
+  check('nav: four sections and a help link',
     Array.prototype.map.call(items, function (b) { return b.dataset.panel || b.getAttribute('href'); }),
-    ['webclient', 'environments', 'settings', 'https://fvet.github.io/bcbuddy/']);
+    ['webclient', 'environments', 'feedback', 'settings', 'https://fvet.github.io/bcbuddy/']);
   check('nav: each section has an icon',
-    Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 4);
+    Array.prototype.filter.call(items, function (b) { return !!b.querySelector('svg'); }).length, 5);
   check('nav: environments is open',
     items[1].getAttribute('aria-current'), 'page');
   truthy('nav: rules visible', !document.querySelector('.panel[data-panel="environments"]').hidden);
   truthy('nav: settings hidden', document.querySelector('.panel[data-panel="settings"]').hidden);
 
-  items[2].click();
+  items[3].click();
   truthy('nav: settings now visible', !document.querySelector('.panel[data-panel="settings"]').hidden);
   truthy('nav: environments now hidden', document.querySelector('.panel[data-panel="environments"]').hidden);
   check('nav: shared config under settings',
     document.getElementById('syncNow').closest('.panel').dataset.panel, 'settings');
   check('nav: styles and rules under environments',
     document.getElementById('addStyle').closest('.panel').dataset.panel, 'environments');
-  check('nav: clicked section marked', items[2].getAttribute('aria-current'), 'page');
+  check('nav: clicked section marked', items[3].getAttribute('aria-current'), 'page');
   truthy('nav: choice remembered', STORE.ui && STORE.ui.panel === 'settings');
 
+  check('nav: Help & feedback settings under feedback',
+    document.getElementById('feedbackEmail').closest('.panel').dataset.panel, 'feedback');
   check('nav: no About panel any more',
     document.querySelector('.panel[data-panel="about"]'), null);
-  check('nav: help is a link, not a section', items[3].tagName, 'A');
-  check('nav: help is called Help',
-    items[3].textContent.trim(), chrome.i18n.getMessage('navHelp'));
-  check('nav: help opens in a new tab', items[3].getAttribute('target'), '_blank');
+  check('nav: docs is a link, not a section', items[4].tagName, 'A');
+  check('nav: docs is called Documentation',
+    items[4].textContent.trim(), chrome.i18n.getMessage('navDocs'));
+  check('nav: help opens in a new tab', items[4].getAttribute('target'), '_blank');
   check('nav: help gives the site no opener',
-    items[3].getAttribute('rel'), 'noopener noreferrer');
+    items[4].getAttribute('rel'), 'noopener noreferrer');
   // The click would open the site; the panel must not change because of it.
-  items[3].addEventListener('click', function (e) { e.preventDefault(); }, { once: true });
-  items[3].click();
-  check('nav: help leaves the open section alone', items[2].getAttribute('aria-current'), 'page');
+  items[4].addEventListener('click', function (e) { e.preventDefault(); }, { once: true });
+  items[4].click();
+  check('nav: help leaves the open section alone', items[3].getAttribute('aria-current'), 'page');
   truthy('nav: help does not change the remembered section', STORE.ui.panel === 'settings');
 
   items[1].click(); // back to environments; the rest of the test works with the rules
@@ -1788,6 +1766,272 @@ function assertPolicyLock() {
   });
 }
 
+/* ---- the three area switches -------------------------------------------- */
+function assertAreas() {
+  var areas = [['webClientEnabled', 'webclient', 'areaWebClientLabel'],
+    ['environmentsEnabled', 'environments', 'areaEnvironmentsLabel'],
+    ['feedbackEnabled', 'feedback', 'areaFeedbackLabel']];
+  areas.forEach(function (area) {
+    var box = document.getElementById(area[0]);
+    var panel = document.querySelector('.panel[data-panel="' + area[1] + '"]');
+    check('areas: ' + area[0] + ' sits in front of its heading',
+      [box.closest('.panel'), !!box.closest('.section-head'),
+        box.nextElementSibling && box.nextElementSibling.tagName], [panel, true, 'H2']);
+    check('areas: ' + area[0] + ' has a clear name', box.getAttribute('aria-label'),
+      chrome.i18n.getMessage(area[2]));
+    check('areas: ' + area[0] + ' is a switch', getComputedStyle(box).width, '34px');
+  });
+  var envs = document.getElementById('environmentsEnabled');
+  check('areas: environment colours switch is on the Rules heading',
+    envs.closest('section').contains(document.getElementById('ruleList')), true);
+  check('areas: own rules from before turned environment colours on', envs.checked, true);
+  check('areas: Help & feedback starts off', document.getElementById('feedbackEnabled').checked, false);
+  check('areas: no Enable Help & feedback row any more',
+    document.querySelectorAll('.panel[data-panel="feedback"] .card .toggle').length, 0);
+
+  var web = document.getElementById('webClientEnabled');
+  var webPanel = document.querySelector('.panel[data-panel="webclient"]');
+  var navItem = document.querySelector('.nav__item[data-panel="webclient"]');
+  check('areas: the nav has no dots', document.querySelectorAll('.nav__dot').length, 0);
+  check('areas: an area that is on is not dimmed', webPanel.classList.contains('area--off'), false);
+  web.click();
+  return wait(400).then(function () {
+    check('areas: the Web client switch is saved', STORE.settings.webClientEnabled, false);
+    check('areas: its panel is dimmed', webPanel.classList.contains('area--off'), true);
+    check('areas: its settings stay editable',
+      [document.getElementById('copyValuesEnabled').disabled, document.getElementById('dropdownWidth').disabled],
+      [false, false]);
+    check('areas: the heading and switch are not dimmed',
+      [getComputedStyle(web).opacity, getComputedStyle(webPanel.querySelector('h2')).opacity], ['1', '1']);
+    check('areas: the rows are',
+      getComputedStyle(webPanel.querySelector('.setting-group')).opacity, '0.55');
+    truthy('areas: its nav item looks off', navItem.classList.contains('nav__item--off') &&
+      getComputedStyle(navItem.querySelector('.nav__icon')).opacity === '0.55');
+    check('areas: and says so to a screen reader',
+      navItem.querySelector('[data-area-state]').textContent.trim(), chrome.i18n.getMessage('navAreaOff'));
+    web.click();
+    return wait(400);
+  }).then(function () {
+    check('areas: and back on', [STORE.settings.webClientEnabled, webPanel.classList.contains('area--off'),
+      navItem.classList.contains('nav__item--off'), navItem.querySelector('[data-area-state]').textContent],
+      [true, false, false, '']);
+    var people = document.querySelector('.nav__item[data-panel="feedback"] svg.nav__icon');
+    check('areas: Help & feedback has the two people of the BC top bar',
+      people && people.querySelectorAll('circle, path').length, 4);
+    var fbPanel = document.querySelector('.panel[data-panel="feedback"]');
+    check('areas: Help & feedback is dimmed while off, its fields still there',
+      [fbPanel.classList.contains('area--off'), document.getElementById('feedbackEmail').readOnly,
+        document.getElementById('feedbackConfig')], [true, false, null]);
+    document.getElementById('feedbackEnabled').click();
+    return wait(400);
+  }).then(function () {
+    check('areas: the Help & feedback switch is saved', STORE.settings.feedbackEnabled, true);
+    check('areas: and its panel is no longer dimmed',
+      document.querySelector('.panel[data-panel="feedback"]').classList.contains('area--off'), false);
+  });
+}
+
+/* ---- the Help & feedback fields ----------------------------------------- */
+function assertFeedback() {
+  var list = document.getElementById('feedbackPriorities');
+  var pick = document.getElementById('feedbackDefaultPriority');
+  var bug = document.getElementById('feedbackSubjectBug');
+  var idea = document.getElementById('feedbackSubjectIdea');
+  var urgentText = document.getElementById('feedbackUrgentText');
+  var urgentLink = document.getElementById('feedbackUrgentLink');
+  function options() {
+    return Array.prototype.map.call(pick.options, function (o) { return [o.value, o.textContent]; });
+  }
+  function type(field, value) {
+    field.value = value;
+    field.dispatchEvent(new Event('input'));
+    field.dispatchEvent(new Event('change'));
+    return wait(400);
+  }
+  check('feedback: the intro is one short line',
+    chrome.i18n.getMessage('supportIntro').indexOf('BC Buddy panel'), -1);
+  function needsShown() {
+    return Array.prototype.map.call(document.querySelectorAll('[data-needs-priorities]'),
+      function (row) { return !row.hidden; });
+  }
+  function tokens() {
+    return Array.prototype.map.call(document.querySelectorAll('#feedbackSubjectTokens code'),
+      function (code) { return code.textContent; });
+  }
+  var noPrio = function (key) { return BCBuddy.fillSubject(chrome.i18n.getMessage(key), { prio: '' }); };
+  check('feedback: no priorities to start with', [list.value, STORE.settings.feedbackPriorities || []], ['', []]);
+  check('feedback: without priorities, no default, urgent message or link', needsShown(), [false, false, false]);
+  check('feedback: subjects show the built-in ones, without {prio}',
+    [bug.value, idea.value], [noPrio('spSubjectDefaultBug'), noPrio('spSubjectDefaultIdea')]);
+  check('feedback: the tokens are listed, without {prio}', tokens(), ['{company}', '{environment}', '{title}']);
+  var sample = document.getElementById('feedbackPrioritiesSample');
+  check('feedback: an empty list offers examples', sample.hidden, false);
+  var ten = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+  return type(list, ten.concat('11', '12').join('\n')).then(function () {
+    check('feedback: lines past ten are cut off as they are typed',
+      [list.value, STORE.settings.feedbackPriorities], [ten.join('\n'), ten]);
+    check('feedback: with a list, no examples link', sample.hidden, true);
+    return type(list, '');
+  }).then(function () {
+    sample.click();
+    return wait(400);
+  }).then(function () {
+    check('feedback: a scripted click on the examples link does nothing', STORE.settings.feedbackPriorities, []);
+    return type(list, 'Low\n' + new Array(42).join('x'));
+  }).then(function () {
+    check('feedback: a priority over 40 characters is not saved', STORE.settings.feedbackPriorities, []);
+    truthy('feedback: and the box says why', list.validationMessage.length > 0);
+    return type(list, 'Low\nlow');
+  }).then(function () {
+    check('feedback: the same priority twice is not saved', STORE.settings.feedbackPriorities, []);
+    return type(list, '  Low \n\nHigh\n');
+  }).then(function () {
+    check('feedback: one per line, trimmed, blank lines skipped', STORE.settings.feedbackPriorities, ['Low', 'High']);
+    check('feedback: a default that is no longer in the list becomes none',
+      STORE.settings.feedbackDefaultPriority, '');
+    check('feedback: the list follows', options(),
+      [['', chrome.i18n.getMessage('feedbackPriorityNone')], ['Low', 'Low'], ['High', 'High']]);
+    check('feedback: with priorities, the default, urgent message and link show', needsShown(), [true, true, true]);
+    check('feedback: and {prio} is back, in the subjects and the tokens',
+      [bug.value, tokens()[0]], [chrome.i18n.getMessage('spSubjectDefaultBug'), '{prio}']);
+    pick.value = 'High';
+    pick.dispatchEvent(new Event('change'));
+    return wait(400);
+  }).then(function () {
+    check('feedback: the default priority is saved', STORE.settings.feedbackDefaultPriority, 'High');
+    return type(bug, chrome.i18n.getMessage('spSubjectDefaultBug'));
+  }).then(function () {
+    check('feedback: the built-in subject as shown is stored as the built-in one', STORE.settings.feedbackSubjectBug, '');
+    return type(list, '');
+  }).then(function () {
+    check('feedback: an empty box is no priority field, and no default',
+      [STORE.settings.feedbackPriorities, STORE.settings.feedbackDefaultPriority], [[], '']);
+    return type(bug, '  Help {prio}: {title} ');
+  }).then(function () {
+    check('feedback: a subject is saved, trimmed', STORE.settings.feedbackSubjectBug, 'Help {prio}: {title}');
+    return type(idea, 'Idea ‮{title}');
+  }).then(function () {
+    check('feedback: a subject with a bidi override is not saved', STORE.settings.feedbackSubjectIdea, '');
+    truthy('feedback: and the field says why', idea.validationMessage.length > 0);
+    return type(idea, '');
+  }).then(function () {
+    check('feedback: emptied, a subject shows the built-in one again',
+      [STORE.settings.feedbackSubjectIdea, idea.value], ['', noPrio('spSubjectDefaultIdea')]);
+    return type(document.getElementById('feedbackEmail'), 'helpdesk@example.com');
+  }).then(function () {
+    check('feedback: the email is saved', STORE.settings.feedbackEmail, 'helpdesk@example.com');
+    check('urgent: both fields start empty, with an example as placeholder',
+      [urgentText.value, urgentLink.value, urgentText.placeholder, urgentLink.placeholder],
+      ['', '', chrome.i18n.getMessage('feedbackUrgentTextPlaceholder'),
+        chrome.i18n.getMessage('feedbackUrgentLinkPlaceholder')]);
+    truthy('urgent: the help says when it shows',
+      chrome.i18n.getMessage('feedbackUrgentTextDesc').indexOf('last priority') !== -1);
+    return type(urgentText, '  Urgent? Call 03 123 45 67. ');
+  }).then(function () {
+    check('urgent: the message is saved, trimmed', STORE.settings.feedbackUrgentText, 'Urgent? Call 03 123 45 67.');
+    return type(urgentText, 'a' + new Array(202).join('x'));
+  }).then(function () {
+    check('urgent: a message over 200 characters is not saved',
+      STORE.settings.feedbackUrgentText, 'Urgent? Call 03 123 45 67.');
+    truthy('urgent: and the field says why', urgentText.validationMessage.length > 0);
+    return type(urgentLink, 'javascript:alert(1)');
+  }).then(function () {
+    check('urgent: a javascript: link is not saved', STORE.settings.feedbackUrgentLink, '');
+    check('urgent: and the field says why', urgentLink.validationMessage,
+      chrome.i18n.getMessage('feedbackUrgentLinkInvalid'));
+    return type(urgentLink, 'http://example.com/');
+  }).then(function () {
+    check('urgent: an http: link is not saved', STORE.settings.feedbackUrgentLink, '');
+    return type(urgentLink, 'tel:+32 3 123 45 67');
+  }).then(function () {
+    check('urgent: a tel: link is saved', STORE.settings.feedbackUrgentLink, 'tel:+32 3 123 45 67');
+    return type(urgentLink, ' https://Example.com ');
+  }).then(function () {
+    check('urgent: an https: link is saved as it is stored',
+      [STORE.settings.feedbackUrgentLink, urgentLink.value], ['https://example.com/', 'https://example.com/']);
+    return type(urgentLink, '');
+  }).then(function () {
+    check('urgent: emptied, there is no link', STORE.settings.feedbackUrgentLink, '');
+  });
+}
+
+/* ---- settings IT or the shared file decides are read-only --------------- */
+function assertLocks() {
+  var email = document.getElementById('feedbackEmail');
+  var envs = document.getElementById('environmentsEnabled');
+  var web = document.getElementById('webClientEnabled');
+  var bug = document.getElementById('feedbackSubjectBug');
+  function noteFor(key) { return document.querySelector('[data-lock-note="' + key + '"]'); }
+  function setPolicy(value) {
+    MANAGED = value;
+    LISTENERS.forEach(function (fn) { fn({ feedbackEmail: { newValue: value.feedbackEmail } }, 'managed'); });
+    return wait(200);
+  }
+  check('locks: nothing locked without a policy',
+    [email.readOnly, envs.disabled, noteFor('feedbackEmail').hidden, noteFor('environmentsEnabled').hidden],
+    [false, false, true, true]);
+
+  var urgentLink = document.getElementById('feedbackUrgentLink');
+  var urgentText = document.getElementById('feedbackUrgentText');
+  return setPolicy({ feedbackEmail: 'it@example.com', environmentsEnabled: true,
+    feedbackUrgentLink: 'tel:+3231234567' }).then(function () {
+    check('locks: what the policy sets is read-only',
+      [email.readOnly, envs.disabled, web.disabled, bug.readOnly], [true, true, false, false]);
+    check('locks: the urgent link too, with its note; the message stays free',
+      [urgentLink.readOnly, noteFor('feedbackUrgentLink').hidden, urgentText.readOnly], [true, false, false]);
+    urgentLink.value = 'https://example.com/mine';
+    urgentLink.dispatchEvent(new Event('change'));
+    return wait(400);
+  }).then(function () {
+    check('locks: a change to the locked link is not saved', STORE.settings.feedbackUrgentLink, '');
+    check('locks: with the same note as the shared file address',
+      [noteFor('feedbackEmail').hidden, noteFor('feedbackEmail').textContent,
+        noteFor('environmentsEnabled').hidden],
+      [false, chrome.i18n.getMessage('hostedManaged'), false]);
+    email.value = 'me@example.com';
+    email.dispatchEvent(new Event('change'));
+    return wait(400);
+  }).then(function () {
+    check('locks: a change to a locked field is not saved', STORE.settings.feedbackEmail, 'helpdesk@example.com');
+    FILE_TEXT = JSON.stringify({ app: 'bc-buddy', version: 1, rules: [],
+      feedbackEmail: 'file@example.com', environmentsEnabled: false, feedbackSubjectIdea: 'From the file' });
+    var input = document.getElementById('importFile');
+    var transfer = new DataTransfer();
+    transfer.items.add(new File([FILE_TEXT], 'locked.json', { type: 'application/json' }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+    return wait(400);
+  }).then(function () {
+    check('locks: an import leaves locked settings alone',
+      [STORE.settings.feedbackEmail, STORE.settings.environmentsEnabled], ['helpdesk@example.com', true]);
+    check('locks: and takes the rest', STORE.settings.feedbackSubjectIdea, 'From the file');
+    truthy('locks: and says some settings were not changed',
+      document.getElementById('transferStatus').textContent
+        .indexOf(chrome.i18n.getMessage('importSkippedLocked')) !== -1);
+    return setPolicy({});
+  }).then(function () {
+    check('locks: a removed policy unlocks', [email.readOnly, envs.disabled, noteFor('feedbackEmail').hidden],
+      [false, false, true]);
+    // The shared file's Help & feedback values lock too, while it is active.
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.hosted.active = true;
+    stored.hosted.feedback = { feedbackSubjectBug: 'Team {title}' };
+    stored.feedbackSubjectBug = 'Team {title}';
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  }).then(function () {
+    check('locks: a subject from the shared file is read-only',
+      [bug.value, bug.readOnly, noteFor('feedbackSubjectBug').hidden, email.readOnly], ['Team {title}', true, false, false]);
+    var stored = JSON.parse(JSON.stringify(STORE.settings));
+    stored.hosted.feedback = {};
+    stored.feedbackSubjectBug = '';
+    stored.feedbackSubjectIdea = '';
+    return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
+  }).then(function () {
+    check('locks: and free again once the file stops naming it', bug.readOnly, false);
+  });
+}
+
 /* ---- a very long name, an emoji, and no rules at all -------------------- */
 function assertEdgeCases() {
   // Measure on the panel that shows the rules, not on a hidden one.
@@ -1924,14 +2168,14 @@ function assertResetWebClient() {
     return chrome.storage.local.set({ settings: stored }).then(function () { return wait(300); });
   }
   function onOff() {
-    return [STORE.settings.stripeRows.enabled, STORE.settings.shortcuts.enabled,
+    return [STORE.settings.stripeRows.enabled, STORE.settings.hideFactBox.enabled,
       STORE.settings.copyValues.enabled];
   }
 
   check('reset: the button lives in the Web client panel',
     button.closest('.panel'), document.querySelector('.panel[data-panel="webclient"]'));
   return store({
-    stripeRows: { enabled: true }, shortcuts: { enabled: true }, copyValues: { enabled: true },
+    stripeRows: { enabled: true }, hideFactBox: { enabled: true }, copyValues: { enabled: true },
     dropdown: { width: 5, height: 5 },
     hosted: { url: 'https://example.com/shared.json', active: true, rules: [], styles: [],
       webClient: { copyValues: { enabled: false } } }
@@ -1944,7 +2188,7 @@ function assertResetWebClient() {
     check('reset: app defaults, with the shared file on top', onOff(), [false, false, false]);
     check('reset: the switches follow',
       document.getElementById('copyValuesEnabled').checked, false);
-    check('reset: the master switch is left alone', STORE.settings.enabled, true);
+    check('reset: the area switch is left alone', STORE.settings.webClientEnabled, true);
     check('reset: says how many, with an undo',
       [status.firstChild.textContent, status.querySelector('button').textContent],
       [chrome.i18n.getMessage('resetWebClientDone', ['3']), chrome.i18n.getMessage('undo')]);

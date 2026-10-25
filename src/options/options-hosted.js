@@ -109,6 +109,9 @@
         hosted.styles = [];
         // Starting over means the file's Web client defaults count as new again.
         hosted.webClient = {};
+        hosted.areas = {};
+        // And its Help & feedback values no longer lock anything.
+        hosted.feedback = {};
         hosted.lastHash = '';
         hosted.sourceName = '';
         hosted.lastSync = null;
@@ -123,6 +126,7 @@
         page.renderHosted();
         page.renderStyles();
         page.renderParsed();
+        page.renderLocks();
         page.setHostedStatus(t('sharedCleared'), 'ok');
       };
 
@@ -209,22 +213,22 @@
           page.setTransferStatus(t('importFailed', e.message), 'error');
           return;
         }
-        // Styles first, so rules can point at something that already exists.
-        var mergedStyles = BCBuddy.mergeStyles(state.settings.styles, parsed.styles);
-        state.settings.styles = mergedStyles.styles;
-
-        var merged = BCBuddy.mergeRules(state.settings.rules, parsed.rules);
-        state.settings.rules = merged.rules;
-        // An import by hand is deliberate: the file's Web client settings win.
-        var webClientChanged = BCBuddy.applyWebClient(state.settings, parsed.webClient);
+        // An import by hand is deliberate: the file's Web client settings,
+        // area switches and Help & feedback win, except what IT or the shared
+        // file decides (page.locked()). The service worker puts a locked
+        // value back anyway (enforceLocks()), so this is about saying so.
+        var result = BCBuddy.applyImported(state.settings, parsed, page.locked());
         page.save();
+        page.renderAreas();
+        page.renderFeedback();
         page.renderRules();
         page.renderStyles();
         page.renderParsed();
         page.renderWebClient();
 
-        var stats = merged.stats;
-        var styleStats = mergedStyles.stats;
+        var webClientChanged = result.webClient;
+        var stats = result.rules;
+        var styleStats = result.styles;
         var rules = page.counts([[stats.overwritten, 'importOverwritten'],
           [stats.added, 'importAdded'], [stats.kept, 'importKept']]);
         var styles = page.counts([[styleStats.overwritten, 'importOverwritten'],
@@ -233,7 +237,8 @@
         page.setTransferStatus(
           t('importDone', [parsed.rules.length, page.shorten(source), rules || t('importNone')]) +
           (styles ? t('importStyles', [styles]) : '') +
-          (webClientChanged ? t('importWebClient', [webClientChanged]) : ''), 'ok');
+          (webClientChanged ? t('importWebClient', [webClientChanged]) : '') +
+          (result.skipped.length ? ' ' + t('importSkippedLocked') : ''), 'ok');
       };
 
       page.renderHostedStatus = function () {

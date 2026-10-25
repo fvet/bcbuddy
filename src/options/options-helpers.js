@@ -30,6 +30,21 @@
       };
 
       /**
+       * The same line for the Help & feedback subjects, with their own
+       * tokens; {prio} only while there is a priority field. {type} and
+       * {tenant} work too but are left off the line on purpose.
+       */
+      page.subjectTokenLine = function (withPriority) {
+        function token(code, description) {
+          return '<span class="tokens__item"><code>' + code + '</code> ' + description + '</span>';
+        }
+        return (withPriority ? token('{prio}', t('tokenPrio')) : '') +
+          token('{company}', t('tokenCompany')) +
+          token('{environment}', t('tokenEnvironment')) +
+          token('{title}', t('tokenMessageTitle'));
+      };
+
+      /**
        * Summarises what actually happened. A count of zero adds nothing and only
        * lengthens the sentence, so we omit it.
        */

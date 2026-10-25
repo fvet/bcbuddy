@@ -3,6 +3,11 @@
 A **rule** tells BC Buddy which environment to colour, and in which colour. You
 find your rules on the settings page under **Environments**.
 
+Colours start off. Turn on the switch in front of the **Rules** heading to use
+them; the dot next to **Environments** in the menu turns green. That one
+switch covers your own rules and your team's shared rules. Every rule on the
+list is used: to stop using one, delete it.
+
 Each rule has:
 
 - a **name**, such as `PRODUCTION` or the name of a customer;
@@ -55,9 +60,8 @@ environment belongs above a rule for "anything called Production".
 
 ## Start from the samples { #samples }
 
-BC Buddy comes with four sample rules, switched off, so nothing gets a colour
-until you decide. Click **Load samples** next to **Rules** to switch them all
-on, or switch on only the ones you want:
+A new BC Buddy starts with four sample rules. Nothing gets a colour until you
+turn on the switch in front of **Rules**:
 
 | Rule | Colour | Fits when |
 |---|---|---|
@@ -71,15 +75,15 @@ them into another order, or delete the ones you do not need. Master Data comes
 first, so a master data company shows yellow even in production. They use the
 [*Full* style](styles.md); pick *Subtle* on a rule for a quieter marking.
 
-Rules you already have stay as they are. A sample with the same name as one of
-your rules is skipped, so clicking **Load samples** twice adds nothing, and a
-sample you changed while it was off stays off. Deleted a sample? Click **Load
-samples** again and it comes back in its old place. A missing *Full* or
-*Subtle* style comes back too, even when you already have every sample rule.
+Deleted a sample? Click **Load samples** next to **Rules** and it comes back
+in its old place. Rules you already have stay as they are: a sample with the
+same name as one of your rules is skipped, so clicking **Load samples** twice
+adds nothing. A missing *Full* or *Subtle* style comes back too, even when you
+already have every sample rule.
 
 When your [team's shared file](sharing.md) brings rules for the first time,
-they take over from the samples: every sample you did not change goes,
-switched on or not. Samples you changed stay.
+they take over from the samples: every sample you did not change goes.
+Samples you changed stay.
 
 !!! note "No Load samples button?"
 

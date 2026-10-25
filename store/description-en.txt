@@ -15,10 +15,11 @@ No more clicking the same buttons on every page.
 • Help, Copilot and Page Inspection as wide as you drag them
 • Week numbers in the date picker
 • The line you are on stands out in journals and orders
+• The keyboard shortcuts for the page you are on, in a side panel
 
 Your choices win: set a page back to narrow, and BC Buddy leaves it that way.
 
-Want more? Switch on striped rows, a side panel with the keyboard shortcuts for the page you are on, hide the FactBox pane or the notifications bell, or turn off animations. Every improvement has its own switch.
+Want more? Switch on striped rows, hide the FactBox pane or the notifications bell, turn off animations, or report a problem to your helpdesk by email, with marked-up screenshots, without leaving Business Central. Every improvement has its own switch.
 
 🎨 Never post in the wrong environment
 
@@ -33,14 +34,14 @@ Choose a colour per environment, per company or per customer. Ready-made samples
 
 👥 Set it up once for the whole team
 
-One person picks the colours, everyone else gets them automatically, later changes included.
+One person picks the colours (and where problem reports go), everyone else gets them automatically, later changes included.
 
 🔒 Your data stays yours
 
-No account. No server. No tracking. BC Buddy changes how Business Central looks, never your records.
+No account. No server. No tracking. BC Buddy changes how Business Central looks, never your records. A problem report goes to your own email app, never to us.
 
 ✓ Business Central online and on your own server
-✓ Chrome and Edge
+✓ Chrome and Edge 116 or newer
 ✓ English, Dutch and French
 ✓ Free and open source
 
