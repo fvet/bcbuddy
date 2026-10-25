@@ -133,48 +133,44 @@
       </div>
       <p class="muted small" data-i18n="webClientIntro">Small fixes for the Business Central screens you use every day.</p>
       <!-- Two lists: the switches that start on, then the extras that start
-           off. A row has the name with one line below it and the control on
-           the right; the docs link below has the rest. -->
+           off. A row has the icon and name with the control on the right; the
+           one-line description is the row's tooltip, and the docs link below
+           has the rest. -->
       <div class="setting-group">
       <h3 class="setting-group__title" data-i18n="webClientStandard">Works straight away</h3>
       <div class="card card--list">
-        <label class="setting">
+        <label class="setting" data-i18n-title="copyValuesDesc">
           <span class="setting__icon setting__icon--copy-values" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="copyValuesToggle">Copy values</span>
-            <span class="setting__desc" data-i18n="copyValuesDesc">Rest the mouse on a value and click the icon to copy it.</span>
           </span>
           <input type="checkbox" class="toggle" id="copyValuesEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="maximizeDesc">
           <span class="setting__icon setting__icon--maximize" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="maximizeToggle">Maximize pages</span>
-            <span class="setting__desc" data-i18n="maximizeDesc">Every page opens in wide layout; tile pages open as a list.</span>
           </span>
           <input type="checkbox" class="toggle" id="maximizeEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="pinActionBarDesc">
           <span class="setting__icon setting__icon--pin-action-bar" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="pinActionBarToggle">Pin the action bar</span>
-            <span class="setting__desc" data-i18n="pinActionBarDesc">The actions under a page's tabs stay in view.</span>
           </span>
           <input type="checkbox" class="toggle" id="pinActionBarEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="highlightRowDesc">
           <span class="setting__icon setting__icon--highlight-row" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="highlightRowToggle">Highlight the current line</span>
-            <span class="setting__desc" data-i18n="highlightRowDesc">A light tint on the line you are on in sales lines and journals.</span>
           </span>
           <input type="checkbox" class="toggle" id="highlightRowEnabled">
         </label>
-        <div class="setting setting--wrap">
+        <div class="setting setting--wrap" data-i18n-title="dropdownDesc">
           <span class="setting__icon setting__icon--dropdown" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="dropdownHeading">Dropdown size</span>
-            <span class="setting__desc" data-i18n="dropdownDesc">More room for the list that opens under a field.</span>
           </span>
           <span class="setting__sliders">
             <label class="slider">
@@ -187,19 +183,17 @@
             </label>
           </span>
         </div>
-        <label class="setting">
+        <label class="setting" data-i18n-title="resizePanesDesc">
           <span class="setting__icon setting__icon--resize-panes" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="resizePanesToggle">Resize panes</span>
-            <span class="setting__desc" data-i18n="resizePanesDesc">Drag the edge of Help, Copilot or Page Inspection to make it wider.</span>
           </span>
           <input type="checkbox" class="toggle" id="resizePanesEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="weekNumbersDesc">
           <span class="setting__icon setting__icon--week-numbers" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="weekNumbersToggle">Week numbers in the date picker</span>
-            <span class="setting__desc" data-i18n="weekNumbersDesc">The calendar of a date field shows week numbers.</span>
           </span>
           <input type="checkbox" class="toggle" id="weekNumbersEnabled">
         </label>
@@ -210,35 +204,31 @@
       <div class="setting-group">
       <h3 class="setting-group__title" data-i18n="webClientExtras">Extras</h3>
       <div class="card card--list">
-        <label class="setting">
+        <label class="setting" data-i18n-title="stripeRowsDesc">
           <span class="setting__icon setting__icon--stripe-rows" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="stripeRowsToggle">Striped rows</span>
-            <span class="setting__desc" data-i18n="stripeRowsDesc">Every other row in a list gets a light grey, so you stay on the right line.</span>
           </span>
           <input type="checkbox" class="toggle" id="stripeRowsEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="hideFactBoxDesc">
           <span class="setting__icon setting__icon--hide-fact-box" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="hideFactBoxToggle">Hide the FactBox pane</span>
-            <span class="setting__desc" data-i18n="hideFactBoxDesc">Closes the FactBox pane on pages you open for the first time.</span>
           </span>
           <input type="checkbox" class="toggle" id="hideFactBoxEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="hideNotificationsDesc">
           <span class="setting__icon setting__icon--hide-notifications" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="hideNotificationsToggle">Hide the notifications icon</span>
-            <span class="setting__desc" data-i18n="hideNotificationsDesc">Hides the bell at the top right of Business Central.</span>
           </span>
           <input type="checkbox" class="toggle" id="hideNotificationsEnabled">
         </label>
-        <label class="setting">
+        <label class="setting" data-i18n-title="noAnimationsDesc">
           <span class="setting__icon setting__icon--no-animations" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="noAnimationsToggle">Turn off animations</span>
-            <span class="setting__desc" data-i18n="noAnimationsDesc">Pages and panes appear at once instead of sliding in.</span>
           </span>
           <input type="checkbox" class="toggle" id="noAnimationsEnabled">
         </label>
