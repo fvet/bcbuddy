@@ -1208,10 +1208,9 @@ function assertWebClient() {
   check('web client: animations switch is the last row',
     webClientRows[webClientRows.length - 1].contains(
       document.getElementById('noAnimationsEnabled')), true);
-  check('web client: every row has a short description',
+  check('web client: every row has a short description as its tooltip',
     Array.prototype.every.call(webClientRows, function (row) {
-      var desc = row.querySelector('.setting__desc');
-      return !!desc && desc.textContent.trim().length > 0;
+      return (row.getAttribute('title') || '').trim().length > 0;
     }), true);
 
   // Works straight away holds the switches that start on, Extras the ones
