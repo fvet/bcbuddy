@@ -106,6 +106,8 @@
     BCBuddy.applyI18n();
     var docs = document.getElementById('docs');
     docs.href = BCBuddy.Shortcuts.DOCS[0][1];
+    document.getElementById('version').textContent = chrome.runtime.getManifest().version;
+    document.getElementById('docs-site').href = 'https://fvet.github.io/bcbuddy/';
 
     document.getElementById('settings').addEventListener('click', function (event) {
       if (!event.isTrusted) return;
