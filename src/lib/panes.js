@@ -1,3 +1,36 @@
+// Resize panes
+//
+// `lib/panes.js`, started and stopped by `applyPanes()` in `content.js` in every
+// frame, one comparison per `apply()`. Where the panes are (BC 25 on-prem and
+// BC 28 online, 2026-10-20):
+//
+// - **Page Inspection** and the **Personalization** field list: in the top
+//   window, `.designer > .pane-content > .designer-design-pane`. The element
+//   stays in the page; BC adds `.expanded` while it is open and gives it a width
+//   by CSS (`.designer-design-pane:not(.folded).expanded`, 300 px; 350 px under
+//   `.inspector`). The `.designer` carries `.inspector` or `.personalization`.
+// - **Help** and **Copilot**: a `div` that BC adds directly under `<body>` of
+//   the client frame and removes on close. Its classes are hashed per build
+//   (`pane--UVX_…`; BC 28 adds `.spa-pane`, BC 25 has nothing stable); its width comes from its own inline
+//   `--panel-width: 340px`, which a rule uses as `flex-basis` and `max-width`.
+//   So we find it by `body > div[style*="--panel-width"]`.
+//
+// The handle is a `::before` in `content.css` on the pane's left edge, under
+// `html[data-bcb-panes]`; nothing is added to BC's DOM and nothing is observed.
+// It copies BC 28's own FactBox handle (`button.resize-bar`): a 12 px grab zone
+// and a 2 px bar in the theme accent, `--bc-sldaccn` (defined in the client
+// frame only, so the top window falls back to `#00838f`). BC lights its bar on
+// hover; a pseudo-element cannot be hovered apart from its pane, so ours shows
+// during a drag only. A press on it has the pane as its target, so one capturing
+// `pointerdown` listener per frame does one `matches()` and, only on a pane,
+// one `getBoundingClientRect()`. A drag takes pointer capture on the pane (so
+// it keeps working over the client frame) and adds `pointermove`, `pointerup`
+// and `lostpointercapture` to the pane for its duration; each move writes one
+// custom property on `<html>` per animation frame. A saved width is
+// `--bcb-pane-<kind>` plus `data-bcb-pane-<kind>` on `<html>`, and CSS clamps it
+// to `240px … 100vw − 240px`. Two presses within 400 ms without a move drop the
+// saved width. The handler ignores events that are not `isTrusted`.
+
 /*
  * BC Buddy - resize panes.
  *

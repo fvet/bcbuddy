@@ -1,3 +1,46 @@
+// Dropdown size
+//
+// When a lookup opens, BC adds a `div.spa-view.spa-lookup` as a **direct child**
+// of a `div.spa-container`, inside the client frame. Its stylesheet
+// (`desktoppreview.css` on the BC CDN) caps that popup and three containers inside
+// it at `max-width: 532px; max-height: 238px`. The sizer lifts those caps per
+// dropdown; BC keeps positioning the popup itself — below or above the field,
+// moved left when it runs out of room — and does so before the first paint.
+//
+// It runs while people type, so it is built to cost nothing:
+//
+// - **A narrow observer.** It watches the direct children of each
+//   `.spa-container` and of `body` (to notice a new container), never a subtree.
+//   Cell edits, validation and row redraws never reach it. When both sliders are
+//   at BC standard, or the extension is off, nothing is attached at all.
+// - **No layout reads per dropdown.** BC writes each column's width on the header
+//   cell as `width: 15ex`. The sizer adds those up and converts once: on the first
+//   dropdown in a frame it measures what an `ex` is and what the row selector and
+//   the popup's edges add. After that, sizing a dropdown is string parsing —
+//   measured at 0–1.5 ms per open on a live client, the first one 3–27 ms.
+// - **Relative to BC.** BC's own caps are read from the first dropdown before the
+//   sizer marks it, and each step is a factor of them (width ×1 to ×2, height ×1
+//   to ×1.5). If BC changes its standard size, the steps follow.
+// - **Set once per open.** The width goes on the popup as a CSS variable when it
+//   appears and is not touched again, so it does not change while you scroll.
+//   `content.css` applies the variables only to popups carrying
+//   `data-bcb-dropdown`. Not inline on the form: BC reuses that element between
+//   opens, and an inline style would follow it.
+//
+// Things that were tried and dropped: a pure-CSS fit (letting the grid tables size
+// to their content) made the popup change width while scrolling; measuring each
+// dropdown's natural width costs 2–10 ms per open, every time.
+//
+// Only a list to pick from is sized: a popup that holds a grid (`isList()`). A
+// field you cannot edit — a page in view mode, a read-only field — opens a record
+// card in the same `.spa-lookup` popup instead. BC adds `.spa-preview-lookup` to
+// that card only *after* inserting it, so on arrival it is recognised by its
+// `.ms-nav-previewlookupform` and by having no grid; `content.css` also drops the
+// caps from anything that later carries `.spa-preview-lookup`.
+//
+// Out of scope on purpose: option fields (a `select`) and fields with a **…**
+// button, which open a full page rather than a dropdown.
+
 /*
  * BC Buddy - dropdown sizer.
  *

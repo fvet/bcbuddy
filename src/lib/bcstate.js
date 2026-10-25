@@ -1,3 +1,34 @@
+// BC's own page settings
+//
+// Maximize and Pin the action bar click BC's own controls, and change only BC's
+// default: never a page someone already set. BC stores those choices per page in
+// the client frame's `localStorage`, written only when someone (or BC Buddy's
+// click) changes them, so no key means the page shows BC's default.
+// `lib/bcstate.js` reads them:
+//
+// | Setting | Key ends in | Field |
+// |---|---|---|
+// | Wide layout | `:Layout:<id>` | `PageLayoutExpanded` |
+// | Size of a task dialog | `:TaskDialog:Layout:<id>` | `PageLayoutExpanded` |
+// | List, tiles | `:<list id>` (no prefix) | `Layout` |
+// | Pinned action bar | `:TCB<id>` | `Pinned` |
+//
+// The key starts with `<BC user name>:<environment>:`, which the content script
+// cannot rebuild (the URL often leaves the environment out), so a key matches on
+// its end. Both ids start with the page number as eight hex digits
+// (`0000001a-0000-0001-0c00-…` is page 26); the page number comes from
+// `form.ms-nav-root-form[data-page-id]`. A choice in another environment of the
+// same tenant therefore counts too, and BC Buddy errs on leaving the page alone.
+//
+// The page's own pin is the button with `i[data-icon-name="Pin"]` (floating) or
+// `"Unpin"` (pinned) in `.ms-nav-layout-menubar`; a part such as order lines has
+// its own in `.ms-nav-band-header`, which is left alone. BC's default differs per
+// page, and a bar that shows pinned is checked again on later passes in case BC
+// lets it float after all.
+//
+// Runtime cost: one query in the page on screen per pass, and one walk over the
+// `localStorage` keys the first time a page is seen.
+
 /*
  * BC Buddy - Business Central's own page settings.
  *

@@ -1,3 +1,127 @@
+// Keyboard shortcuts
+//
+// `shortcuts.js` adds the BC Buddy icon (two people) to BC's top bar, which
+// opens the browser's side panel (`src/sidepanel/`) on its start view; from
+// there *Shortcuts for this page* shows the shortcuts for where the cursor is.
+// It has no switch of its own: the icon is there while the Web client area or
+// Help & feedback is on. BC Buddy no longer adds an entry to BC's own settings
+// pane; the panel's gear opens the options page. Where the browser cannot open
+// a side panel, the button opens the floating panel in the page instead.
+//
+// - **Side panel.** The button sends `bcb:toggle-side-panel`; the service
+//   worker calls `chrome.sidePanel.open({ windowId })` at once, while the click
+//   still counts as a user gesture, or tells the panel to close when one is
+//   open in that window (the panel registers over a `bcb-sidepanel` port). The
+//   panel follows the active tab: it opens a `bcb-shortcuts` port to the tab's
+//   top frame, and `content.js` answers through `listen()` in `shortcuts.js`
+//   with the sections. A
+//   content script only accepts that port from our own extension pages. While
+//   a panel listens: the page observer below, and one `focusin` listener on
+//   BC's document that restarts a 300 ms timer; nothing is sent when the
+//   sections did not change. The panel caps what arrives and puts it on the
+//   page as text only. It closes itself when the tab it showed BC in moves to
+//   another origin, and takes the tab's zoom (`tabs.getZoom`, `onZoomChange`;
+//   no permission needed).
+//
+// - **Three views.** The panel opens on a start view (`home`) with an entry
+//   per thing it does, each shown only while its switch is on: *Report a
+//   problem* and *Feedback or a suggestion* open Help & feedback
+//   (`sidepanel/help.js`) as type Bug or Improvement (both with a priority), and
+//   *Shortcuts for this page* opens `shortcuts`. A back arrow in the header returns
+//   to the start view. The service worker keeps the view each window's panel
+//   shows: the icon in the top bar sends `bcb:toggle-side-panel`, which opens
+//   `home` or closes an open panel whatever it shows; the browser shortcut
+//   toggles `shortcuts`; the toolbar icon opens the panel through
+//   `sidePanel.setPanelBehavior({ openPanelOnActionClick })`, set while Help &
+//   feedback is on, because `sidePanel.open()` would come too late after
+//   reading the settings. A panel that opens asks for its view when it
+//   connects; without one it shows `home`. The icon is in the top bar while
+//   the Web client area or Help & feedback is on. The panel follows the settings
+//   page's look and its light or dark theme (`options/theme.js`). Only the
+//   shortcuts view
+//   closes the panel when the tab leaves BC. Help & feedback asks the tab's
+//   top frame `bcb:support-context` (BC or not, tenant, environment,
+//   company), keeps the report in `chrome.storage.session` per window, takes
+//   screenshots with `tabs.captureVisibleTab` and injects
+//   `src/support/support-overlay.js` for the area selection and the drawing
+//   editor, whose result comes back through `scripting.executeScript`. The
+//   overlay draws everything inside a closed shadow root it attaches from the
+//   isolated world: the page shares the DOM, and a canvas in its own tree would
+//   let its scripts read a screenshot (possibly of another tab) with
+//   `toDataURL()`. A page stylesheet does not reach into that root, so the
+//   panel reads `support-overlay.css` and hands it over as text
+//   (`SupportOverlay.useStyle()`) instead of `scripting.insertCSS`. Esc in
+//   the panel during an area selection calls `SupportOverlay.cancel()`; the
+//   editor gets the original capture and the earlier drawings, so Clear all
+//   goes back to the capture. The message box and the notes are
+//   contenteditable with bold, italic and underline only: their content is
+//   kept as a model of text runs with flags, rebuilt with `textContent`, and
+//   written to the report's HTML escaped, with `b`, `i`, `u` and `br` as the
+//   only tags; paste and drop insert plain text.
+//
+// - **Where.** BC online shows the client in `iframe.designer-client-frame`,
+//   same origin, under the Microsoft 365 top bar. Icon and panel live in the top
+//   window; the panel reads the client's document directly. The icon goes just
+//   before the Settings gear (`#O365_MainLink_Settings_container`), so the bar reads
+//   notifications, BC Buddy, gear, Help; when the gear is not a sibling of Help it
+//   goes before `#O365_MainLink_Help_container`. It copies the classes of Help and
+//   of the Help button, element by element. The shell decides from the window
+//   width which buttons fit and when the rest go under **…**, without counting
+//   ours, so in a narrower window the buttons ran over the user's name.
+//   `fitIcon()` keeps the icon to spare room: a ResizeObserver on the row around
+//   `#headerButtonRegion` and on `#O365_HeaderRightRegion` shows the icon,
+//   measures, and hides it again when the buttons end past where the name
+//   starts, all in one task so nothing paints in between. It does not work out
+//   the free room beforehand: a narrow window drops the title but keeps its
+//   box, so the free space is not in one place. Measure against the name's left
+//   edge, never the row's own: the row itself spills past its container.
+// - **What it lists.** *On this page* comes from the page itself: BC ends an
+//   action's tooltip with its shortcut, `"... (F9)"`, and `tooltipKey()` takes
+//   that, so it is right for the BC version, the language and any extension.
+//   Only from the page on screen (`topView()`): BC keeps the pages you came
+//   from rendered below it, in sibling `.spa-view` elements. Skipped: a
+//   field's own buttons inside `.edit-container` (Copilot's Alt+I), greyed-out
+//   actions (`aria-disabled="true"`), and a part's own action bar (inside
+//   `.formhost-control`) unless the cursor is in that part. A closed submenu
+//   is not in the DOM, so it is not listed. The rest comes from `SETS`: short,
+//   hand-picked lists from Microsoft's *Keyboard Shortcuts* article, only
+//   shortcuts BC has had for years, worded with Microsoft's own terms in each
+//   language. Keep them short; the panel links to the article for the rest.
+//   The test runner checks them against the article (see Tests); a
+//   key the article spells differently (`Down` is *Down arrow* there) goes in
+//   `SPELLING` in `tools/check-shortcut-docs.mjs`.
+// - **Where the cursor is.** `context()` looks at the client's
+//   `activeElement`: an editable grid, a view grid, a card, a date field (an
+//   input with BC's `.icon-Date` button beside it). Without a cursor in a grid,
+//   the page decides: a card form is a card, a list or worksheet form goes by
+//   its own grid (a read-only worksheet such as Find entries is a list), and a
+//   Role Center gets no area. Alt+N needs a New action, found by its icon
+//   (`data-icon-name="Add"` in a card header, `icon-Plus` in a list's action
+//   bar); Alt+F2 needs a form without `form-no-factboxes`. The cursor is read
+//   when the panel opens and when the page changes, not as it moves.
+// - **The panel.** It stays open until ×, Escape (with the focus in it) or the
+//   icon closes it; a click in BC does not. The header is a drag handle
+//   (pointer capture, so the drag keeps going over BC's frame); the spot is
+//   kept for the tab's lifetime, clamped to the window. While it is open, an
+//   observer on the direct children of each `.spa-container` notices BC
+//   adding or removing a page, and the panel refills once the new top view
+//   has a root form (up to 10 tries, 300 ms apart). A lookup is a view too
+//   but never the top view, so it changes nothing. The icon button cancels
+//   its own `mousedown`, because BC drops the field focus as soon as its
+//   frame loses focus; the panel then takes the focus and gives it back on
+//   close, unless the page changed meanwhile.
+// - **Cost.** One observer on the top window's `body` (subtree) while the
+//   icon is there: BC's grids live in the iframe's document, so the top window
+//   changes rarely, and each change costs one `getElementById`. Everything
+//   else exists only while the panel is open: the page scan, the drag
+//   listeners on its own header, and the `childList` observer on each
+//   `.spa-container`, never a subtree. No key listener in the page.
+// - **Browser shortcut.** The manifest declares a `show-shortcuts` command
+//   without a default key, so it never takes one from BC. Someone who sets a
+//   key gets `chrome.commands.onCommand` in the service worker, which sends
+//   `bcb:toggle-shortcuts` to the tab's top frame. On-prem, without the
+//   Microsoft 365 top bar, that key is the only way in.
+
 /*
  * BC Buddy - the keyboard shortcuts that work where you are.
  *

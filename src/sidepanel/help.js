@@ -1,3 +1,63 @@
+// Help & feedback
+//
+// The report view of the side panel (`src/sidepanel/help.js`; the start view and
+// the shortcuts view are `sidepanel.js`). Its settings are in *Settings model*,
+// its permissions in Permissions, and what the user sees in
+// `docs/help-feedback.md`. The area switch is `feedbackEnabled`: off by
+// default, and IT can set it by policy.
+//
+// - **A report** is up to 9 steps (`MAX_SHOTS`), each a note and optionally a
+//   screenshot. Text left in the box at the end is a last step without one.
+//   A screenshot is `tabs.captureVisibleTab` of the tab in front, scaled to at
+//   most 1920 px on the long side and stored as JPEG (`MAX_SHOT_SIDE`), so nine
+//   of them stay below what a mail server takes. Only on a tab that is
+//   Business Central: the top frame answers `bcb:support-context`.
+// - **Area selection and drawing editor** (arrow, pen, box, blur) are
+//   `src/support/support-overlay.js`, injected with `chrome.scripting` into the
+//   top frame only while one runs, inside a closed shadow root. What comes back
+//   is checked again: a PNG or JPEG data URL of bounded size, at most 300
+//   drawings and 20,000 points, coordinates within bounds.
+// - **Draft.** The report in progress lives in `chrome.storage.session` under a
+//   key per window, saved 400 ms after the last change and removed by *Close*.
+//   Content scripts cannot read session storage.
+// - **Output.** *Email* builds an unsent `.eml` (`buildEml()`: `X-Unsent: 1`,
+//   `multipart/related` with the screenshots inline) and opens it through
+//   `downloads.download()` and `downloads.open()`. The optional permissions are
+//   requested first thing in the click handler; a refusal or failure falls back
+//   to a plain download plus a line saying where the file is. *Email (draft)*
+//   puts the HTML on the clipboard and opens a `mailto:` link. *Copy* only
+//   copies; *Download* saves the report as `.html`. The extension sends
+//   nothing itself.
+// - **Text.** The message box and notes are runs with bold, italic and
+//   underline flags, put on the page with `textContent` and written to the
+//   report as escaped text inside our own `b`, `i`, `u` and `br`. Settings
+//   text (priorities, subjects) passes `oneLine()` again in the panel.
+// - **From an error dialog** (`lib/errorreport.js`). BC's error dialog
+//   (`.spa-dialog` with `.error-dialog-caption` and a `.fui-MenuButton`) gets a
+//   *Report a problem* button first in the *Share details* row. A trusted click
+//   runs, within the few seconds Chrome allows a script to copy after a real
+//   click: `bcb:error-shot` (the service worker takes `captureVisibleTab`), then
+//   a scripted click on *Share details* and on its first entry that is not Teams
+//   or Copilot, with a `copy` listener that reads what BC puts on the clipboard
+//   (`window` capture, then a `once` capture listener on `document`, which runs
+//   after BC's own). `bcb:error-report` carries message and details; the
+//   worker accepts it only after a shot from the same tab (30 s), stores it in
+//   session storage under `bcbErrorReport:<window>`. The panel opens already on
+//   `bcb:error-shot`, as soon as the screenshot and the settings are in:
+//   `sidePanel.open()` only works for a moment after the click, so it cannot wait
+//   for the details. The panel turns the report into a step (`takeErrorReport()`
+//   in `help.js`, appended to a report in progress, skipped when a step has the
+//   same message): the
+//   screenshot, the message as its note, the details folded under it and
+//   written in the report as escaped `pre`. Without a screenshot the text goes
+//   in the message box. While it runs, `html[data-bcb-capturing]` hides BC's
+//   menu so it does not flash or end up in the shot. Gated on Help & feedback
+//   and `state.webClient`; no new permission. If BC changes the dialog, the
+//   link is simply not added.
+// - **Priorities.** `feedbackPriorities` is the only list (none built in). The
+//   last value is the urgent one: while it is picked, `feedbackUrgentText` shows
+//   above the field, with `feedbackUrgentLink` as `https:` or `tel:` only.
+
 /*
  * BC Buddy - Help & feedback, the report view of the side panel.
  *

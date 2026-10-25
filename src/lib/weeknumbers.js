@@ -1,3 +1,34 @@
+// Week numbers in the date picker
+//
+// BC's date picker is Fluent UI v9's `Calendar`, and BC does wire up Fluent's
+// `showWeekNumbers`: **Shift+Home** in an open picker toggles it (live client,
+// 2026-10-11). BC stores the choice per user and environment, not per page, as
+// `<user>:<environment>:DatePicker` = `{"showWeekNumbers":true|false}`, and reads
+// it each time a picker opens; without the key the numbers are off.
+//
+// `lib/weeknumbers.js` writes `{"showWeekNumbers":true}` under that key for every
+// user and environment that has none yet, and never touches a stored value, so
+// Shift+Home stays the user's switch. It is started and stopped by
+// `applyWeekNumbers()` in `content.js`.
+//
+// The prefix comes from `BCState.prefixes()`: BC writes
+// `<user>:<environment>:NavBar` (the navigation bar's measured width) each time
+// it starts, so every such key names a user and environment that ran BC here.
+// An environment that starts for the first time while the tab is open is caught
+// by the `storage` event: BC writes from the client frame, and the content
+// script in the top frame hears it.
+//
+// The numbers are BC's: `firstWeekOfYear` and `firstDayOfWeek` come from the
+// user's Region (`calendarWeekRule` in BC's formatting info). A Dutch region
+// gives ISO 8601 weeks, as `Date2DWY`; a US region need not. BC draws them as
+// `th.fui-CalendarDayGrid__weekNumberCell`, the first cell of each row, and
+// widens the picker from 220 to 250px. Its label for that cell reads
+// "Weeknummer undefined", a gap in BC's own strings.
+//
+// Runtime: one walk over the `localStorage` keys when the switch turns on or a
+// page loads, and a suffix check on each `storage` event, which BC raises a few
+// times per session. Nothing runs in the picker itself.
+
 /*
  * BC Buddy - week numbers in the date picker.
  *
