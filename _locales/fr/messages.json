@@ -279,6 +279,7 @@
   "spPrioCritical": { "message": "Critique" },
   "spAddShot": { "message": "Zone" },
   "spAddShotHint": { "message": "Faites glisser sur la partie de la page qui compte" },
+  "spDragHint": { "message": "Faites glisser pour changer l'ordre" },
   "spShotScreen": { "message": "Tout l'écran" },
   "spFullPage": { "message": "Capturer tout l'écran" },
   "spMaxShots": { "message": "Maximum de $1 captures d'écran atteint." },

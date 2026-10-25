@@ -677,7 +677,11 @@
       var wrap = document.createElement('div'); wrap.className = 'thumb';
       var img  = document.createElement('img');
       img.src = shot.dataUrl; img.alt = t('spShotAlt', i + 1); img.className = 'thumb-img';
-      if (shot.title) img.title = shot.title;
+      img.title = (shot.title ? shot.title + ' — ' : '') + t('spDragHint');
+      // The thumbnail is the handle; the image itself must not be dragged
+      // out as a picture.
+      img.draggable = false;
+      wrap.draggable = true;
       var edit = document.createElement('button');
       edit.type = 'button'; edit.className = 'thumb-edit';
       edit.title = t('spEdit'); edit.setAttribute('aria-label', t('spEdit'));
@@ -707,11 +711,79 @@
       noteEl.setAttribute('aria-label', t('spShotNoteLabel', i + 1));
       note.set(shot.note || []);
       row.appendChild(wrap); row.appendChild(noteEl);
+      sortable(row, wrap, shot);
       box.appendChild(row);
     });
 
     updateButtons();
     if (!noSave) saveDraft();
+  }
+
+  // ---- the order of the steps, by drag and drop ----
+
+  // Only our own drag counts: it carries this type and nothing else, so a
+  // thumbnail dropped in a text box adds no text, and text or a file dragged
+  // in from elsewhere does not move a step.
+  var DRAG_TYPE = 'application/x-bcbuddy-step';
+  var dragFrom = -1;
+
+  function clearDropMarks() {
+    var rows = document.querySelectorAll('#help-thumbs .shot');
+    for (var i = 0; i < rows.length; i++) rows[i].classList.remove('drop-before', 'drop-after', 'dragging');
+  }
+
+  /**
+   * Drag a step's thumbnail onto another step: a line shows whether it lands
+   * before or after it. The note moves with its screenshot.
+   */
+  function sortable(row, handle, shot) {
+    handle.addEventListener('dragstart', function (e) {
+      if (!e.isTrusted || busy) { e.preventDefault(); return; }
+      dragFrom = shots.indexOf(shot);
+      e.dataTransfer.clearData();
+      e.dataTransfer.setData(DRAG_TYPE, String(dragFrom));
+      e.dataTransfer.effectAllowed = 'move';
+      row.classList.add('dragging');
+    });
+    handle.addEventListener('dragend', function () {
+      dragFrom = -1;
+      clearDropMarks();
+    });
+    row.addEventListener('dragover', function (e) {
+      if (dragFrom === -1 || !e.dataTransfer || e.dataTransfer.types.indexOf(DRAG_TYPE) === -1) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      var r = row.getBoundingClientRect();
+      var after = e.clientY > r.top + r.height / 2;
+      if (row.classList.contains(after ? 'drop-after' : 'drop-before')) return;
+      clearDropMarks();
+      row.classList.add(after ? 'drop-after' : 'drop-before');
+      if (shots[dragFrom]) handleRow(dragFrom).classList.add('dragging');
+    });
+    row.addEventListener('drop', function (e) {
+      if (dragFrom === -1 || !e.isTrusted) return;
+      e.preventDefault();
+      var to = shots.indexOf(shot) + (row.classList.contains('drop-after') ? 1 : 0);
+      var from = dragFrom;
+      dragFrom = -1;
+      moveShot(from, to);
+    });
+  }
+
+  function handleRow(index) {
+    return document.querySelectorAll('#help-thumbs .shot')[index] || document.createElement('div');
+  }
+
+  /** Puts the step at `from` before the step now at `to` (shots.length: last). */
+  function moveShot(from, to) {
+    if (from < 0 || from >= shots.length) return;
+    if (to > from) to--;
+    if (to === from) { clearDropMarks(); return; }
+    var list = $('help-thumbs');
+    var keep = list.scrollTop;
+    shots.splice(to, 0, shots.splice(from, 1)[0]);
+    renderThumbs();
+    list.scrollTop = keep;
   }
 
   function setStatus(id, msg, isError) {
@@ -904,6 +976,9 @@
     shots.push(shot);
     desc.clear();
     renderThumbs();
+    // The list scrolls on its own: show the step just added.
+    var list = $('help-thumbs');
+    list.scrollTop = list.scrollHeight;
     $('help-desc').focus();
   }
 

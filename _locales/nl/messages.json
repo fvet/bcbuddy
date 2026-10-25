@@ -279,6 +279,7 @@
   "spPrioCritical": { "message": "Kritiek" },
   "spAddShot": { "message": "Regio" },
   "spAddShotHint": { "message": "Sleep over het deel van de pagina dat telt" },
+  "spDragHint": { "message": "Sleep om de volgorde te wijzigen" },
   "spShotScreen": { "message": "Hele scherm" },
   "spFullPage": { "message": "Het hele scherm vastleggen" },
   "spMaxShots": { "message": "Maximum van $1 schermafbeeldingen bereikt." },

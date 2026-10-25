@@ -948,6 +948,10 @@
     "message": "Drag over the part of the page that matters",
     "description": "Tooltip of the area screenshot button (spAddShot)."
   },
+  "spDragHint": {
+    "message": "Drag to change the order",
+    "description": "Tooltip on a step's thumbnail in the side panel: drag it up or down to move the step."
+  },
   "spShotScreen": {
     "message": "Whole screen",
     "description": "Button left of Add a screenshot: a screenshot of the whole visible page. Keep it short."

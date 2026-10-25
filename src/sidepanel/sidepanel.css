@@ -147,6 +147,20 @@ kbd {
 
 .stack { display: flex; flex-direction: column; gap: 12px; }
 #help-capture { padding: 0 12px 16px; }
+
+/* While a report is open the panel is exactly as tall as the window. The
+   list of screenshots takes what is left and scrolls on its own, so the
+   message box and the actions below it stay in view however many steps
+   there are. Its heading stays put; only the steps move. Should even that
+   not fit (a very short window), the whole report scrolls instead. */
+:has(> #view-help:not([hidden])) { display: flex; flex-direction: column; height: 100vh; }
+:has(> #view-help:not([hidden])) > .head { flex: none; }
+#view-help:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+#view-help > #help-capture { flex: 1; min-height: 0; overflow-y: auto; }
+#help-capture > * { flex: none; }
+#help-capture > #help-steps-card { flex: 0 1 auto; min-height: 120px; display: flex; flex-direction: column; }
+#help-steps-card > h2 { flex: none; }
+#help-steps-card > .thumbs { flex: 1; min-height: 0; overflow-y: auto; }
 #view-help > .card { margin: 0 12px 16px; }
 
 .card-title { display: block; margin: 0 0 8px; font-size: 13px; font-weight: 600; }
@@ -253,6 +267,12 @@ kbd {
 .thumbs { display: flex; flex-direction: column; }
 .shot { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; }
 .shot + .shot { border-top: 1px solid var(--card-line); }
+/* Drag a thumbnail to change the order: the step being moved fades, a line
+   in the accent colour shows where it will land. */
+.shot .thumb[draggable="true"] { cursor: grab; }
+.shot.dragging { opacity: .45; }
+.shot.drop-before { box-shadow: inset 0 2px 0 var(--accent-color); }
+.shot.drop-after { box-shadow: inset 0 -2px 0 var(--accent-color); }
 .thumb { position: relative; flex: none; width: 104px; }
 .shot-note {
   flex: 1;

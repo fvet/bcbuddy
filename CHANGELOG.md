@@ -34,7 +34,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   **Feedback or a suggestion**: a panel opens next to the page. Write what you
   did step by step, with a screenshot of each step (the whole screen or just
   the part that matters), and make words bold, italic or underlined with
-  Ctrl+B, Ctrl+I or Ctrl+U. Point things out on a screenshot with an arrow, a
+  Ctrl+B, Ctrl+I or Ctrl+U. Drag a screenshot up or down to change the order
+  of the steps. Point things out on a screenshot with an arrow, a
   pen or a box, blur what others must not see, or start over with **Clear
   all**. Give the report a priority, then click **Email**: a new email opens
   in your email app with the screenshots inside, ready to send. The first

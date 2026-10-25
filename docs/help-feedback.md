@@ -44,7 +44,10 @@ Go to the screen that shows the step, then:
 
 Your text goes with that screenshot, and the box is empty again for the next
 step. Repeat for every step: write, then take a screenshot. You can still
-change the text under each screenshot afterwards.
+change the text under each screenshot afterwards, and drag a screenshot up
+or down to change the order of the steps; its text moves with it. With many
+steps the list of screenshots scrolls, so the box and the buttons stay in
+view.
 
 To point something out, click **Draw on this screenshot**:
 
