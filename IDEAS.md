@@ -62,76 +62,10 @@ To settle first:
   The *Permissions* section in `DEVELOPMENT.md` already sketches the
   manifest side.
 
-## Keep an error's details for a later report
+## Known problems first
 
-A user gets an error, closes it, and only later wants to report it. By then
-the details are usually gone. What BC offers (live BC28 client, 2026-10-11):
-
-- **BC's own last error.** Help & Support > Troubleshooting > *View the last
-  known error* opens page 9180 *Latest Error*, which still holds the error
-  after it was closed: error text, error code (`NSValidateField:Dialog`) and
-  the AL call stack (`Item(Table 27)."Type - OnValidate"(Trigger) line 8 -
-  Base Application by Microsoft version 28.5…`). Limits:
-  - per server session, which in practice is one tab: a reload or a new tab
-    starts a new session and loses it, so the page must be reached in-session
-    (Help pane > Help & Support > the link), not by URL;
-  - only the latest error, and only errors raised by AL code. A field
-    validation such as an unknown code in a related field (`ZZ` in
-    Country/Region Code) does not register.
-- **Copy error details.** Errors carry BC's share menu (Copy error details,
-  Share details via Teams, Share details via email; the capability
-  `SupportsShareErrorDetailsMenu`, on for desktop). The copied text has the
-  error message, internal session ID, Application Insights session ID, client
-  activity id, timestamp and user telemetry id: what Microsoft or a partner
-  needs to find the error in telemetry. No call stack for a validation error.
-  The details exist only in BC's memory while the error is shown, never in the
-  DOM.
-  - BC copies through a one-off capturing `copy` listener on `document` and
-    `execCommand('copy')`. A content-script `copy` listener on `window`
-    (capture) that adds a `once` capture listener on `document` runs after
-    BC's and can read `clipboardData.getData('text/plain')`: tried live.
-  - A scripted click on *Copy error details* copies nothing: Chrome needs a
-    real user click. BC Buddy can catch the details when the user copies them,
-    not fetch them itself.
-- **The visible message** is in the DOM while an error dialog or error
-  tooltip is shown.
-
-So a later *report a problem* could combine three sources: what BC Buddy
-noted when the error appeared (message, time, page), the last *Copy error
-details* the user made (session ids), and the *Latest Error* page read in the
-same tab (call stack). Startup errors ("Something went wrong") print time,
-tenant, environment and operation id on the page itself.
-
-### Decided 2026-10-25: a link in the error dialog
-
-Passive capture is out: most users do not know *Copy error details* exists.
-Live findings that make the link possible (BC28, Release on a sales order
-with no lines):
-
-- The copied text also carries the AL call stack for AL errors, so the
-  *Latest Error* page is only a fallback for when the dialog is already gone.
-- The scripted-click limit is about user activation, not about scripts:
-  within ~5 s of a real click in the page, a scripted open of *Share details*
-  and click on *Copy error details* copies, and the capture listener reads
-  the text (`isTrusted: true`). Without a recent real click nothing is copied.
-  A click in the side panel does not count, because the activation must be in
-  the BC page. So the click has to be on a link in the dialog itself.
-- The dialog is `.spa-dialog` inside `.spa-container` (`P.error-dialog-caption`
-  holds the message); *Share details* is a Fluent `MenuButton` in it; the menu
-  items render in a portal outside the dialog, only while the menu is open.
-
-Decisions:
-
-- **Link:** "Report a problem" with the BC Buddy icon, right-aligned on the
-  *Share details* row (mockup 1 of 3), on every dialog that has *Share
-  details*. Tooltip errors wait for the next batch.
-- **One real click does it all:** capture the visible tab, open the menu from
-  script, click *Copy error details*, read the text, then open the report.
-  Hide the menu portal with an attribute on `<html>` while it runs, so it does
-  not flash. The clipboard is overwritten; accepted.
-- **Report flow:** the screenshot and the copied text are already in the report as a step,
-  instead of the empty "What went wrong?" start. A report in progress gets it
-  as its next step, unless a step with the same message is there.
-- **Cost and safety:** one `childList` watch on the existing `.spa-container`,
-  one trusted-click handler, nothing per row or keystroke. The copied text is
-  untrusted: `str()` with a length cap, never HTML. Gated on `state.webClient`.
+IT puts a short notice in the shared file ("Posting in Production is slow, we
+are on it"); the panel shows it at the top before anyone starts typing, so the
+helpdesk does not get the same ticket fifty times. Plain text through
+`normalize()`, locked like the other Help & feedback fields, with an optional
+end date so it does not linger.
