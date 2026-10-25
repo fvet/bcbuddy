@@ -209,7 +209,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 /**
  * Shows `view` in the side panel of the tab's window. With `toggle`, a panel
  * that already shows it closes instead, as the browser shortcut does; with
- * 'any', an open panel closes whatever it shows, as the logo does.
+ * 'any', an open panel closes whatever it shows, as the top bar icon does.
  * sidePanel.open() only works during a click or a key press, so it is called
  * straight away, before anything asynchronous. Resolves false when the
  * browser has no side panel to open.
@@ -236,7 +236,7 @@ function toggleSidePanel(tab, view, toggle) {
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
   // The messages a content script or the side panel may send: the BC Buddy
-  // logo toggling the side panel, Open in a new tab, a request for our own
+  // top bar icon toggling the side panel, Open in a new tab, a request for our own
   // options page, which can ask for nothing else, and the texts of the
   // language picked on the options page, which are our own packaged files
   // (see i18n.js).
@@ -249,7 +249,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     openTab(message, sender);
     return;
   }
-  // The BC Buddy logo in BC's top bar, from a tab's top frame: opens the
+  // The BC Buddy icon in BC's top bar, from a tab's top frame: opens the
   // panel on its start view, or closes it when it is open. The panel itself
   // checks which entries are switched on.
   if (message.type === 'bcb:toggle-side-panel') {

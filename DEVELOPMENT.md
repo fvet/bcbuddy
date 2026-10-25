@@ -22,8 +22,6 @@ src/
   lib/actionbar.js     pin the action bar on BC's own pin button
   lib/copyvalues.js    copy values: the copy icon on read-only values
   lib/weeknumbers.js   week numbers in the date picker
-  lib/logo.js          the logo as data for the top bar icon; written by
-                       icons/build-icons.ps1, never edited by hand
   lib/shortcuts.js     keyboard shortcuts: the top bar icon, its panel and
                        the feed for the side panel
   sidepanel/           the browser side panel: keyboard shortcuts and
@@ -99,8 +97,9 @@ travel in an export and in the shared file as `webClient`; the master switch
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
 - `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
   where nobody set them, on by default.
-- `shortcuts.enabled` — the BC Buddy logo in BC's top bar and its panel, on
-  by default.
+- The keyboard shortcuts have no switch of their own: the BC Buddy icon in
+  BC's top bar (two people) and the shortcuts view are there while the Web
+  client area or Help & feedback is on.
 
 `normalize()` always ensures every rule points at a valid style: a
 configuration with no styles gets a Default, and a rule whose `styleId` names
@@ -617,11 +616,7 @@ powershell -ExecutionPolicy Bypass -File icons/build-icons.ps1
 ```
 
 That renders the SVG at 512 px in headless Chrome and scales it back to
-`icon16/32/48/128.png`. It also writes `src/lib/logo.js`: the same shapes as
-data, which the keyboard shortcuts icon in BC's top bar draws in one colour.
-A content script cannot point the page at `logo.svg` without
-`web_accessible_resources`, so this is how the page gets the logo without a
-second hand-made copy. Commit it with the SVG. The letters are rasterised
+`icon16/32/48/128.png`. The letters are rasterised
 along with it, so the extension does not depend on Segoe UI being present on
 the user's machine.
 
@@ -862,14 +857,14 @@ the button opens the floating panel in the page instead.
   (`sidepanel/help.js`) as type Bug or Improvement (both with a priority), and
   *Keyboard shortcuts* opens `shortcuts`. A back arrow in the header returns
   to the start view. The service worker keeps the view each window's panel
-  shows: the logo in the top bar sends `bcb:toggle-side-panel`, which opens
+  shows: the icon in the top bar sends `bcb:toggle-side-panel`, which opens
   `home` or closes an open panel whatever it shows; the browser shortcut
   toggles `shortcuts`; the toolbar icon opens the panel through
   `sidePanel.setPanelBehavior({ openPanelOnActionClick })`, set while Help &
   feedback is on, because `sidePanel.open()` would come too late after
   reading the settings. A panel that opens asks for its view when it
-  connects; without one it shows `home`. The logo is in the top bar while
-  the shortcuts or Help & feedback is on. The panel follows the settings
+  connects; without one it shows `home`. The icon is in the top bar while
+  the Web client area or Help & feedback is on. The panel follows the settings
   page's look and its light or dark theme (`options/theme.js`). Only the
   shortcuts view
   closes the panel when the tab leaves BC. Help & feedback asks the tab's

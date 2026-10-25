@@ -1,7 +1,7 @@
 /*
  * BC Buddy - the keyboard shortcuts that work where you are.
  *
- * BC Buddy's logo in BC's top bar, just before the Settings gear (so:
+ * BC Buddy's icon in BC's top bar (two people), just before the Settings gear (so:
  * notifications, BC Buddy, gear, Help; before Help when the gear is not there), opens a panel with three
  * kinds of shortcut:
  *
@@ -347,26 +347,28 @@
   /* ----------------------------------------------------------------- icon */
 
   /**
-   * BC Buddy's logo (logo.js, written from icons/logo.svg), in one colour:
-   * the shell's own icons take the top bar's text colour, which follows the
-   * theme, and the logo's grey and cyan would vanish on a coloured bar. The
-   * mask keeps its black and white, or the bite is lost.
+   * Two people, a buddy next to you: the button opens help, feedback and the
+   * shortcuts, so it gets a neutral glyph rather than one that means only
+   * one of them. Outlined in currentColor like the shell's own icons, which
+   * take the top bar's text colour and follow the theme.
    */
-  function logoSvg(doc) {
-    function build(node, inMask) {
-      var el = doc.createElementNS(SVG_NS, node.tag);
-      inMask = inMask || node.tag === 'mask';
-      Object.keys(node.attrs).forEach(function (name) {
-        el.setAttribute(name, name === 'fill' && !inMask ? 'currentColor' : node.attrs[name]);
-      });
-      if (node.text) el.textContent = node.text;
-      (node.children || []).forEach(function (child) { el.appendChild(build(child, inMask)); });
-      return el;
-    }
-    var svg = build(BCBuddy.LOGO, false);
-    svg.setAttribute('width', '16');
-    svg.setAttribute('height', '16');
-    svg.setAttribute('aria-hidden', 'true');
+  var PEOPLE = [
+    ['circle', { cx: '6', cy: '5', r: '2.5' }],
+    ['path', { d: 'M1.5 14c0-2.6 2-4.6 4.5-4.6s4.5 2 4.5 4.6' }],
+    ['path', { d: 'M10.2 2.6a2.2 2.2 0 1 1 .6 4.3' }],
+    ['path', { d: 'M12 9.6c1.5.5 2.5 2.2 2.5 4.4' }]
+  ];
+
+  function peopleSvg(doc) {
+    var svg = doc.createElementNS(SVG_NS, 'svg');
+    [['viewBox', '0 0 16 16'], ['width', '16'], ['height', '16'], ['fill', 'none'],
+      ['stroke', 'currentColor'], ['stroke-width', '1.2'], ['stroke-linecap', 'round'],
+      ['aria-hidden', 'true']].forEach(function (a) { svg.setAttribute(a[0], a[1]); });
+    PEOPLE.forEach(function (shape) {
+      var el = doc.createElementNS(SVG_NS, shape[0]);
+      Object.keys(shape[1]).forEach(function (name) { el.setAttribute(name, shape[1][name]); });
+      svg.appendChild(el);
+    });
     return svg;
   }
 
@@ -392,7 +394,7 @@
     button.setAttribute('aria-expanded', 'false');
     var wrap = model.firstElementChild ? model.firstElementChild.cloneNode(false) : doc.createElement('div');
     wrap.removeAttribute('id');
-    wrap.appendChild(logoSvg(doc));
+    wrap.appendChild(peopleSvg(doc));
     button.appendChild(wrap);
     // Pressing a button moves the focus to it, and once BC's frame loses the
     // focus BC lets go of the field the cursor was in. Keeping the focus where

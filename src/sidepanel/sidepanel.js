@@ -5,8 +5,8 @@
  * keyboard shortcuts. Each shows only while its switch is on. The back arrow
  * in the header returns to the start view; a report in progress is kept.
  *
- * The BC Buddy logo in BC's top bar (shortcuts.js), and the toolbar icon
- * while Help & feedback is on, open the panel on the start view; the logo
+ * The BC Buddy icon in BC's top bar (shortcuts.js), and the toolbar icon
+ * while Help & feedback is on, open the panel on the start view; the icon
  * closes it again. The browser shortcut goes straight to the shortcuts. The
  * service worker says which view to show when the panel connects, and again
  * when it is asked for another one while the panel is open.

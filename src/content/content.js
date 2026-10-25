@@ -1095,9 +1095,9 @@
   /* ------------------------------------------------------------ shortcuts */
 
   /**
-   * The BC Buddy logo in BC's top bar, which opens the side panel on its
+   * The BC Buddy icon in BC's top bar, which opens the side panel on its
    * start view, and the shortcuts it feeds that panel; see shortcuts.js. The
-   * logo is there while the Web client (which brings the keyboard
+   * icon is there while the Web client (which brings the keyboard
    * shortcuts) or Help & feedback is on: it is how people find both. Top
    * window only: from there it reads BC's client frame. Attached once, so
    * this costs one
@@ -1127,7 +1127,7 @@
   }
 
   /**
-   * The logo opens the browser's side panel on its start view, or closes it
+   * The icon opens the browser's side panel on its start view, or closes it
    * when it is open; the service worker does that, as only it may. Where it
    * cannot, such as a browser without side panels, the floating shortcuts
    * panel opens instead, if the shortcuts are on.

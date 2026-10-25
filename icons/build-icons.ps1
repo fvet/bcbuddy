@@ -1,6 +1,5 @@
 <#
-    Renders the PNG icons from logo.svg with headless Chrome (or Edge), and
-    writes src/lib/logo.js, the same logo as data for the top bar icon.
+    Renders the PNG icons from logo.svg with headless Chrome (or Edge).
 
     Usage:  powershell -ExecutionPolicy Bypass -File icons\build-icons.ps1
 
@@ -74,58 +73,6 @@ function Save-Resized([string]$sourcePng, [int]$size, [string]$target) {
         $src.Dispose()
     }
 }
-
-<#
-    The logo for pages BC Buddy draws on. A content script cannot point the
-    page at icons/logo.svg without web_accessible_resources, which we keep out,
-    so the shapes go into src/lib/logo.js as data and the script builds them
-    with createElementNS. Comments are dropped and the mask's id gets our
-    prefix, so it cannot clash with an id on the page.
-#>
-function Write-LogoScript([string]$svgName, [string]$target) {
-    $xml = New-Object System.Xml.XmlDocument
-    $xml.Load((Join-Path $iconDir $svgName))
-    $ids = @{}
-    foreach ($el in $xml.SelectNodes('//*[@id]')) { $ids[$el.GetAttribute('id')] = 'bcb-logo-' + $el.GetAttribute('id') }
-
-    function Convert-Node($el, [bool]$isRoot) {
-        $attrs = [ordered]@{}
-        foreach ($a in $el.Attributes) {
-            if ($a.Name -eq 'xmlns' -or ($isRoot -and ($a.Name -eq 'width' -or $a.Name -eq 'height'))) { continue }
-            $value = $a.Value
-            foreach ($id in $ids.Keys) {
-                if ($a.Name -eq 'id' -and $value -eq $id) { $value = $ids[$id] }
-                $value = $value.Replace("url(#$id)", "url(#$($ids[$id]))")
-            }
-            $attrs[$a.Name] = $value
-        }
-        $node = [ordered]@{ tag = $el.LocalName; attrs = $attrs }
-        $children = @($el.ChildNodes | Where-Object { $_.NodeType -eq 'Element' })
-        if ($children.Count) {
-            $node.children = @($children | ForEach-Object { Convert-Node $_ $false })
-        } elseif ($el.InnerText.Trim()) {
-            $node.text = $el.InnerText.Trim()
-        }
-        return $node
-    }
-
-    $json = ConvertTo-Json (Convert-Node $xml.DocumentElement $true) -Depth 20 -Compress
-    $js = @"
-/*
- * BC Buddy - the logo, as data. Written by icons/build-icons.ps1 from
- * icons/logo.svg: change the SVG and run the script, never this file.
- */
-(function (root) {
-  'use strict';
-  var BCBuddy = root.BCBuddy || (root.BCBuddy = {});
-  BCBuddy.LOGO = $json;
-})(typeof self !== 'undefined' ? self : this);
-"@
-    [System.IO.File]::WriteAllText($target, $js.Replace("`r`n", "`n"), (New-Object System.Text.UTF8Encoding($false)))
-    Write-Host ("{0}  ({1} bytes)" -f (Split-Path -Leaf $target), (Get-Item $target).Length) -ForegroundColor Green
-}
-
-Write-LogoScript 'logo.svg' (Join-Path (Split-Path -Parent $iconDir) 'src\lib\logo.js')
 
 $bigPng = Render-Svg 'logo.svg'
 
