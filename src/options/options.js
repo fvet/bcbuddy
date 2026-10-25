@@ -14,6 +14,9 @@
       // The shared file's address when IT set it by browser policy; the field
       // is locked then.
       policyUrl: '',
+      // What IT set by browser policy (chrome.storage.managed), as read; see
+      // page.locked().
+      policy: {},
       // How BC Buddy was installed (chrome.management); 'admin' when IT
       // pushed it. Empty until known, and then the samples stay hidden.
       installType: '',
@@ -33,6 +36,9 @@
     el: {},
     t: t,
     TRIMMED_TYPES: ['text', 'url', 'search'],
+    // The three areas, each with its switch in front of its panel heading.
+    AREAS: ['webClientEnabled', 'environmentsEnabled', 'feedbackEnabled'],
+    SUBJECT_KEYS: ['feedbackSubjectBug', 'feedbackSubjectIdea'],
     UI_KEY: 'ui',
     SAMPLE_URL: 'https://businesscentral.dynamics.com/c1cf0fd8-6b50-4d5a-8627-9ea2c09c6811/' +
       'Sandbox?company=CRONUS%20BE&page=1'
@@ -40,10 +46,13 @@
 
   page.state.testUrl = page.SAMPLE_URL;
 
+  // The built-in priorities are stored in English (BUILTIN_PRIORITIES) and
+  // shown in the page's language, with the side panel's own words.
+  var PRIORITY_LABELS = { Normal: 'spPrioNormal', High: 'spPrioHigh', Critical: 'spPrioCritical' };
+
   /* -------------------------------------------------------------- rendering */
 
   page.renderAll = function () {
-    page.el.globalEnabled.checked = page.state.settings.enabled;
     // Settings changed under us (or the page just opened): an undo from
     // before would now put back something else.
     page.setResetStatus('');
@@ -51,23 +60,146 @@
     page.el.hostedUrl.value = page.state.settings.hosted.url;
     page.el.testUrl.value = page.state.testUrl;
 
+    page.renderAreas();
     page.renderFeedback();
     page.refreshContext();
     page.renderHosted();
   };
 
+  /**
+   * The settings IT (by policy) or the shared file decide, as
+   * an object from setting name to 'policy' or 'shared'; see BCBuddy.lockedKeys(). Worked out again
+   * every time, so a new policy or sync counts at once.
+   */
+  page.locked = function () {
+    return BCBuddy.lockedKeys(page.state.settings, page.state.policy);
+  };
+
+  page.isLocked = function (key) {
+    return Object.prototype.hasOwnProperty.call(page.locked(), key);
+  };
+
+  /**
+   * Each area's switch, its dot in the nav and the dimming of its panel. An
+   * area that is off stays editable: the dimming only says it does nothing
+   * in Business Central right now.
+   */
+  page.renderAreas = function () {
+    var s = page.state.settings;
+    page.AREAS.forEach(function (key) {
+      var on = s[key] === true;
+      page.el[key].checked = on;
+      document.querySelectorAll('.panel[data-area="' + key + '"]').forEach(function (panel) {
+        panel.classList.toggle('area--off', !on);
+      });
+      var dot = document.querySelector('[data-area-dot="' + key + '"]');
+      var item = dot && dot.closest('.nav__item');
+      if (item) {
+        item.classList.toggle('nav__item--on', on);
+        item.classList.toggle('nav__item--off', !on);
+      }
+      var said = document.querySelector('[data-area-state="' + key + '"]');
+      if (said) said.textContent = on ? '' : ' ' + t('navAreaOff');
+    });
+    page.renderLocks();
+  };
+
+  /**
+   * Every control with data-lock="key" is read-only while that key is
+   * locked, with "Set by your organisation." (data-lock-note) beside it.
+   * Switches and lists are disabled, text fields read-only so they can still
+   * be read and copied.
+   */
+  page.renderLocks = function () {
+    var locked = page.locked();
+    var has = function (key) { return Object.prototype.hasOwnProperty.call(locked, key); };
+    document.querySelectorAll('[data-lock]').forEach(function (control) {
+      var on = has(control.dataset.lock);
+      if (control.matches('input[type="checkbox"], select')) {
+        control.disabled = on;
+      } else {
+        control.readOnly = on;
+      }
+    });
+    document.querySelectorAll('[data-lock-note]').forEach(function (note) {
+      note.hidden = !has(note.dataset.lockNote);
+    });
+    // No priority field: nothing to type in or pick from.
+    var list = page.state.settings.feedbackPriorities;
+    var noField = Array.isArray(list) && !list.length;
+    page.el.feedbackPriorities.disabled = noField;
+    if (noField) page.el.feedbackDefaultPriority.disabled = true;
+  };
+
   page.renderFeedback = function () {
     var s = page.state.settings;
-    page.el.feedbackEnabled.checked = s.feedbackEnabled;
-    page.el.feedbackConfig.hidden = !s.feedbackEnabled;
-    // Not while someone is typing in it: a half-typed address is not saved yet.
-    if (document.activeElement !== page.el.feedbackEmail) page.el.feedbackEmail.value = s.feedbackEmail;
+    var el = page.el;
+    var list = s.feedbackPriorities;
+    var noField = Array.isArray(list) && !list.length;
+    page.fill(el.feedbackEmail, s.feedbackEmail);
+
+    // Empty is the standard list, which the placeholder shows in the page's
+    // language. With no priority field the typed list stays, for when the
+    // box is unticked again.
+    el.feedbackNoPriority.checked = noField;
+    el.feedbackPriorities.placeholder = BCBuddy.BUILTIN_PRIORITIES.map(page.priorityLabel).join('\n');
+    if (!noField) page.fill(el.feedbackPriorities, list ? list.join('\n') : '');
+
+    var select = el.feedbackDefaultPriority;
+    select.textContent = '';
+    var values = noField ? [] : BCBuddy.priorityValues(list);
+    [''].concat(values).forEach(function (value) {
+      var option = document.createElement('option');
+      option.value = value;
+      option.textContent = !value ? t('feedbackPriorityNone') : list ? value : page.priorityLabel(value);
+      select.appendChild(option);
+    });
+    select.value = s.feedbackDefaultPriority;
+
+    el.feedbackSubjectBug.placeholder = t('spSubjectDefaultBug');
+    el.feedbackSubjectIdea.placeholder = t('spSubjectDefaultIdea');
+    page.SUBJECT_KEYS.forEach(function (key) { page.fill(el[key], s[key]); });
+    page.renderLocks();
+  };
+
+  /** Not while someone is typing in it: a half-typed value is not saved yet. */
+  page.fill = function (field, value) {
+    if (document.activeElement !== field) field.value = value;
+  };
+
+  /** A built-in priority (stored in English) in the page's language. */
+  page.priorityLabel = function (name) {
+    return PRIORITY_LABELS[name] ? t(PRIORITY_LABELS[name]) : name;
+  };
+
+  /**
+   * The priorities as typed, one per line: null for none typed (the
+   * standard list), undefined when the list cannot be saved as it stands:
+   * too many lines, a line too long, the same name twice or a character a
+   * subject line cannot hold. Nothing typed is dropped quietly.
+   */
+  page.readPriorities = function () {
+    var lines = page.el.feedbackPriorities.value.split(/\r?\n/)
+      .map(function (line) { return line.trim(); })
+      .filter(Boolean);
+    if (!lines.length) return null;
+    if (lines.length > BCBuddy.MAX_PRIORITIES) return undefined;
+    var clean = BCBuddy.cleanPriorities(lines);
+    return clean && clean.length === lines.length ? clean : undefined;
+  };
+
+  /** Stores a priority list; a default that is no longer in it becomes none. */
+  page.setPriorities = function (list) {
+    var s = page.state.settings;
+    s.feedbackPriorities = list;
+    s.feedbackDefaultPriority = BCBuddy.cleanDefaultPriority(s.feedbackDefaultPriority, list);
+    page.renderFeedback();
+    page.save();
   };
 
   page.renderWebClient = function () {
     page.el.copyValuesEnabled.checked = page.state.settings.copyValues.enabled;
     page.el.weekNumbersEnabled.checked = page.state.settings.weekNumbers.enabled;
-    page.el.shortcutsEnabled.checked = page.state.settings.shortcuts.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
     page.el.pinActionBarEnabled.checked = page.state.settings.pinActionBar.enabled;
     page.el.hideFactBoxEnabled.checked = page.state.settings.hideFactBox.enabled;
@@ -90,7 +222,7 @@
 
   /**
    * Puts the Web client settings back to the defaults (see
-   * BCBuddy.webClientDefaults) and offers to undo it. The master switch is not
+   * BCBuddy.webClientDefaults) and offers to undo it. The area switch is not
    * part of it, as it is not part of an export.
    */
   page.resetWebClient = function () {
@@ -391,18 +523,20 @@
     document.title = t('optionsTitle');
     BCBuddy.applyI18n();
     [
-      'status', 'globalEnabled', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
+      'status', 'testUrl', 'useCurrentTab', 'parsed', 'ruleList', 'emptyRules',
       'addRule', 'loadSamples', 'samplesStatus', 'stylesStatus', 'language', 'hostedUrl', 'syncNow',
       'hostedStatus', 'hostedList', 'importFile', 'importFileBtn',
       'exportDownload', 'transferStatus',
       'addStyle', 'styleList', 'hostedStyleList', 'emptyStyles',
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
-      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled', 'shortcutsEnabled',
+      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled',
       'resizePanesEnabled', 'hideFactBoxEnabled',
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
       'dropdownWidth', 'dropdownHeight',
-      'feedbackEnabled', 'feedbackConfig', 'feedbackEmail'
+      'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled', 'feedbackEmail',
+      'feedbackPriorities', 'feedbackNoPriority', 'feedbackDefaultPriority',
+      'feedbackSubjectBug', 'feedbackSubjectIdea'
     ].forEach(function (id) { el[id] = document.getElementById(id); });
 
     bindLanguage();
@@ -417,7 +551,8 @@
       page.readInstallType()
     ]).then(function (results) {
       state.settings = results[0];
-      state.policyUrl = BCBuddy.policyUrl(results[3]);
+      state.policy = results[3] || {};
+      state.policyUrl = BCBuddy.policyUrl(state.policy);
       state.installType = results[5];
       var stored = results[1] || {};
       var ui = stored[page.UI_KEY] || {};
@@ -440,11 +575,14 @@
 
     chrome.storage.onChanged.addListener(function (changes, area) {
       // IT set, changed or removed the policy while this page was open. The
-      // service worker writes the address itself; this only (un)locks.
+      // service worker writes the values itself; this only (un)locks.
       if (area === 'managed') {
         BCBuddy.readPolicy().then(function (policy) {
-          state.policyUrl = BCBuddy.policyUrl(policy);
-          if (state.settings) page.renderHosted();
+          state.policy = policy || {};
+          state.policyUrl = BCBuddy.policyUrl(state.policy);
+          if (!state.settings) return;
+          page.renderLocks();
+          page.renderHosted();
         });
         return;
       }
@@ -497,15 +635,18 @@
   /* --------------------------------------------------------------- binding */
 
   function bind() {
-    el.globalEnabled.addEventListener('change', function () {
-      state.settings.enabled = el.globalEnabled.checked;
-      page.save();
-    });
-
-    el.feedbackEnabled.addEventListener('change', function () {
-      state.settings.feedbackEnabled = el.feedbackEnabled.checked;
-      page.renderFeedback();
-      page.save();
+    // A locked field is disabled or read-only, so these checks only matter
+    // when a policy arrived between drawing and the change: then the value
+    // goes back to what IT set, and the service worker would put it back
+    // anyway (enforceLocks()).
+    page.AREAS.forEach(function (key) {
+      el[key].addEventListener('change', function () {
+        if (!page.isLocked(key)) {
+          state.settings[key] = el[key].checked;
+          page.save();
+        }
+        page.renderAreas();
+      });
     });
 
     // Saved when the field is left, and only as one valid address: it goes
@@ -514,6 +655,10 @@
       el.feedbackEmail.setCustomValidity('');
     });
     el.feedbackEmail.addEventListener('change', function () {
+      if (page.isLocked('feedbackEmail')) {
+        page.renderFeedback();
+        return;
+      }
       page.trimField(el.feedbackEmail);
       var typed = el.feedbackEmail.value;
       var valid = BCBuddy.normalize({ feedbackEmail: typed }).feedbackEmail;
@@ -524,6 +669,67 @@
       }
       state.settings.feedbackEmail = valid;
       page.save();
+    });
+
+    // Saved when the field is left, and only when every line can be kept.
+    el.feedbackPriorities.addEventListener('input', function () {
+      el.feedbackPriorities.setCustomValidity('');
+    });
+    el.feedbackPriorities.addEventListener('change', function () {
+      if (page.isLocked('feedbackPriorities')) {
+        page.renderFeedback();
+        return;
+      }
+      var list = page.readPriorities();
+      if (list === undefined) {
+        el.feedbackPriorities.setCustomValidity(t('feedbackPrioritiesInvalid',
+          [BCBuddy.MAX_PRIORITIES, BCBuddy.MAX_PRIORITY_LENGTH]));
+        el.feedbackPriorities.reportValidity();
+        return;
+      }
+      page.setPriorities(list);
+    });
+    el.feedbackNoPriority.addEventListener('change', function () {
+      if (page.isLocked('feedbackPriorities')) {
+        page.renderFeedback();
+        return;
+      }
+      el.feedbackPriorities.setCustomValidity('');
+      // Unticked: back to what the box holds, or the standard list when that
+      // cannot be saved.
+      var list = el.feedbackNoPriority.checked ? [] : page.readPriorities();
+      page.setPriorities(list === undefined ? null : list);
+    });
+
+    el.feedbackDefaultPriority.addEventListener('change', function () {
+      if (!page.isLocked('feedbackDefaultPriority')) {
+        state.settings.feedbackDefaultPriority = BCBuddy.cleanDefaultPriority(
+          el.feedbackDefaultPriority.value, state.settings.feedbackPriorities);
+        page.save();
+      }
+      page.renderFeedback();
+    });
+
+    // One line each; empty is the built-in subject (see cleanSubject()).
+    page.SUBJECT_KEYS.forEach(function (key) {
+      var field = el[key];
+      field.addEventListener('input', function () { field.setCustomValidity(''); });
+      field.addEventListener('change', function () {
+        if (page.isLocked(key)) {
+          page.renderFeedback();
+          return;
+        }
+        page.trimField(field);
+        var typed = field.value;
+        var valid = BCBuddy.cleanSubject(typed);
+        if (typed && !valid) {
+          field.setCustomValidity(t('feedbackSubjectInvalid', [BCBuddy.MAX_SUBJECT_LENGTH]));
+          field.reportValidity();
+          return;
+        }
+        state.settings[key] = valid;
+        page.save();
+      });
     });
 
     el.copyValuesEnabled.addEventListener('change', function () {
@@ -538,11 +744,6 @@
 
     el.weekNumbersEnabled.addEventListener('change', function () {
       state.settings.weekNumbers.enabled = el.weekNumbersEnabled.checked;
-      page.save();
-    });
-
-    el.shortcutsEnabled.addEventListener('change', function () {
-      state.settings.shortcuts.enabled = el.shortcutsEnabled.checked;
       page.save();
     });
 

@@ -189,28 +189,11 @@ a { color: var(--accent); }
   font-weight: 600;
 }
 
-/* The master switch does not belong with the sections, so it sits separately
-   at the bottom of the nav, in a frame of its own so it stands out: label on
-   the left, toggle on the right (hence row-reverse). */
-.nav__toggle {
-  margin-top: 16px;
-  padding: 12px 12px 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  flex-direction: row-reverse;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-.nav__toggle:hover { border-color: var(--accent); }
-/* "BC Buddy is on" with a dot: green while the switch is on, grey when off. */
-.nav__state { display: inline-flex; align-items: center; gap: 8px; }
-.nav__dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--muted); }
-.nav__toggle input:checked + .nav__state .nav__dot { background: var(--ok); }
+/* An area's dot, at the right of its nav item: green while the area is on,
+   grey while it is off. An area that is off also has a fainter name. */
+.nav__dot { width: 8px; height: 8px; flex: none; margin-left: auto; border-radius: 50%; background: var(--muted); }
+.nav__item--on .nav__dot { background: var(--ok); }
+.nav__item--off .nav__icon, .nav__item--off [data-i18n] { opacity: .55; }
 
 .nav__icon {
   width: 16px;
@@ -284,7 +267,17 @@ label.setting { cursor: pointer; }
 .setting + .setting { border-top: 1px solid var(--border); }
 .setting--wrap { flex-wrap: wrap; }
 /* A text field on the same line as its name, taking most of the row. */
-.setting > input[type="email"] { flex: 2 1 240px; min-width: 0; }
+.setting > input[type="email"], .setting > input[type="text"], .setting > textarea,
+.setting > select { flex: 2 1 240px; min-width: 0; }
+/* A row with a taller control: the name stays at the top. */
+.setting--top { align-items: flex-start; }
+.setting__check { margin-top: 6px; font-size: 12.5px; }
+.setting--note { display: block; }
+.setting--note p { margin: 0; }
+.setting--note details { margin-top: 4px; }
+.setting--note summary { cursor: pointer; }
+/* "Set by your organisation." under a field or beside an area switch. */
+.lock-note[hidden] { display: none; }
 /* The icon in front of a setting: one SVG per setting in icons/settings/,
    used as a mask so the line colour follows the theme. Bare, without the tile
    the website puts it on. The same files are the icons on the website and in
@@ -313,7 +306,6 @@ label.setting { cursor: pointer; }
 .setting__icon--resize-panes { --icon: url(../../icons/settings/resize-panes.svg); }
 .setting__icon--week-numbers { --icon: url(../../icons/settings/week-numbers.svg); }
 .setting__icon--hide-notifications { --icon: url(../../icons/settings/hide-notifications.svg); }
-.setting__icon--shortcuts { --icon: url(../../icons/settings/shortcuts.svg); }
 .setting__icon--stripe-rows { --icon: url(../../icons/settings/stripe-rows.svg); }
 .setting__icon--hide-fact-box { --icon: url(../../icons/settings/hide-fact-box.svg); }
 .setting__icon--no-animations { --icon: url(../../icons/settings/no-animations.svg); }
@@ -341,7 +333,7 @@ footer code { margin-right: 2px; }
 
 /* ------------------------------------------------------------ controls */
 
-input[type="text"], input[type="url"], input[type="email"], input[type="number"], select {
+input[type="text"], input[type="url"], input[type="email"], input[type="number"], select, textarea {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
@@ -353,7 +345,8 @@ input[type="text"], input[type="url"], input[type="email"], input[type="number"]
   width: 100%;
 }
 
-input[type="text"]:focus, input[type="url"]:focus, input[type="email"]:focus, input[type="number"]:focus, select:focus {
+input[type="text"]:focus, input[type="url"]:focus, input[type="email"]:focus, input[type="number"]:focus, select:focus,
+textarea:focus {
   outline: 2px solid var(--accent);
   outline-offset: -1px;
 }
@@ -402,7 +395,6 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width
 /* The colour block is as wide as the palette, so the style stays beside it. */
 .field--colour { flex: 0 0 auto; max-width: 100%; }
 .field--style { flex: 0 1 190px; }
-/* Same mute as a rule that is off (.rule--disabled). */
 .field--inactive { opacity: .6; }
 
 .switch, .radio {
@@ -414,7 +406,6 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width
   cursor: pointer;
   user-select: none;
 }
-.switch--compact { font-size: 12px; color: var(--muted); }
 
 /* A switch instead of a tick, for turning something on/off: the extension
    itself, or a rule. It remains an ordinary checkbox, so keyboard and screen
@@ -604,7 +595,6 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
   flex-direction: column;
   gap: 14px;
 }
-.rule--disabled { opacity: .6; }
 /* The rule the test URL gets: its colour all round. The ring is a shadow, so
    the card does not shift by a pixel when another rule takes over. */
 .rule--wins { border-color: var(--rule-color); box-shadow: 0 0 0 1px var(--rule-color), var(--shadow); }
@@ -879,3 +869,13 @@ input[type="checkbox"].toggle:disabled { opacity: .5; cursor: default; }
 #samplesStatus { text-align: right; }
 .card > .sync-status:empty,
 section > .sync-status:empty { display: none; }
+
+/* ---------------------------------------------------------------- areas */
+
+/* An area that is off: everything in its panel but the switch and its
+   heading is dimmed, and stays editable. */
+.area--off section > :not(.section-head--area),
+.area--off .section-head--area > :not(.section-title),
+.area--off .section-head--area .section-title > :not(.area-switch):not(h2):not(.lock-note) { opacity: .55; }
+textarea { resize: vertical; line-height: 1.4; }
+textarea:read-only, input:read-only:not([type="checkbox"]):not([type="range"]) { color: var(--muted); }

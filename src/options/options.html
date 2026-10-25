@@ -69,6 +69,10 @@
           <path d="M1.5 5.5h13M4 8.5h5M4 11h3"/>
         </svg>
         <span data-i18n="navWebClient">Web client</span>
+        <!-- Green while the area is on, grey while it is off; the hidden
+             word says the same to a screen reader (renderAreas()). -->
+        <span class="nav__dot" data-area-dot="webClientEnabled" aria-hidden="true"></span>
+        <span class="sr-only" data-area-state="webClientEnabled"></span>
       </button>
       <button type="button" class="nav__item" data-panel="environments" aria-current="page">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -76,6 +80,8 @@
           <path d="M5 13.5h6"/>
         </svg>
         <span data-i18n="navEnvironments">Environments</span>
+        <span class="nav__dot" data-area-dot="environmentsEnabled" aria-hidden="true"></span>
+        <span class="sr-only" data-area-state="environmentsEnabled"></span>
       </button>
       <button type="button" class="nav__item" data-panel="feedback">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -84,13 +90,17 @@
           <circle cx="8" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
         </svg>
         <span data-i18n="navFeedback">Help &amp; feedback</span>
+        <span class="nav__dot" data-area-dot="feedbackEnabled" aria-hidden="true"></span>
+        <span class="sr-only" data-area-state="feedbackEnabled"></span>
       </button>
       <button type="button" class="nav__item" data-panel="settings">
         <svg class="nav__icon" viewBox="0 0 16 16" aria-hidden="true">
-          <circle cx="8" cy="8" r="2.4"/>
-          <path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1"/>
+          <circle cx="4" cy="8" r="2"/>
+          <circle cx="12" cy="3.5" r="2"/>
+          <circle cx="12" cy="12.5" r="2"/>
+          <path d="M5.8 7 10.2 4.5M5.8 9l4.4 2.5"/>
         </svg>
-        <span data-i18n="navSettings">Settings</span>
+        <span data-i18n="navSettings">Sharing</span>
       </button>
       <!-- Not a section: the documentation site, in a new tab. -->
       <a class="nav__item" href="https://fvet.github.io/bcbuddy/" target="_blank" rel="noopener noreferrer">
@@ -102,23 +112,20 @@
           <path d="M6.5 3.5h-3v9h9v-3M9.5 2.5h4v4M13.5 2.5 7.5 8.5"/>
         </svg>
       </a>
-
-      <!-- Below the nav, separate from the sections: the master switch, with
-           a dot that is green while BC Buddy is on. -->
-      <label class="switch nav__toggle">
-        <input type="checkbox" class="toggle" id="globalEnabled">
-        <span class="nav__state">
-          <span class="nav__dot" aria-hidden="true"></span>
-          <span data-i18n="extensionActive">Active</span>
-        </span>
-      </label>
     </nav>
 
     <main>
-    <div class="panel" data-panel="webclient" hidden>
+    <!-- The area switch is in front of the heading; while it is off the rest
+         of the panel is dimmed but stays editable (renderAreas()). -->
+    <div class="panel" data-panel="webclient" data-area="webClientEnabled" hidden>
     <section>
-      <div class="section-head">
-        <h2 data-i18n="webClientHeading">Web client</h2>
+      <div class="section-head section-head--area">
+        <div class="section-title">
+          <input type="checkbox" class="toggle area-switch" id="webClientEnabled" data-lock="webClientEnabled"
+                 data-i18n-label="areaWebClientLabel" data-i18n-title="areaWebClientLabel">
+          <h2 data-i18n="webClientHeading">Web client</h2>
+          <span class="muted small lock-note" data-lock-note="webClientEnabled" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+        </div>
         <div class="row">
           <!-- The label says where the defaults come from; see renderWebClient(). -->
           <button type="button" class="btn btn--icon" id="resetWebClient" data-i18n-title="resetWebClientTitle">
@@ -209,14 +216,6 @@
       <h3 class="setting-group__title" data-i18n="webClientExtras">Extras</h3>
       <div class="card card--list">
         <label class="setting">
-          <span class="setting__icon setting__icon--shortcuts" aria-hidden="true"></span>
-          <span class="setting__text">
-            <span class="setting__name" data-i18n="shortcutsToggle">Keyboard shortcuts</span>
-            <span class="setting__desc" data-i18n="shortcutsDesc">A keyboard icon in the top bar lists the shortcuts that work where you are.</span>
-          </span>
-          <input type="checkbox" class="toggle" id="shortcutsEnabled">
-        </label>
-        <label class="setting">
           <span class="setting__icon setting__icon--stripe-rows" aria-hidden="true"></span>
           <span class="setting__text">
             <span class="setting__name" data-i18n="stripeRowsToggle">Striped rows</span>
@@ -258,15 +257,19 @@
     </section>
     </div>
 
-    <div class="panel" data-panel="environments">
+    <!-- One switch for own and shared rules alike, on the Rules heading. -->
+    <div class="panel" data-panel="environments" data-area="environmentsEnabled">
     <section>
-      <div class="section-head">
+      <div class="section-head section-head--area">
         <div class="section-title">
+          <input type="checkbox" class="toggle area-switch" id="environmentsEnabled" data-lock="environmentsEnabled"
+                 data-i18n-label="areaEnvironmentsLabel" data-i18n-title="areaEnvironmentsLabel">
           <h2 data-i18n="rulesHeading">Rules</h2>
           <button type="button" class="icon-btn icon-btn--add" id="addRule"
                   data-i18n-title="addRule" data-i18n-label="addRule">
             <svg class="btn__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
           </button>
+          <span class="muted small lock-note" data-lock-note="environmentsEnabled" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
         </div>
         <div class="row">
           <!-- Hidden when IT manages BC Buddy: the team's rules come from the shared file. -->
@@ -342,27 +345,69 @@
 
     </div>
 
-    <div class="panel" data-panel="feedback" hidden>
+    <div class="panel" data-panel="feedback" data-area="feedbackEnabled" hidden>
     <section>
-      <div class="section-head">
-        <h2 data-i18n="navFeedback">Help &amp; feedback</h2>
+      <div class="section-head section-head--area">
+        <div class="section-title">
+          <input type="checkbox" class="toggle area-switch" id="feedbackEnabled" data-lock="feedbackEnabled"
+                 data-i18n-label="areaFeedbackLabel" data-i18n-title="areaFeedbackLabel">
+          <h2 data-i18n="navFeedback">Help &amp; feedback</h2>
+          <span class="muted small lock-note" data-lock-note="feedbackEnabled" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+        </div>
       </div>
-      <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central: the toolbar icon or the Report a problem link in the ribbon opens a panel next to the page that collects a description and screenshots and hands them to the email app.</p>
+      <p class="muted small" data-i18n="supportIntro">Lets users report a problem to your helpdesk straight from Business Central.</p>
+      <!-- Every field is checked by the helpers in settings.js before it is
+           saved; a field IT or the shared file sets is read-only (renderLocks()). -->
       <div class="card card--list">
         <label class="setting">
           <span class="setting__text">
-            <span class="setting__name" data-i18n="feedbackEnabledToggle">Enable Help &amp; feedback</span>
+            <span class="setting__name" data-i18n="feedbackEmailLabel">Email</span>
+            <span class="muted small lock-note" data-lock-note="feedbackEmail" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
           </span>
-          <input type="checkbox" class="toggle" id="feedbackEnabled">
+          <input type="email" id="feedbackEmail" data-lock="feedbackEmail" spellcheck="false" maxlength="254"
+                 placeholder="helpdesk@example.com">
         </label>
-        <div id="feedbackConfig" hidden>
-          <label class="setting">
-            <span class="setting__text">
-              <span class="setting__name" data-i18n="feedbackEmailLabel">Email</span>
-            </span>
-            <input type="email" id="feedbackEmail" spellcheck="false" maxlength="254"
-                   placeholder="helpdesk@example.com">
-          </label>
+        <div class="setting setting--top">
+          <span class="setting__text">
+            <label class="setting__name" for="feedbackPriorities" data-i18n="feedbackPrioritiesLabel">Priorities</label>
+            <span class="setting__desc" data-i18n="feedbackPrioritiesDesc">One per line, up to 6. Leave it empty for the standard list.</span>
+            <label class="switch setting__check">
+              <input type="checkbox" id="feedbackNoPriority" data-lock="feedbackPriorities">
+              <span data-i18n="feedbackNoPriority">No priority field</span>
+            </label>
+            <span class="muted small lock-note" data-lock-note="feedbackPriorities" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <!-- The placeholder shows the standard list in the page's language. -->
+          <textarea id="feedbackPriorities" data-lock="feedbackPriorities" rows="4" spellcheck="false"></textarea>
+        </div>
+        <label class="setting">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackDefaultPriorityLabel">Default priority</span>
+            <span class="setting__desc" data-i18n="feedbackDefaultPriorityDesc">The priority a new report starts with.</span>
+            <span class="muted small lock-note" data-lock-note="feedbackDefaultPriority" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <select id="feedbackDefaultPriority" data-lock="feedbackDefaultPriority"></select>
+        </label>
+        <label class="setting">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackSubjectBugLabel">Email subject for a problem</span>
+            <span class="muted small lock-note" data-lock-note="feedbackSubjectBug" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="text" id="feedbackSubjectBug" data-lock="feedbackSubjectBug" spellcheck="false" maxlength="200">
+        </label>
+        <label class="setting">
+          <span class="setting__text">
+            <span class="setting__name" data-i18n="feedbackSubjectIdeaLabel">Email subject for feedback</span>
+            <span class="muted small lock-note" data-lock-note="feedbackSubjectIdea" data-i18n="hostedManaged" hidden>Set by your organisation.</span>
+          </span>
+          <input type="text" id="feedbackSubjectIdea" data-lock="feedbackSubjectIdea" spellcheck="false" maxlength="200">
+        </label>
+        <div class="setting setting--note">
+          <p class="muted small" data-i18n="feedbackSubjectHelp">Leave a subject empty for the standard one. You can use {prio} {type} {company} {environment} {tenant} {title}.</p>
+          <details class="muted small">
+            <summary data-i18n="feedbackSubjectMore">What they stand for</summary>
+            <p data-i18n="feedbackSubjectDetail">{prio} is the priority, {type} says problem or feedback, {company}, {environment} and {tenant} come from the Business Central page, and {title} is the first line of the message.</p>
+          </details>
         </div>
       </div>
     </section>
@@ -442,9 +487,6 @@
              the same to a screen reader. -->
         <span class="sr-only" data-match></span>
         <div class="rule__tools">
-          <label class="switch switch--compact" data-i18n-title="ruleActiveTitle">
-            <input type="checkbox" class="toggle" data-path="enabled" data-i18n-label="ruleActiveTitle">
-          </label>
           <button type="button" class="icon-btn" data-action="duplicate" data-i18n-title="duplicate">&#10697;</button>
           <button type="button" class="icon-btn icon-btn--danger" data-action="delete" data-i18n-title="deleteRule">&#10005;</button>
         </div>

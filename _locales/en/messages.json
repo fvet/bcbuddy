@@ -7,10 +7,6 @@
     "message": "BC Buddy - options",
     "description": "Title of the options page. BC Buddy is a product name and stays as it is."
   },
-  "extensionActive": {
-    "message": "Active",
-    "description": "Label of the switch that turns BC Buddy on or off, at the bottom of the options menu. Keep it to one short word."
-  },
   "languageLabel": { "message": "Language" },
   "languageTitle": { "message": "The language of BC Buddy. Business Central keeps its own." },
   "themeLabel": {
@@ -165,7 +161,6 @@
     "message": "Name (e.g. TEST)",
     "description": "Placeholder in the name field of a rule. TEST is an example of what somebody might call an environment."
   },
-  "ruleActiveTitle": { "message": "Rule active" },
   "toggleDetails": { "message": "Show or hide details" },
   "toggleOrDrag": { "message": "Click to show or hide details, drag to reorder" },
   "duplicate": { "message": "Duplicate" },
@@ -418,6 +413,10 @@
     "message": " Web client: $1 setting(s) changed.",
     "description": "Appended to importDone, which is why it starts with a space. $1 is how many switches or sliders on the Web client panel (see webClientHeading) the file changed."
   },
+  "importSkippedLocked": {
+    "message": "Some settings are set by your organisation and were not changed.",
+    "description": "Added after the import result when the file held settings that IT or the shared file decides."
+  },
   "emptyStyles": { "message": "No styles yet. Add one to reuse the same appearance across several rules." },
   "stylesIntro": {
     "message": "What a marker looks like: ribbon, frame, banner, tab title and favicon.",
@@ -604,15 +603,7 @@
     "message": "Documentation",
     "description": "Last item in the options page navigation. It opens the BC Buddy documentation website in a new tab."
   },
-  "navSettings": { "message": "Settings" },
-  "shortcutsToggle": {
-    "message": "Keyboard shortcuts",
-    "description": "Label on the on/off switch that adds the BC Buddy logo to the top bar of Business Central, which shows the keyboard shortcuts."
-  },
-  "shortcutsDesc": {
-    "message": "The BC Buddy logo in the top bar lists the shortcuts that work where you are.",
-    "description": "Short description under the setting's name in the Web client panel; one line."
-  },
+  "navSettings": { "message": "Sharing" },
   "commandShortcuts": {
     "message": "Show the keyboard shortcuts for this Business Central page",
     "description": "Name of the browser keyboard shortcut people can set for the panel, shown on the browser page where extension shortcuts are set."
@@ -806,16 +797,80 @@
     "description": "Navigation item leading to the Help & feedback settings."
   },
   "supportIntro": {
-    "message": "Lets users report a problem to your helpdesk straight from Business Central: the BC Buddy logo in the top bar or the toolbar icon opens a panel next to the page that collects a description and screenshots and hands them to the email app.",
+    "message": "Lets users report a problem to your helpdesk straight from Business Central: the BC Buddy logo in the top bar or the toolbar icon opens the BC Buddy panel, which collects a description and screenshots and hands them to the email app.",
     "description": "Intro text of the Support section on the Settings panel."
-  },
-  "feedbackEnabledToggle": {
-    "message": "Enable Help & feedback",
-    "description": "Master switch on the Help & feedback settings panel."
   },
   "feedbackEmailLabel": {
     "message": "Email",
     "description": "Label on the field where the user enters the support team's email address. Kept short: the field sits on the same line."
+  },
+  "areaWebClientLabel": {
+    "message": "Use the Web client improvements",
+    "description": "Accessible name and tooltip of the switch in front of the Web client heading. Off: none of the Web client settings below do anything."
+  },
+  "areaEnvironmentsLabel": {
+    "message": "Use environment colours (your own and shared rules)",
+    "description": "Accessible name and tooltip of the switch in front of the Rules heading. Off: no rule colours anything."
+  },
+  "areaFeedbackLabel": {
+    "message": "Use Help & feedback",
+    "description": "Accessible name and tooltip of the switch in front of the Help & feedback heading."
+  },
+  "navAreaOff": {
+    "message": "(off)",
+    "description": "Read out by screen readers after a menu item whose area is switched off; not shown on screen."
+  },
+  "feedbackPrioritiesLabel": {
+    "message": "Priorities",
+    "description": "Label of the box with the priorities a report can have."
+  },
+  "feedbackPrioritiesDesc": {
+    "message": "One per line, up to 6. Leave it empty for the standard list.",
+    "description": "Line under Priorities."
+  },
+  "feedbackNoPriority": {
+    "message": "No priority field",
+    "description": "Tick box under Priorities: the report form then has no priority at all."
+  },
+  "feedbackPrioritiesInvalid": {
+    "message": "Up to $1 priorities, one per line, each at most $2 characters and each only once.",
+    "description": "$1 and $2 are numbers. Shown when the typed list cannot be saved."
+  },
+  "feedbackDefaultPriorityLabel": {
+    "message": "Default priority",
+    "description": "Label of the list with the priority a new report starts with."
+  },
+  "feedbackDefaultPriorityDesc": {
+    "message": "The priority a new report starts with.",
+    "description": "Line under Default priority."
+  },
+  "feedbackPriorityNone": {
+    "message": "None",
+    "description": "Choice in Default priority: a new report starts without a priority."
+  },
+  "feedbackSubjectBugLabel": {
+    "message": "Email subject for a problem",
+    "description": "Label of the field with the subject line of a problem report."
+  },
+  "feedbackSubjectIdeaLabel": {
+    "message": "Email subject for feedback",
+    "description": "Label of the field with the subject line of feedback or a suggestion."
+  },
+  "feedbackSubjectInvalid": {
+    "message": "One line of at most $1 characters.",
+    "description": "$1 is a number. Shown when a subject cannot be saved."
+  },
+  "feedbackSubjectHelp": {
+    "message": "Leave a subject empty for the standard one. You can use {prio} {type} {company} {environment} {tenant} {title}.",
+    "description": "Under the subject fields. Keep the words in braces exactly as they are: they are replaced when the email is made."
+  },
+  "feedbackSubjectMore": {
+    "message": "What they stand for",
+    "description": "Opens a short explanation of the words in braces."
+  },
+  "feedbackSubjectDetail": {
+    "message": "{prio} is the priority, {type} says problem or feedback, {company}, {environment} and {tenant} come from the Business Central page, and {title} is the first line of the message.",
+    "description": "Keep the words in braces exactly as they are."
   },
   "bpTitle": {
     "message": "BC Buddy",
