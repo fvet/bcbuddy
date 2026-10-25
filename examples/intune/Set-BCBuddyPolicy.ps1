@@ -1,4 +1,4 @@
-<#
+﻿<#
   Sets the shared BC Buddy file, and optionally the other BC Buddy settings
   IT can lock, for every user of this computer, in Microsoft Edge and Google
   Chrome, through browser policy. BC Buddy then loads the file by itself, and
@@ -32,10 +32,29 @@ $FeedbackSubjectIdea     = $null
 $FeedbackUrgentText      = $null   # shown with the last priority, e.g. 'Urgent? Call the helpdesk on +00 000 00 00 00.'
 $FeedbackUrgentLink      = $null   # 'https://...' or 'tel:+00 000 00 00 00'
 # The same texts per language (en, nl, fr), shown to people whose Business
-# Central is in that language. Each language may have priorities (as many as
-# above, in the same order), subjectBug, subjectIdea and urgentText; what it
-# leaves out uses the value above. $null to leave unset. For example:
-#   @{ nl = @{ priorities = @('Laag', 'Normaal', 'Dringend'); urgentText = 'Dringend? Bel de helpdesk op +00 000 00 00 00.' } }
+# Central is in that language, else the language BC Buddy is in. Each language
+# may have priorities (as many as above, in the same order), subjectBug,
+# subjectIdea and urgentText; what it leaves out uses the value above, which is
+# also what other languages get. $null to leave unset. Full example, to copy
+# into the assignment below (with the plain values above in English):
+#
+#   $FeedbackPriorities = @('Low', 'Normal', 'High', 'Critical')
+#   $FeedbackTranslations = @{
+#     nl = @{
+#       priorities  = @('Laag', 'Normaal', 'Hoog', 'Kritiek')
+#       subjectBug  = '[BC] Probleem - {prio} - {company}: {title}'
+#       subjectIdea = '[BC] Feedback - {prio} - {company}: {title}'
+#       urgentText  = 'Dringend? Bel de helpdesk op +00 000 00 00 00.'
+#     }
+#     fr = @{
+#       priorities  = @('Faible', 'Normale', 'Haute', 'Critique')
+#       subjectBug  = '[BC] Problème - {prio} - {company} : {title}'
+#       subjectIdea = '[BC] Retour - {prio} - {company} : {title}'
+#       urgentText  = 'Urgent ? Appelez le support au +00 000 00 00 00.'
+#     }
+#   }
+#
+# Save this file as UTF-8 with BOM when it holds accented characters.
 $FeedbackTranslations    = $null
 
 $keys = @(
