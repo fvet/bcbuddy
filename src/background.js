@@ -23,8 +23,9 @@ var MAX_HOSTED_SIZE = 1024 * 1024;
 chrome.runtime.onInstalled.addListener(function (details) {
   var install = details.reason === 'install';
   // The samples go in before the policy's address starts the first sync, so
-  // that sync finds them and its shared rules can take over (syncHosted).
-  (install ? seedSamples() : Promise.resolve()).then(enforcePolicy).then(function () {
+  // that sync finds them and its shared rules can take over (syncHosted). An
+  // update stores settings from an older version in the current shape first.
+  (install ? seedSamples() : migrate()).then(enforcePolicy).then(function () {
     scheduleSync();
     if (install) welcome();
     else syncHosted({ reason: 'install' });
@@ -47,7 +48,19 @@ function packagedSamples() {
 }
 
 /**
- * A first install starts with the samples, their rules switched off (see
+ * Settings saved by a version before the area switches are brought over once
+ * (see BCBuddy.normalize), so every page reads the same answer from storage.
+ * Never fails: loading migrates again until a save works.
+ */
+function migrate() {
+  return chrome.storage.local.get(BCBuddy.STORAGE_KEY).then(function (obj) {
+    var stored = obj && obj[BCBuddy.STORAGE_KEY];
+    if (BCBuddy.isLegacy(stored)) return BCBuddy.saveSettings(stored);
+  }).catch(function () {});
+}
+
+/**
+ * A first install starts with the samples, with environment colours off (see
  * BCBuddy.seedSamples). Never fails: without them BC Buddy keeps its built-in
  * Default.
  */
@@ -92,7 +105,7 @@ chrome.action.onClicked.addListener(function () {
 function syncActionBehavior() {
   if (!chrome.sidePanel || !chrome.sidePanel.setPanelBehavior) return;
   BCBuddy.loadSettings().then(function (settings) {
-    var help = !!(settings.enabled && settings.feedbackEnabled);
+    var help = BCBuddy.feedbackOn(settings);
     return chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: help });
   }).catch(function () { /* settings unreadable: leave it */ });
 }
@@ -133,6 +146,11 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   if (area === 'local' && changes[BCBuddy.LANGUAGE_KEY]) languageReady = BCBuddy.loadLanguage();
   if (area !== 'local' || !changes[BCBuddy.STORAGE_KEY]) return;
   syncActionBehavior();
+  // A write may have moved a value IT or the shared file sets, e.g. from an
+  // options page that was open before the policy arrived, or an edited
+  // export. enforcePolicy() puts it back, and saves only when it had to, so
+  // its own write ends here.
+  enforcePolicy();
   var before = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].oldValue).hosted;
   var after = BCBuddy.normalize(changes[BCBuddy.STORAGE_KEY].newValue).hosted;
   if (before.url !== after.url || before.active !== after.active) {
@@ -140,9 +158,6 @@ chrome.storage.onChanged.addListener(function (changes, area) {
     if (after.url && before.url !== after.url) {
       syncHosted({ reason: 'url-changed', force: true });
     }
-    // The address or the on/off state moved away from what the policy says,
-    // e.g. an options page that was open before the policy arrived.
-    enforcePolicy();
   } else if (BCBuddy.syncIntervalMinutes(before) !== BCBuddy.syncIntervalMinutes(after)) {
     // A try just ended: the first sync worked, a working one started to
     // fail, or a failing one failed again and waits longer.
@@ -220,11 +235,11 @@ function toggleSidePanel(tab, view, toggle) {
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message || !message.type) return;
-  // The four messages a content script may send: the BC Buddy logo toggling
-  // the side panel, Open in a new tab, the
-  // Settings link in BC's gear menu (gearmenu.js), which can only ask for our
-  // own options page, and the texts of the language picked on the options
-  // page, which are our own packaged files (see i18n.js).
+  // The messages a content script or the side panel may send: the BC Buddy
+  // logo toggling the side panel, Open in a new tab, a request for our own
+  // options page, which can ask for nothing else, and the texts of the
+  // language picked on the options page, which are our own packaged files
+  // (see i18n.js).
   if (message.type === 'bcb:messages') {
     if (!sender || sender.id !== chrome.runtime.id) return;
     BCBuddy.readMessages(message.lang).then(sendResponse);
@@ -244,9 +259,8 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     return true; // async response
   }
   if (message.type === 'bcb:open-options') {
-    // The Help & feedback view's gear asks for its own settings panel
-    // anything else, such as
-    // the gear menu link, gets Web client.
+    // The side panel's Help & feedback view asks for its own settings
+    // panel; anything else gets Web client.
     if (sender && sender.id === chrome.runtime.id) {
       openOptions(message.panel === 'feedback' ? 'feedback' : 'webclient');
     }
@@ -296,15 +310,16 @@ function isExtensionPage(sender) {
 /* ------------------------------------------------------------------ sync */
 
 /**
- * Applies the address IT set by policy, if any (see BCBuddy.applyPolicy). The
- * resulting settings change starts the sync through the listener above. Never
- * rejects: startup must go on without a policy, or without managed storage.
+ * Applies what IT set by policy and, while the shared configuration is
+ * active, the Help & feedback values of the shared file (see
+ * BCBuddy.enforceLocks). Saves only when that changed something; a new
+ * address starts the sync through the listener above. Never rejects: startup
+ * must go on without a policy, or without managed storage.
  */
 function enforcePolicy() {
   return BCBuddy.readPolicy().then(function (policy) {
-    if (!BCBuddy.policyUrl(policy)) return;
     return BCBuddy.loadSettings().then(function (settings) {
-      if (BCBuddy.applyPolicy(settings, policy)) return BCBuddy.saveSettings(settings);
+      if (BCBuddy.enforceLocks(settings, policy)) return BCBuddy.saveSettings(settings);
     });
   }).catch(function () {});
 }
@@ -358,6 +373,7 @@ function fetchHosted(url) {
         rules: parsed.rules,
         styles: parsed.styles,
         webClient: parsed.webClient,
+        areas: BCBuddy.sharedAreas(parsed),
         feedback: parsed.feedback,
         name: parsed.name,
         hash: BCBuddy.hash(text),
@@ -392,7 +408,11 @@ function oversized() {
 function syncHosted(options) {
   options = options || {};
   // Wait for the picked language: the errors below end up on the options page.
+  var policy = {};
   return languageReady.then(function () {
+    return BCBuddy.readPolicy();
+  }).then(function (read) {
+    policy = read;
     return BCBuddy.loadSettings();
   }).then(function (settings) {
     if (!settings.hosted.url) return { ok: false, error: BCBuddy.t('errNoHostedUrl') };
@@ -416,10 +436,13 @@ function syncHosted(options) {
       settings.hosted.rules = result.rules;
       settings.hosted.styles = result.styles;
       BCBuddy.applySharedWebClient(settings, result.webClient);
-      // The Help & feedback settings in the file are the team's, so they win over
-      // whatever was typed here, the way an import treats them. A file that
+      // The area switches are team defaults too, but never over the policy.
+      BCBuddy.applySharedAreas(settings, result.areas, BCBuddy.lockedKeys(settings, policy));
+      // The Help & feedback settings in the file are the team's: locked while
+      // the shared configuration is active, below the policy. A file that
       // does not mention them leaves the local choice alone.
-      BCBuddy.applyFeedback(settings, result.feedback);
+      settings.hosted.feedback = result.feedback || {};
+      BCBuddy.enforceLocks(settings, policy);
       settings.hosted.sourceName = result.name;
       settings.hosted.lastHash = result.hash;
       settings.hosted.lastSync = new Date().toISOString();

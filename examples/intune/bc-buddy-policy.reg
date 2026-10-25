@@ -3,9 +3,39 @@ Windows Registry Editor Version 5.00
 ; Sets the shared BC Buddy file for Microsoft Edge and Google Chrome on this
 ; computer. Replace the address with your own before importing (Group Policy
 ; Preferences, or regedit for a single test machine).
+;
+; The lines starting with ;" are optional settings. Remove the ; in front of
+; the ones you want: each is then set for everyone and locked on the settings
+; page. Keep Edge and Chrome the same. Switches are dword:00000001 (on) or
+; dword:00000000 (off). The priorities are a list, one numbered value each
+; under a key of their own; that key without values hides the priority field.
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy]
 "sharedConfigUrl"="https://example.com/bc-buddy.json"
+;"webClientEnabled"=dword:00000001
+;"environmentsEnabled"=dword:00000001
+;"feedbackEnabled"=dword:00000001
+;"feedbackEmail"="helpdesk@example.com"
+;"feedbackDefaultPriority"="Normal"
+;"feedbackSubjectBug"="[{prio}] {type} in {company} ({environment})"
+;"feedbackSubjectIdea"="{type} for {company}"
+
+; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackPriorities]
+;"1"="Low"
+;"2"="Normal"
+;"3"="Urgent"
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy]
 "sharedConfigUrl"="https://example.com/bc-buddy.json"
+;"webClientEnabled"=dword:00000001
+;"environmentsEnabled"=dword:00000001
+;"feedbackEnabled"=dword:00000001
+;"feedbackEmail"="helpdesk@example.com"
+;"feedbackDefaultPriority"="Normal"
+;"feedbackSubjectBug"="[{prio}] {type} in {company} ({environment})"
+;"feedbackSubjectIdea"="{type} for {company}"
+
+; [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\3rdparty\extensions\jpgpcfecpdcocjlepdfceahamliimjdl\policy\feedbackPriorities]
+;"1"="Low"
+;"2"="Normal"
+;"3"="Urgent"

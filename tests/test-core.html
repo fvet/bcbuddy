@@ -341,7 +341,11 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('match: does not contain only commas never matches', BCBuddy.testCondition({ field: 'environment', op: 'notContains', value: ',' }, saas), false);
   check('match: equals takes no list', BCBuddy.testCondition({ field: 'environment', op: 'equals', value: 'dev, sandbox' }, saas), false);
   check('match: empty value never matches', BCBuddy.matchRule(r([{ field: 'url', op: 'contains', value: '' }]), saas), false);
-  check('match: disabled rule', BCBuddy.matchRule(BCBuddy.normalizeRule({ enabled: false, conditions: [{ field: 'url', op: 'contains', value: 'Sandbox' }] }), saas), false);
+  check('match: a rule that was switched off is gone, not kept as active',
+    BCBuddy.normalize({ webClientEnabled: true, environmentsEnabled: true,
+      rules: [{ enabled: false, conditions: [{ field: 'url', op: 'contains', value: 'Sandbox' }] }] }).rules.length, 0);
+  check('match: a rule has no on/off switch of its own',
+    'enabled' in BCBuddy.normalizeRule({ enabled: false }), false);
 
   // draft for a new rule, derived from a URL
   var bcDraft = BCBuddy.draftFromContext(saas);
@@ -506,14 +510,16 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ stripeRows: { enabled: true } })), true);
   check('stripes: off when the extension is off',
     BCBuddy.stripeRowsOn(BCBuddy.normalize({ enabled: false, stripeRows: { enabled: true } })), false);
-  // and so does the keyboard shortcuts icon, which starts off
-  check('shortcuts: off by default', BCBuddy.shortcutsOn(BCBuddy.normalize(null)), false);
-  check('shortcuts: on with its own toggle',
-    BCBuddy.shortcutsOn(BCBuddy.normalize({ shortcuts: { enabled: true } })), true);
-  check('shortcuts: off with its own toggle',
-    BCBuddy.shortcutsOn(BCBuddy.normalize({ shortcuts: { enabled: false } })), false);
-  check('shortcuts: off when the extension is off',
+  // the keyboard shortcuts have no switch: they come with the Web client
+  check('shortcuts: on with the Web client', BCBuddy.shortcutsOn(BCBuddy.normalize(null)), true);
+  check('shortcuts: an old switch of their own is dropped',
+    [BCBuddy.shortcutsOn(BCBuddy.normalize({ shortcuts: { enabled: false } })),
+      'shortcuts' in BCBuddy.normalize({ shortcuts: { enabled: false } })], [true, false]);
+  check('shortcuts: off with the Web client',
+    BCBuddy.shortcutsOn(BCBuddy.normalize({ webClientEnabled: false })), false);
+  check('shortcuts: off when the old master switch was off',
     BCBuddy.shortcutsOn(BCBuddy.normalize({ enabled: false, shortcuts: { enabled: true } })), false);
+  check('shortcuts: no longer a Web client setting', BCBuddy.WEB_CLIENT_KEYS.indexOf('shortcuts'), -1);
 
   // and so does turning animations off
   check('animations: left alone by default', BCBuddy.noAnimationsOn(BCBuddy.normalize(null)), false);
@@ -1105,9 +1111,12 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('defaults: there is always a style', def.styles.length, 1);
   check('defaults: it is named Default', def.styles[0].name, 'Default');
   check('defaults: with a fixed id', def.styles[0].id, 'default');
-  check('defaults: extension enabled', def.enabled, true);
+  check('defaults: no master switch', 'enabled' in def, false);
+  check('defaults: Web client on', def.webClientEnabled, true);
+  check('defaults: environment colours off', def.environmentsEnabled, false);
+  check('defaults: Help & feedback off', def.feedbackEnabled, false);
   check('defaults: shared config is off', def.hosted.active, false);
-  check('defaults: schema version', def.version, 2);
+  check('defaults: schema version', def.version, 3);
   check('sync: daily interval', BCBuddy.SYNC_INTERVAL_MINUTES, 1440);
   check('hosted: cannot be active without URL',
     BCBuddy.normalize({ hosted: { active: true } }).hosted.active, false);
@@ -1561,13 +1570,246 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   var hdExport = BCBuddy.toExport({ feedbackEnabled: true, feedbackEmail: 'help@example.com' }, 'X');
   var hdImport = BCBuddy.parseImport(JSON.stringify(hdExport)).feedback;
   check('feedback: export/import round trip', hdImport,
-    { feedbackEnabled: true, feedbackEmail: 'help@example.com' });
+    { feedbackEnabled: true, feedbackEmail: 'help@example.com', feedbackPriorities: null,
+      feedbackDefaultPriority: 'Normal', feedbackSubjectBug: '', feedbackSubjectIdea: '' });
   check('feedback: a colour in an older file is ignored',
     BCBuddy.parseImport('{"rules":[],"feedbackEnabled":true,"feedbackColor":"#107c10"}').feedback, { feedbackEnabled: true });
   check('feedback: a file without it says nothing', BCBuddy.parseImport(JSON.stringify(BCBuddy.toExport({}, 'X'))).feedback, null);
   var hdTarget = BCBuddy.normalize({ feedbackEmail: 'own@example.com' });
   BCBuddy.applyFeedback(hdTarget, BCBuddy.parseImport('{"rules":[],"feedbackEmail":"bad address"}').feedback);
   check('feedback: a bad address in a file leaves the own one', hdTarget.feedbackEmail, 'own@example.com');
+
+  // Help & feedback: priorities, default priority and subjects, each checked
+  check('feedback: the built-in priorities by default', hd.feedbackPriorities, null);
+  check('feedback: Normal is the default priority by default', hd.feedbackDefaultPriority, 'Normal');
+  check('feedback: built-in subjects by default', [hd.feedbackSubjectBug, hd.feedbackSubjectIdea], ['', '']);
+  check('feedback: the built-in values', BCBuddy.BUILTIN_PRIORITIES, ['Normal', 'High', 'Critical']);
+  check('priorities: null and missing are the built-in list',
+    [BCBuddy.cleanPriorities(null), BCBuddy.cleanPriorities(undefined), BCBuddy.cleanPriorities('Normal')],
+    [null, null, null]);
+  check('priorities: an empty list is no priority field', BCBuddy.cleanPriorities([]), []);
+  check('priorities: trimmed, each once, no empty or invalid names, at most six',
+    BCBuddy.cleanPriorities([' A ', 'a', 'B', '', 7, 'x'.repeat(41), 'C\nD', 'C', 'D', 'E', 'F', 'G']),
+    ['A', 'B', 'C', 'D', 'E', 'F']);
+  check('priorities: forty characters fit', BCBuddy.cleanPriorities(['x'.repeat(40)]), ['x'.repeat(40)]);
+  check('priorities: a list with nothing valid is the built-in one', BCBuddy.cleanPriorities(['', 5, '‮']), null);
+  check('priorities: stored as checked',
+    BCBuddy.normalize({ feedbackPriorities: ['Low', 'low', ' Urgent '] }).feedbackPriorities, ['Low', 'Urgent']);
+  check('default priority: matched without case, spelled as in the list',
+    [BCBuddy.cleanDefaultPriority('high', null), BCBuddy.cleanDefaultPriority('p2', ['P1', 'P2'])], ['High', 'P2']);
+  check('default priority: not in the list is none',
+    [BCBuddy.cleanDefaultPriority('Urgent', null), BCBuddy.cleanDefaultPriority('Normal', []),
+      BCBuddy.cleanDefaultPriority(3, null), BCBuddy.cleanDefaultPriority('', null)], ['', '', '', '']);
+  check('default priority: a stored empty one stays none',
+    BCBuddy.normalize({ webClientEnabled: true, feedbackDefaultPriority: '' }).feedbackDefaultPriority, '');
+  check('default priority: missing with a list without Normal is none',
+    BCBuddy.normalize({ feedbackPriorities: ['P1', 'P2'] }).feedbackDefaultPriority, '');
+  check('default priority: kept when it is in the list',
+    BCBuddy.normalize({ feedbackPriorities: ['P1', 'P2'], feedbackDefaultPriority: 'P2' }).feedbackDefaultPriority, 'P2');
+  check('subject: trimmed, placeholders left as they are',
+    BCBuddy.cleanSubject(' [{prio}] {type} in {company} ({environment}, {tenant}): {title} '),
+    '[{prio}] {type} in {company} ({environment}, {tenant}): {title}');
+  check('subject: two hundred characters fit', BCBuddy.cleanSubject('x'.repeat(200)), 'x'.repeat(200));
+  check('subject: refused when too long, on two lines, with control or bidi characters, or no text',
+    [BCBuddy.cleanSubject('x'.repeat(201)), BCBuddy.cleanSubject('a\nb'), BCBuddy.cleanSubject('a\rb'),
+      BCBuddy.cleanSubject('a\u0007b'), BCBuddy.cleanSubject('a b'), BCBuddy.cleanSubject('a‮b'),
+      BCBuddy.cleanSubject(42), BCBuddy.cleanSubject(null)], ['', '', '', '', '', '', '', '']);
+  check('subject: stored as checked',
+    [BCBuddy.normalize({ feedbackSubjectBug: 'Bug {title}', feedbackSubjectIdea: 'a\nb' }).feedbackSubjectBug,
+      BCBuddy.normalize({ feedbackSubjectBug: 'Bug {title}', feedbackSubjectIdea: 'a\nb' }).feedbackSubjectIdea],
+    ['Bug {title}', '']);
+  var hdFull = BCBuddy.normalize({ webClientEnabled: true, feedbackEnabled: true, feedbackEmail: 'help@example.com',
+    feedbackPriorities: ['Low', 'Urgent'], feedbackDefaultPriority: 'Urgent',
+    feedbackSubjectBug: '[{prio}] {title}', feedbackSubjectIdea: 'Idea: {title}' });
+  check('feedback: every field travels in an export and back',
+    BCBuddy.parseImport(JSON.stringify(BCBuddy.toExport(hdFull, 'X'))).feedback,
+    { feedbackEnabled: true, feedbackEmail: 'help@example.com', feedbackPriorities: ['Low', 'Urgent'],
+      feedbackDefaultPriority: 'Urgent', feedbackSubjectBug: '[{prio}] {title}', feedbackSubjectIdea: 'Idea: {title}' });
+  check('feedback: changing only a subject counts as set up',
+    'feedbackSubjectBug' in BCBuddy.toExport({ webClientEnabled: true, feedbackSubjectBug: 'X' }, 'X'), true);
+  check('feedback: a file reads only what it names, checked',
+    BCBuddy.parseImport({ rules: [], feedbackPriorities: null, feedbackDefaultPriority: 7,
+      feedbackSubjectIdea: 'a\nb' }).feedback, { feedbackPriorities: null, feedbackSubjectIdea: '' });
+  check('export: the area switches stay out',
+    ['webClientEnabled', 'environmentsEnabled', 'enabled'].filter(function (key) {
+      return key in BCBuddy.toExport(hdFull, 'X');
+    }), []);
+
+  // area switches
+  check('areas: helpers follow their own switch only',
+    [BCBuddy.webClientOn(BCBuddy.normalize({ webClientEnabled: false, environmentsEnabled: true })),
+      BCBuddy.environmentsOn(BCBuddy.normalize({ webClientEnabled: false, environmentsEnabled: true })),
+      BCBuddy.feedbackOn(BCBuddy.normalize({ webClientEnabled: false, feedbackEnabled: true }))],
+    [false, true, true]);
+  check('areas: only a real true counts',
+    [BCBuddy.webClientOn({ webClientEnabled: 'yes' }), BCBuddy.environmentsOn({ environmentsEnabled: 1 }),
+      BCBuddy.feedbackOn(null)], [false, false, false]);
+  check('areas: every Web client tweak follows the Web client switch',
+    ['maximizeOn', 'pinActionBarOn', 'resizePanesOn', 'highlightRowOn', 'copyValuesOn', 'weekNumbersOn']
+      .map(function (fn) { return BCBuddy[fn](BCBuddy.normalize({ webClientEnabled: false })); }),
+    [false, false, false, false, false, false]);
+  check('areas: a value that is no boolean falls back to the default',
+    [BCBuddy.normalize({ webClientEnabled: true, environmentsEnabled: 'on' }).environmentsEnabled,
+      BCBuddy.normalize({ webClientEnabled: 'off', version: 3 }).webClientEnabled], [false, true]);
+  check('areas: shared rules switched off by an older file are dropped',
+    BCBuddy.normalize({ webClientEnabled: true, hosted: { rules: [{ name: 'A', enabled: false }, { name: 'B' }] } })
+      .hosted.rules.map(function (r) { return r.name; }), ['B']);
+  check('import: rules that were switched off are left out',
+    BCBuddy.parseImport({ rules: [{ name: 'A', enabled: false }, { name: 'B', enabled: true }, { name: 'C' }] })
+      .rules.map(function (r) { return r.name; }), ['B', 'C']);
+  check('import: a bare list of rules too',
+    BCBuddy.parseImport([{ name: 'A', enabled: false }, { name: 'B' }]).rules.length, 1);
+  check('import: area switches read when the file names them',
+    [BCBuddy.parseImport({ rules: [], environmentsEnabled: true, webClientEnabled: 'no' }).areas,
+      BCBuddy.parseImport({ rules: [] }).areas], [{ environmentsEnabled: true }, null]);
+
+  // migration from the master switch and per-rule switches (schema 2)
+  var legacyCases = {
+    masterOff: { version: 2, enabled: false, feedbackEnabled: true, shortcuts: { enabled: true },
+      rules: [{ name: 'A' }, { name: 'B', enabled: false }] },
+    allOff: { version: 2, enabled: true, rules: [{ name: 'A', enabled: false }, { name: 'B', enabled: false }] },
+    mixed: { version: 2, enabled: true, feedbackEnabled: true,
+      rules: [{ name: 'A', enabled: false }, { name: 'B' }, { name: 'C', enabled: true }] },
+    shared: { version: 2, rules: [{ name: 'A', enabled: false }],
+      hosted: { url: 'https://example.com/bc-buddy.json', active: true, rules: [{ name: 'S' }] } },
+    sharedMasterOff: { version: 2, enabled: false,
+      hosted: { url: 'https://example.com/bc-buddy.json', active: true, rules: [{ name: 'S' }] } },
+    sharedOffRules: { version: 2,
+      hosted: { url: 'https://example.com/bc-buddy.json', active: true, rules: [{ name: 'S', enabled: false }] } },
+    sharedInactive: { version: 2,
+      hosted: { url: 'https://example.com/bc-buddy.json', active: false, rules: [{ name: 'S' }] } }
+  };
+  var migrated = {};
+  Object.keys(legacyCases).forEach(function (name) { migrated[name] = BCBuddy.normalize(legacyCases[name]); });
+  function areasOf(s) { return [s.webClientEnabled, s.environmentsEnabled, s.feedbackEnabled]; }
+  function namesOf(s) { return s.rules.map(function (r) { return r.name; }); }
+  check('migrate: old settings are recognised, new ones and nothing are not',
+    [BCBuddy.isLegacy(legacyCases.mixed), BCBuddy.isLegacy({ version: 2 }), BCBuddy.isLegacy(null),
+      BCBuddy.isLegacy({}), BCBuddy.isLegacy(migrated.mixed)], [true, true, false, false, false]);
+  check('migrate: master off turns every area off and keeps every rule',
+    [areasOf(migrated.masterOff), namesOf(migrated.masterOff)], [[false, false, false], ['A', 'B']]);
+  check('migrate: the old shortcuts switch is dropped', 'shortcuts' in migrated.masterOff, false);
+  check('migrate: no rule on, colours off and every rule kept as a plain rule',
+    [areasOf(migrated.allOff), namesOf(migrated.allOff),
+      migrated.allOff.rules.some(function (r) { return 'enabled' in r; })],
+    [[true, false, false], ['A', 'B'], false]);
+  check('migrate: a rule on, colours on and the rules that were off are dropped',
+    [areasOf(migrated.mixed), namesOf(migrated.mixed)], [[true, true, true], ['B', 'C']]);
+  check('migrate: an active shared file with rules turns colours on',
+    [areasOf(migrated.shared), namesOf(migrated.shared), migrated.shared.hosted.areas],
+    [[true, true, false], [], { environmentsEnabled: true }]);
+  check('migrate: not with the master switch off',
+    [areasOf(migrated.sharedMasterOff), migrated.sharedMasterOff.hosted.areas],
+    [[false, false, false], { environmentsEnabled: true }]);
+  check('migrate: nor when its rules were all off, or it was not active',
+    [migrated.sharedOffRules.environmentsEnabled, migrated.sharedInactive.environmentsEnabled], [false, false]);
+  check('migrate: the next sync of the same file does not turn colours on',
+    [BCBuddy.applySharedAreas(migrated.sharedMasterOff, BCBuddy.sharedAreas({ rules: [{}] })),
+      migrated.sharedMasterOff.environmentsEnabled], [0, false]);
+  check('migrate: idempotent, also after a trip through storage',
+    Object.keys(legacyCases).filter(function (name) {
+      var once = BCBuddy.normalize(legacyCases[name]);
+      var again = BCBuddy.normalize(JSON.parse(JSON.stringify(once)));
+      var twice = BCBuddy.normalize(legacyCases[name]);
+      // A rule without an id gets a new one each time; the rest must match.
+      function withoutIds(value) { return JSON.stringify(value, function (k, v) { return k === 'id' ? undefined : v; }); }
+      return JSON.stringify(again) !== JSON.stringify(once) || withoutIds(twice) !== withoutIds(once);
+    }), []);
+  check('migrate: the old settings are left as they were',
+    legacyCases.mixed.rules.map(function (r) { return r.enabled; }), [false, undefined, true]);
+
+  // shared file: area switches are team defaults
+  check('shared areas: a file with rules means colours on unless it says otherwise',
+    [BCBuddy.sharedAreas({ rules: [{}], areas: null }), BCBuddy.sharedAreas({ rules: [{}], areas: { environmentsEnabled: false } }),
+      BCBuddy.sharedAreas({ rules: [], areas: { webClientEnabled: false } })],
+    [{ environmentsEnabled: true }, { environmentsEnabled: false }, { webClientEnabled: false }]);
+  var teammate = BCBuddy.normalize(null);
+  check('shared areas: taken on the first sync',
+    [BCBuddy.applySharedAreas(teammate, { environmentsEnabled: true }), teammate.environmentsEnabled], [1, true]);
+  teammate.environmentsEnabled = false;
+  check('shared areas: someone who turns it off keeps it off',
+    [BCBuddy.applySharedAreas(teammate, { environmentsEnabled: true }), teammate.environmentsEnabled], [0, false]);
+  BCBuddy.applySharedAreas(teammate, { environmentsEnabled: false });
+  check('shared areas: until the file changes it',
+    [BCBuddy.applySharedAreas(teammate, { environmentsEnabled: true }), teammate.environmentsEnabled], [1, true]);
+  check('shared areas: never over the policy',
+    [BCBuddy.applySharedAreas(teammate, { webClientEnabled: false }, { webClientEnabled: 'policy' }),
+      teammate.webClientEnabled], [0, true]);
+
+  // policy: every value checked, all locked, wins over the shared file
+  check('policy: nothing set, nothing locked', [BCBuddy.policyValues({}), BCBuddy.policyValues('x'),
+    BCBuddy.lockedKeys(BCBuddy.normalize(null), {})], [{}, {}, {}]);
+  check('policy: values checked, invalid or empty ones ignored',
+    BCBuddy.policyValues({ sharedConfigUrl: 'http://example.com/x.json', webClientEnabled: false,
+      environmentsEnabled: 'yes', feedbackEmail: 'a@b.c?cc=x@evil.com', feedbackPriorities: ['', 3],
+      feedbackDefaultPriority: '', feedbackSubjectBug: 'a\nb', feedbackSubjectIdea: ' Idea ', junk: true }),
+    { webClientEnabled: false, feedbackSubjectIdea: 'Idea' });
+  check('policy: an empty list hides the priority field',
+    BCBuddy.policyValues({ feedbackPriorities: [] }), { feedbackPriorities: [] });
+  check('policy: every key is in the managed schema list',
+    BCBuddy.POLICY_KEYS, ['sharedConfigUrl', 'webClientEnabled', 'environmentsEnabled', 'feedbackEnabled',
+      'feedbackEmail', 'feedbackPriorities', 'feedbackDefaultPriority', 'feedbackSubjectBug', 'feedbackSubjectIdea']);
+  var team = BCBuddy.normalize({ webClientEnabled: true,
+    hosted: { url: 'https://example.com/bc-buddy.json', active: true,
+      feedback: { feedbackEnabled: true, feedbackEmail: 'team@example.com', feedbackSubjectBug: 'Team {title}' } } });
+  var itPolicy = { sharedConfigUrl: 'https://example.com/bc-buddy.json', feedbackEmail: 'it@example.com',
+    environmentsEnabled: true };
+  check('locks: policy first, then the Help & feedback the shared file names',
+    BCBuddy.lockedKeys(team, itPolicy),
+    { sharedConfigUrl: 'policy', environmentsEnabled: 'policy', feedbackEmail: 'policy',
+      feedbackEnabled: 'shared', feedbackSubjectBug: 'shared' });
+  check('locks: none from a shared file that is not active',
+    BCBuddy.lockedKeys(BCBuddy.normalize({ webClientEnabled: true,
+      hosted: { url: 'https://example.com/x.json', active: false, feedback: { feedbackEnabled: true } } }), {}), {});
+  check('locks: applied, the policy over the shared file',
+    [BCBuddy.enforceLocks(team, itPolicy), team.feedbackEmail, team.feedbackEnabled, team.feedbackSubjectBug,
+      team.environmentsEnabled], [true, 'it@example.com', true, 'Team {title}', true]);
+  check('locks: applying again changes nothing, also after a save',
+    [BCBuddy.enforceLocks(team, itPolicy), BCBuddy.enforceLocks(BCBuddy.normalize(team), itPolicy)], [false, false]);
+  team.feedbackEnabled = false;
+  team.feedbackEmail = 'me@example.com';
+  team.environmentsEnabled = false;
+  check('locks: a local write around them is put back',
+    [BCBuddy.enforceLocks(team, itPolicy), team.feedbackEnabled, team.feedbackEmail, team.environmentsEnabled],
+    [true, true, 'it@example.com', true]);
+  team.feedbackSubjectIdea = 'Mine';
+  check('locks: what nobody locks stays mine', [BCBuddy.enforceLocks(team, itPolicy), team.feedbackSubjectIdea],
+    [false, 'Mine']);
+  var odd = BCBuddy.normalize(null);
+  var oddPolicy = { feedbackPriorities: ['P1', 'P2'], feedbackDefaultPriority: 'High' };
+  check('locks: a default priority outside the list settles at none, without a loop',
+    [BCBuddy.enforceLocks(odd, oddPolicy), odd.feedbackPriorities, odd.feedbackDefaultPriority,
+      BCBuddy.enforceLocks(BCBuddy.normalize(odd), oddPolicy)], [true, ['P1', 'P2'], '', false]);
+  check('locks: removing the policy unlocks and keeps the values',
+    [BCBuddy.enforceLocks(odd, {}), odd.feedbackPriorities], [false, ['P1', 'P2']]);
+  var byUrl = BCBuddy.normalize(null);
+  check('policy: the address still turns the shared configuration on',
+    [BCBuddy.applyPolicy(byUrl, { sharedConfigUrl: 'https://example.com/bc-buddy.json' }), byUrl.hosted.url,
+      byUrl.hosted.active], [true, 'https://example.com/bc-buddy.json', true]);
+
+  // an import never changes what is locked
+  var importer = BCBuddy.normalize({ webClientEnabled: true, feedbackEmail: 'it@example.com' });
+  var importLocks = { feedbackEmail: 'policy', environmentsEnabled: 'policy' };
+  var importResult = BCBuddy.applyImported(importer, BCBuddy.parseImport({ rules: [{ name: 'Imported' }],
+    environmentsEnabled: true, webClientEnabled: false, feedbackEnabled: true, feedbackEmail: 'me@example.com',
+    webClient: { stripeRows: { enabled: true } } }), importLocks);
+  check('import: locked keys skipped and reported, the rest taken over',
+    [importResult.skipped, importer.feedbackEmail, importer.environmentsEnabled, importer.webClientEnabled,
+      importer.feedbackEnabled, importer.stripeRows.enabled, importResult.webClient, namesOf(importer),
+      importResult.rules.added], [['environmentsEnabled', 'feedbackEmail'], 'it@example.com', false, false, true,
+      true, 1, ['Imported'], 1]);
+  check('import: a locked key with the same value is not reported',
+    BCBuddy.applyImported(importer, BCBuddy.parseImport({ rules: [], feedbackEmail: 'it@example.com' }),
+      importLocks).skipped, []);
+  var edited = BCBuddy.toExport(importer, 'X');
+  edited.feedbackEmail = 'evil@example.com';
+  check('import: an edited export cannot change a locked value',
+    [BCBuddy.applyImported(importer, BCBuddy.parseImport(JSON.stringify(edited)), importLocks).skipped,
+      importer.feedbackEmail], [['feedbackEmail'], 'it@example.com']);
+  importer.feedbackEmail = 'evil@example.com';
+  check('import: and the service worker would put it back anyway',
+    [BCBuddy.enforceLocks(importer, { feedbackEmail: 'it@example.com' }), importer.feedbackEmail],
+    [true, 'it@example.com']);
 
   // merge on import
   function ruleNamed(name, extra) {
@@ -1715,34 +1957,30 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   check('seed: a fresh install gets the sample styles',
     [BCBuddy.seedSamples(installed, samples), installed.styles.map(function (l) { return l.id; })],
     [true, ['full', 'subtle']]);
-  check('seed: and the sample rules, switched off',
-    installed.rules.map(function (r) { return [r.name, r.enabled]; }),
+  check('seed: and the sample rules, as they come',
+    installed.rules.map(function (r) { return [r.name, 'enabled' in r]; }),
     samples.rules.map(function (r) { return [r.name, false]; }));
-  check('seed: an off sample colours nothing',
-    BCBuddy.findRule(BCBuddy.effectiveRules(installed),
-      BCBuddy.parseUrl('https://businesscentral.dynamics.com/contoso.com/Production')), null);
+  check('seed: environment colours start off, so the samples colour nothing',
+    BCBuddy.environmentsOn(installed), false);
   check('seed: survives normalize',
     [BCBuddy.normalize(installed).styles.length, BCBuddy.normalize(installed).rules.length], [2, 4]);
   check('seed: not twice', BCBuddy.seedSamples(installed, samples), false);
   check('seed: not over settings someone already has', BCBuddy.seedSamples(withMine, samples), false);
 
-  // Load samples switches on the samples the install left off, as they came
+  // Load samples after the install seeded them adds nothing
   var seeded = BCBuddy.normalize({});
   BCBuddy.seedSamples(seeded, samples);
-  seeded.rules[1].color = '#000000';
-  check('seed: Load samples switches on the untouched ones',
-    [BCBuddy.addSamples(seeded, samples), seeded.rules.map(function (r) { return r.enabled; })],
-    [{ added: 3, skipped: 1, styles: 0 }, [true, false, true, true]]);
+  check('seed: Load samples afterwards skips them all',
+    BCBuddy.addSamples(seeded, samples), { added: 0, skipped: 4, styles: 0 });
 
   // The first shared rules take over from the samples nobody edited
   var toShare = BCBuddy.normalize({});
   BCBuddy.seedSamples(toShare, samples);
-  toShare.rules[0].enabled = true;
   toShare.rules[2].conditions[0].value = 'acceptatie';
   toShare.rules[3].styleId = 'subtle';
   toShare.rules.push(BCBuddy.normalizeRule({ id: 'mine', name: 'Shop',
     conditions: [{ field: 'url', op: 'contains', value: 'shop' }] }));
-  check('drop: switched on but unedited goes, edited ones and your own stay',
+  check('drop: unedited ones go, edited ones and your own stay',
     [BCBuddy.dropSamples(toShare, samples), toShare.rules.map(function (r) { return r.name; })],
     [2, ['UAT', 'Development', 'Shop']]);
   var sameName = BCBuddy.normalize({ rules: [JSON.parse(JSON.stringify(samples.rules[1]))] });

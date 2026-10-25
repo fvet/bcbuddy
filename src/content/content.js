@@ -377,12 +377,13 @@
    * until the URL or settings change.
    */
   function shouldWatch(settings, rule) {
-    if (!settings || !settings.enabled) return false;
+    if (!settings) return false;
     // The current-row tint is not here on purpose: it is one attribute, set
-    // once, and needs no watching.
+    // once, and needs no watching. With an area off, nothing of it counts.
     var clicksBC = BCBuddy.maximizeOn(settings) || BCBuddy.pinActionBarOn(settings) ||
       BCBuddy.hideFactBoxOn(settings);
-    if (!effectiveRules(settings).length && !clicksBC) return false;
+    var colours = BCBuddy.environmentsOn(settings) && effectiveRules(settings).length > 0;
+    if (!colours && !clicksBC) return false;
     if (rule) return true;
     if (state.ctx && state.ctx.isbc) return true;
     if (state.bcSeen) return true;
@@ -425,8 +426,8 @@
 
     // Rules apply on every site. From the URL alone you cannot tell that a
     // custom host runs Business Central, so filtering on the BC host would
-    // shut out on-prem installs.
-    var rule = settings.enabled ? matchingRule(settings) : null;
+    // shut out on-prem installs. With environment colours off, no rule runs.
+    var rule = BCBuddy.environmentsOn(settings) ? matchingRule(settings) : null;
 
     var changed = !sameRule(rule, state.rule);
     if (changed) {
@@ -1035,12 +1036,12 @@
   /**
    * Starts or stops Ctrl+click / middle-click to open a link in a new tab.
    * Beta and undocumented on purpose, with no switch of its own: see the top
-   * of newtab.js. It follows the master switch only. Its click listeners are
+   * of newtab.js. It follows the Web client switch only. Its click listeners are
    * attached once and left alone until that changes, so this costs one
    * comparison per apply().
    */
   function applyNewTab() {
-    var want = !!(state.settings && state.settings.enabled) && state.webClient;
+    var want = BCBuddy.webClientOn(state.settings) && state.webClient;
     if (want === !!state.newTab) return;
     if (state.newTab) state.newTab.detach();
     state.newTab = want ? BCBuddy.NewTab.attach(document, openTab) : null;
@@ -1065,7 +1066,7 @@
    */
   function applyDropdowns() {
     var settings = state.settings;
-    var want = !!settings && settings.enabled && BCBuddy.Dropdowns.isOn(settings.dropdown) &&
+    var want = BCBuddy.webClientOn(settings) && BCBuddy.Dropdowns.isOn(settings.dropdown) &&
       state.webClient;
     var key = want ? settings.dropdown.width + 'x' + settings.dropdown.height : '';
     if (key === state.dropdownKey) return;
@@ -1096,15 +1097,16 @@
   /**
    * The BC Buddy logo in BC's top bar, which opens the side panel on its
    * start view, and the shortcuts it feeds that panel; see shortcuts.js. The
-   * logo is there while the keyboard shortcuts or Help & feedback is on: it
-   * is how people find both. Top window only: from there it reads BC's
-   * client frame. Attached once, so this costs one
+   * logo is there while the Web client (which brings the keyboard
+   * shortcuts) or Help & feedback is on: it is how people find both. Top
+   * window only: from there it reads BC's client frame. Attached once, so
+   * this costs one
    * comparison per apply().
    */
   function applyShortcuts() {
     var settings = state.settings;
-    var want = IS_TOP && isWebClientTarget(state.href) && (BCBuddy.shortcutsOn(settings) ||
-      !!(settings && settings.enabled && settings.feedbackEnabled));
+    var want = IS_TOP && isWebClientTarget(state.href) &&
+      (BCBuddy.webClientOn(settings) || BCBuddy.feedbackOn(settings));
     if (want === !!state.shortcuts) return;
     dropShortcuts();
     if (!want) return;

@@ -1,6 +1,6 @@
 {
   "app": "bc-buddy",
-  "version": 2,
+  "version": 3,
   "name": "BC Buddy samples",
   "exportedAt": "2026-10-18T00:00:00.000Z",
   "styles": [
@@ -63,7 +63,6 @@
     {
       "id": "sample-master-data",
       "name": "Master Data",
-      "enabled": true,
       "conditions": [
         {
           "field": "company",
@@ -80,7 +79,6 @@
     {
       "id": "sample-production",
       "name": "Production",
-      "enabled": true,
       "conditions": [
         {
           "field": "environment",
@@ -97,7 +95,6 @@
     {
       "id": "sample-uat",
       "name": "UAT",
-      "enabled": true,
       "conditions": [
         {
           "field": "environment",
@@ -114,7 +111,6 @@
     {
       "id": "sample-development",
       "name": "Development",
-      "enabled": true,
       "conditions": [
         {
           "field": "environment",
@@ -156,9 +152,6 @@
       "enabled": true
     },
     "weekNumbers": {
-      "enabled": true
-    },
-    "shortcuts": {
       "enabled": true
     },
     "hideFactBox": {
