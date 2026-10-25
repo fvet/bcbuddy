@@ -107,11 +107,38 @@ profile: two profiles with the same setting conflict, and then neither
 applies. The value is also in
 [`extension-settings.json`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/extension-settings.json).
 
-## 4. Check it
+## 4. Skip the download warning for report emails
+
+This step is optional. When someone sends a report with **Email** in
+[Help & feedback](help-feedback.md), BC Buddy saves it as an `.eml` file and
+opens it in Outlook. The browser treats `.eml` as a file type that can be
+harmful and, for a file with no reputation, asks *Keep this file?* first. To
+skip that question for these files only, add Edge's Downloads ›
+*Allow download warnings to be skipped for specific file types* (policy
+`ExemptFileTypeDownloadWarnings`) and Chrome's equivalent to the same profile,
+with this value:
+
+```json
+[
+  {
+    "file_extension": "eml",
+    "domains": ["chrome-extension://jpgpcfecpdcocjlepdfceahamliimjdl"]
+  }
+]
+```
+
+The domain limits the exemption to downloads that BC Buddy itself starts, so
+an `.eml` from a website still gets the warning. The value is also in
+[`exempt-file-types.json`](https://github.com/fvet/bcbuddy/blob/main/examples/intune/exempt-file-types.json).
+If your organisation already sets this policy, add the entry to your list.
+
+## 5. Check it
 
 On a test computer, open `edge://policy` or `chrome://policy` and look for
 `sharedConfigUrl`, and any other value you set, under BC Buddy's ID, and for
-the extension settings without an error. Open Business Central and check that the colours and the shared
+the extension settings and the file type exemption without an error. Send a
+test report with **Email** and check that Outlook opens it without the
+warning. Open Business Central and check that the colours and the shared
 rules are there. Then roll out to a small pilot group before everyone.
 
 ## What people see

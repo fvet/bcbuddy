@@ -605,6 +605,21 @@ and the BC hosts plus the shared file's host in `runtime_allowed_hosts`
 Content scripts then no longer run anywhere else. Nothing in the code depends on
 it; the extension simply never sees the other sites.
 
+### Download warning for the report `.eml`
+
+Edge and Chrome keep `.eml` on their list of file types that can be harmful,
+so the `.eml` that *Email* saves (a blob URL of our own, no reputation) gets
+*This file may be harmful. Keep it?* in the downloads panel. Nothing in the
+extension API switches that off. IT can exempt the type with the browser
+policy `ExemptFileTypeDownloadWarnings` (Edge and Chrome, Settings catalog
+under Downloads), limited to downloads from our own origin:
+`[{"file_extension": "eml", "domains": ["chrome-extension://<id>"]}]`
+(`examples/intune/exempt-file-types.json`, documented in `docs/intune.md`).
+It is a browser policy, not one of ours: the extension does not read it and
+nothing in the code depends on it. If the warning stays, check
+`edge://policy` first; whether the browser matches the `chrome-extension://`
+origin of a blob download is not verified, and `["*"]` is the wider fallback.
+
 ### Where the web client tweaks run
 
 `state.webClient`, worked out by `webClientHere()` once per `apply()`, decides
