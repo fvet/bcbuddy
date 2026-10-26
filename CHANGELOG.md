@@ -36,8 +36,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   One click opens the report with a screenshot of the error as a step, the
   message as its note, and the error details that **Copy error details** would
   give (session IDs, time and the AL call stack), so you no longer copy and
-  paste them yourself. A report you were already writing keeps its steps and
-  gets the error as its next one. It needs **Help & feedback** to be on, and it
+  paste them yourself. A report you were already writing is discarded first, so
+  the new one starts clean and never mixes with a pending one. It needs **Help & feedback** to be on, and it
   replaces what is on your clipboard.
 
 ### Fixed
@@ -49,6 +49,11 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   Once a report went out, changing it (a step added, removed or edited, the
   note, the type or the priority) brings the Email or Download button back, so
   you do not close a changed report without sending it again.
+- **Report a problem and feedback no longer share a draft.** The back button in
+  the report view now asks before it throws away what you wrote, as the bin
+  does; **Cancel** keeps you in the report. Opening **Report feedback** after a
+  problem report (or the other way round) always starts empty, instead of
+  bringing back what was left of the other one.
 - **BC Buddy icon on on-premises servers.** The icon in the top bar, before the
   gear, now also shows on Business Central on-premises. It was only there on
   the Microsoft 365 top bar of online environments.
