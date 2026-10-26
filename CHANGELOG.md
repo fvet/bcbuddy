@@ -49,6 +49,9 @@ Build, packaging and refactoring work is deliberately left out — it is in the
   Once a report went out, changing it (a step added, removed or edited, the
   note, the type or the priority) brings the Email or Download button back, so
   you do not close a changed report without sending it again.
+- **BC Buddy icon on on-premises servers.** The icon in the top bar, before the
+  gear, now also shows on Business Central on-premises. It was only there on
+  the Microsoft 365 top bar of online environments.
 
 <!-- --8<-- [start:released] -->
 
