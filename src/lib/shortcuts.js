@@ -119,8 +119,8 @@
 // - **Browser shortcut.** The manifest declares a `show-shortcuts` command
 //   without a default key, so it never takes one from BC. Someone who sets a
 //   key gets `chrome.commands.onCommand` in the service worker, which sends
-//   `bcb:toggle-shortcuts` to the tab's top frame. On-prem, without the
-//   Microsoft 365 top bar, that key is the only way in.
+//   `bcb:toggle-shortcuts` to the tab's top frame. Where no top bar has a
+//   Help button for the icon, that key is the only way in.
 
 /*
  * BC Buddy - the keyboard shortcuts that work where you are.
@@ -146,8 +146,10 @@
  * (iframe.designer-client-frame) under the Microsoft 365 top bar, both on the
  * same origin. Icon and panel belong to the top window; the actions and the
  * cursor are read from the client's document. On-prem has no Microsoft 365
- * top bar and no such iframe: there is no icon, and the panel (opened with the
- * browser shortcut, see background.js) reads the page itself.
+ * top bar: the icon goes before the Settings button in BC's own top bar
+ * (#product-menu-bar, after the product name), and the fit check measures
+ * against that name. Without either bar there is no icon, and the panel
+ * (opened with the browser shortcut, see background.js) reads the page itself.
  *
  * Cost: one observer on the top window's body (subtree) while the icon is
  * wanted. BC's grids live in the iframe's document, so the top window only
@@ -167,6 +169,9 @@
   var PANEL_ID = 'bcb-keys';
   var HELP_ID = 'O365_MainLink_Help_container';
   var GEAR_ID = 'O365_MainLink_Settings_container';
+  // On-prem has no Microsoft 365 top bar. BC's own bar (product-menu-bar) holds
+  // the product name first, then plain buttons: Help is one of them.
+  var BAR_ID = 'product-menu-bar';
   // The name and avatar, to the right of the buttons.
   var RIGHT_ID = 'O365_HeaderRightRegion';
   var CLIENT_FRAME = 'iframe.designer-client-frame';
@@ -501,6 +506,18 @@
     return svg;
   }
 
+  /** On-prem: the Help button in BC's own top bar, or null. */
+  function onPremHelp(doc) {
+    var bar = doc.getElementById(BAR_ID);
+    return bar ? bar.querySelector('button.system-help') : null;
+  }
+
+  /** On-prem: the Settings button just before Help, or null. */
+  function onPremGear(help) {
+    var gear = help.tagName === 'BUTTON' ? help.previousElementSibling : null;
+    return gear && gear.matches('button.settings') ? gear : null;
+  }
+
   /**
    * Our button, shaped like the Help button next to it: the shell's class
    * names are hashed and change between releases, so they are copied from
@@ -508,15 +525,20 @@
    * not have the shape we know.
    */
   function buildIcon(doc, help, label, onClick) {
-    var model = help.querySelector('button');
-    if (!model || !help.firstElementChild) return null;
-    var box = help.cloneNode(false);
+    // On-prem the Help button is the button itself, directly in BC's bar; the
+    // icon then gets a span of its own, as a plain box, so it has an id.
+    var direct = help.tagName === 'BUTTON';
+    var model = direct ? help : help.querySelector('button');
+    if (!model || (!direct && !help.firstElementChild)) return null;
+    var box = direct ? doc.createElement('span') : help.cloneNode(false);
     box.id = ICON_ID;
-    var inner = help.firstElementChild === model ? null : help.firstElementChild.cloneNode(false);
+    var inner = (direct || help.firstElementChild === model) ? null : help.firstElementChild.cloneNode(false);
     if (inner) inner.removeAttribute('id');
     var button = doc.createElement('button');
     button.type = 'button';
     button.className = model.className;
+    // Not Help's own class: the bar's Help is found by it, and must stay the only one.
+    if (direct) button.classList.remove('system-help');
     button.title = label;
     button.setAttribute('aria-label', label);
     button.setAttribute('aria-haspopup', 'dialog');
@@ -547,6 +569,12 @@
    */
   function iconFits(icon) {
     var buttons = icon.parentNode;
+    // On-prem the icon sits in BC's bar itself, after the product name, which
+    // the buttons must not run into.
+    if (buttons && buttons.id === BAR_ID) {
+      var name = buttons.firstElementChild;
+      return !name || icon.getBoundingClientRect().left >= name.getBoundingClientRect().right - 0.5;
+    }
     var row = buttons && buttons.parentNode;
     if (!row) return true;
     var right = icon.ownerDocument.getElementById(RIGHT_ID);
@@ -657,12 +685,12 @@
 
     function insertIcon() {
       if (detached || doc.getElementById(ICON_ID)) return;
-      var help = doc.getElementById(HELP_ID);
+      var help = doc.getElementById(HELP_ID) || onPremHelp(doc);
       if (!help || !help.parentNode) return;
       var icon = buildIcon(doc, help, t(options.iconLabel || 'scIconLabel'), options.onIcon || toggle);
       if (!icon) return;
       // Just before the Settings gear when it sits next to Help, else before Help.
-      var gear = doc.getElementById(GEAR_ID);
+      var gear = doc.getElementById(GEAR_ID) || onPremGear(help);
       help.parentNode.insertBefore(icon, gear && gear.parentNode === help.parentNode ? gear : help);
       watchFit(icon);
     }
@@ -671,7 +699,7 @@
     function watchFit(icon) {
       if (fit) fit.disconnect();
       fit = null;
-      var row = icon.parentNode.parentNode;
+      var row = icon.parentNode.id === BAR_ID ? icon.parentNode : icon.parentNode.parentNode;
       if (!row || !win.ResizeObserver) return;
       // Resizes only: the window, the shell showing or hiding a button, the
       // title changing. Three or four boxes, never the grid.
