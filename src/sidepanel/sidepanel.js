@@ -118,7 +118,10 @@
     });
 
     document.getElementById('back').addEventListener('click', function (event) {
-      if (event.isTrusted) setView('home');
+      if (!event.isTrusted) return;
+      // A report with content asks first, as the bin does.
+      if (view === 'help' && BCBuddy.HelpPanel.confirmLeave()) return;
+      setView('home');
     });
     document.getElementById('go-bug').addEventListener('click', function (event) {
       if (event.isTrusted) setView('help', null, 'Bug');

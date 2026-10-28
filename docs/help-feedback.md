@@ -41,8 +41,12 @@ When Business Central shows an error, **Report a problem** sits on the right of
 
 You no longer have to copy and paste them yourself. Your helpdesk gets what it
 needs to find the error. Add what you were doing, then send the report as
-usual. When you were already writing a report, the error is added as its next
-step; an error that is already in the report is not added twice.
+usual. When you were already writing a report, it is discarded first, so the
+new report starts clean and never mixes with a pending one.
+
+Leaving a report with the back button asks first, like the bin: **Throw away**
+goes back to the start view, **Cancel** keeps you in the report. A problem
+report and a feedback never share text or screenshots.
 
 !!! note
     This replaces what is on your clipboard, as **Copy error details** does.
