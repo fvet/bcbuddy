@@ -11,6 +11,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.1.1 — 2026-10-28
+
 ### Added
 
 - **Help & feedback in everyone's language.** If your people use Business
@@ -52,8 +56,6 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **BC Buddy icon on on-premises servers.** The icon in the top bar, before the
   gear, now also shows on Business Central on-premises. It was only there on
   the Microsoft 365 top bar of online environments.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.1.0 — 2026-10-25
 
