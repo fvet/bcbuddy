@@ -343,5 +343,21 @@
   "spReportType": { "message": "Type" },
   "spTypeBug": { "message": "Problème" },
   "spTypeIdea": { "message": "Commentaire" },
-  "feedbackEmailInvalid": { "message": "Saisissez une seule adresse e-mail, par exemple support@exemple.fr." }
+  "feedbackEmailInvalid": { "message": "Saisissez une seule adresse e-mail, par exemple support@exemple.fr." },
+  "filterRowToggle": {
+    "message": "Ligne de filtre",
+    "description": "Label on the on/off switch that adds a row of filter boxes above the columns of a Business Central list."
+  },
+  "filterRowDesc": {
+    "message": "Une zone au-dessus de chaque colonne pour filtrer une liste sur ce que contient la colonne.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "filterRowLabel": {
+    "message": "Filtre",
+    "description": "Start of the accessible name of a column's filter box, followed by the column caption."
+  },
+  "filterRowPlaceholder": {
+    "message": "Contient…",
+    "description": "Placeholder in a column's filter box: the list is filtered to rows that contain the typed text."
+  }
 }

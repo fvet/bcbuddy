@@ -317,6 +317,7 @@
   };
 
   page.renderWebClient = function () {
+    page.el.filterRowEnabled.checked = page.state.settings.filterRow.enabled;
     page.el.copyValuesEnabled.checked = page.state.settings.copyValues.enabled;
     page.el.weekNumbersEnabled.checked = page.state.settings.weekNumbers.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
@@ -649,7 +650,7 @@
       'addStyle', 'styleList', 'hostedStyleList', 'emptyStyles',
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
-      'hideNotificationsEnabled', 'copyValuesEnabled', 'weekNumbersEnabled',
+      'hideNotificationsEnabled', 'copyValuesEnabled', 'filterRowEnabled', 'weekNumbersEnabled',
       'resizePanesEnabled', 'hideFactBoxEnabled',
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
       'dropdownWidth', 'dropdownHeight',
@@ -899,6 +900,11 @@
         }
         page.save();
       });
+    });
+
+    el.filterRowEnabled.addEventListener('change', function () {
+      state.settings.filterRow.enabled = el.filterRowEnabled.checked;
+      page.save();
     });
 
     el.copyValuesEnabled.addEventListener('change', function () {

@@ -11,6 +11,12 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Added
+
+- **Filter row (off by default).** A box above each column caption of a list:
+  type a value, press Enter, and the list shows rows whose value in that
+  column contains it.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.1.2 — 2026-11-16

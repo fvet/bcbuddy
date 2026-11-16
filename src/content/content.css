@@ -485,3 +485,26 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
 /* While the details are copied, BC's Share details menu opens for a moment;
    it stays out of sight, and out of the screenshot. */
 html[data-bcb-capturing] .fui-MenuPopover { visibility: hidden !important; }
+
+/* Filter row (filterrow.js): our own row at the top of a list's header table, so
+   its cells take the columns' widths. Only our elements are styled; each rule
+   ends in a class of ours. */
+tr.bcb-filterrow > th.bcb-filtercell {
+  padding: 2px 4px;
+  font-weight: normal;
+}
+input.bcb-filterbox {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 22px;
+  padding: 0 4px;
+  font: inherit;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+}
+input.bcb-filterbox[aria-invalid="true"] {
+  border-color: #c00;
+}

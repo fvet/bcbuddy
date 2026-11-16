@@ -104,6 +104,7 @@ window.chrome = {
 <script src="../src/lib/actionbar.js"></script>
 <script src="../src/lib/factbox.js"></script>
 <script src="../src/lib/copyvalues.js"></script>
+<script src="../src/lib/filterrow.js"></script>
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
 <script src="../src/lib/shortcuts.js"></script>
@@ -600,6 +601,16 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   })();
 
   // and so do week numbers in the date picker
+  check('filter row: off by default', BCBuddy.filterRowOn(BCBuddy.normalize(null)), false);
+  check('filter row: on when asked',
+    BCBuddy.filterRowOn(BCBuddy.normalize({ filterRow: { enabled: true } })), true);
+  check('filter row: off with the Web client area',
+    BCBuddy.filterRowOn(BCBuddy.normalize({ enabled: false, filterRow: { enabled: true } })), false);
+  check('filter row: contains filter', BCBuddy.FilterRow.containsFilter('  Acme '), '@*Acme*');
+  check('filter row: empty clears', BCBuddy.FilterRow.containsFilter('   '), '');
+  ['a|b', 'a&b', '<5', 'a..b', "it's", 'a*b', 'x'.repeat(101), 'a\nb'].forEach(function (t) {
+    check('filter row: refuses ' + JSON.stringify(t).slice(0, 12), BCBuddy.FilterRow.containsFilter(t), null);
+  });
   check('week numbers: on by default', BCBuddy.weekNumbersOn(BCBuddy.normalize(null)), true);
   check('week numbers: off with its own toggle',
     BCBuddy.weekNumbersOn(BCBuddy.normalize({ weekNumbers: { enabled: false } })), false);

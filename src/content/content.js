@@ -109,6 +109,8 @@
     panes: null,
     // Copy icon handle while the switch is on.
     copyValues: null,
+    // Whether the filter row was on at the last pass.
+    filterRow: false,
     // Ctrl+click and middle-click handler (newtab.js, beta).
     newTab: null,
     // Week numbers in the date picker: its storage listener while the switch is on.
@@ -386,7 +388,7 @@
     // The current-row tint is not here on purpose: it is one attribute, set
     // once, and needs no watching. With an area off, nothing of it counts.
     var clicksBC = BCBuddy.maximizeOn(settings) || BCBuddy.pinActionBarOn(settings) ||
-      BCBuddy.hideFactBoxOn(settings);
+      BCBuddy.hideFactBoxOn(settings) || BCBuddy.filterRowOn(settings);
     var colours = BCBuddy.environmentsOn(settings) && effectiveRules(settings).length > 0;
     if (!colours && !clicksBC) return false;
     if (rule) return true;
@@ -460,6 +462,7 @@
     applyHideNotifications();
     applyLanguage();
     applyCopyValues();
+    applyFilterRow();
     applyNewTab();
     applyWeekNumbers();
     applyShortcuts();
@@ -1020,6 +1023,26 @@
       copy: BCBuddy.t('copyValue'),
       copied: BCBuddy.t('copiedValue')
     }) : null;
+  }
+
+  /* ----------------------------------------------------------- filter row */
+
+  /**
+   * Keeps the row of filter boxes above a list's captions; see filterrow.js.
+   * BC redraws its header, so this is on the shared loop: one querySelector and
+   * a cell count per pass while the switch is on, one comparison when it is off.
+   */
+  function applyFilterRow() {
+    var want = BCBuddy.filterRowOn(state.settings) && state.webClient;
+    if (want) {
+      BCBuddy.FilterRow.sync(document, {
+        filter: BCBuddy.t('filterRowLabel'),
+        placeholder: BCBuddy.t('filterRowPlaceholder')
+      });
+    } else if (state.filterRow) {
+      BCBuddy.FilterRow.remove(document);
+    }
+    state.filterRow = !!want;
   }
 
   /* --------------------------------------------------------- week numbers */

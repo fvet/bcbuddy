@@ -343,5 +343,21 @@
   "spReportType": { "message": "Type" },
   "spTypeBug": { "message": "Probleem" },
   "spTypeIdea": { "message": "Feedback" },
-  "feedbackEmailInvalid": { "message": "Vul één e-mailadres in, zoals helpdesk@voorbeeld.be." }
+  "feedbackEmailInvalid": { "message": "Vul één e-mailadres in, zoals helpdesk@voorbeeld.be." },
+  "filterRowToggle": {
+    "message": "Filterrij",
+    "description": "Label on the on/off switch that adds a row of filter boxes above the columns of a Business Central list."
+  },
+  "filterRowDesc": {
+    "message": "Een vak boven elke kolom om een lijst te filteren op wat de kolom bevat.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "filterRowLabel": {
+    "message": "Filter",
+    "description": "Start of the accessible name of a column's filter box, followed by the column caption."
+  },
+  "filterRowPlaceholder": {
+    "message": "Bevat…",
+    "description": "Placeholder in a column's filter box: the list is filtered to rows that contain the typed text."
+  }
 }

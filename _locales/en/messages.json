@@ -1206,5 +1206,21 @@
   },
   "feedbackEmailInvalid": {
     "message": "Enter one email address, such as helpdesk@example.com."
+  },
+  "filterRowToggle": {
+    "message": "Filter row",
+    "description": "Label on the on/off switch that adds a row of filter boxes above the columns of a Business Central list."
+  },
+  "filterRowDesc": {
+    "message": "A box above each column to filter a list by what the column contains.",
+    "description": "Short description under the setting's name in the Web client panel; one line."
+  },
+  "filterRowLabel": {
+    "message": "Filter",
+    "description": "Start of the accessible name of a column's filter box, followed by the column caption."
+  },
+  "filterRowPlaceholder": {
+    "message": "Contains…",
+    "description": "Placeholder in a column's filter box: the list is filtered to rows that contain the typed text."
   }
 }
