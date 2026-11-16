@@ -90,9 +90,10 @@ Click a question to see the answer.
 
 ??? faq "No week numbers in the date picker"
 
-    Press **Shift+Home** while the calendar is open. That turns Business
-    Central's week numbers on or off, and someone may have turned them off that
-    way: Business Central remembers it, and BC Buddy leaves it.
+    Check that **Week numbers in the date picker** is on in the BC Buddy
+    options. While it is on, the week numbers are always shown. With it off,
+    **Shift+Home** while the calendar is open turns Business Central's week
+    numbers on or off, and Business Central remembers it.
 
     The weeks are counted as the **Region** in **My Settings** says. If they are
     counted differently than you expect, check that setting.

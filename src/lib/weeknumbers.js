@@ -6,10 +6,11 @@
 // `<user>:<environment>:DatePicker` = `{"showWeekNumbers":true|false}`, and reads
 // it each time a picker opens; without the key the numbers are off.
 //
-// `lib/weeknumbers.js` writes `{"showWeekNumbers":true}` under that key for every
-// user and environment that has none yet, and never touches a stored value, so
-// Shift+Home stays the user's switch. It is started and stopped by
-// `applyWeekNumbers()` in `content.js`.
+// While the BC Buddy switch is on, `lib/weeknumbers.js` keeps
+// `{"showWeekNumbers":true}` under that key for every user and environment: it
+// writes it at start and again when Shift+Home turns it off (storage event).
+// With the switch off BC Buddy touches nothing, and Shift+Home is the user's
+// switch. It is started and stopped by `applyWeekNumbers()` in `content.js`.
 //
 // The prefix comes from `BCState.prefixes()`: BC writes
 // `<user>:<environment>:NavBar` (the navigation bar's measured width) each time
@@ -68,12 +69,17 @@
     var count = 0;
     BCBuddy.BCState.prefixes(storage).forEach(function (prefix) {
       try {
-        if (storage.getItem(prefix + KEY) !== null) return;
+        if (storage.getItem(prefix + KEY) === ON) return;
         storage.setItem(prefix + KEY, ON);
         count++;
       } catch (e) { /* storage full or blocked: BC cannot store it either */ }
     });
     return count;
+  }
+
+  function isPickerKey(key) {
+    return typeof key === 'string' && key.length > KEY.length + 1 &&
+      key.slice(-(KEY.length + 1)) === ':' + KEY;
   }
 
   /** Starts in window `win`. Returns { detach() }. */
@@ -83,7 +89,10 @@
     if (!storage) return { detach: function () {} };
 
     function onStorage(e) {
-      if (e.newValue !== null && BCBuddy.BCState.isStartKey(e.key)) turnOn(storage);
+      if (e.newValue === null) return;
+      // a new environment's first start, or Shift+Home turning them off:
+      // while the switch is on, the numbers are on
+      if (BCBuddy.BCState.isStartKey(e.key) || (isPickerKey(e.key) && e.newValue !== ON)) turnOn(storage);
     }
 
     turnOn(storage);

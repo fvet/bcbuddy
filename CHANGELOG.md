@@ -11,6 +11,12 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+### Fixed
+
+- **Week numbers in the date picker** are now always shown while the setting is
+  on, even after pressing Shift+Home in the calendar. Turn the setting off to
+  decide with Shift+Home yourself.
+
 <!-- --8<-- [start:released] -->
 
 ## 1.1.2 — 2026-11-16

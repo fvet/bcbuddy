@@ -138,7 +138,7 @@ window it stops growing before it covers the page.
 The calendar that opens from a date field shows the week number in front of
 each week. These are Business Central's own week numbers: Business Central has
 them, but leaves them off until you press **Shift+Home** in the calendar. BC
-Buddy turns them on for you, once.
+Buddy turns them on for you.
 
 === "With BC Buddy"
 
@@ -148,8 +148,9 @@ Buddy turns them on for you, once.
 
     ![The same calendar without week numbers](assets/screenshots/crop-without-week-numbers.png){ loading=lazy }
 
-To turn them off, or back on, press **Shift+Home** while the calendar is open.
-Business Central remembers that, and BC Buddy leaves it.
+While this setting is on, the week numbers are always shown. To decide
+yourself, turn the setting off: then **Shift+Home** while the calendar is open
+turns them on or off, and Business Central remembers it.
 
 Business Central counts the weeks as the **Region** in **My Settings** says.
 With Dutch, for example, weeks start on Monday and week 1 is the week with the
