@@ -11,14 +11,16 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.1.2 — 2026-11-16
+
 ### Fixed
 
 - **A new environment gets Maximize and Hide the FactBox pane.** A page you
   had already opened in Production, or in another environment, counted as set
   in a fresh sandbox, so BC Buddy left it alone. It now looks only at the
   environment you are in.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.1.1 — 2026-10-28
 
