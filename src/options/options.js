@@ -317,7 +317,6 @@
   };
 
   page.renderWebClient = function () {
-    page.el.filterRowEnabled.checked = page.state.settings.filterRow.enabled;
     page.el.copyValuesEnabled.checked = page.state.settings.copyValues.enabled;
     page.el.weekNumbersEnabled.checked = page.state.settings.weekNumbers.enabled;
     page.el.maximizeEnabled.checked = page.state.settings.maximize.enabled;
@@ -326,6 +325,7 @@
     page.el.highlightRowEnabled.checked = page.state.settings.highlightRow.enabled;
     page.el.resizePanesEnabled.checked = page.state.settings.resizePanes.enabled;
     page.el.stripeRowsEnabled.checked = page.state.settings.stripeRows.enabled;
+    page.el.columnSearchEnabled.checked = page.state.settings.columnSearch.enabled;
     page.el.noAnimationsEnabled.checked = page.state.settings.noAnimations.enabled;
     page.el.hideNotificationsEnabled.checked = page.state.settings.hideNotifications.enabled;
     page.renderDropdown();
@@ -650,7 +650,7 @@
       'addStyle', 'styleList', 'hostedStyleList', 'emptyStyles',
       'sharedHead', 'clearShared', 'hostedManaged',
       'brandDot', 'maximizeEnabled', 'pinActionBarEnabled', 'highlightRowEnabled', 'noAnimationsEnabled',
-      'hideNotificationsEnabled', 'copyValuesEnabled', 'filterRowEnabled', 'weekNumbersEnabled',
+      'hideNotificationsEnabled', 'copyValuesEnabled', 'columnSearchEnabled', 'weekNumbersEnabled',
       'resizePanesEnabled', 'hideFactBoxEnabled',
       'stripeRowsEnabled', 'resetWebClient', 'resetWebClientLabel', 'resetStatus',
       'dropdownWidth', 'dropdownHeight',
@@ -902,8 +902,8 @@
       });
     });
 
-    el.filterRowEnabled.addEventListener('change', function () {
-      state.settings.filterRow.enabled = el.filterRowEnabled.checked;
+    el.columnSearchEnabled.addEventListener('change', function () {
+      state.settings.columnSearch.enabled = el.columnSearchEnabled.checked;
       page.save();
     });
 

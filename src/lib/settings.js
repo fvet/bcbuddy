@@ -369,7 +369,7 @@
   // The keyboard shortcuts have no switch: they come with the area.
   var WEB_CLIENT_KEYS = ['maximize', 'pinActionBar', 'dropdown', 'resizePanes', 'highlightRow',
     'stripeRows', 'noAnimations', 'hideNotifications', 'copyValues', 'weekNumbers',
-    'hideFactBox', 'filterRow'];
+    'hideFactBox', 'columnSearch'];
 
   function normalizeWebClient(s) {
     var maximize = s.maximize || {};
@@ -383,7 +383,7 @@
     var copyValues = s.copyValues || {};
     var weekNumbers = s.weekNumbers || {};
     var hideFactBox = s.hideFactBox || {};
-    var filterRow = s.filterRow || {};
+    var columnSearch = s.columnSearch || {};
 
     return {
       maximize: {
@@ -428,8 +428,8 @@
         enabled: bool(hideFactBox.enabled, false)
       },
       // Off until asked for: it adds a row to every list.
-      filterRow: {
-        enabled: bool(filterRow.enabled, false)
+      columnSearch: {
+        enabled: bool(columnSearch.enabled, false)
       }
     };
   }
@@ -973,7 +973,7 @@
   function maximizeOn(settings) { return tweakOn(settings, 'maximize'); }
   function pinActionBarOn(settings) { return tweakOn(settings, 'pinActionBar'); }
   function hideFactBoxOn(settings) { return tweakOn(settings, 'hideFactBox'); }
-  function filterRowOn(settings) { return tweakOn(settings, 'filterRow'); }
+  function columnSearchOn(settings) { return tweakOn(settings, 'columnSearch'); }
   function resizePanesOn(settings) { return tweakOn(settings, 'resizePanes'); }
   function highlightRowOn(settings) { return tweakOn(settings, 'highlightRow'); }
   function stripeRowsOn(settings) { return tweakOn(settings, 'stripeRows'); }
@@ -1649,7 +1649,7 @@
   BCBuddy.maximizeOn = maximizeOn;
   BCBuddy.pinActionBarOn = pinActionBarOn;
   BCBuddy.hideFactBoxOn = hideFactBoxOn;
-  BCBuddy.filterRowOn = filterRowOn;
+  BCBuddy.columnSearchOn = columnSearchOn;
   BCBuddy.resizePanesOn = resizePanesOn;
   BCBuddy.highlightRowOn = highlightRowOn;
   BCBuddy.stripeRowsOn = stripeRowsOn;

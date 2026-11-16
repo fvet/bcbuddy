@@ -104,7 +104,7 @@ window.chrome = {
 <script src="../src/lib/actionbar.js"></script>
 <script src="../src/lib/factbox.js"></script>
 <script src="../src/lib/copyvalues.js"></script>
-<script src="../src/lib/filterrow.js"></script>
+<script src="../src/lib/columnsearch.js"></script>
 <script src="../src/lib/newtab.js"></script>
 <script src="../src/lib/weeknumbers.js"></script>
 <script src="../src/lib/shortcuts.js"></script>
@@ -601,16 +601,37 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   })();
 
   // and so do week numbers in the date picker
-  check('filter row: off by default', BCBuddy.filterRowOn(BCBuddy.normalize(null)), false);
-  check('filter row: on when asked',
-    BCBuddy.filterRowOn(BCBuddy.normalize({ filterRow: { enabled: true } })), true);
-  check('filter row: off with the Web client area',
-    BCBuddy.filterRowOn(BCBuddy.normalize({ enabled: false, filterRow: { enabled: true } })), false);
-  check('filter row: contains filter', BCBuddy.FilterRow.containsFilter('  Acme '), '@*Acme*');
-  check('filter row: empty clears', BCBuddy.FilterRow.containsFilter('   '), '');
+  check('column search: off by default', BCBuddy.columnSearchOn(BCBuddy.normalize(null)), false);
+  check('column search: on when asked',
+    BCBuddy.columnSearchOn(BCBuddy.normalize({ columnSearch: { enabled: true } })), true);
+  check('column search: off with the Web client area',
+    BCBuddy.columnSearchOn(BCBuddy.normalize({ enabled: false, columnSearch: { enabled: true } })), false);
+  check('column search: contains filter', BCBuddy.ColumnSearch.containsFilter('  Acme '), '@*Acme*');
+  check('column search: empty clears', BCBuddy.ColumnSearch.containsFilter('   '), '');
   ['a|b', 'a&b', '<5', 'a..b', "it's", 'a*b', 'x'.repeat(101), 'a\nb'].forEach(function (t) {
-    check('filter row: refuses ' + JSON.stringify(t).slice(0, 12), BCBuddy.FilterRow.containsFilter(t), null);
+    check('column search: refuses ' + JSON.stringify(t).slice(0, 12), BCBuddy.ColumnSearch.containsFilter(t), null);
   });
+  (function () {
+    function cell(html) { var th = document.createElement('th'); th.innerHTML = html; return th; }
+    var text = cell('<div class="columncaption columncaption-leftalign">Name</div>');
+    var num = cell('<div class="columncaption columncaption-rightalign">Balance</div>');
+    var data = document.createElement('td');
+    data.innerHTML = '<div><input type="checkbox"></div>';
+    check('column search: text column gets the search', BCBuddy.ColumnSearch.isSearchable(text, []), true);
+    check('column search: number column gets no search', BCBuddy.ColumnSearch.isSearchable(num, []), false);
+    check('column search: yes/no column gets no search', BCBuddy.ColumnSearch.isSearchable(text, [data]), false);
+    var option = document.createElement('td');
+    option.className = 'edit-container edit-container-read ms-nav-enumeration';
+    option.textContent = 'Released';
+    check('column search: option column gets no search', BCBuddy.ColumnSearch.isSearchable(text, [option]), false);
+    check('column search: no caption, no box', BCBuddy.ColumnSearch.isSearchable(cell(''), []), false);
+    function td(v) { var c = document.createElement('td'); c.textContent = v; return c; }
+    check('column search: date column gets no search',
+      BCBuddy.ColumnSearch.isSearchable(text, [td('1-11-2026'), td(''), td('2026-11-01')]), false);
+    check('column search: mixed values keep the search',
+      BCBuddy.ColumnSearch.isSearchable(text, [td('1-11-2026'), td('Acme')]), true);
+    check('column search: empty cells keep the search', BCBuddy.ColumnSearch.isSearchable(text, [td('')]), true);
+  })();
   check('week numbers: on by default', BCBuddy.weekNumbersOn(BCBuddy.normalize(null)), true);
   check('week numbers: off with its own toggle',
     BCBuddy.weekNumbersOn(BCBuddy.normalize({ weekNumbers: { enabled: false } })), false);

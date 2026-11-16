@@ -1207,20 +1207,16 @@
   "feedbackEmailInvalid": {
     "message": "Enter one email address, such as helpdesk@example.com."
   },
-  "filterRowToggle": {
-    "message": "Filter row",
-    "description": "Label on the on/off switch that adds a row of filter boxes above the columns of a Business Central list."
+  "columnSearchToggle": {
+    "message": "Column search",
+    "description": "Label on the on/off switch that adds a search box to the top of a column menu in a Business Central list."
   },
-  "filterRowDesc": {
-    "message": "A box above each column to filter a list by what the column contains.",
-    "description": "Short description under the setting's name in the Web client panel; one line."
+  "columnSearchDesc": {
+    "message": "A search box at the top of a column menu to filter that column by what it contains.",
+    "description": "One-line description of the column search switch, shown as a tooltip."
   },
-  "filterRowLabel": {
-    "message": "Filter",
-    "description": "Start of the accessible name of a column's filter box, followed by the column caption."
-  },
-  "filterRowPlaceholder": {
-    "message": "Contains…",
-    "description": "Placeholder in a column's filter box: the list is filtered to rows that contain the typed text."
+  "columnSearchPlaceholder": {
+    "message": "Search this column",
+    "description": "Placeholder of the search box at the top of a column menu."
   }
 }

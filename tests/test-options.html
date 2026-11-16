@@ -1176,11 +1176,16 @@ function assertWebClient() {
   check('web client: factbox switch is off by default', factBox.checked, false);
   check('web client: factbox sits with the switches that start off, above the bell',
     factBox.closest('.setting').nextElementSibling.contains(document.getElementById('hideNotificationsEnabled')), true);
+  var columnSearch = document.getElementById('columnSearchEnabled');
+  check('web client: column search switch lives in the panel', columnSearch.closest('.panel'), panel);
+  check('web client: column search switch is off by default', columnSearch.checked, false);
+  check('web client: column search sits above the factbox',
+    columnSearch.closest('.setting').nextElementSibling.contains(factBox), true);
   check('web client: the bell sits above animations',
     document.getElementById('hideNotificationsEnabled').closest('.setting').nextElementSibling
       .contains(document.getElementById('noAnimationsEnabled')), true);
   check('web client: striped rows sits with the switches that start off',
-    stripes.closest('.setting').nextElementSibling.contains(factBox), true);
+    stripes.closest('.setting').nextElementSibling.contains(columnSearch), true);
   check('web client: no keyboard shortcuts switch any more',
     document.getElementById('shortcutsEnabled'), null);
   check('web client: striped rows is the first extra',

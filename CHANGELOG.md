@@ -13,9 +13,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Added
 
-- **Filter row (off by default).** A box above each column caption of a list:
-  type a value, press Enter, and the list shows rows whose value in that
-  column contains it.
+- **Column search (off by default).** A search box at the top of a list
+  column's menu (the arrow in the caption), on text and code columns (not numbers, dates,
+  yes/no or option columns): type a value, press Enter or Tab, and the list
+  shows rows whose value in that column contains it. BC's own filter pane shows the filter and clears it.
 
 <!-- --8<-- [start:released] -->
 

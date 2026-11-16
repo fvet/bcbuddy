@@ -109,8 +109,8 @@
     panes: null,
     // Copy icon handle while the switch is on.
     copyValues: null,
-    // Whether the filter row was on at the last pass.
-    filterRow: false,
+    // Column search handle while the switch is on.
+    columnSearch: null,
     // Ctrl+click and middle-click handler (newtab.js, beta).
     newTab: null,
     // Week numbers in the date picker: its storage listener while the switch is on.
@@ -388,7 +388,7 @@
     // The current-row tint is not here on purpose: it is one attribute, set
     // once, and needs no watching. With an area off, nothing of it counts.
     var clicksBC = BCBuddy.maximizeOn(settings) || BCBuddy.pinActionBarOn(settings) ||
-      BCBuddy.hideFactBoxOn(settings) || BCBuddy.filterRowOn(settings);
+      BCBuddy.hideFactBoxOn(settings);
     var colours = BCBuddy.environmentsOn(settings) && effectiveRules(settings).length > 0;
     if (!colours && !clicksBC) return false;
     if (rule) return true;
@@ -462,7 +462,7 @@
     applyHideNotifications();
     applyLanguage();
     applyCopyValues();
-    applyFilterRow();
+    applyColumnSearch();
     applyNewTab();
     applyWeekNumbers();
     applyShortcuts();
@@ -1025,24 +1025,20 @@
     }) : null;
   }
 
-  /* ----------------------------------------------------------- filter row */
+  /* -------------------------------------------------------- column search */
 
   /**
-   * Keeps the row of filter boxes above a list's captions; see filterrow.js.
-   * BC redraws its header, so this is on the shared loop: one querySelector and
-   * a cell count per pass while the switch is on, one comparison when it is off.
+   * Puts a search box at the top of a list column's menu; see columnsearch.js.
+   * Attached once when the switch turns on, detached when it turns off; one
+   * comparison per apply() otherwise.
    */
-  function applyFilterRow() {
-    var want = BCBuddy.filterRowOn(state.settings) && state.webClient;
-    if (want) {
-      BCBuddy.FilterRow.sync(document, {
-        filter: BCBuddy.t('filterRowLabel'),
-        placeholder: BCBuddy.t('filterRowPlaceholder')
-      });
-    } else if (state.filterRow) {
-      BCBuddy.FilterRow.remove(document);
-    }
-    state.filterRow = !!want;
+  function applyColumnSearch() {
+    var want = BCBuddy.columnSearchOn(state.settings) && state.webClient;
+    if (want === !!state.columnSearch) return;
+    if (state.columnSearch) state.columnSearch.detach();
+    state.columnSearch = want ? BCBuddy.ColumnSearch.attach(document, {
+      placeholder: BCBuddy.t('columnSearchPlaceholder')
+    }) : null;
   }
 
   /* --------------------------------------------------------- week numbers */

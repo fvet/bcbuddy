@@ -486,25 +486,47 @@ html[data-bcb-newtab] .spa-view[data-bcb-origin] ~ .spa-view {
    it stays out of sight, and out of the screenshot. */
 html[data-bcb-capturing] .fui-MenuPopover { visibility: hidden !important; }
 
-/* Filter row (filterrow.js): our own row at the top of a list's header table, so
-   its cells take the columns' widths. Only our elements are styled; each rule
-   ends in a class of ours. */
-tr.bcb-filterrow > th.bcb-filtercell {
-  padding: 2px 4px;
-  font-weight: normal;
+/* Column search (columnsearch.js): our box as the first item of BC's column menu.
+   Only our own elements are styled; each rule ends in a class of ours. */
+li.bcb-menusearch {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  height: 38px;
+  color: rgb(80, 92, 109);
 }
-input.bcb-filterbox {
+/* The icon lines up with BC's own menu icons, and the box with their labels:
+   the menu list already insets our row by the same 8 px. */
+li.bcb-menusearch > svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+/* BC's own search glyph; font and colour are copied from BC's icon in the script. */
+li.bcb-menusearch > i.bcb-menusearch__glyph {
+  flex: none;
+  width: 16px;
+  font-size: 16px;
+  font-style: normal;
+  line-height: 16px;
+  text-align: center;
+  color: rgb(0, 126, 135);
+}
+li.bcb-menusearch > input {
   box-sizing: border-box;
+  flex: 1 1 auto;
   width: 100%;
   min-width: 0;
-  height: 22px;
-  padding: 0 4px;
+  height: 26px;
+  margin: 0 8px 0 0;
+  padding: 0 6px;
   font: inherit;
-  border: 1px solid rgba(128, 128, 128, 0.5);
+  border: 1px solid rgba(128, 128, 128, 0.6);
   border-radius: 2px;
   background: transparent;
   color: inherit;
 }
-input.bcb-filterbox[aria-invalid="true"] {
+li.bcb-menusearch > input[aria-invalid="true"] {
   border-color: #c00;
 }

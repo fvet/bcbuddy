@@ -344,20 +344,16 @@
   "spTypeBug": { "message": "Probleem" },
   "spTypeIdea": { "message": "Feedback" },
   "feedbackEmailInvalid": { "message": "Vul één e-mailadres in, zoals helpdesk@voorbeeld.be." },
-  "filterRowToggle": {
-    "message": "Filterrij",
-    "description": "Label on the on/off switch that adds a row of filter boxes above the columns of a Business Central list."
+  "columnSearchToggle": {
+    "message": "Kolom doorzoeken",
+    "description": "Label on the on/off switch that adds a search box to the top of a column menu in a Business Central list."
   },
-  "filterRowDesc": {
-    "message": "Een vak boven elke kolom om een lijst te filteren op wat de kolom bevat.",
-    "description": "Short description under the setting's name in the Web client panel; one line."
+  "columnSearchDesc": {
+    "message": "Een zoekvak bovenaan het menu van een kolom om die kolom te filteren op wat ze bevat.",
+    "description": "One-line description of the column search switch, shown as a tooltip."
   },
-  "filterRowLabel": {
-    "message": "Filter",
-    "description": "Start of the accessible name of a column's filter box, followed by the column caption."
-  },
-  "filterRowPlaceholder": {
-    "message": "Bevat…",
-    "description": "Placeholder in a column's filter box: the list is filtered to rows that contain the typed text."
+  "columnSearchPlaceholder": {
+    "message": "Zoek in deze kolom",
+    "description": "Placeholder of the search box at the top of a column menu."
   }
 }
