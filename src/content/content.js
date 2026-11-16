@@ -1037,7 +1037,8 @@
     if (want === !!state.columnSearch) return;
     if (state.columnSearch) state.columnSearch.detach();
     state.columnSearch = want ? BCBuddy.ColumnSearch.attach(document, {
-      placeholder: BCBuddy.t('columnSearchPlaceholder')
+      placeholder: BCBuddy.t('columnSearchPlaceholder'),
+      hint: BCBuddy.t('columnSearchHint')
     }) : null;
   }
 

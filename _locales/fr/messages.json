@@ -352,6 +352,10 @@
     "message": "Une zone de recherche en haut du menu d'une colonne pour filtrer cette colonne sur ce qu'elle contient.",
     "description": "One-line description of the column search switch, shown as a tooltip."
   },
+  "columnSearchHint": {
+    "message": "Un texte simple est recherché partout dans la colonne. La syntaxe de filtre est utilisée telle quelle : =texte exact, texte* commence par, A|B l'un ou l'autre.",
+    "description": "Tooltip of the search box in a column menu: plain text finds it anywhere in the column; filter syntax is used as typed."
+  },
   "columnSearchPlaceholder": {
     "message": "Rechercher dans cette colonne",
     "description": "Placeholder of the search box at the top of a column menu."

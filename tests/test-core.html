@@ -606,10 +606,13 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     BCBuddy.columnSearchOn(BCBuddy.normalize({ columnSearch: { enabled: true } })), true);
   check('column search: off with the Web client area',
     BCBuddy.columnSearchOn(BCBuddy.normalize({ enabled: false, columnSearch: { enabled: true } })), false);
-  check('column search: contains filter', BCBuddy.ColumnSearch.containsFilter('  Acme '), '@*Acme*');
-  check('column search: empty clears', BCBuddy.ColumnSearch.containsFilter('   '), '');
-  ['a|b', 'a&b', '<5', 'a..b', "it's", 'a*b', 'x'.repeat(101), 'a\nb'].forEach(function (t) {
-    check('column search: refuses ' + JSON.stringify(t).slice(0, 12), BCBuddy.ColumnSearch.containsFilter(t), null);
+  check('column search: plain text is a contains filter', BCBuddy.ColumnSearch.filterFor('  Acme '), '@*Acme*');
+  check('column search: empty clears', BCBuddy.ColumnSearch.filterFor('   '), '');
+  ['=Acme', 'Acme*', 'a|b', 'a&b', '<5', '1..9', "it's", '@Acme'].forEach(function (t) {
+    check('column search: syntax goes on as typed ' + JSON.stringify(t), BCBuddy.ColumnSearch.filterFor(t), t);
+  });
+  ['x'.repeat(101), 'a\nb'].forEach(function (t) {
+    check('column search: refuses ' + JSON.stringify(t).slice(0, 12), BCBuddy.ColumnSearch.filterFor(t), null);
   });
   (function () {
     function cell(html) { var th = document.createElement('th'); th.innerHTML = html; return th; }
@@ -620,6 +623,9 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     check('column search: text column gets the search', BCBuddy.ColumnSearch.isSearchable(text, []), true);
     check('column search: number column gets no search', BCBuddy.ColumnSearch.isSearchable(num, []), false);
     check('column search: yes/no column gets no search', BCBuddy.ColumnSearch.isSearchable(text, [data]), false);
+    var yesNo = document.createElement('td');
+    yesNo.innerHTML = '<a class="booleancontrol-read" role="button">No</a>';
+    check('column search: Yes/No link column gets no search', BCBuddy.ColumnSearch.isSearchable(text, [yesNo]), false);
     var option = document.createElement('td');
     option.className = 'edit-container edit-container-read ms-nav-enumeration';
     option.textContent = 'Released';

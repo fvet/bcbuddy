@@ -21,16 +21,18 @@
 // it was on a column header. Nothing per row, scroll or keystroke; the only
 // other listeners are on our own input, which exists while one menu is open.
 //
-// Security: the typed text is only ever put in an input's `value`; text with
-// filter syntax (| & < > = .. ( ) ' " * ? @), control characters or over 100
-// characters is refused (fail closed). The handlers need `isTrusted`.
+// Security: the typed text is only ever put in an input's `value`, in BC's own
+// filter line, which is where a person could type the same thing; control
+// characters or more than 100 characters are refused (fail closed). The handlers
+// need `isTrusted`.
 
 /*
  * BC Buddy - column search.
  *
  * Open a column's menu in a list and the first item is a search box. Type
  * something and press Enter: the list shows the rows whose value in that column
- * contains it. Only text and code columns get it: not numbers, dates, yes/no
+ * contains it. Text with filter syntax (=text, text*, A|B, 1..9) is BC's own
+ * filter and is used as typed. Only text and code columns get it: not numbers, dates, yes/no
  * or option columns.
  */
 (function (root) {
@@ -44,6 +46,9 @@
   var SKIP_ANCESTOR_SEL = '.spa-lookup, form.ms-nav-cardform, .ms-nav-layout-factbox-content-area';
   var DATA_SEL = 'table.ms-nav-grid-data-table';
   var RIGHT_ALIGN_CLASS = 'columncaption-rightalign';
+  // A Boolean column's cells hold a boolean control: a checkbox, or a link that
+  // reads Yes/No (Review G/L Entries, "Reviewed"; BC 28, 2026-11).
+  var BOOLEAN_SEL = '[class*="booleancontrol"], input[type="checkbox"]';
   // BC marks the cells of an option (enum) column with this class.
   var OPTION_CELL_CLASS = 'ms-nav-enumeration';
   var MAX_LEN = 100;
@@ -77,22 +82,23 @@
   // Keys BC keeps: Escape closes the menu, the others move around in it.
   var BC_KEYS = { Escape: 1, Tab: 1, ArrowUp: 1, ArrowDown: 1 };
 
-  // Characters BC reads as filter syntax. A contains filter built from text with
-  // any of them would mean something else, so such text is refused, not escaped.
+  // Characters BC reads as filter syntax. Text with any of them is the person's
+  // own filter and goes to BC as typed, exactly as if typed in "Filter...".
   var SYNTAX_RE = /[|&<>=()'"*?@]|\.\./;
 
   /**
-   * The BC filter for "contains text": @*text* (case-insensitive, wildcard on
-   * both sides). '' for an empty box (nothing to filter); null for text that
-   * cannot be turned into a contains filter safely (fail closed).
+   * The filter to give BC for the typed text. Plain text becomes a contains
+   * filter, @*text* (case-insensitive, wildcard on both sides); text with filter
+   * syntax (=text exact, text* starts with, A|B, 1..9) is passed on unchanged.
+   * '' for an empty box (nothing to filter); null for text that cannot be used
+   * safely (control characters, or too long): fail closed.
    */
-  function containsFilter(text) {
+  function filterFor(text) {
     var t = String(text == null ? '' : text).trim();
     if (!t) return '';
     if (t.length > MAX_LEN) return null;
-    if (SYNTAX_RE.test(t)) return null;
     if (/[\u0000-\u001f\u007f]/.test(t)) return null;
-    return '@*' + t + '*';
+    return SYNTAX_RE.test(t) ? t : '@*' + t + '*';
   }
 
   // Dates look like text in BC's DOM (no class marks them), so a column whose
@@ -103,7 +109,7 @@
 
   /**
    * A column gets the search when it holds text or a code. BC right-aligns the
-   * caption of a number column, a Boolean column's cells hold a checkbox, an
+   * caption of a number column, a Boolean column's cells hold a boolean control, an
    * option column's cells carry a class of their own, and a date column's values
    * are all dates, so those are left out. `cells` are the column's cells in the
    * first rows (empty for an empty list); then the caption alone decides.
@@ -116,7 +122,7 @@
     var dates = 0;
     for (var i = 0; cells && i < cells.length; i++) {
       if (!cells[i]) continue;
-      if (cells[i].querySelector('input[type="checkbox"]')) return false;
+      if (cells[i].querySelector(BOOLEAN_SEL)) return false;
       if (cells[i].classList.contains(OPTION_CELL_CLASS)) return false;
       var text = cells[i].textContent.trim();
       if (!text) continue;
@@ -241,6 +247,7 @@
     input.setAttribute('autocomplete', 'off');
     input.setAttribute('aria-label', labels.placeholder);
     input.setAttribute('placeholder', labels.placeholder);
+    if (labels.hint) input.setAttribute('title', labels.hint);
     // Leaving the box with Enter or Tab applies the filter. A Tab in an empty box
     // is BC's own: it moves on in the menu.
     function leaving(e) {
@@ -252,7 +259,7 @@
       e.stopPropagation();
       if (!leaving(e) || !e.isTrusted) return;
       e.preventDefault();
-      var filter = containsFilter(input.value);
+      var filter = filterFor(input.value);
       if (filter === null) { input.setAttribute('aria-invalid', 'true'); return; }
       input.removeAttribute('aria-invalid');
       if (!filter) return;
@@ -323,7 +330,7 @@
   }
 
   BCBuddy.ColumnSearch = {
-    containsFilter: containsFilter,
+    filterFor: filterFor,
     isSearchable: isSearchable,
     attach: attach
   };

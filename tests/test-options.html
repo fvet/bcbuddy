@@ -1179,6 +1179,8 @@ function assertWebClient() {
   var columnSearch = document.getElementById('columnSearchEnabled');
   check('web client: column search switch lives in the panel', columnSearch.closest('.panel'), panel);
   check('web client: column search switch is off by default', columnSearch.checked, false);
+  check('web client: column search has the magnifier icon',
+    columnSearch.closest('.setting').querySelector('.setting__icon').classList.contains('setting__icon--column-search'), true);
   check('web client: column search sits above the factbox',
     columnSearch.closest('.setting').nextElementSibling.contains(factBox), true);
   check('web client: the bell sits above animations',

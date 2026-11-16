@@ -352,6 +352,10 @@
     "message": "Een zoekvak bovenaan het menu van een kolom om die kolom te filteren op wat ze bevat.",
     "description": "One-line description of the column search switch, shown as a tooltip."
   },
+  "columnSearchHint": {
+    "message": "Gewone tekst zoekt overal in de kolom. Filtersyntaxis wordt gebruikt zoals getypt: =tekst exact, tekst* begint met, A|B een van beide.",
+    "description": "Tooltip of the search box in a column menu: plain text finds it anywhere in the column; filter syntax is used as typed."
+  },
   "columnSearchPlaceholder": {
     "message": "Zoek in deze kolom",
     "description": "Placeholder of the search box at the top of a column menu."

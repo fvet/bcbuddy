@@ -25,6 +25,7 @@ src/
   lib/actionbar.js     pin the action bar on BC's own pin button
   lib/factbox.js       hide the FactBox pane on BC's own toggle
   lib/copyvalues.js    copy values: the copy icon on read-only values
+  lib/columnsearch.js  column search: a search box in a list column's menu
   lib/weeknumbers.js   week numbers in the date picker
   lib/errorreport.js   Report a problem link in BC's error dialogs
   lib/shortcuts.js     the BC Buddy icon in the top bar, the floating
@@ -114,6 +115,8 @@ on only while `webClientEnabled` is (`tweakOn()`):
   by default (BC online uses it). One `data-bcb-no-bell` attribute on `<html>` and one id rule in
   `content.css` (`#notifications_container`, in the top document).
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
+- `columnSearch.enabled` — a search box at the top of a list column's menu,
+  off by default.
 - `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
   where nobody set them, on by default.
 - The keyboard shortcuts have no switch of their own (`shortcutsOn()` is
@@ -259,6 +262,27 @@ var l = document.querySelector('.spa-view.spa-lookup');
   Array.from(l.querySelectorAll('table.ms-nav-grid-header-table thead tr:last-child th'),
     function (th) { return th.style.width; })];
 ```
+
+## 🔎 Column search
+
+How it works is in the comment at the top of [columnsearch.js](src/lib/columnsearch.js).
+It drives BC's own column menu, so after a BC update check the selectors in the
+constants at the top of that file (confirmed on BC 28, 2026-11):
+
+- the menu opens from the arrow, the blank part of the caption cell
+  (`th.ms-nav-contextmenu-trigger`) and a right click. BC stops the arrow's
+  click from bubbling, so the listener runs in the capture phase;
+- the menu is `.ms-nav-ctxmenu-container`; its items are found by icon (the
+  filter icon is the first one), never by text;
+- **Filter...** opens BC's filter pane and focuses the column's line
+  (`.advanced-list-filter-line`), where the value is typed and Enter sent;
+- which columns qualify is read from the DOM: a right-aligned caption is a
+  number, `[class*="booleancontrol"]` a Yes/No, `ms-nav-enumeration` an option,
+  and a column whose sampled values are all dates is a date;
+- the icon is BC's own quick search glyph (`i[data-icon-name="Search"]`), copied
+  from the toolbar, and lined up by measuring a real menu item.
+
+Plain text becomes `@*text*`; text with filter syntax is passed on as typed.
 
 ## 📅 Week numbers in the date picker
 

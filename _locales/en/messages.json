@@ -1215,6 +1215,10 @@
     "message": "A search box at the top of a column menu to filter that column by what it contains.",
     "description": "One-line description of the column search switch, shown as a tooltip."
   },
+  "columnSearchHint": {
+    "message": "Plain text finds it anywhere in the column. Filter syntax is used as typed: =text exact, text* starts with, A|B either.",
+    "description": "Tooltip of the search box in a column menu: plain text finds it anywhere in the column; filter syntax is used as typed."
+  },
   "columnSearchPlaceholder": {
     "message": "Search this column",
     "description": "Placeholder of the search box at the top of a column menu."

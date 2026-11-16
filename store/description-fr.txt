@@ -19,7 +19,7 @@ Fini de cliquer sur les mêmes boutons à chaque page.
 
 Vos choix priment : remettez une page en mode étroit, et BC Buddy la laisse ainsi.
 
-Envie de plus ? Activez les lignes alternées, masquez le volet Récapitulatif ou la cloche des notifications, désactivez les animations, ou signalez un problème à votre support par e-mail, avec des captures d'écran annotées, sans quitter Business Central. Chaque amélioration a son propre interrupteur.
+Envie de plus ? Activez les lignes alternées, une zone de recherche dans chaque menu de colonne, masquez le volet Récapitulatif ou la cloche des notifications, désactivez les animations, ou signalez un problème à votre support par e-mail, avec des captures d'écran annotées, sans quitter Business Central. Chaque amélioration a son propre interrupteur.
 
 🎨 Ne validez plus jamais dans le mauvais environnement
 

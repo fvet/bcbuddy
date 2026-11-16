@@ -307,6 +307,7 @@ label.setting { cursor: pointer; }
   mask: var(--icon) center / contain no-repeat;
 }
 .setting__icon--copy-values { --icon: url(../../icons/settings/copy-values.svg); }
+.setting__icon--column-search { --icon: url(../../icons/settings/column-search.svg); }
 .setting__icon--maximize { --icon: url(../../icons/settings/maximize.svg); }
 .setting__icon--pin-action-bar { --icon: url(../../icons/settings/pin-action-bar.svg); }
 .setting__icon--highlight-row { --icon: url(../../icons/settings/highlight-row.svg); }

@@ -244,6 +244,29 @@ line you are on and the lines you select keep Business Central's own colours.
 
 </details>
 
+<details class="faq" id="column-search" markdown>
+<summary markdown="span"><span class="bcb-setting-icon">:settings-column-search:</span>Column search<span class="bcb-summary-text">A search box at the top of a column's menu</span></summary>
+
+<p class="bcb-starts">Off until you switch it on</p>
+
+Open the menu of a column in a list: click the small arrow in the column's
+heading, or right-click the heading. The first item is a search box. Type a
+word and press **Enter** or **Tab**, and the list shows only the rows where that
+column contains it. So `relec` finds **Relecloud**.
+
+It does what **Filter...** in the same menu does, in fewer steps. Business
+Central's own filter pane shows the filter, and **Clear filter** in the menu
+takes it away.
+
+The box is there on text and code columns. Numbers, dates, Yes/No and option
+columns do not get it.
+
+Do you want to filter the way you would in **Filter...**? Type the filter
+itself and BC Buddy uses it as typed: `=Relecloud` for an exact match, `Rel*` for
+values that start with it, `A|B` for either one, `10000..20000` for a range.
+
+</details>
+
 <details class="faq" id="hide-the-factbox-pane" markdown>
 <summary markdown="span"><span class="bcb-setting-icon">:settings-hide-fact-box:</span>Hide the FactBox pane<span class="bcb-summary-text">Pages open without the pane on the right</span></summary>
 

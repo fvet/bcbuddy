@@ -16,7 +16,8 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 - **Column search (off by default).** A search box at the top of a list
   column's menu (the arrow in the caption), on text and code columns (not numbers, dates,
   yes/no or option columns): type a value, press Enter or Tab, and the list
-  shows rows whose value in that column contains it. BC's own filter pane shows the filter and clears it.
+  shows rows whose value in that column contains it. Text with filter syntax
+  (`=text` exact, `text*` starts with, `A|B`) is used as typed. BC's own filter pane shows the filter and clears it.
 
 <!-- --8<-- [start:released] -->
 
