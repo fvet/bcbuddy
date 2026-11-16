@@ -46,8 +46,7 @@
 //   `bcb:error-shot`, as soon as the screenshot and the settings are in:
 //   `sidePanel.open()` only works for a moment after the click, so it cannot wait
 //   for the details. The panel turns the report into a step (`takeErrorReport()`
-//   in `help.js`, appended to a report in progress, skipped when a step has the
-//   same message): the
+//   in `help.js`, after discarding any report in progress): the
 //   screenshot, the message as its note, the details folded under it and
 //   written in the report as escaped `pre`. Without a screenshot the text goes
 //   in the message box. While it runs, `html[data-bcb-capturing]` hides BC's
@@ -271,13 +270,23 @@
     renderThumbs(true);
   }
 
+  // The type the view was last opened as, until the user leaves it.
+  var wantedType = '';
+
   /**
    * Each time the view comes to the front, with the type its entry on the
-   * start view stands for. A report in progress keeps its text and
-   * screenshots when it comes back as the other type.
+   * start view stands for. Content of the other type is thrown away, so a
+   * problem report and a feedback never share text or screenshots.
    */
   function shown(val) {
-    if (TYPES.indexOf(val) !== -1 && val !== type) { setType(val); saveLater(); }
+    if (TYPES.indexOf(val) !== -1) {
+      wantedType = val;
+      if (val !== type) {
+        if (hasContent()) reset();
+        setType(val);
+        saveLater();
+      }
+    }
     updateButtons();
     $('help-desc').focus();
   }
@@ -720,6 +729,9 @@
 
   function restore(d) {
     if (!d || typeof d !== 'object') return;
+    // A draft of the other type is stale: a feedback never picks up what was
+    // left of a problem report, nor the other way round.
+    if (wantedType && TYPES.indexOf(d.type) !== -1 && d.type !== wantedType) { clearDraft(); return; }
     if (Array.isArray(d.shots)) {
       shots = d.shots.filter(function (s) { return s && validImage(s.dataUrl); }).slice(0, MAX_SHOTS)
         .map(function (s) {
@@ -741,9 +753,9 @@
   /**
    * The Report a problem link in BC's error dialog: the error becomes a step
    * of the report, its screenshot with the error message as its note and
-   * BC's copied details folded under it. A report in progress keeps what it
-   * has and gets the error as its next step; one that already has a step
-   * with this message gets nothing new. What arrives was read from the page,
+   * BC's copied details folded under it. A report in progress is thrown away
+   * first (steps, screenshots, text, draft), so the new one starts clean and
+   * never mixes with a pending one. What arrives was read from the page,
    * so it is capped here again and only put on the page as text.
    */
   var lastErrorAt = 0;
@@ -759,12 +771,11 @@
       var message = text(p.message, 1000);
       var details = text(p.details, MAX_ERROR_DETAILS);
       var from = { title: text(p.title), url: text(p.url, 4096) };
-      // Already in the report: as a step, or as text in the box.
-      if (message && (shots.some(function (s) { return modelText(s.note || []) === message; }) ||
-          modelText(desc.get()).indexOf(message) !== -1)) return;
+      // A new report: whatever was pending (steps, screenshots, text, draft)
+      // is thrown away first, so it cannot mix with this error.
+      reset();
       var add = function (dataUrl) {
-        // A report in progress keeps its type; an empty one is a problem.
-        if (!hasContent() && type !== 'Bug') setType('Bug');
+        setType('Bug');
         if (dataUrl) {
           if (shots.length >= MAX_SHOTS) { updateButtons(); return; }
           var shot = { dataUrl: dataUrl, title: from.title, url: from.url, note: cleanModel(message ? [{ t: message }] : []) };
@@ -1650,6 +1661,17 @@
     });
   }
 
+  /**
+   * The back button: with something in the report, asks first, as the bin
+   * does; yes throws it away and goes to the start view. Returns true when it
+   * asked, false when there is nothing to lose and the caller can leave.
+   */
+  function confirmLeave() {
+    if (!started || !hasContent()) return false;
+    showConfirm();
+    return true;
+  }
+
   function showConfirm() {
     if (!hasContent() || $('help-confirm').open) return;
     closeMenus();
@@ -1769,6 +1791,7 @@
   BCBuddy.HelpPanel = {
     start: start,
     shown: shown,
+    confirmLeave: confirmLeave,
     relocalize: relocalize,
     // For the test harness: the subject builder on its own.
     fillSubject: BCBuddy.fillSubject
