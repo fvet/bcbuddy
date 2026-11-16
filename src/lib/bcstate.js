@@ -17,8 +17,9 @@
 // cannot rebuild (the URL often leaves the environment out), so a key matches on
 // its end. Both ids start with the page number as eight hex digits
 // (`0000001a-0000-0001-0c00-…` is page 26); the page number comes from
-// `form.ms-nav-root-form[data-page-id]`. A choice in another environment of the
-// same tenant therefore counts too, and BC Buddy errs on leaving the page alone.
+// `form.ms-nav-root-form[data-page-id]`. Without a recognizable environment in
+// the address, a choice in any environment counts and BC Buddy errs on leaving
+// the page alone.
 //
 // The page's own pin is the button with `i[data-icon-name="Pin"]` (floating) or
 // `"Unpin"` (pinned) in `.ms-nav-layout-menubar`; a part such as order lines has
@@ -28,6 +29,10 @@
 //
 // Runtime cost: one query in the page on screen per pass, and one walk over the
 // `localStorage` keys the first time a page is seen.
+//
+// Each environment has its own keys, so scoped() limits the lookup to the
+// environment in the address (`/<tenant>/<environment>`, `production` when
+// left out): a page set in Production is still fresh in a new sandbox.
 
 /*
  * BC Buddy - Business Central's own page settings.
@@ -45,8 +50,10 @@
  *
  * The user and environment part of the key cannot be rebuilt from the page
  * (the URL often leaves the environment out), so a key matches on what follows
- * it. A choice made in another environment, or by another user in the same
- * browser, then counts too, and BC Buddy errs on leaving the page alone.
+ * it. scoped() narrows the keys to the environment in the address; a choice by
+ * another user in the same browser and environment still counts, and so does
+ * any environment's when the address gives none that matches, since BC Buddy
+ * errs on leaving the page alone.
  *
  * A few settings belong to the user rather than to a page, such as week
  * numbers in the date picker (see weeknumbers.js). prefixes() finds the
@@ -168,7 +175,65 @@
     return found;
   }
 
+  /**
+   * The environment a BC address points at: the segment after the tenant
+   * (`/<tenant>/<environment>`), and `production` where the address leaves it
+   * out. Null when there is no address to read. On-premises addresses have a
+   * different shape; scoped() then finds no matching key and changes nothing.
+   */
+  function envFromPath(pathname) {
+    if (typeof pathname !== 'string') return null;
+    var parts = pathname.split('/').filter(Boolean);
+    var env = parts.length > 1 ? parts[1] : 'production';
+    try { env = decodeURIComponent(env); } catch (e) { /* keep it as is */ }
+    return env.toLowerCase();
+  }
+
+  function envOfPrefix(prefix) {
+    var inner = prefix.slice(0, -1); // drop the trailing colon
+    return inner.slice(inner.lastIndexOf(':') + 1).toLowerCase();
+  }
+
+  /**
+   * `storage` as seen from the environment the address points at. BC keeps a
+   * separate set of keys per environment, so a page someone set in Production
+   * must not count as set in a fresh sandbox of the same tenant. The
+   * environment comes from the address and must match the start key of one
+   * that ran in this browser (see prefixes()); when it does not, or there is
+   * no storage, `storage` comes back as it was and chosen() errs on leaving the
+   * page alone. The keys are only listed when chosen() asks, so building this
+   * costs nothing on the passes that never ask.
+   */
+  function scoped(storage, pathname) {
+    var env = envFromPath(pathname);
+    if (!storage || !env) return storage;
+    var keys = null;
+    function list() {
+      if (keys) return keys;
+      keys = [];
+      try {
+        var wanted = prefixes(storage).filter(function (p) { return envOfPrefix(p) === env; });
+        if (!wanted.length) {
+          for (var i = 0; i < storage.length; i++) keys.push(storage.key(i));
+        } else {
+          for (var j = 0; j < storage.length; j++) {
+            var key = storage.key(j);
+            if (key && wanted.some(function (p) { return key.indexOf(p) === 0; })) keys.push(key);
+          }
+        }
+      } catch (e) { keys = []; }
+      return keys;
+    }
+    return {
+      get length() { return list().length; },
+      key: function (i) { return list()[i]; },
+      getItem: function (k) { return storage.getItem(k); }
+    };
+  }
+
   BCBuddy.BCState = {
+    envFromPath: envFromPath,
+    scoped: scoped,
     pageId: pageId,
     hex: hex,
     chosen: chosen,

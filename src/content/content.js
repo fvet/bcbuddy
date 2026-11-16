@@ -900,11 +900,12 @@
 
   /**
    * The localStorage of this frame, where BC keeps the choices made on each
-   * page. Null where the browser blocks it; BC cannot store anything there
-   * either.
+   * page, limited to the environment in the address (a choice in Production
+   * says nothing about a sandbox). Null where the browser blocks it; BC cannot
+   * store anything there either.
    */
   function bcStorage() {
-    try { return window.localStorage; } catch (e) { return null; }
+    try { return BCBuddy.BCState.scoped(window.localStorage, location.pathname); } catch (e) { return null; }
   }
 
   /* ---------------------------------------------------------- current row */
