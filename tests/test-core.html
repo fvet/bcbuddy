@@ -1485,6 +1485,33 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   F.apply(fbSet, new WeakMap(), bcKeys);
   check('factbox: a page with a stored layout keeps its pane', fbSet.clicks, []);
 
+  // Issue #60, end to end: Items (page 31) was set in Production, then opened in
+  // a fresh sandbox of the same tenant. The sandbox must get all three tweaks;
+  // Production, where the choices live, must get none. The raw storage case
+  // pins down the bug itself: every environment's keys counted.
+  var itemsEntries = {};
+  itemsEntries['JOHN:production:NavBar'] = '{"Pinned":false}';
+  itemsEntries['JOHN:sandboxbe:NavBar'] = '{"Pinned":false}';
+  itemsEntries['JOHN:production:Layout:0000001f' + ID] =
+    '{"AsideAreaRightExpanded":false,"PageLayoutExpanded":true,"FactboxTabSelectedKey":"Details"}';
+  itemsEntries['JOHN:production:0000001f-9191-0000-0c62-cc00836bd2d2'] = '{"Layout":"Grid"}';
+  var itemsKeys = fakeStorage(itemsEntries);
+  var itemsSandbox = S.scoped(itemsKeys, '/tenant.com/SandboxBE');
+  var itemsProd = S.scoped(itemsKeys, '/tenant.com');
+  function itemsClicks(storage) {
+    var wideDoc = storedStack('', 'icon-TallBrickView', '31');
+    M.apply(wideDoc, new WeakMap(), storage);
+    var boxDoc = factBoxStack('31');
+    F.apply(boxDoc, new WeakMap(), storage);
+    return boxDoc.clicks.concat(wideDoc.clicks);
+  }
+  check('environment: a fresh sandbox gets the FactBox closed, wide and list view',
+    itemsClicks(itemsSandbox), ['fb-top', 'wide-top', 'menu-top']);
+  check('environment: Production, where Items was set, is left alone',
+    itemsClicks(itemsProd), []);
+  check('environment: unscoped storage lets another environment block the sandbox (the old bug)',
+    itemsClicks(itemsKeys), []);
+
   var fbClosed = factBoxStack('27', { closed: true });
   F.apply(fbClosed, new WeakMap(), bcKeys);
   check('factbox: a pane that is already closed is left alone', fbClosed.clicks, []);
