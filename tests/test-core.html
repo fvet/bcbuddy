@@ -629,10 +629,11 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
   });
   check('week numbers: every user and environment BC ran in',
     BCBuddy.BCState.prefixes(picks), ['JOHN:production:', 'JOHN:sandbox:']);
-  check('week numbers: turned on where nobody chose', W.turnOn(picks), 1);
+  check('week numbers: turned on where unset or off', W.turnOn(picks), 2);
   check('week numbers: written as BC writes them',
     picks.data['JOHN:production:DatePicker'], '{"showWeekNumbers":true}');
-  check('week numbers: Shift+Home off is left off', picks.data['JOHN:sandbox:DatePicker'], '{"showWeekNumbers":false}');
+  check('week numbers: Shift+Home off is turned back on while the switch is on',
+    picks.data['JOHN:sandbox:DatePicker'], '{"showWeekNumbers":true}');
   check('week numbers: once set, nothing more to do', W.turnOn(picks), 0);
   check('week numbers: only BC\'s own keys are touched',
     Object.keys(picks.data).filter(function (k) { return /DatePicker$/.test(k); }).length, 2);
@@ -654,6 +655,10 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     fakeWin.localStorage.getItem('JOHN:test:DatePicker'), null);
   heard({ key: 'JOHN:test:NavBar', newValue: '{"Pinned":false}' });
   check('week numbers: a new environment gets them at its first start',
+    fakeWin.localStorage.getItem('JOHN:test:DatePicker'), '{"showWeekNumbers":true}');
+  fakeWin.localStorage.setItem('JOHN:test:DatePicker', '{"showWeekNumbers":false}');
+  heard({ key: 'JOHN:test:DatePicker', newValue: '{"showWeekNumbers":false}' });
+  check('week numbers: Shift+Home off while switched on is undone',
     fakeWin.localStorage.getItem('JOHN:test:DatePicker'), '{"showWeekNumbers":true}');
   weeks.detach();
   check('week numbers: detach stops listening', heard, null);
