@@ -1391,6 +1391,29 @@ STORE[BCBuddy.STORAGE_KEY] = BCBuddy.normalize({
     [S.chosen(null, 'pin', 26), S.chosen(bcKeys, 'pin', null), S.chosen(bcKeys, 'nonsense', 26)],
     [false, false, false]);
 
+  // each environment has its own keys: a choice in Production is no choice in a sandbox
+  var envEntries = {};
+  envEntries['JOHN:production:NavBar'] = '{"Pinned":false}';
+  envEntries['JOHN:sandboxbe:NavBar'] = '{"Pinned":false}';
+  envEntries['JOHN:production:Layout:0000001f' + ID] = '{"AsideAreaRightExpanded":false}';
+  envEntries['JOHN:production:0000001f-9191-0000-0c62-cc00836bd2d2'] = '{"Layout":"Grid"}';
+  envEntries['JOHN:sandboxbe:Layout:00000015' + ID] = '{"PageLayoutExpanded":true}';
+  var envKeys = fakeStorage(envEntries);
+  check('bc state: environment from the address',
+    [S.envFromPath('/tenant.com'), S.envFromPath('/tenant.com/SandboxBE'), S.envFromPath('/tenant.com/Sandbox%20BE/'), S.envFromPath(null)],
+    ['production', 'sandboxbe', 'sandbox be', null]);
+  var inProd = S.scoped(envKeys, '/tenant.com');
+  var inSandbox = S.scoped(envKeys, '/tenant.com/SandboxBE');
+  check('bc state: a choice in Production counts in Production',
+    [S.chosen(inProd, 'factbox', 31), S.chosen(inProd, 'list', 31)], [true, true]);
+  check('bc state: a choice in Production is no choice in a sandbox',
+    [S.chosen(inSandbox, 'factbox', 31), S.chosen(inSandbox, 'list', 31)], [false, false]);
+  check('bc state: a choice in the sandbox counts there, not in Production',
+    [S.chosen(inSandbox, 'wide', 21), S.chosen(inProd, 'wide', 21)], [true, false]);
+  check('bc state: an environment with no start key keeps every key',
+    S.chosen(S.scoped(envKeys, '/tenant.com/Other'), 'factbox', 31), true);
+  check('bc state: no storage stays none', S.scoped(null, '/tenant.com'), null);
+
   // maximize leaves a page alone that someone set before
   function storedStack(top, layoutIcon, id) {
     var doc = bcStack(top, layoutIcon);
