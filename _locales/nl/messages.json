@@ -210,7 +210,7 @@
   "scDocsAll": { "message": "Alle sneltoetsen" },
   "scPanelEmpty": { "message": "Open een pagina in Business Central om de sneltoetsen te zien." },
   "weekNumbersToggle": { "message": "Weeknummers in de datumkiezer" },
-  "weekNumbersDesc": { "message": "De kalender van een datumveld toont weeknummers." },
+  "weekNumbersDesc": { "message": "De kalender van een datumveld toont weeknummers. Business Central 27 of hoger." },
   "hideNotificationsToggle": { "message": "Berichtenicoon verbergen" },
   "hideNotificationsDesc": { "message": "Verbergt het belletje rechtsboven in Business Central." },
   "noAnimationsDesc": { "message": "Pagina's en deelvensters verschijnen meteen in plaats van in te schuiven." },

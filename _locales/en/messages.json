@@ -558,7 +558,7 @@
     "description": "Label on the on/off switch that shows the week number in front of each week in the Business Central date picker (the calendar that opens from a date field)."
   },
   "weekNumbersDesc": {
-    "message": "The calendar of a date field shows week numbers.",
+    "message": "The calendar of a date field shows week numbers. Business Central 27 or later.",
     "description": "Short description under the setting's name in the Web client panel; one line."
   },
   "hideNotificationsToggle": {

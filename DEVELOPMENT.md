@@ -114,8 +114,8 @@ on only while `webClientEnabled` is (`tweakOn()`):
   by default (BC online uses it). One `data-bcb-no-bell` attribute on `<html>` and one id rule in
   `content.css` (`#notifications_container`, in the top document).
 - `copyValues.enabled` — the copy icon on read-only values, on by default.
-- `weekNumbers.enabled` — turns on BC's own week numbers in the date picker
-  where nobody set them, on by default.
+- `weekNumbers.enabled` — holds BC's own week numbers in the date picker on
+  (or off, when the switch is off) whatever Shift+Home stored, on by default.
 - The keyboard shortcuts have no switch of their own (`shortcutsOn()` is
   `webClientOn()`): the BC Buddy icon in BC's top bar (two people) and the
   shortcuts view are there while the Web client area or Help & feedback is
@@ -265,8 +265,8 @@ var l = document.querySelector('.spa-view.spa-lookup');
 How it works is in the comment at the top of [weeknumbers.js](src/lib/weeknumbers.js).
 
 After a BC update, remove the `…:DatePicker` key, reload, and open a date
-picker: the week numbers should be there, and Shift+Home should still turn
-them off and write `{"showWeekNumbers":false}`.
+picker: the week numbers should be there. Shift+Home flips that picker once
+and BC Buddy writes the key back, so the next picker follows the switch.
 
 ## 📋 Copy values
 

@@ -111,8 +111,9 @@
     copyValues: null,
     // Ctrl+click and middle-click handler (newtab.js, beta).
     newTab: null,
-    // Week numbers in the date picker: its storage listener while the switch is on.
+    // Week numbers in the date picker: its storage listener ('on' or 'off' mode) while BC Buddy holds the setting.
     weekNumbers: null,
+    weekNumbersMode: null,
     // Report a problem link in BC's error dialogs (errorreport.js), while Help & feedback is on.
     errorReport: null,
     // Keyboard shortcuts icon and panel (shortcuts.js), while the switch is on.
@@ -1025,17 +1026,19 @@
   /* --------------------------------------------------------- week numbers */
 
   /**
-   * Turns on Business Central's own week numbers in the date picker where
-   * nobody chose yet; see weeknumbers.js. It looks once when the switch turns
-   * on and then only listens for storage events, so this costs one comparison
-   * per apply(). Switching it off stops that; numbers already on stay, as BC
-   * keeps them.
+   * Holds Business Central's week numbers in the date picker on or off, as the
+   * switch says, whatever Shift+Home stored; see weeknumbers.js. It looks once
+   * when the switch changes and then only listens for storage events, so this
+   * costs one comparison per apply(). With BC Buddy or the Web client area off
+   * it stops and leaves BC's own value alone.
    */
   function applyWeekNumbers() {
-    var want = BCBuddy.weekNumbersOn(state.settings) && state.webClient;
-    if (want === !!state.weekNumbers) return;
+    var active = BCBuddy.webClientOn(state.settings) && state.webClient;
+    var want = active ? (state.settings.weekNumbers.enabled ? 'on' : 'off') : null;
+    if (want === state.weekNumbersMode) return;
     if (state.weekNumbers) state.weekNumbers.detach();
-    state.weekNumbers = want ? BCBuddy.WeekNumbers.attach(window) : null;
+    state.weekNumbersMode = want;
+    state.weekNumbers = want ? BCBuddy.WeekNumbers.attach(window, want === 'on') : null;
   }
 
   /* ---------------------------------------------------- open in a new tab */
