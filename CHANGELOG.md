@@ -13,9 +13,10 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ### Fixed
 
-- **Week numbers in the date picker** are now always shown while the setting is
-  on, even after pressing Shift+Home in the calendar. Turn the setting off to
-  decide with Shift+Home yourself.
+- **Week numbers in the date picker** follow the setting, on or off. Pressing
+  Shift+Home in the calendar no longer sticks: BC Buddy puts the setting back,
+  so the next calendar you open follows it. The calendar you pressed it in
+  changes once. Week numbers need Business Central 27 or later.
 
 <!-- --8<-- [start:released] -->
 

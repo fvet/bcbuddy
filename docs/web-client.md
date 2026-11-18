@@ -148,9 +148,12 @@ Buddy turns them on for you.
 
     ![The same calendar without week numbers](assets/screenshots/crop-without-week-numbers.png){ loading=lazy }
 
-While this setting is on, the week numbers are always shown. To decide
-yourself, turn the setting off: then **Shift+Home** while the calendar is open
-turns them on or off, and Business Central remembers it.
+The switch decides, on or off. If you press **Shift+Home** in the calendar,
+BC Buddy puts the setting back, so the next calendar you open follows the
+switch. Turn the switch off to have no week numbers.
+
+Week numbers in the calendar need **Business Central 27 or later**. On an
+older version, on-premises included, the switch has no effect.
 
 Business Central counts the weeks as the **Region** in **My Settings** says.
 With Dutch, for example, weeks start on Monday and week 1 is the week with the

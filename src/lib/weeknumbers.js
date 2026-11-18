@@ -6,18 +6,25 @@
 // `<user>:<environment>:DatePicker` = `{"showWeekNumbers":true|false}`, and reads
 // it each time a picker opens; without the key the numbers are off.
 //
-// While the BC Buddy switch is on, `lib/weeknumbers.js` keeps
-// `{"showWeekNumbers":true}` under that key for every user and environment: it
-// writes it at start and again when Shift+Home turns it off (storage event).
-// With the switch off BC Buddy touches nothing, and Shift+Home is the user's
-// switch. It is started and stopped by `applyWeekNumbers()` in `content.js`.
+// The BC Buddy switch is the only authority, on or off. `lib/weeknumbers.js`
+// writes `showWeekNumbers` under that key for every user and environment, and
+// writes it back whenever BC stores something else (a Shift+Home), so that
+// press never sticks: the open picker flips once, the next one follows the
+// switch. It is started and stopped by `applyWeekNumbers()` in `content.js`,
+// only while BC Buddy and the Web client area are on; with either off BC
+// Buddy leaves the key alone.
 //
 // The prefix comes from `BCState.prefixes()`: BC writes
 // `<user>:<environment>:NavBar` (the navigation bar's measured width) each time
 // it starts, so every such key names a user and environment that ran BC here.
-// An environment that starts for the first time while the tab is open is caught
-// by the `storage` event: BC writes from the client frame, and the content
-// script in the top frame hears it.
+// On-prem builds leave the environment out (`<user>:NavBar`). A key BC writes
+// from the client frame, such as an environment starting for the first time or
+// a Shift+Home, is caught by the `storage` event: the content script in the top
+// frame hears it.
+//
+// Needs BC 27 or later (2025 release wave 2). An on-prem client seen in
+// 2026-11 passes no `showWeekNumbers` to the calendar at all, so the key does
+// nothing there.
 //
 // The numbers are BC's: `firstWeekOfYear` and `firstDayOfWeek` come from the
 // user's Region (`calendarWeekRule` in BC's formatting info). A Dutch region
@@ -26,7 +33,7 @@
 // widens the picker from 220 to 250px. Its label for that cell reads
 // "Weeknummer undefined", a gap in BC's own strings.
 //
-// Runtime: one walk over the `localStorage` keys when the switch turns on or a
+// Runtime: one walk over the `localStorage` keys when the switch changes or a
 // page loads, and a suffix check on each `storage` event, which BC raises a few
 // times per session. Nothing runs in the picker itself.
 
@@ -39,63 +46,76 @@
  *
  *   <user>:<environment>:DatePicker   {"showWeekNumbers":true}
  *
- * and reads it each time a picker opens. Without that key the numbers are off.
- * BC Buddy turns them on where nobody chose yet, by writing the key exactly as
- * BC does. From then on it is BC's setting: Shift+Home turns the numbers off,
- * BC stores that, and BC Buddy leaves a stored value alone.
+ * and reads it each time a picker opens. BC Buddy's switch decides, on or off:
+ * it writes the key exactly as BC does and writes it back when BC stores a
+ * different value, so a Shift+Home does not stick.
  *
  * The numbers are BC's own, counted as the user's Region in My Settings says
  * (first day of the week, and which week is week 1).
  *
- * Which users and environments: see BCState.prefixes(). An environment that
- * starts for the first time while BC Buddy runs is caught by the storage
- * event: BC writes its start key from the client frame, and the page around
- * that frame hears it. Runtime: one walk over the localStorage keys when this
- * starts, and a look at the key of each storage event, which BC raises a few
- * times per session. Nothing runs in the picker or while you scroll or type.
+ * Which users and environments: see BCState.prefixes(). Runtime: one walk over
+ * the localStorage keys when this starts, and a look at the key of each storage
+ * event, which BC raises a few times per session. Nothing runs in the picker or
+ * while you scroll or type.
  */
 (function (root) {
   'use strict';
   var BCBuddy = root.BCBuddy || (root.BCBuddy = {});
 
   var KEY = 'DatePicker';
-  var ON = JSON.stringify({ showWeekNumbers: true });
-
-  /**
-   * Turns BC's week numbers on for every user and environment in `storage`
-   * that has no DatePicker setting yet. Returns how many it turned on.
-   */
-  function turnOn(storage) {
-    var count = 0;
-    BCBuddy.BCState.prefixes(storage).forEach(function (prefix) {
-      try {
-        if (storage.getItem(prefix + KEY) === ON) return;
-        storage.setItem(prefix + KEY, ON);
-        count++;
-      } catch (e) { /* storage full or blocked: BC cannot store it either */ }
-    });
-    return count;
-  }
+  var FIELD = 'showWeekNumbers';
 
   function isPickerKey(key) {
     return typeof key === 'string' && key.length > KEY.length + 1 &&
       key.slice(-(KEY.length + 1)) === ':' + KEY;
   }
 
-  /** Starts in window `win`. Returns { detach() }. */
-  function attach(win) {
+  /** What `text` should become so that showWeekNumbers is `on`; null if it already is. */
+  function wanted(text, on) {
+    var value = null;
+    try { value = text === null ? null : JSON.parse(text); } catch (e) { /* garbled: replace */ }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) value = {};
+    if (value[FIELD] === on) return null;
+    value[FIELD] = on;
+    return JSON.stringify(value);
+  }
+
+  function set(storage, key, on) {
+    try {
+      var next = wanted(storage.getItem(key), on);
+      if (next === null) return false;
+      storage.setItem(key, next);
+      return true;
+    } catch (e) { /* storage full or blocked: BC cannot store it either */ }
+    return false;
+  }
+
+  /**
+   * Makes showWeekNumbers `on` for every user and environment in `storage`
+   * and keeps the other fields BC stored. Returns how many keys it changed.
+   */
+  function enforce(storage, on) {
+    var count = 0;
+    BCBuddy.BCState.prefixes(storage).forEach(function (prefix) {
+      if (set(storage, prefix + KEY, on)) count++;
+    });
+    return count;
+  }
+
+  /** Starts in window `win`, holding the numbers `on` or off. Returns { detach() }. */
+  function attach(win, on) {
+    on = !!on;
     var storage = null;
     try { storage = win.localStorage; } catch (e) { /* blocked */ }
     if (!storage) return { detach: function () {} };
 
     function onStorage(e) {
       if (e.newValue === null) return;
-      // a new environment's first start, or Shift+Home turning them off:
-      // while the switch is on, the numbers are on
-      if (BCBuddy.BCState.isStartKey(e.key) || (isPickerKey(e.key) && e.newValue !== ON)) turnOn(storage);
+      if (isPickerKey(e.key)) set(storage, e.key, on);
+      else if (BCBuddy.BCState.isStartKey(e.key)) enforce(storage, on);
     }
 
-    turnOn(storage);
+    enforce(storage, on);
     win.addEventListener('storage', onStorage);
     return {
       detach: function () { win.removeEventListener('storage', onStorage); }
@@ -104,7 +124,7 @@
 
   BCBuddy.WeekNumbers = {
     KEY: KEY,
-    turnOn: turnOn,
+    enforce: enforce,
     attach: attach
   };
 })(typeof self !== 'undefined' ? self : this);

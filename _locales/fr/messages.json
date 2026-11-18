@@ -211,7 +211,7 @@
   "scDocsAll": { "message": "Tous les raccourcis clavier" },
   "scPanelEmpty": { "message": "Ouvrez une page de Business Central pour voir ses raccourcis." },
   "weekNumbersToggle": { "message": "Numéros de semaine dans le sélecteur de date" },
-  "weekNumbersDesc": { "message": "Le calendrier d'un champ date affiche les numéros de semaine." },
+  "weekNumbersDesc": { "message": "Le calendrier d'un champ date affiche les numéros de semaine. Business Central 27 ou plus récent." },
   "hideNotificationsToggle": { "message": "Masquer l'icône des notifications" },
   "hideNotificationsDesc": { "message": "Masque la cloche en haut à droite de Business Central." },
   "dropdownWidth": { "message": "Largeur" },
