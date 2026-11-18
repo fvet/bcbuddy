@@ -11,14 +11,16 @@ Build, packaging and refactoring work is deliberately left out — it is in the
 
 ## Unreleased
 
+<!-- --8<-- [start:released] -->
+
+## 1.1.3 — 2026-11-18
+
 ### Fixed
 
 - **Week numbers in the date picker** follow the setting, on or off. Pressing
   Shift+Home in the calendar no longer sticks: BC Buddy puts the setting back,
   so the next calendar you open follows it. The calendar you pressed it in
   changes once. Week numbers need Business Central 27 or later.
-
-<!-- --8<-- [start:released] -->
 
 ## 1.1.2 — 2026-11-16
 
